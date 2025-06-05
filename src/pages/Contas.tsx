@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
@@ -6,7 +5,7 @@ import { AccountModal } from '@/components/Accounts/AccountModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAccounts, Account } from '@/contexts/AccountsContext';
 
@@ -36,6 +35,40 @@ const Contas: React.FC = () => {
     
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  // Calcular total baseado no filtro de tipo
+  const calculateFilteredTotal = () => {
+    if (typeFilter === 'todos') {
+      const receitas = filteredAccounts
+        .filter(account => account.type === 'receita')
+        .reduce((sum, account) => sum + account.amount, 0);
+      const despesas = filteredAccounts
+        .filter(account => account.type === 'despesa')
+        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+      return receitas - despesas;
+    } else if (typeFilter === 'receita') {
+      return filteredAccounts
+        .filter(account => account.type === 'receita')
+        .reduce((sum, account) => sum + account.amount, 0);
+    } else {
+      return filteredAccounts
+        .filter(account => account.type === 'despesa')
+        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    }
+  };
+
+  const getFilteredTotalLabel = () => {
+    if (typeFilter === 'todos') return 'Saldo Total';
+    if (typeFilter === 'receita') return 'Total Receitas';
+    return 'Total Despesas';
+  };
+
+  const getFilteredTotalColor = () => {
+    const total = calculateFilteredTotal();
+    if (typeFilter === 'receita') return 'text-green-600';
+    if (typeFilter === 'despesa') return 'text-red-600';
+    return total >= 0 ? 'text-green-600' : 'text-red-600';
+  };
 
   const handleSave = (accountData: Account) => {
     if (editingAccount) {
@@ -133,6 +166,28 @@ const Contas: React.FC = () => {
                 <SelectItem value="despesa">Despesas</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Campo do Total Filtrado */}
+          <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <DollarSign size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">{getFilteredTotalLabel()}</p>
+                  <p className={`text-2xl font-bold ${getFilteredTotalColor()}`}>
+                    {typeFilter === 'despesa' ? '' : typeFilter === 'receita' ? '+' : ''}R$ {Math.abs(calculateFilteredTotal()).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-slate-600">
+                  {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta' : 'contas'}
+                </p>
+              </div>
+            </div>
           </div>
 
           <AccountsTable
