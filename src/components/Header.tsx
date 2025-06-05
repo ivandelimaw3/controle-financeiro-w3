@@ -8,7 +8,7 @@ export const Header: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            FinanceControl
+            Controle Financeiro W3
           </h1>
           <p className="text-sm text-slate-500">Gestão Financeira</p>
         </div>
