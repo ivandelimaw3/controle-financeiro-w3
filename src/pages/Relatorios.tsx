@@ -14,6 +14,8 @@ const Relatorios: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
+  const [monthFilter, setMonthFilter] = useState('todos');
+  const [yearFilter, setYearFilter] = useState('todos');
 
   // Dados simulados para os gráficos
   const monthlyData = [
@@ -33,14 +35,25 @@ const Relatorios: React.FC = () => {
     { name: 'Utilidades', value: 200, color: '#F59E0B' },
   ];
 
+  // Gerar lista de anos disponíveis
+  const availableYears = Array.from(new Set(
+    accounts.map(account => new Date(account.dueDate).getFullYear())
+  )).sort((a, b) => b - a);
+
   // Filtrar contas baseado nos filtros
   const filteredAccounts = accounts.filter(account => {
+    const accountDate = new Date(account.dueDate);
+    const accountMonth = accountDate.getMonth() + 1;
+    const accountYear = accountDate.getFullYear();
+
     const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          account.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
     const matchesType = typeFilter === 'todos' || account.type === typeFilter;
+    const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
+    const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
     
-    return matchesSearch && matchesStatus && matchesType;
+    return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
   });
 
   const getStatusColor = (status: string) => {
@@ -136,7 +149,7 @@ const Relatorios: React.FC = () => {
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Todas as Contas</h3>
             
             {/* Filtros */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="relative flex-1">
                 <Search size={20} className="absolute left-3 top-3 text-slate-400" />
                 <Input
@@ -169,6 +182,46 @@ const Relatorios: React.FC = () => {
                   <SelectItem value="todos">Todos os Tipos</SelectItem>
                   <SelectItem value="receita">Receitas</SelectItem>
                   <SelectItem value="despesa">Despesas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtros de Data */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Calendar size={16} className="mr-2" />
+                  <SelectValue placeholder="Mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Meses</SelectItem>
+                  <SelectItem value="1">Janeiro</SelectItem>
+                  <SelectItem value="2">Fevereiro</SelectItem>
+                  <SelectItem value="3">Março</SelectItem>
+                  <SelectItem value="4">Abril</SelectItem>
+                  <SelectItem value="5">Maio</SelectItem>
+                  <SelectItem value="6">Junho</SelectItem>
+                  <SelectItem value="7">Julho</SelectItem>
+                  <SelectItem value="8">Agosto</SelectItem>
+                  <SelectItem value="9">Setembro</SelectItem>
+                  <SelectItem value="10">Outubro</SelectItem>
+                  <SelectItem value="11">Novembro</SelectItem>
+                  <SelectItem value="12">Dezembro</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Calendar size={16} className="mr-2" />
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Anos</SelectItem>
+                  {availableYears.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
