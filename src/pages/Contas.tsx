@@ -8,64 +8,23 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface Account {
-  id: number;
-  description: string;
-  amount: number;
-  category: string;
-  dueDate: string;
-  type: 'receita' | 'despesa';
-  status: 'pendente' | 'pago' | 'recebido';
-}
+import { useAccounts, Account } from '@/contexts/AccountsContext';
 
 const Contas: React.FC = () => {
   const { toast } = useToast();
+  const { 
+    accounts, 
+    addAccount, 
+    updateAccount, 
+    deleteAccount, 
+    updateAccountStatus 
+  } = useAccounts();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
-
-  // Dados simulados
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      id: 1,
-      description: 'Aluguel',
-      amount: -1200,
-      category: 'Moradia',
-      dueDate: '2024-12-10',
-      type: 'despesa',
-      status: 'pago'
-    },
-    {
-      id: 2,
-      description: 'Salário',
-      amount: 5000,
-      category: 'Trabalho',
-      dueDate: '2024-12-15',
-      type: 'receita',
-      status: 'recebido'
-    },
-    {
-      id: 3,
-      description: 'Conta de Luz',
-      amount: -150,
-      category: 'Utilidades',
-      dueDate: '2024-12-20',
-      type: 'despesa',
-      status: 'pendente'
-    },
-    {
-      id: 4,
-      description: 'Freelance',
-      amount: 800,
-      category: 'Trabalho',
-      dueDate: '2024-12-18',
-      type: 'receita',
-      status: 'pendente'
-    }
-  ]);
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
 
@@ -80,21 +39,13 @@ const Contas: React.FC = () => {
 
   const handleSave = (accountData: Account) => {
     if (editingAccount) {
-      setAccounts(prev => prev.map(acc => 
-        acc.id === editingAccount.id 
-          ? { ...accountData, id: editingAccount.id }
-          : acc
-      ));
+      updateAccount(accountData);
       toast({
         title: "Conta atualizada",
         description: "A conta foi atualizada com sucesso.",
       });
     } else {
-      const newAccount = {
-        ...accountData,
-        id: Math.max(...accounts.map(a => a.id)) + 1
-      };
-      setAccounts(prev => [...prev, newAccount]);
+      addAccount(accountData);
       toast({
         title: "Conta criada",
         description: "Nova conta adicionada com sucesso.",
@@ -109,7 +60,7 @@ const Contas: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    setAccounts(prev => prev.filter(acc => acc.id !== id));
+    deleteAccount(id);
     toast({
       title: "Conta excluída",
       description: "A conta foi removida com sucesso.",
@@ -117,11 +68,7 @@ const Contas: React.FC = () => {
   };
 
   const handleStatusChange = (id: number, status: string) => {
-    setAccounts(prev => prev.map(acc => 
-      acc.id === id 
-        ? { ...acc, status: status as 'pendente' | 'pago' | 'recebido' }
-        : acc
-    ));
+    updateAccountStatus(id, status as 'pendente' | 'pago' | 'recebido');
     toast({
       title: "Status atualizado",
       description: `Status da conta alterado para ${status}.`,

@@ -3,16 +3,7 @@ import React from 'react';
 import { Edit, Trash2, Calendar, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface Account {
-  id: number;
-  description: string;
-  amount: number;
-  category: string;
-  dueDate: string;
-  type: 'receita' | 'despesa';
-  status: 'pendente' | 'pago' | 'recebido';
-}
+import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsTableProps {
   accounts: Account[];

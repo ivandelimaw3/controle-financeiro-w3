@@ -33,7 +33,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transact
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
       <h3 className="text-lg font-semibold text-slate-800 mb-4">Transações Recentes</h3>
       <div className="space-y-4">
-        {transactions.map((transaction) => (
+        {transactions.slice(0, 4).map((transaction) => (
           <div key={transaction.id} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${transaction.type === 'receita' ? 'bg-green-100' : 'bg-red-100'}`}>
