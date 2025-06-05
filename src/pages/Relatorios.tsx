@@ -1,11 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, Calendar, Download } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useAccounts } from '@/contexts/AccountsContext';
 
 const Relatorios: React.FC = () => {
+  const { accounts, getTotalReceitas, getTotalDespesas, getSaldo } = useAccounts();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [typeFilter, setTypeFilter] = useState('todos');
+
   // Dados simulados para os gráficos
   const monthlyData = [
     { month: 'Jan', receitas: 4000, despesas: 2400 },
@@ -23,6 +32,45 @@ const Relatorios: React.FC = () => {
     { name: 'Lazer', value: 400, color: '#6366F1' },
     { name: 'Utilidades', value: 200, color: '#F59E0B' },
   ];
+
+  // Filtrar contas baseado nos filtros
+  const filteredAccounts = accounts.filter(account => {
+    const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         account.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
+    const matchesType = typeFilter === 'todos' || account.type === typeFilter;
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pago':
+      case 'recebido':
+        return 'bg-green-100 text-green-800';
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pago':
+        return 'Pago';
+      case 'recebido':
+        return 'Recebido';
+      case 'pendente':
+        return 'Pendente';
+      default:
+        return status;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
 
   return (
     <Layout>
@@ -47,7 +95,7 @@ const Relatorios: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-slate-600 text-sm">Total de Receitas</h3>
-                <p className="text-2xl font-bold text-green-600">R$ 18.060,00</p>
+                <p className="text-2xl font-bold text-green-600">R$ {getTotalReceitas().toFixed(2)}</p>
               </div>
             </div>
             <p className="text-sm text-slate-500">+12% vs mês anterior</p>
@@ -60,7 +108,7 @@ const Relatorios: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-slate-600 text-sm">Total de Despesas</h3>
-                <p className="text-2xl font-bold text-red-600">R$ 18.306,00</p>
+                <p className="text-2xl font-bold text-red-600">R$ {getTotalDespesas().toFixed(2)}</p>
               </div>
             </div>
             <p className="text-sm text-slate-500">+5% vs mês anterior</p>
@@ -73,11 +121,109 @@ const Relatorios: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-slate-600 text-sm">Saldo do Período</h3>
-                <p className="text-2xl font-bold text-slate-800">R$ -246,00</p>
+                <p className={`text-2xl font-bold ${getSaldo() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  R$ {getSaldo().toFixed(2)}
+                </p>
               </div>
             </div>
             <p className="text-sm text-slate-500">-18% vs mês anterior</p>
           </div>
+        </div>
+
+        {/* Planilha de Contas */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200">
+          <div className="p-6 border-b border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Todas as Contas</h3>
+            
+            {/* Filtros */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search size={20} className="absolute left-3 top-3 text-slate-400" />
+                <Input
+                  placeholder="Pesquisar contas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Filter size={16} className="mr-2" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Status</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="pago">Pago</SelectItem>
+                  <SelectItem value="recebido">Recebido</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Filter size={16} className="mr-2" />
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Tipos</SelectItem>
+                  <SelectItem value="receita">Receitas</SelectItem>
+                  <SelectItem value="despesa">Despesas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Data de Vencimento</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAccounts.map((account) => (
+                  <TableRow key={account.id}>
+                    <TableCell className="font-medium">{account.description}</TableCell>
+                    <TableCell>{account.category}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        account.type === 'receita' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {account.type === 'receita' ? 'Receita' : 'Despesa'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`font-semibold ${
+                        account.type === 'receita' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
+                      </span>
+                    </TableCell>
+                    <TableCell>{formatDate(account.dueDate)}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(account.status)}`}>
+                        {getStatusLabel(account.status)}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {filteredAccounts.length === 0 && (
+            <div className="p-8 text-center text-slate-500">
+              Nenhuma conta encontrada com os filtros aplicados.
+            </div>
+          )}
         </div>
 
         {/* Gráficos */}
@@ -124,55 +270,6 @@ const Relatorios: React.FC = () => {
                 <Tooltip formatter={(value) => [`R$ ${value}`, 'Valor']} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Tabela de Resumo por Categoria */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Resumo por Categoria</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Tipo</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Valor Total</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Transações</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Média</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-slate-100">
-                  <td className="p-4 font-medium text-slate-800">Trabalho</td>
-                  <td className="p-4">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Receita</span>
-                  </td>
-                  <td className="p-4 text-green-600 font-semibold">R$ 5.800,00</td>
-                  <td className="p-4 text-slate-600">3</td>
-                  <td className="p-4 text-slate-600">R$ 1.933,33</td>
-                </tr>
-                <tr className="border-b border-slate-100">
-                  <td className="p-4 font-medium text-slate-800">Moradia</td>
-                  <td className="p-4">
-                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Despesa</span>
-                  </td>
-                  <td className="p-4 text-red-600 font-semibold">R$ 1.200,00</td>
-                  <td className="p-4 text-slate-600">1</td>
-                  <td className="p-4 text-slate-600">R$ 1.200,00</td>
-                </tr>
-                <tr className="border-b border-slate-100">
-                  <td className="p-4 font-medium text-slate-800">Alimentação</td>
-                  <td className="p-4">
-                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Despesa</span>
-                  </td>
-                  <td className="p-4 text-red-600 font-semibold">R$ 800,00</td>
-                  <td className="p-4 text-slate-600">12</td>
-                  <td className="p-4 text-slate-600">R$ 66,67</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
