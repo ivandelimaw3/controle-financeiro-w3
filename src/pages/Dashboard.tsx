@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -27,6 +28,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleDespesasClick = () => {
+    navigate('/contas');
+  };
+
+  const handleContasPendentesClick = () => {
     navigate('/contas');
   };
 
@@ -70,6 +75,7 @@ const Dashboard: React.FC = () => {
             value={contasPendentes.toString()}
             icon={CreditCard}
             bgColor="bg-gradient-to-r from-orange-500 to-orange-600"
+            onClick={handleContasPendentesClick}
           />
         </div>
 
