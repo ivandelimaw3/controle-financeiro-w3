@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
@@ -7,6 +7,7 @@ import { TrendingUp, TrendingDown, DollarSign, CreditCard } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     getTransactions, 
     getTotalReceitas, 
@@ -20,6 +21,14 @@ const Dashboard: React.FC = () => {
   const totalDespesas = getTotalDespesas();
   const saldo = getSaldo();
   const contasPendentes = getContasPendentes();
+
+  const handleReceitasClick = () => {
+    navigate('/contas');
+  };
+
+  const handleDespesasClick = () => {
+    navigate('/contas');
+  };
 
   return (
     <Layout>
@@ -45,6 +54,7 @@ const Dashboard: React.FC = () => {
             trend="8%"
             trendUp={true}
             bgColor="bg-gradient-to-r from-green-500 to-green-600"
+            onClick={handleReceitasClick}
           />
           <FinancialCard
             title="Despesas"
@@ -53,6 +63,7 @@ const Dashboard: React.FC = () => {
             trend="3%"
             trendUp={false}
             bgColor="bg-gradient-to-r from-red-500 to-red-600"
+            onClick={handleDespesasClick}
           />
           <FinancialCard
             title="Contas Pendentes"

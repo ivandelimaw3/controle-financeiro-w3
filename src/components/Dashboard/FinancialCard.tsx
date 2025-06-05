@@ -9,6 +9,7 @@ interface FinancialCardProps {
   trend?: string;
   trendUp?: boolean;
   bgColor: string;
+  onClick?: () => void;
 }
 
 export const FinancialCard: React.FC<FinancialCardProps> = ({
@@ -17,10 +18,16 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
   icon: Icon,
   trend,
   trendUp,
-  bgColor
+  bgColor,
+  onClick
 }) => {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300">
+    <div 
+      className={`bg-white rounded-2xl p-6 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 ${
+        onClick ? 'cursor-pointer hover:scale-105' : ''
+      }`}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-xl ${bgColor}`}>
           <Icon size={24} className="text-white" />
