@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -29,12 +30,20 @@ const Contas: React.FC = () => {
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
 
-  // Aplicar filtro da URL ao carregar a página
+  // Aplicar filtros da URL ao carregar a página
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const statusParam = searchParams.get('status');
+    const typeParam = searchParams.get('type');
+    
     if (statusParam === 'pendente') {
       setStatusFilter('pendente');
+    }
+    
+    if (typeParam === 'receita') {
+      setTypeFilter('receita');
+    } else if (typeParam === 'despesa') {
+      setTypeFilter('despesa');
     }
   }, [location.search]);
 
