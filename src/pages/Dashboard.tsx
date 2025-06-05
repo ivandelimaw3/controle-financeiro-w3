@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -32,7 +31,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleContasPendentesClick = () => {
-    navigate('/contas');
+    navigate('/contas?status=pendente');
   };
 
   return (

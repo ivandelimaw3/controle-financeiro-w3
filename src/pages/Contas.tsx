@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal } from '@/components/Accounts/AccountModal';
@@ -11,6 +12,7 @@ import { useAccounts, Account } from '@/contexts/AccountsContext';
 
 const Contas: React.FC = () => {
   const { toast } = useToast();
+  const location = useLocation();
   const { 
     accounts, 
     addAccount, 
@@ -26,6 +28,15 @@ const Contas: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState('todos');
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
+
+  // Aplicar filtro da URL ao carregar a página
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const statusParam = searchParams.get('status');
+    if (statusParam === 'pendente') {
+      setStatusFilter('pendente');
+    }
+  }, [location.search]);
 
   const filteredAccounts = accounts.filter(account => {
     const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
