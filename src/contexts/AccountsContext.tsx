@@ -11,13 +11,23 @@ export interface Account {
   status: 'pendente' | 'pago' | 'recebido';
 }
 
+export interface Transaction {
+  id: number;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+  type: 'receita' | 'despesa';
+  status: 'pendente' | 'pago' | 'recebido';
+}
+
 interface AccountsContextType {
   accounts: Account[];
   addAccount: (account: Omit<Account, 'id'>) => void;
   updateAccount: (account: Account) => void;
   deleteAccount: (id: number) => void;
   updateAccountStatus: (id: number, status: 'pendente' | 'pago' | 'recebido') => void;
-  getTransactions: () => Account[];
+  getTransactions: () => Transaction[];
   getTotalReceitas: () => number;
   getTotalDespesas: () => number;
   getSaldo: () => number;
@@ -102,10 +112,15 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
     ));
   };
 
-  const getTransactions = () => {
+  const getTransactions = (): Transaction[] => {
     return accounts.map(account => ({
-      ...account,
-      date: new Date(account.dueDate).toLocaleDateString('pt-BR')
+      id: account.id,
+      description: account.description,
+      amount: account.amount,
+      category: account.category,
+      date: new Date(account.dueDate).toLocaleDateString('pt-BR'),
+      type: account.type,
+      status: account.status
     }));
   };
 
