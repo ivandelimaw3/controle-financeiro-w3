@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
+import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -98,6 +98,9 @@ const Relatorios: React.FC = () => {
             Exportar PDF
           </Button>
         </div>
+
+        {/* Alerta de Despesas Vencendo */}
+        <ExpiringAccountsAlert />
 
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
