@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface Account {
   id: number;
@@ -48,45 +48,77 @@ interface AccountsProviderProps {
   children: ReactNode;
 }
 
+const STORAGE_KEY = 'controle_financeiro_w3_accounts';
+
+// Dados iniciais padrão
+const defaultAccounts: Account[] = [
+  {
+    id: 1,
+    description: 'Aluguel',
+    amount: -1200,
+    category: 'Moradia',
+    dueDate: '2024-12-10',
+    type: 'despesa',
+    status: 'pago'
+  },
+  {
+    id: 2,
+    description: 'Salário',
+    amount: 5000,
+    category: 'Trabalho',
+    dueDate: '2024-12-15',
+    type: 'receita',
+    status: 'recebido'
+  },
+  {
+    id: 3,
+    description: 'Conta de Luz',
+    amount: -150,
+    category: 'Utilidades',
+    dueDate: '2024-12-20',
+    type: 'despesa',
+    status: 'pendente'
+  },
+  {
+    id: 4,
+    description: 'Freelance',
+    amount: 800,
+    category: 'Trabalho',
+    dueDate: '2024-12-18',
+    type: 'receita',
+    status: 'pendente'
+  }
+];
+
 export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) => {
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      id: 1,
-      description: 'Aluguel',
-      amount: -1200,
-      category: 'Moradia',
-      dueDate: '2024-12-10',
-      type: 'despesa',
-      status: 'pago'
-    },
-    {
-      id: 2,
-      description: 'Salário',
-      amount: 5000,
-      category: 'Trabalho',
-      dueDate: '2024-12-15',
-      type: 'receita',
-      status: 'recebido'
-    },
-    {
-      id: 3,
-      description: 'Conta de Luz',
-      amount: -150,
-      category: 'Utilidades',
-      dueDate: '2024-12-20',
-      type: 'despesa',
-      status: 'pendente'
-    },
-    {
-      id: 4,
-      description: 'Freelance',
-      amount: 800,
-      category: 'Trabalho',
-      dueDate: '2024-12-18',
-      type: 'receita',
-      status: 'pendente'
+  const [accounts, setAccounts] = useState<Account[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedAccounts = JSON.parse(stored);
+        // Verificar se os dados são válidos
+        if (Array.isArray(parsedAccounts) && parsedAccounts.length > 0) {
+          console.log('Dados carregados do localStorage:', parsedAccounts.length, 'contas');
+          return parsedAccounts;
+        }
+      }
+      console.log('Carregando dados padrão iniciais');
+      return defaultAccounts;
+    } catch (error) {
+      console.error('Erro ao carregar dados do localStorage:', error);
+      return defaultAccounts;
     }
-  ]);
+  });
+
+  // Salvar no localStorage sempre que accounts mudar
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+      console.log('Dados salvos no localStorage:', accounts.length, 'contas');
+    } catch (error) {
+      console.error('Erro ao salvar dados no localStorage:', error);
+    }
+  }, [accounts]);
 
   const addAccount = (accountData: Omit<Account, 'id'>) => {
     const newAccount = {
