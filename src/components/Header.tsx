@@ -1,8 +1,29 @@
 
 import React from 'react';
 import { User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export const Header: React.FC = () => {
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso."
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao fazer logout.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-slate-200 px-6 py-4">
       <div className="flex justify-between items-center">
@@ -19,9 +40,13 @@ export const Header: React.FC = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-slate-700">Usuário</p>
-            <p className="text-xs text-slate-500">user@example.com</p>
+            <p className="text-xs text-slate-500">{user?.email || 'user@example.com'}</p>
           </div>
-          <button className="text-slate-400 hover:text-red-500 transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="text-slate-400 hover:text-red-500 transition-colors"
+            title="Sair"
+          >
             <LogOut size={16} />
           </button>
         </div>
