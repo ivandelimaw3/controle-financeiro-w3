@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -7,7 +6,7 @@ import { AccountModal } from '@/components/Accounts/AccountModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Filter, DollarSign } from 'lucide-react';
+import { Plus, Search, Filter, DollarSign, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAccounts, Account } from '@/contexts/AccountsContext';
 
@@ -16,6 +15,7 @@ const Contas: React.FC = () => {
   const location = useLocation();
   const { 
     accounts, 
+    loading,
     addAccount, 
     updateAccount, 
     deleteAccount, 
@@ -46,6 +46,19 @@ const Contas: React.FC = () => {
       setTypeFilter('despesa');
     }
   }, [location.search]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <span className="text-lg text-slate-600">Carregando contas...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const filteredAccounts = accounts.filter(account => {
     const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,19 +103,11 @@ const Contas: React.FC = () => {
     return total >= 0 ? 'text-green-600' : 'text-red-600';
   };
 
-  const handleSave = (accountData: Account) => {
+  const handleSave = async (accountData: Account) => {
     if (editingAccount) {
-      updateAccount(accountData);
-      toast({
-        title: "Conta atualizada",
-        description: "A conta foi atualizada com sucesso.",
-      });
+      await updateAccount(accountData);
     } else {
-      addAccount(accountData);
-      toast({
-        title: "Conta criada",
-        description: "Nova conta adicionada com sucesso.",
-      });
+      await addAccount(accountData);
     }
     setEditingAccount(undefined);
   };
@@ -112,20 +117,12 @@ const Contas: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    deleteAccount(id);
-    toast({
-      title: "Conta excluída",
-      description: "A conta foi removida com sucesso.",
-    });
+  const handleDelete = async (id: number) => {
+    await deleteAccount(id);
   };
 
-  const handleStatusChange = (id: number, status: string) => {
-    updateAccountStatus(id, status as 'pendente' | 'pago' | 'recebido');
-    toast({
-      title: "Status atualizado",
-      description: `Status da conta alterado para ${status}.`,
-    });
+  const handleStatusChange = async (id: number, status: string) => {
+    await updateAccountStatus(id, status as 'pendente' | 'pago' | 'recebido');
   };
 
   const handleNewAccount = () => {

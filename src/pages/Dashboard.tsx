@@ -1,15 +1,15 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
-import { TrendingUp, TrendingDown, DollarSign, CreditCard } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { 
+    loading,
     getTransactions, 
     getTotalReceitas, 
     getTotalDespesas, 
@@ -34,6 +34,19 @@ const Dashboard: React.FC = () => {
   const handleContasPendentesClick = () => {
     navigate('/contas?status=pendente');
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <span className="text-lg text-slate-600">Carregando dados...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
