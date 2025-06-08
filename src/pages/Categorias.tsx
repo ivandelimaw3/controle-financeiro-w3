@@ -5,66 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Tag } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface Category {
-  id: number;
-  name: string;
-  type: 'receita' | 'despesa';
-  color: string;
-}
+import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { useCategoriesData, Category } from '@/hooks/useCategoriesData';
 
 const Categorias: React.FC = () => {
-  const { toast } = useToast();
+  const { categories, loading, addCategory, updateCategory, deleteCategory } = useCategoriesData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | undefined>();
   const [formData, setFormData] = useState({ name: '', type: 'despesa' as 'receita' | 'despesa', color: '#3B82F6' });
-
-  const [categories, setCategories] = useState<Category[]>([
-    { id: 1, name: 'Trabalho', type: 'receita', color: '#10B981' },
-    { id: 2, name: 'Moradia', type: 'despesa', color: '#EF4444' },
-    { id: 3, name: 'Utilidades', type: 'despesa', color: '#F59E0B' },
-    { id: 4, name: 'Alimentação', type: 'despesa', color: '#8B5CF6' },
-    { id: 5, name: 'Transporte', type: 'despesa', color: '#EC4899' },
-    { id: 6, name: 'Lazer', type: 'despesa', color: '#6366F1' },
-  ]);
 
   const colorOptions = [
     '#3B82F6', '#10B981', '#EF4444', '#F59E0B', 
     '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'
   ];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome da categoria é obrigatório.",
-        variant: "destructive"
-      });
       return;
     }
 
     if (editingCategory) {
-      setCategories(prev => prev.map(cat => 
-        cat.id === editingCategory.id 
-          ? { ...formData, id: editingCategory.id }
-          : cat
-      ));
-      toast({
-        title: "Categoria atualizada",
-        description: "A categoria foi atualizada com sucesso.",
+      await updateCategory({
+        ...formData,
+        id: editingCategory.id
       });
     } else {
-      const newCategory = {
-        ...formData,
-        id: Math.max(...categories.map(c => c.id)) + 1
-      };
-      setCategories(prev => [...prev, newCategory]);
-      toast({
-        title: "Categoria criada",
-        description: "Nova categoria adicionada com sucesso.",
-      });
+      await addCategory(formData);
     }
     
     setIsModalOpen(false);
@@ -78,12 +44,8 @@ const Categorias: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setCategories(prev => prev.filter(cat => cat.id !== id));
-    toast({
-      title: "Categoria excluída",
-      description: "A categoria foi removida com sucesso.",
-    });
+  const handleDelete = async (id: number) => {
+    await deleteCategory(id);
   };
 
   const handleNewCategory = () => {
@@ -94,6 +56,19 @@ const Categorias: React.FC = () => {
 
   const receitaCategories = categories.filter(cat => cat.type === 'receita');
   const despesaCategories = categories.filter(cat => cat.type === 'despesa');
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <span className="text-lg text-slate-600">Carregando categorias...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -120,35 +95,39 @@ const Categorias: React.FC = () => {
               Receitas
             </h2>
             <div className="space-y-3">
-              {receitaCategories.map(category => (
-                <div key={category.id} className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: category.color }}
-                    ></div>
-                    <span className="font-medium text-slate-800">{category.name}</span>
+              {receitaCategories.length === 0 ? (
+                <p className="text-slate-500 text-center py-4">Nenhuma categoria de receita encontrada</p>
+              ) : (
+                receitaCategories.map(category => (
+                  <div key={category.id} className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      ></div>
+                      <span className="font-medium text-slate-800">{category.name}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(category)}
+                        className="hover:bg-blue-50"
+                      >
+                        <Edit size={14} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(category.id)}
+                        className="hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(category)}
-                      className="hover:bg-blue-50"
-                    >
-                      <Edit size={14} />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(category.id)}
-                      className="hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -159,35 +138,39 @@ const Categorias: React.FC = () => {
               Despesas
             </h2>
             <div className="space-y-3">
-              {despesaCategories.map(category => (
-                <div key={category.id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: category.color }}
-                    ></div>
-                    <span className="font-medium text-slate-800">{category.name}</span>
+              {despesaCategories.length === 0 ? (
+                <p className="text-slate-500 text-center py-4">Nenhuma categoria de despesa encontrada</p>
+              ) : (
+                despesaCategories.map(category => (
+                  <div key={category.id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      ></div>
+                      <span className="font-medium text-slate-800">{category.name}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(category)}
+                        className="hover:bg-blue-50"
+                      >
+                        <Edit size={14} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(category.id)}
+                        className="hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(category)}
-                      className="hover:bg-blue-50"
-                    >
-                      <Edit size={14} />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(category.id)}
-                      className="hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
