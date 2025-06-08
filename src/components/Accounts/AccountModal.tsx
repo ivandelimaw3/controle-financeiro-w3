@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, DollarSign, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,20 +31,44 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   account,
   categories
 }) => {
-  const [formData, setFormData] = useState<Account>(
-    account || {
-      description: '',
-      amount: 0,
-      category: '',
-      dueDate: '',
-      type: 'despesa',
-      status: 'pendente'
+  const [formData, setFormData] = useState<Account>({
+    description: '',
+    amount: 0,
+    category: '',
+    dueDate: '',
+    type: 'despesa',
+    status: 'pendente'
+  });
+
+  // Atualizar formData quando account mudar
+  useEffect(() => {
+    if (account) {
+      setFormData({
+        ...account,
+        amount: Math.abs(account.amount) // Sempre mostrar valor positivo no formulário
+      });
+    } else {
+      setFormData({
+        description: '',
+        amount: 0,
+        category: '',
+        dueDate: '',
+        type: 'despesa',
+        status: 'pendente'
+      });
     }
-  );
+  }, [account]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Ajustar o valor baseado no tipo antes de salvar
+    const finalAmount = formData.type === 'despesa' ? -Math.abs(formData.amount) : Math.abs(formData.amount);
+    
+    onSave({
+      ...formData,
+      amount: finalAmount
+    });
     onClose();
   };
 
@@ -89,7 +113,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   type="number"
                   step="0.01"
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
                   className="pl-10"
                   placeholder="0,00"
                   required
