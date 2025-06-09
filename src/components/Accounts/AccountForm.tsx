@@ -37,6 +37,24 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   onCancel,
   isEditing
 }) => {
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    // Remove todos os caracteres que não são dígitos, vírgula ou ponto
+    const cleanValue = inputValue.replace(/[^\d,]/g, '');
+    // Converte vírgula para ponto para parsing
+    const normalizedValue = cleanValue.replace(',', '.');
+    const numericValue = parseFloat(normalizedValue) || 0;
+    
+    setFormData({ ...formData, amount: numericValue });
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
@@ -56,13 +74,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         <div>
           <Label htmlFor="amount" className="text-slate-700">Valor</Label>
           <div className="relative mt-1">
-            <DollarSign size={16} className="absolute left-3 top-3 text-slate-400" />
+            <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
             <Input
               id="amount"
-              type="number"
-              step="0.01"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+              type="text"
+              value={formatCurrency(formData.amount)}
+              onChange={handleAmountChange}
               className="pl-10"
               placeholder="0,00"
               required
