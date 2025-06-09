@@ -38,14 +38,13 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente'
   });
 
-  // Resetar formulário quando modal abrir/fechar
+  // Efeito separado para quando o modal abre/fecha
   useEffect(() => {
-    console.log('=== AccountModal useEffect - Modal State Change ===');
-    console.log('Modal is open:', isOpen);
-    console.log('Account received:', account);
+    console.log('=== Modal isOpen change ===', isOpen);
     
     if (!isOpen) {
-      // Reset quando modal fechar
+      // Apenas resetar quando o modal fechar
+      console.log('Modal fechando - resetando form');
       setFormData({
         description: '',
         amount: 0,
@@ -54,13 +53,25 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         type: 'despesa',
         status: 'pendente'
       });
+    }
+  }, [isOpen]);
+
+  // Efeito separado para carregar dados da conta
+  useEffect(() => {
+    console.log('=== Account data change ===');
+    console.log('Account received:', account);
+    console.log('Modal is open:', isOpen);
+    
+    // Só processar se o modal estiver aberto
+    if (!isOpen) {
+      console.log('Modal não está aberto, ignorando mudança de account');
       return;
     }
 
-    // Modal está aberto - verificar se há dados para carregar
     if (account && account.id) {
-      console.log('=== EDITING MODE - Loading account data ===');
-      console.log('Account data to load:', account);
+      console.log('=== CARREGANDO DADOS PARA EDIÇÃO ===');
+      console.log('Account ID:', account.id);
+      console.log('Account data:', account);
       
       // Formatação da data para o input date (YYYY-MM-DD)
       const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
@@ -75,10 +86,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: account.status || 'pendente'
       };
       
-      console.log('Setting edit form data:', editFormData);
+      console.log('Definindo dados do formulário para edição:', editFormData);
       setFormData(editFormData);
-    } else {
-      console.log('=== NEW ACCOUNT MODE ===');
+    } else if (isOpen) {
+      console.log('=== MODO NOVA CONTA ===');
       setFormData({
         description: '',
         amount: 0,
@@ -88,7 +99,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: 'pendente'
       });
     }
-  }, [isOpen, account]);
+  }, [account, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -116,7 +127,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   const isEditing = !!(account && account.id);
 
-  console.log('=== RENDERING MODAL ===');
+  console.log('=== RENDERIZANDO MODAL ===');
   console.log('Current formData:', formData);
   console.log('Is editing?', isEditing);
   console.log('Account prop:', account);
