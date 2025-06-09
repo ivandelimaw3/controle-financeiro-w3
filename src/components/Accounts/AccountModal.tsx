@@ -39,38 +39,40 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   });
 
   useEffect(() => {
-    console.log('Account prop changed:', account);
-    if (account) {
-      const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
-      setFormData({
-        id: account.id,
-        description: account.description || '',
-        amount: Math.abs(account.amount) || 0,
-        category: account.category || '',
-        dueDate: formattedDueDate,
-        type: account.type || 'despesa',
-        status: account.status || 'pendente'
-      });
-      console.log('Form data set to:', {
-        id: account.id,
-        description: account.description || '',
-        amount: Math.abs(account.amount) || 0,
-        category: account.category || '',
-        dueDate: formattedDueDate,
-        type: account.type || 'despesa',
-        status: account.status || 'pendente'
-      });
-    } else {
-      setFormData({
-        description: '',
-        amount: 0,
-        category: '',
-        dueDate: '',
-        type: 'despesa',
-        status: 'pendente'
-      });
+    console.log('AccountModal useEffect triggered with account:', account);
+    console.log('Modal is open:', isOpen);
+    
+    if (isOpen) {
+      if (account) {
+        console.log('Setting form data for editing account:', account);
+        // Formatação da data para o input date (YYYY-MM-DD)
+        const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
+        
+        const newFormData = {
+          id: account.id,
+          description: account.description || '',
+          amount: Math.abs(account.amount) || 0,
+          category: account.category || '',
+          dueDate: formattedDueDate,
+          type: account.type || 'despesa',
+          status: account.status || 'pendente'
+        };
+        
+        console.log('New form data being set:', newFormData);
+        setFormData(newFormData);
+      } else {
+        console.log('Resetting form data for new account');
+        setFormData({
+          description: '',
+          amount: 0,
+          category: '',
+          dueDate: '',
+          type: 'despesa',
+          status: 'pendente'
+        });
+      }
     }
-  }, [account]);
+  }, [account, isOpen]);
 
   useEffect(() => {
     if (isOpen) {

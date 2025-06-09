@@ -37,6 +37,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   onCancel,
   isEditing
 }) => {
+  console.log('AccountForm rendered with formData:', formData);
+  console.log('Is editing:', isEditing);
+
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       minimumFractionDigits: 2,
