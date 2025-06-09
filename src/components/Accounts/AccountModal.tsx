@@ -38,28 +38,20 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente'
   });
 
-  // Inicializar dados quando o modal abre
+  // Reset e carregar dados quando o modal abre ou a conta muda
   useEffect(() => {
     if (isOpen) {
-      console.log('=== Modal aberto ===');
-      console.log('Account recebida:', account);
+      console.log('=== Modal aberto - Carregando dados ===');
+      console.log('Account prop:', account);
       
-      if (account && account.id) {
-        // Modo edição - carregar dados da conta
-        console.log('=== MODO EDIÇÃO ===');
+      if (account?.id) {
+        console.log('=== MODO EDIÇÃO - Carregando dados da conta ===');
         
-        // Formatação da data para o input date (YYYY-MM-DD)
+        // Formatação da data para o input date
         let formattedDueDate = '';
         if (account.dueDate) {
-          try {
-            const date = new Date(account.dueDate);
-            if (!isNaN(date.getTime())) {
-              formattedDueDate = date.toISOString().split('T')[0];
-            }
-          } catch (error) {
-            console.error('Erro ao formatar data:', error);
-            formattedDueDate = account.dueDate.split('T')[0] || '';
-          }
+          const dateStr = account.dueDate.includes('T') ? account.dueDate.split('T')[0] : account.dueDate;
+          formattedDueDate = dateStr;
         }
         
         const editFormData = {
@@ -72,11 +64,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           status: account.status || 'pendente'
         };
         
-        console.log('Dados carregados para edição:', editFormData);
+        console.log('Dados para edição:', editFormData);
         setFormData(editFormData);
       } else {
-        // Modo criação - limpar formulário
-        console.log('=== MODO NOVA CONTA ===');
+        console.log('=== MODO NOVA CONTA - Limpando formulário ===');
         setFormData({
           description: '',
           amount: 0,
@@ -87,10 +78,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         });
       }
       
-      // Sempre fazer refresh das categorias quando o modal abre
       refreshCategories();
     }
-  }, [isOpen, account, refreshCategories]);
+  }, [isOpen, account?.id, account?.description, account?.amount, account?.category, account?.dueDate, account?.type, account?.status, refreshCategories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,13 +109,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isEditing = !!(account && account.id);
+  const isEditing = !!(account?.id);
 
   console.log('=== RENDERIZANDO MODAL ===');
   console.log('FormData atual:', formData);
   console.log('É edição?', isEditing);
-  console.log('Categorias disponíveis:', categoriesFromDB?.length || 0);
-  console.log('Carregando categorias:', categoriesLoading);
+  console.log('Account ID:', account?.id);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

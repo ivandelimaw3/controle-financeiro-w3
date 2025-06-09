@@ -105,7 +105,7 @@ const Contas: React.FC = () => {
 
   const handleSave = async (accountData: Account) => {
     try {
-      if (editingAccount && editingAccount.id) {
+      if (editingAccount?.id) {
         console.log('Atualizando conta existente:', accountData);
         await updateAccount(accountData);
       } else {
@@ -113,7 +113,6 @@ const Contas: React.FC = () => {
         await addAccount(accountData);
       }
       
-      // Limpar estado após salvar
       setEditingAccount(undefined);
       setIsModalOpen(false);
     } catch (error) {
@@ -123,23 +122,21 @@ const Contas: React.FC = () => {
 
   const handleEdit = (account: Account) => {
     console.log('=== handleEdit chamado ===');
-    console.log('Conta selecionada para edição:', account);
+    console.log('Conta original:', account);
     
-    // Garantir que a conta tenha todos os campos necessários
-    const accountToEdit = {
-      ...account,
+    // Criar uma cópia limpa da conta para edição
+    const accountToEdit: Account = {
       id: account.id,
-      description: account.description || '',
-      amount: account.amount || 0,
-      category: account.category || '',
-      dueDate: account.dueDate || '',
-      type: account.type || 'despesa',
-      status: account.status || 'pendente'
+      description: account.description,
+      amount: account.amount,
+      category: account.category,
+      dueDate: account.dueDate,
+      type: account.type,
+      status: account.status
     };
     
     console.log('Conta preparada para edição:', accountToEdit);
     
-    // Definir a conta e abrir o modal
     setEditingAccount(accountToEdit);
     setIsModalOpen(true);
   };
@@ -160,8 +157,8 @@ const Contas: React.FC = () => {
 
   const handleModalClose = () => {
     console.log('=== Modal fechando ===');
-    setIsModalOpen(false);
     setEditingAccount(undefined);
+    setIsModalOpen(false);
   };
 
   return (
@@ -219,7 +216,6 @@ const Contas: React.FC = () => {
             </Select>
           </div>
 
-          {/* Campo do Total Filtrado */}
           <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -250,6 +246,7 @@ const Contas: React.FC = () => {
         </div>
 
         <AccountModal
+          key={editingAccount?.id || 'new'}
           isOpen={isModalOpen}
           onClose={handleModalClose}
           onSave={handleSave}
