@@ -113,12 +113,21 @@ const Contas: React.FC = () => {
   };
 
   const handleEdit = (account: Account) => {
-    console.log('handleEdit called with account:', account);
+    console.log('=== handleEdit called ===');
+    console.log('Account to edit:', account);
+    console.log('Account ID:', account.id);
+    
+    // Primeiro fechar o modal se estiver aberto
+    setIsModalOpen(false);
+    
+    // Definir a conta para edição
     setEditingAccount(account);
-    // Use setTimeout para garantir que editingAccount seja definido antes de abrir o modal
+    
+    // Aguardar um tick para garantir que o estado foi atualizado
     setTimeout(() => {
+      console.log('Opening modal with editingAccount:', account);
       setIsModalOpen(true);
-    }, 0);
+    }, 10);
   };
 
   const handleDelete = async (id: number) => {
@@ -130,8 +139,15 @@ const Contas: React.FC = () => {
   };
 
   const handleNewAccount = () => {
+    console.log('=== handleNewAccount called ===');
     setEditingAccount(undefined);
     setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    console.log('=== Modal closing ===');
+    setIsModalOpen(false);
+    setEditingAccount(undefined);
   };
 
   return (
@@ -221,7 +237,7 @@ const Contas: React.FC = () => {
 
         <AccountModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={handleModalClose}
           onSave={handleSave}
           account={editingAccount}
           categories={categories}

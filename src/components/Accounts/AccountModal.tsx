@@ -38,42 +38,54 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente'
   });
 
+  // Separar o useEffect para melhor controle
   useEffect(() => {
-    console.log('AccountModal useEffect triggered with account:', account);
+    console.log('=== AccountModal useEffect ===');
     console.log('Modal is open:', isOpen);
-    console.log('Account exists:', !!account);
+    console.log('Account received:', account);
+    console.log('Account has ID:', account?.id);
     
-    if (isOpen) {
-      if (account && account.id) {
-        console.log('Setting form data for editing account:', account);
-        // Formatação da data para o input date (YYYY-MM-DD)
-        const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
-        
-        const newFormData = {
-          id: account.id,
-          description: account.description || '',
-          amount: Math.abs(account.amount) || 0,
-          category: account.category || '',
-          dueDate: formattedDueDate,
-          type: account.type || 'despesa',
-          status: account.status || 'pendente'
-        };
-        
-        console.log('New form data being set:', newFormData);
-        setFormData(newFormData);
-      } else {
-        console.log('Resetting form data for new account');
-        setFormData({
-          description: '',
-          amount: 0,
-          category: '',
-          dueDate: '',
-          type: 'despesa',
-          status: 'pendente'
-        });
-      }
+    if (isOpen && account?.id) {
+      console.log('=== EDITING MODE ===');
+      console.log('Account data:', {
+        id: account.id,
+        description: account.description,
+        amount: account.amount,
+        category: account.category,
+        dueDate: account.dueDate,
+        type: account.type,
+        status: account.status
+      });
+      
+      // Formatação da data para o input date (YYYY-MM-DD)
+      const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
+      
+      const newFormData = {
+        id: account.id,
+        description: account.description || '',
+        amount: Math.abs(account.amount) || 0,
+        category: account.category || '',
+        dueDate: formattedDueDate,
+        type: account.type || 'despesa',
+        status: account.status || 'pendente'
+      };
+      
+      console.log('Setting form data:', newFormData);
+      setFormData(newFormData);
+    } else if (isOpen && !account?.id) {
+      console.log('=== NEW ACCOUNT MODE ===');
+      const newFormData = {
+        description: '',
+        amount: 0,
+        category: '',
+        dueDate: '',
+        type: 'despesa' as const,
+        status: 'pendente' as const
+      };
+      console.log('Resetting form data for new account:', newFormData);
+      setFormData(newFormData);
     }
-  }, [account, isOpen]);
+  }, [isOpen, account?.id, account?.description, account?.amount, account?.category, account?.dueDate, account?.type, account?.status]);
 
   useEffect(() => {
     if (isOpen) {
@@ -99,12 +111,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   if (!isOpen) return null;
 
+  console.log('=== RENDERING MODAL ===');
+  console.log('Current formData:', formData);
+  console.log('Is editing?', !!account?.id);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-slate-800">
-            {account ? 'Editar Conta' : 'Nova Conta'}
+            {account?.id ? 'Editar Conta' : 'Nova Conta'}
           </h2>
           <button
             onClick={onClose}
@@ -121,7 +137,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           onRefreshCategories={handleRefreshCategories}
           onSubmit={handleSubmit}
           onCancel={onClose}
-          isEditing={!!account}
+          isEditing={!!account?.id}
         />
       </div>
     </div>
