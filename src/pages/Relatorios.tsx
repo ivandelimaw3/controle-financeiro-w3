@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
@@ -71,7 +70,24 @@ const Relatorios: React.FC = () => {
     return null;
   };
 
+  // Calcular saldo da seleção de mês/ano
+  const getFilteredBalance = () => {
+    if (monthFilter !== 'todos' || yearFilter !== 'todos') {
+      const receitas = filteredAccounts
+        .filter(account => account.type === 'receita')
+        .reduce((sum, account) => sum + account.amount, 0);
+      
+      const despesas = filteredAccounts
+        .filter(account => account.type === 'despesa')
+        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+      
+      return receitas - despesas;
+    }
+    return null;
+  };
+
   const filteredTotal = getFilteredTotal();
+  const filteredBalance = getFilteredBalance();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -246,7 +262,7 @@ const Relatorios: React.FC = () => {
               </Select>
             </div>
 
-            {/* Campo de Total Filtrado */}
+            {/* Campo de Total Filtrado por Tipo */}
             {filteredTotal !== null && (
               <div className="bg-slate-50 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between">
@@ -258,6 +274,27 @@ const Relatorios: React.FC = () => {
                   }`}>
                     R$ {filteredTotal.toFixed(2)}
                   </span>
+                </div>
+              </div>
+            )}
+
+            {/* Campo de Saldo da Seleção de Mês/Ano */}
+            {filteredBalance !== null && (
+              <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600 font-medium">
+                    Saldo do Período Selecionado:
+                  </span>
+                  <span className={`text-xl font-bold ${
+                    filteredBalance >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    R$ {filteredBalance.toFixed(2)}
+                  </span>
+                </div>
+                <div className="mt-2 text-sm text-slate-500">
+                  {monthFilter !== 'todos' && `Mês: ${monthFilter}`}
+                  {monthFilter !== 'todos' && yearFilter !== 'todos' && ' • '}
+                  {yearFilter !== 'todos' && `Ano: ${yearFilter}`}
                 </div>
               </div>
             )}
