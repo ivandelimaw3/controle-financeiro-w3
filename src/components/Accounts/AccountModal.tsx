@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, Tag } from 'lucide-react';
+import { X, Calendar, DollarSign, Tag, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +31,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onSave,
   account
 }) => {
-  const { categories: categoriesFromDB } = useCategoriesData();
+  const { categories: categoriesFromDB, refreshCategories } = useCategoriesData();
   const [formData, setFormData] = useState<Account>({
     description: '',
     amount: 0,
@@ -60,6 +60,13 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     }
   }, [account]);
 
+  // Recarregar categorias quando o modal abrir
+  useEffect(() => {
+    if (isOpen) {
+      refreshCategories();
+    }
+  }, [isOpen, refreshCategories]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -75,6 +82,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   // Filtrar categorias baseado no tipo selecionado
   const filteredCategories = categoriesFromDB.filter(cat => cat.type === formData.type);
+
+  const handleRefreshCategories = () => {
+    refreshCategories();
+  };
 
   if (!isOpen) return null;
 
@@ -149,7 +160,18 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="category" className="text-slate-700">Categoria</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="category" className="text-slate-700">Categoria</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleRefreshCategories}
+                className="h-6 w-6 p-0"
+              >
+                <RefreshCw size={14} />
+              </Button>
+            </div>
             <Select
               value={formData.category}
               onValueChange={(value) => setFormData({ ...formData, category: value })}
