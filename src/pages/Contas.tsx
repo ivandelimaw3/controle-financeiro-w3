@@ -104,20 +104,43 @@ const Contas: React.FC = () => {
   };
 
   const handleSave = async (accountData: Account) => {
-    if (editingAccount) {
-      await updateAccount(accountData);
-    } else {
-      await addAccount(accountData);
+    try {
+      if (editingAccount && editingAccount.id) {
+        console.log('Atualizando conta existente:', accountData);
+        await updateAccount(accountData);
+      } else {
+        console.log('Criando nova conta:', accountData);
+        await addAccount(accountData);
+      }
+      
+      // Limpar estado após salvar
+      setEditingAccount(undefined);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao salvar conta:', error);
     }
-    setEditingAccount(undefined);
   };
 
   const handleEdit = (account: Account) => {
     console.log('=== handleEdit chamado ===');
-    console.log('Conta para editar:', account);
+    console.log('Conta selecionada para edição:', account);
+    
+    // Garantir que a conta tenha todos os campos necessários
+    const accountToEdit = {
+      ...account,
+      id: account.id,
+      description: account.description || '',
+      amount: account.amount || 0,
+      category: account.category || '',
+      dueDate: account.dueDate || '',
+      type: account.type || 'despesa',
+      status: account.status || 'pendente'
+    };
+    
+    console.log('Conta preparada para edição:', accountToEdit);
     
     // Definir a conta e abrir o modal
-    setEditingAccount(account);
+    setEditingAccount(accountToEdit);
     setIsModalOpen(true);
   };
 
@@ -136,7 +159,7 @@ const Contas: React.FC = () => {
   };
 
   const handleModalClose = () => {
-    console.log('=== Modal closing ===');
+    console.log('=== Modal fechando ===');
     setIsModalOpen(false);
     setEditingAccount(undefined);
   };
