@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
@@ -55,6 +56,22 @@ const Relatorios: React.FC = () => {
     
     return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
   });
+
+  // Calcular total filtrado baseado no tipo selecionado
+  const getFilteredTotal = () => {
+    if (typeFilter === 'receita') {
+      return filteredAccounts
+        .filter(account => account.type === 'receita')
+        .reduce((sum, account) => sum + account.amount, 0);
+    } else if (typeFilter === 'despesa') {
+      return filteredAccounts
+        .filter(account => account.type === 'despesa')
+        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    }
+    return null;
+  };
+
+  const filteredTotal = getFilteredTotal();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -190,7 +207,7 @@ const Relatorios: React.FC = () => {
             </div>
 
             {/* Filtros de Data */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="w-full sm:w-48">
                   <Calendar size={16} className="mr-2" />
@@ -228,6 +245,22 @@ const Relatorios: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Campo de Total Filtrado */}
+            {filteredTotal !== null && (
+              <div className="bg-slate-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600 font-medium">
+                    Total de {typeFilter === 'receita' ? 'Receitas' : 'Despesas'} Filtradas:
+                  </span>
+                  <span className={`text-xl font-bold ${
+                    typeFilter === 'receita' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    R$ {filteredTotal.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="overflow-x-auto">
