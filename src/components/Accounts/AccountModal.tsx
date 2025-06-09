@@ -39,10 +39,26 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   });
 
   useEffect(() => {
+    console.log('Account prop changed:', account);
     if (account) {
+      const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
       setFormData({
-        ...account,
-        amount: Math.abs(account.amount)
+        id: account.id,
+        description: account.description || '',
+        amount: Math.abs(account.amount) || 0,
+        category: account.category || '',
+        dueDate: formattedDueDate,
+        type: account.type || 'despesa',
+        status: account.status || 'pendente'
+      });
+      console.log('Form data set to:', {
+        id: account.id,
+        description: account.description || '',
+        amount: Math.abs(account.amount) || 0,
+        category: account.category || '',
+        dueDate: formattedDueDate,
+        type: account.type || 'despesa',
+        status: account.status || 'pendente'
       });
     } else {
       setFormData({
