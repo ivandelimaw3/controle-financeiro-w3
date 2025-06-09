@@ -41,9 +41,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   useEffect(() => {
     console.log('AccountModal useEffect triggered with account:', account);
     console.log('Modal is open:', isOpen);
+    console.log('Account exists:', !!account);
     
     if (isOpen) {
-      if (account) {
+      if (account && account.id) {
         console.log('Setting form data for editing account:', account);
         // Formatação da data para o input date (YYYY-MM-DD)
         const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';

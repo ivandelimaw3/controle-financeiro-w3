@@ -113,8 +113,12 @@ const Contas: React.FC = () => {
   };
 
   const handleEdit = (account: Account) => {
+    console.log('handleEdit called with account:', account);
     setEditingAccount(account);
-    setIsModalOpen(true);
+    // Use setTimeout para garantir que editingAccount seja definido antes de abrir o modal
+    setTimeout(() => {
+      setIsModalOpen(true);
+    }, 0);
   };
 
   const handleDelete = async (id: number) => {
