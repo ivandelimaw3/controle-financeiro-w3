@@ -38,29 +38,34 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente'
   });
 
-  // Separar o useEffect para melhor controle
+  // Resetar formulário quando modal abrir/fechar
   useEffect(() => {
-    console.log('=== AccountModal useEffect ===');
+    console.log('=== AccountModal useEffect - Modal State Change ===');
     console.log('Modal is open:', isOpen);
     console.log('Account received:', account);
-    console.log('Account has ID:', account?.id);
     
-    if (isOpen && account?.id) {
-      console.log('=== EDITING MODE ===');
-      console.log('Account data:', {
-        id: account.id,
-        description: account.description,
-        amount: account.amount,
-        category: account.category,
-        dueDate: account.dueDate,
-        type: account.type,
-        status: account.status
+    if (!isOpen) {
+      // Reset quando modal fechar
+      setFormData({
+        description: '',
+        amount: 0,
+        category: '',
+        dueDate: '',
+        type: 'despesa',
+        status: 'pendente'
       });
+      return;
+    }
+
+    // Modal está aberto - verificar se há dados para carregar
+    if (account && account.id) {
+      console.log('=== EDITING MODE - Loading account data ===');
+      console.log('Account data to load:', account);
       
       // Formatação da data para o input date (YYYY-MM-DD)
       const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
       
-      const newFormData = {
+      const editFormData = {
         id: account.id,
         description: account.description || '',
         amount: Math.abs(account.amount) || 0,
@@ -70,22 +75,20 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: account.status || 'pendente'
       };
       
-      console.log('Setting form data:', newFormData);
-      setFormData(newFormData);
-    } else if (isOpen && !account?.id) {
+      console.log('Setting edit form data:', editFormData);
+      setFormData(editFormData);
+    } else {
       console.log('=== NEW ACCOUNT MODE ===');
-      const newFormData = {
+      setFormData({
         description: '',
         amount: 0,
         category: '',
         dueDate: '',
-        type: 'despesa' as const,
-        status: 'pendente' as const
-      };
-      console.log('Resetting form data for new account:', newFormData);
-      setFormData(newFormData);
+        type: 'despesa',
+        status: 'pendente'
+      });
     }
-  }, [isOpen, account?.id, account?.description, account?.amount, account?.category, account?.dueDate, account?.type, account?.status]);
+  }, [isOpen, account]);
 
   useEffect(() => {
     if (isOpen) {
@@ -111,16 +114,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isEditing = !!(account && account.id);
+
   console.log('=== RENDERING MODAL ===');
   console.log('Current formData:', formData);
-  console.log('Is editing?', !!account?.id);
+  console.log('Is editing?', isEditing);
+  console.log('Account prop:', account);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-slate-800">
-            {account?.id ? 'Editar Conta' : 'Nova Conta'}
+            {isEditing ? 'Editar Conta' : 'Nova Conta'}
           </h2>
           <button
             onClick={onClose}
@@ -137,7 +143,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           onRefreshCategories={handleRefreshCategories}
           onSubmit={handleSubmit}
           onCancel={onClose}
-          isEditing={!!account?.id}
+          isEditing={isEditing}
         />
       </div>
     </div>
