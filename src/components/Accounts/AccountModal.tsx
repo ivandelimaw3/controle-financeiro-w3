@@ -37,29 +37,39 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     type: 'despesa',
     status: 'pendente'
   });
+  const [isFormReady, setIsFormReady] = useState(false);
 
-  // Carregar dados quando o modal abre
+  console.log('=== AccountModal Render ===');
+  console.log('isOpen:', isOpen);
+  console.log('account prop:', account);
+  console.log('formData:', formData);
+  console.log('isFormReady:', isFormReady);
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      console.log('Modal fechado, resetando estado');
+      setIsFormReady(false);
+      return;
+    }
 
-    console.log('Modal aberto, carregando dados...');
-    
+    console.log('Modal aberto, preparando dados...');
+
+    // Formatação da data para input
+    const formatDateForInput = (dateStr: string) => {
+      if (!dateStr) return '';
+      try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+      } catch (error) {
+        console.error('Erro ao formatar data:', error);
+        return '';
+      }
+    };
+
     if (account?.id) {
-      console.log('Modo edição - conta:', account);
-      
-      // Formatar data para input date
-      const formatDateForInput = (dateStr: string) => {
-        if (!dateStr) return '';
-        try {
-          const date = new Date(dateStr);
-          return date.toISOString().split('T')[0];
-        } catch (error) {
-          console.error('Erro ao formatar data:', error);
-          return '';
-        }
-      };
-
-      setFormData({
+      console.log('Modo edição - carregando dados da conta:', account);
+      const newFormData = {
         id: account.id,
         description: account.description || '',
         amount: Math.abs(account.amount) || 0,
@@ -67,9 +77,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         dueDate: formatDateForInput(account.dueDate),
         type: account.type || 'despesa',
         status: account.status || 'pendente'
-      });
+      };
+      console.log('Dados preparados para edição:', newFormData);
+      setFormData(newFormData);
     } else {
-      console.log('Modo nova conta - resetando formulário');
+      console.log('Modo nova conta - dados padrão');
       setFormData({
         description: '',
         amount: 0,
@@ -80,12 +92,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       });
     }
 
-    // Refresh das categorias
-    refreshCategories();
+    // Refresh das categorias e marcar como pronto
+    refreshCategories().finally(() => {
+      console.log('Categorias carregadas, formulário pronto');
+      setIsFormReady(true);
+    });
   }, [isOpen, account, refreshCategories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submetendo formulário:', formData);
     
     const finalAmount = formData.type === 'despesa' ? -Math.abs(formData.amount) : Math.abs(formData.amount);
     
@@ -109,12 +125,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('Modal não está aberto, retornando null');
+    return null;
+  }
 
   const isEditing = !!(account?.id);
 
-  console.log('Renderizando modal - FormData:', formData);
-  console.log('É edição?', isEditing);
+  console.log('Renderizando modal - isEditing:', isEditing);
+  console.log('FormData final:', formData);
+  console.log('Categorias disponíveis:', categoriesFromDB?.length || 0);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -131,15 +151,21 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </button>
         </div>
 
-        <AccountForm
-          formData={formData}
-          setFormData={setFormData}
-          categories={categoriesFromDB || []}
-          onRefreshCategories={handleRefreshCategories}
-          onSubmit={handleSubmit}
-          onCancel={onClose}
-          isEditing={isEditing}
-        />
+        {!isFormReady ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-slate-600">Carregando...</div>
+          </div>
+        ) : (
+          <AccountForm
+            formData={formData}
+            setFormData={setFormData}
+            categories={categoriesFromDB || []}
+            onRefreshCategories={handleRefreshCategories}
+            onSubmit={handleSubmit}
+            onCancel={onClose}
+            isEditing={isEditing}
+          />
+        )}
       </div>
     </div>
   );

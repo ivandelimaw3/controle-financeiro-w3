@@ -37,7 +37,23 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   onCancel,
   isEditing
 }) => {
-  console.log('AccountForm renderizado:', { formData, isEditing, categoriesCount: categories?.length });
+  console.log('=== AccountForm Render ===');
+  console.log('formData recebido:', formData);
+  console.log('isEditing:', isEditing);
+  console.log('categories count:', categories?.length || 0);
+
+  // Verificação de segurança
+  if (!formData) {
+    console.error('FormData é null/undefined!');
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600">Erro: Dados do formulário não encontrados</p>
+        <Button onClick={onCancel} className="mt-4">
+          Fechar
+        </Button>
+      </div>
+    );
+  }
 
   const formatCurrency = (value: number): string => {
     if (isNaN(value) || value === null || value === undefined) {
@@ -51,19 +67,49 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
+    console.log('Mudança no valor:', inputValue);
+    
     // Remove todos os caracteres que não são dígitos, vírgula ou ponto
     const cleanValue = inputValue.replace(/[^\d,]/g, '');
     // Converte vírgula para ponto para parsing
     const normalizedValue = cleanValue.replace(',', '.');
     const numericValue = parseFloat(normalizedValue) || 0;
     
+    console.log('Valor numérico processado:', numericValue);
     setFormData({ ...formData, amount: numericValue });
   };
 
-  if (!formData) {
-    console.log('FormData não encontrado, retornando div vazio');
-    return <div>Carregando...</div>;
-  }
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Mudança na descrição:', e.target.value);
+    setFormData({ ...formData, description: e.target.value });
+  };
+
+  const handleTypeChange = (value: 'receita' | 'despesa') => {
+    console.log('Mudança no tipo:', value);
+    setFormData({ 
+      ...formData, 
+      type: value,
+      category: '' // Reset category when changing type
+    });
+  };
+
+  const handleCategoryChange = (value: string) => {
+    console.log('Mudança na categoria:', value);
+    setFormData({ ...formData, category: value });
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Mudança na data:', e.target.value);
+    setFormData({ ...formData, dueDate: e.target.value });
+  };
+
+  console.log('Renderizando formulário com dados:', {
+    description: formData.description,
+    amount: formData.amount,
+    type: formData.type,
+    category: formData.category,
+    dueDate: formData.dueDate
+  });
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -73,7 +119,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
           id="description"
           type="text"
           value={formData.description || ''}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={handleDescriptionChange}
           placeholder="Ex: Aluguel, Salário..."
           className="mt-1"
           required
@@ -101,13 +147,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
           <Label htmlFor="type" className="text-slate-700">Tipo</Label>
           <Select
             value={formData.type || 'despesa'}
-            onValueChange={(value: 'receita' | 'despesa') => {
-              setFormData({ 
-                ...formData, 
-                type: value,
-                category: ''
-              });
-            }}
+            onValueChange={handleTypeChange}
           >
             <SelectTrigger className="mt-1">
               <SelectValue />
@@ -122,7 +162,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
       <CategorySelect
         value={formData.category || ''}
-        onValueChange={(value) => setFormData({ ...formData, category: value })}
+        onValueChange={handleCategoryChange}
         categories={categories || []}
         accountType={formData.type || 'despesa'}
         onRefresh={onRefreshCategories}
@@ -136,7 +176,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             id="dueDate"
             type="date"
             value={formData.dueDate || ''}
-            onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+            onChange={handleDateChange}
             className="pl-10"
             required
           />
