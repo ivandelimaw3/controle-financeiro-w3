@@ -37,14 +37,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   onCancel,
   isEditing
 }) => {
-  console.log('=== AccountForm Render ===');
-  console.log('formData recebido:', formData);
-  console.log('isEditing:', isEditing);
-  console.log('categories count:', categories?.length || 0);
-
   // Verificação de segurança
   if (!formData) {
-    console.error('FormData é null/undefined!');
     return (
       <div className="text-center py-8">
         <p className="text-red-600">Erro: Dados do formulário não encontrados</p>
@@ -67,7 +61,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    console.log('Mudança no valor:', inputValue);
     
     // Remove todos os caracteres que não são dígitos, vírgula ou ponto
     const cleanValue = inputValue.replace(/[^\d,]/g, '');
@@ -75,17 +68,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     const normalizedValue = cleanValue.replace(',', '.');
     const numericValue = parseFloat(normalizedValue) || 0;
     
-    console.log('Valor numérico processado:', numericValue);
     setFormData({ ...formData, amount: numericValue });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Mudança na descrição:', e.target.value);
     setFormData({ ...formData, description: e.target.value });
   };
 
   const handleTypeChange = (value: 'receita' | 'despesa') => {
-    console.log('Mudança no tipo:', value);
     setFormData({ 
       ...formData, 
       type: value,
@@ -94,22 +84,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   };
 
   const handleCategoryChange = (value: string) => {
-    console.log('Mudança na categoria:', value);
     setFormData({ ...formData, category: value });
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Mudança na data:', e.target.value);
     setFormData({ ...formData, dueDate: e.target.value });
   };
-
-  console.log('Renderizando formulário com dados:', {
-    description: formData.description,
-    amount: formData.amount,
-    type: formData.type,
-    category: formData.category,
-    dueDate: formData.dueDate
-  });
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
