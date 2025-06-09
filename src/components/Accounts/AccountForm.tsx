@@ -37,10 +37,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   onCancel,
   isEditing
 }) => {
-  console.log('AccountForm rendered with formData:', formData);
-  console.log('Is editing:', isEditing);
+  console.log('AccountForm renderizado:', { formData, isEditing, categoriesCount: categories?.length });
 
   const formatCurrency = (value: number): string => {
+    if (isNaN(value) || value === null || value === undefined) {
+      return '0,00';
+    }
     return new Intl.NumberFormat('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -58,6 +60,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, amount: numericValue });
   };
 
+  if (!formData) {
+    console.log('FormData não encontrado, retornando div vazio');
+    return <div>Carregando...</div>;
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
@@ -65,7 +72,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         <Input
           id="description"
           type="text"
-          value={formData.description}
+          value={formData.description || ''}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           placeholder="Ex: Aluguel, Salário..."
           className="mt-1"
@@ -81,7 +88,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             <Input
               id="amount"
               type="text"
-              value={formatCurrency(formData.amount)}
+              value={formatCurrency(formData.amount || 0)}
               onChange={handleAmountChange}
               className="pl-10"
               placeholder="0,00"
@@ -93,7 +100,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         <div>
           <Label htmlFor="type" className="text-slate-700">Tipo</Label>
           <Select
-            value={formData.type}
+            value={formData.type || 'despesa'}
             onValueChange={(value: 'receita' | 'despesa') => {
               setFormData({ 
                 ...formData, 
@@ -114,10 +121,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       </div>
 
       <CategorySelect
-        value={formData.category}
+        value={formData.category || ''}
         onValueChange={(value) => setFormData({ ...formData, category: value })}
-        categories={categories}
-        accountType={formData.type}
+        categories={categories || []}
+        accountType={formData.type || 'despesa'}
         onRefresh={onRefreshCategories}
       />
 
@@ -128,7 +135,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
           <Input
             id="dueDate"
             type="date"
-            value={formData.dueDate}
+            value={formData.dueDate || ''}
             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
             className="pl-10"
             required

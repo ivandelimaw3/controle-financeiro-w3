@@ -38,49 +38,51 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente'
   });
 
-  // Reset e carregar dados quando o modal abre ou a conta muda
+  // Carregar dados quando o modal abre
   useEffect(() => {
-    if (isOpen) {
-      console.log('=== Modal aberto - Carregando dados ===');
-      console.log('Account prop:', account);
+    if (!isOpen) return;
+
+    console.log('Modal aberto, carregando dados...');
+    
+    if (account?.id) {
+      console.log('Modo edição - conta:', account);
       
-      if (account?.id) {
-        console.log('=== MODO EDIÇÃO - Carregando dados da conta ===');
-        
-        // Formatação da data para o input date
-        let formattedDueDate = '';
-        if (account.dueDate) {
-          const dateStr = account.dueDate.includes('T') ? account.dueDate.split('T')[0] : account.dueDate;
-          formattedDueDate = dateStr;
+      // Formatar data para input date
+      const formatDateForInput = (dateStr: string) => {
+        if (!dateStr) return '';
+        try {
+          const date = new Date(dateStr);
+          return date.toISOString().split('T')[0];
+        } catch (error) {
+          console.error('Erro ao formatar data:', error);
+          return '';
         }
-        
-        const editFormData = {
-          id: account.id,
-          description: account.description || '',
-          amount: Math.abs(account.amount) || 0,
-          category: account.category || '',
-          dueDate: formattedDueDate,
-          type: account.type || 'despesa',
-          status: account.status || 'pendente'
-        };
-        
-        console.log('Dados para edição:', editFormData);
-        setFormData(editFormData);
-      } else {
-        console.log('=== MODO NOVA CONTA - Limpando formulário ===');
-        setFormData({
-          description: '',
-          amount: 0,
-          category: '',
-          dueDate: '',
-          type: 'despesa',
-          status: 'pendente'
-        });
-      }
-      
-      refreshCategories();
+      };
+
+      setFormData({
+        id: account.id,
+        description: account.description || '',
+        amount: Math.abs(account.amount) || 0,
+        category: account.category || '',
+        dueDate: formatDateForInput(account.dueDate),
+        type: account.type || 'despesa',
+        status: account.status || 'pendente'
+      });
+    } else {
+      console.log('Modo nova conta - resetando formulário');
+      setFormData({
+        description: '',
+        amount: 0,
+        category: '',
+        dueDate: '',
+        type: 'despesa',
+        status: 'pendente'
+      });
     }
-  }, [isOpen, account?.id, account?.description, account?.amount, account?.category, account?.dueDate, account?.type, account?.status, refreshCategories]);
+
+    // Refresh das categorias
+    refreshCategories();
+  }, [isOpen, account, refreshCategories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,10 +113,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   const isEditing = !!(account?.id);
 
-  console.log('=== RENDERIZANDO MODAL ===');
-  console.log('FormData atual:', formData);
+  console.log('Renderizando modal - FormData:', formData);
   console.log('É edição?', isEditing);
-  console.log('Account ID:', account?.id);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
