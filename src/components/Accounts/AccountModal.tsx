@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCategoriesData } from '@/hooks/useCategoriesData';
 
 interface Account {
   id?: number;
@@ -21,16 +22,16 @@ interface AccountModalProps {
   onClose: () => void;
   onSave: (account: Account) => void;
   account?: Account;
-  categories: string[];
+  categories?: string[]; // Manter para compatibilidade, mas usar as do hook
 }
 
 export const AccountModal: React.FC<AccountModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  account,
-  categories
+  account
 }) => {
+  const { categories: categoriesFromDB } = useCategoriesData();
   const [formData, setFormData] = useState<Account>({
     description: '',
     amount: 0,
@@ -71,6 +72,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     });
     onClose();
   };
+
+  // Filtrar categorias baseado no tipo selecionado
+  const filteredCategories = categoriesFromDB.filter(cat => cat.type === formData.type);
 
   if (!isOpen) return null;
 
@@ -125,7 +129,13 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <Label htmlFor="type" className="text-slate-700">Tipo</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: 'receita' | 'despesa') => setFormData({ ...formData, type: value })}
+                onValueChange={(value: 'receita' | 'despesa') => {
+                  setFormData({ 
+                    ...formData, 
+                    type: value,
+                    category: '' // Limpar categoria ao mudar tipo
+                  });
+                }}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
@@ -148,11 +158,23 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                {filteredCategories.length === 0 ? (
+                  <SelectItem value="" disabled>
+                    Nenhuma categoria de {formData.type} encontrada
                   </SelectItem>
-                ))}
+                ) : (
+                  filteredCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        ></div>
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
