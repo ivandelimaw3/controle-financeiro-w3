@@ -38,13 +38,51 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente'
   });
 
-  // Efeito separado para quando o modal abre/fecha
+  // Carregar dados quando o modal abre ou a conta muda
   useEffect(() => {
-    console.log('=== Modal isOpen change ===', isOpen);
-    
+    if (isOpen) {
+      console.log('=== Modal aberto - processando dados ===');
+      console.log('Account recebida:', account);
+      
+      if (account && account.id) {
+        console.log('=== MODO EDIÇÃO - Carregando dados ===');
+        
+        // Formatação da data para o input date (YYYY-MM-DD)
+        const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
+        
+        const editFormData = {
+          id: account.id,
+          description: account.description || '',
+          amount: Math.abs(account.amount) || 0,
+          category: account.category || '',
+          dueDate: formattedDueDate,
+          type: account.type || 'despesa',
+          status: account.status || 'pendente'
+        };
+        
+        console.log('Dados carregados para edição:', editFormData);
+        setFormData(editFormData);
+      } else {
+        console.log('=== MODO NOVA CONTA ===');
+        setFormData({
+          description: '',
+          amount: 0,
+          category: '',
+          dueDate: '',
+          type: 'despesa',
+          status: 'pendente'
+        });
+      }
+      
+      // Refresh categories quando modal abre
+      refreshCategories();
+    }
+  }, [isOpen, account, refreshCategories]);
+
+  // Reset quando modal fecha
+  useEffect(() => {
     if (!isOpen) {
-      // Apenas resetar quando o modal fechar
-      console.log('Modal fechando - resetando form');
+      console.log('Modal fechando - resetando formulário');
       setFormData({
         description: '',
         amount: 0,
@@ -55,57 +93,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       });
     }
   }, [isOpen]);
-
-  // Efeito separado para carregar dados da conta
-  useEffect(() => {
-    console.log('=== Account data change ===');
-    console.log('Account received:', account);
-    console.log('Modal is open:', isOpen);
-    
-    // Só processar se o modal estiver aberto
-    if (!isOpen) {
-      console.log('Modal não está aberto, ignorando mudança de account');
-      return;
-    }
-
-    if (account && account.id) {
-      console.log('=== CARREGANDO DADOS PARA EDIÇÃO ===');
-      console.log('Account ID:', account.id);
-      console.log('Account data:', account);
-      
-      // Formatação da data para o input date (YYYY-MM-DD)
-      const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
-      
-      const editFormData = {
-        id: account.id,
-        description: account.description || '',
-        amount: Math.abs(account.amount) || 0,
-        category: account.category || '',
-        dueDate: formattedDueDate,
-        type: account.type || 'despesa',
-        status: account.status || 'pendente'
-      };
-      
-      console.log('Definindo dados do formulário para edição:', editFormData);
-      setFormData(editFormData);
-    } else if (isOpen) {
-      console.log('=== MODO NOVA CONTA ===');
-      setFormData({
-        description: '',
-        amount: 0,
-        category: '',
-        dueDate: '',
-        type: 'despesa',
-        status: 'pendente'
-      });
-    }
-  }, [account, isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      refreshCategories();
-    }
-  }, [isOpen, refreshCategories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
