@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,27 +15,32 @@ export const useCategoriesData = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Carregar categorias do Supabase
-  const fetchCategories = async () => {
+  // Carregar categorias do Supabase com useCallback para evitar re-renders desnecessários
+  const fetchCategories = useCallback(async () => {
     try {
+      console.log('Iniciando carregamento de categorias...');
       setLoading(true);
+      
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erro ao carregar categorias:', error);
+        console.error('Erro ao carregar categorias do Supabase:', error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar as categorias.",
           variant: "destructive"
         });
+        setCategories([]);
         return;
       }
 
+      console.log('Dados recebidos do Supabase:', data);
+
       // Transformar dados do Supabase para o formato esperado
-      const transformedCategories: Category[] = data.map(category => ({
+      const transformedCategories: Category[] = (data || []).map(category => ({
         id: category.id,
         name: category.name,
         type: category.type as 'receita' | 'despesa',
@@ -43,22 +48,25 @@ export const useCategoriesData = () => {
       }));
 
       setCategories(transformedCategories);
-      console.log('Categorias carregadas do Supabase:', transformedCategories.length, 'categorias');
+      console.log('Categorias carregadas com sucesso:', transformedCategories.length, 'categorias');
     } catch (error) {
-      console.error('Erro ao carregar categorias:', error);
+      console.error('Erro inesperado ao carregar categorias:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar as categorias.",
+        description: "Erro inesperado ao carregar as categorias.",
         variant: "destructive"
       });
+      setCategories([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   // Adicionar nova categoria
   const addCategory = async (categoryData: Omit<Category, 'id'>) => {
     try {
+      console.log('Adicionando nova categoria:', categoryData);
+      
       const { data, error } = await supabase
         .from('categories')
         .insert([{
@@ -95,10 +103,10 @@ export const useCategoriesData = () => {
         description: "Categoria criada com sucesso.",
       });
     } catch (error) {
-      console.error('Erro ao criar categoria:', error);
+      console.error('Erro inesperado ao criar categoria:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar a categoria.",
+        description: "Erro inesperado ao criar a categoria.",
         variant: "destructive"
       });
     }
@@ -107,6 +115,8 @@ export const useCategoriesData = () => {
   // Atualizar categoria
   const updateCategory = async (updatedCategory: Category) => {
     try {
+      console.log('Atualizando categoria:', updatedCategory);
+      
       const { error } = await supabase
         .from('categories')
         .update({
@@ -135,10 +145,10 @@ export const useCategoriesData = () => {
         description: "Categoria atualizada com sucesso.",
       });
     } catch (error) {
-      console.error('Erro ao atualizar categoria:', error);
+      console.error('Erro inesperado ao atualizar categoria:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar a categoria.",
+        description: "Erro inesperado ao atualizar a categoria.",
         variant: "destructive"
       });
     }
@@ -147,6 +157,8 @@ export const useCategoriesData = () => {
   // Deletar categoria
   const deleteCategory = async (id: number) => {
     try {
+      console.log('Deletando categoria ID:', id);
+      
       const { error } = await supabase
         .from('categories')
         .delete()
@@ -169,10 +181,10 @@ export const useCategoriesData = () => {
         description: "Categoria excluída com sucesso.",
       });
     } catch (error) {
-      console.error('Erro ao deletar categoria:', error);
+      console.error('Erro inesperado ao deletar categoria:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a categoria.",
+        description: "Erro inesperado ao excluir a categoria.",
         variant: "destructive"
       });
     }
@@ -181,7 +193,7 @@ export const useCategoriesData = () => {
   // Carregar categorias ao montar o componente
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   return {
     categories,

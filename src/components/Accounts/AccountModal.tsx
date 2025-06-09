@@ -38,14 +38,23 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente'
   });
 
-  // Carregar dados quando o modal abre ou a conta muda
+  // Carregar dados quando o modal abre
   useEffect(() => {
     if (isOpen) {
-      console.log('=== Modal aberto - processando dados ===');
-      console.log('Account recebida:', account);
+      console.log('=== Modal aberto ===');
       
+      // Primeiro, fazer refresh das categorias
+      try {
+        refreshCategories();
+        console.log('Refresh de categorias realizado');
+      } catch (error) {
+        console.error('Erro ao fazer refresh das categorias:', error);
+      }
+      
+      // Depois, processar dados da conta
       if (account && account.id) {
-        console.log('=== MODO EDIÇÃO - Carregando dados ===');
+        console.log('=== MODO EDIÇÃO ===');
+        console.log('Dados da conta:', account);
         
         // Formatação da data para o input date (YYYY-MM-DD)
         const formattedDueDate = account.dueDate ? account.dueDate.split('T')[0] : '';
@@ -60,7 +69,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           status: account.status || 'pendente'
         };
         
-        console.log('Dados carregados para edição:', editFormData);
+        console.log('Carregando dados para edição:', editFormData);
         setFormData(editFormData);
       } else {
         console.log('=== MODO NOVA CONTA ===');
@@ -73,11 +82,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           status: 'pendente'
         });
       }
-      
-      // Refresh categories quando modal abre
-      refreshCategories();
     }
-  }, [isOpen, account, refreshCategories]);
+  }, [isOpen, account]);
 
   // Reset quando modal fecha
   useEffect(() => {
@@ -106,8 +112,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     onClose();
   };
 
-  const handleRefreshCategories = () => {
-    refreshCategories();
+  const handleRefreshCategories = async () => {
+    try {
+      console.log('Fazendo refresh manual das categorias...');
+      await refreshCategories();
+      console.log('Refresh manual concluído');
+    } catch (error) {
+      console.error('Erro no refresh manual das categorias:', error);
+    }
   };
 
   if (!isOpen) return null;
@@ -115,9 +127,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const isEditing = !!(account && account.id);
 
   console.log('=== RENDERIZANDO MODAL ===');
-  console.log('Current formData:', formData);
-  console.log('Is editing?', isEditing);
-  console.log('Account prop:', account);
+  console.log('FormData atual:', formData);
+  console.log('É edição?', isEditing);
+  console.log('Categorias disponíveis:', categoriesFromDB?.length || 0);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -137,7 +149,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         <AccountForm
           formData={formData}
           setFormData={setFormData}
-          categories={categoriesFromDB}
+          categories={categoriesFromDB || []}
           onRefreshCategories={handleRefreshCategories}
           onSubmit={handleSubmit}
           onCancel={onClose}
