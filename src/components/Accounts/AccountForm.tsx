@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,9 +48,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     );
   }
 
-  const formatCurrency = (value: number): string => {
-    if (isNaN(value) || value === null || value === undefined) {
-      return '0,00';
+  const formatCurrencyInput = (value: number): string => {
+    if (isNaN(value) || value === null || value === undefined || value === 0) {
+      return '';
     }
     return new Intl.NumberFormat('pt-BR', {
       minimumFractionDigits: 2,
@@ -59,15 +58,28 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     }).format(value);
   };
 
+  const parseCurrencyInput = (inputValue: string): number => {
+    if (!inputValue) return 0;
+    
+    // Remove todos os caracteres que não são dígitos
+    const digitsOnly = inputValue.replace(/\D/g, '');
+    
+    // Se não há dígitos, retorna 0
+    if (!digitsOnly) return 0;
+    
+    // Converte para número dividindo por 100 (para considerar os centavos)
+    const numericValue = parseInt(digitsOnly) / 100;
+    
+    return numericValue;
+  };
+
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     
-    // Remove todos os caracteres que não são dígitos, vírgula ou ponto
-    const cleanValue = inputValue.replace(/[^\d,]/g, '');
-    // Converte vírgula para ponto para parsing
-    const normalizedValue = cleanValue.replace(',', '.');
-    const numericValue = parseFloat(normalizedValue) || 0;
+    // Parse do valor digitado
+    const numericValue = parseCurrencyInput(inputValue);
     
+    // Atualiza o estado com o valor numérico
     setFormData({ ...formData, amount: numericValue });
   };
 
@@ -114,7 +126,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             <Input
               id="amount"
               type="text"
-              value={formatCurrency(formData.amount || 0)}
+              value={formatCurrencyInput(formData.amount || 0)}
               onChange={handleAmountChange}
               className="pl-10"
               placeholder="0,00"
