@@ -45,6 +45,45 @@ export type Database = {
         }
         Relationships: []
       }
+      banks: {
+        Row: {
+          account_number: string
+          account_type: string | null
+          agency: string
+          balance: number | null
+          created_at: string | null
+          id: number
+          name: string
+          nickname: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          account_type?: string | null
+          agency: string
+          balance?: number | null
+          created_at?: string | null
+          id?: number
+          name: string
+          nickname?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          account_type?: string | null
+          agency?: string
+          balance?: number | null
+          created_at?: string | null
+          id?: number
+          name?: string
+          nickname?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string
@@ -74,6 +113,53 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      deposits: {
+        Row: {
+          amount: number
+          bank_id: number
+          created_at: string | null
+          deposit_date: string
+          description: string | null
+          id: number
+          origin_bank: string | null
+          receipt_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bank_id: number
+          created_at?: string | null
+          deposit_date: string
+          description?: string | null
+          id?: number
+          origin_bank?: string | null
+          receipt_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bank_id?: number
+          created_at?: string | null
+          deposit_date?: string
+          description?: string | null
+          id?: number
+          origin_bank?: string | null
+          receipt_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposits_bank_id_fkey"
+            columns: ["bank_id"]
+            isOneToOne: false
+            referencedRelation: "banks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

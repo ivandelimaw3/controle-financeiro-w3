@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Contas from "./pages/Contas";
 import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
+import Bancos from "./pages/Bancos";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +40,11 @@ const App = () => (
               <Route path="/categorias" element={
                 <ProtectedRoute>
                   <Categorias />
+                </ProtectedRoute>
+              } />
+              <Route path="/bancos" element={
+                <ProtectedRoute>
+                  <Bancos />
                 </ProtectedRoute>
               } />
               <Route path="/relatorios" element={
