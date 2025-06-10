@@ -18,54 +18,58 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
     },
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <AccountsProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/contas" element={
-                <ProtectedRoute>
-                  <Contas />
-                </ProtectedRoute>
-              } />
-              <Route path="/categorias" element={
-                <ProtectedRoute>
-                  <Categorias />
-                </ProtectedRoute>
-              } />
-              <Route path="/bancos" element={
-                <ProtectedRoute>
-                  <Bancos />
-                </ProtectedRoute>
-              } />
-              <Route path="/relatorios" element={
-                <ProtectedRoute>
-                  <Relatorios />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AccountsProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <AccountsProvider>
+            <BrowserRouter>
+              <div className="min-h-screen">
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/contas" element={
+                    <ProtectedRoute>
+                      <Contas />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/categorias" element={
+                    <ProtectedRoute>
+                      <Categorias />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/bancos" element={
+                    <ProtectedRoute>
+                      <Bancos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/relatorios" element={
+                    <ProtectedRoute>
+                      <Relatorios />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+                <Sonner />
+              </div>
+            </BrowserRouter>
+          </AccountsProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
