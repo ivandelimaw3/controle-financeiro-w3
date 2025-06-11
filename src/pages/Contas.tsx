@@ -69,35 +69,65 @@ const Contas: React.FC = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Calcular total baseado no filtro de tipo - APENAS contas pagas/recebidas
+  // Calcular total baseado no filtro de tipo e status
   const calculateFilteredTotal = () => {
-    const paidAccounts = filteredAccounts.filter(account => 
-      account.status === 'pago' || account.status === 'recebido'
-    );
-
-    if (typeFilter === 'todos') {
-      const receitas = paidAccounts
-        .filter(account => account.type === 'receita')
-        .reduce((sum, account) => sum + account.amount, 0);
-      const despesas = paidAccounts
-        .filter(account => account.type === 'despesa')
-        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-      return receitas - despesas;
-    } else if (typeFilter === 'receita') {
-      return paidAccounts
-        .filter(account => account.type === 'receita')
-        .reduce((sum, account) => sum + account.amount, 0);
+    // Se o filtro de status for 'pendente', mostrar apenas contas pendentes
+    if (statusFilter === 'pendente') {
+      const pendingAccounts = filteredAccounts.filter(account => account.status === 'pendente');
+      
+      if (typeFilter === 'todos') {
+        const receitas = pendingAccounts
+          .filter(account => account.type === 'receita')
+          .reduce((sum, account) => sum + account.amount, 0);
+        const despesas = pendingAccounts
+          .filter(account => account.type === 'despesa')
+          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+        return receitas - despesas;
+      } else if (typeFilter === 'receita') {
+        return pendingAccounts
+          .filter(account => account.type === 'receita')
+          .reduce((sum, account) => sum + account.amount, 0);
+      } else {
+        return pendingAccounts
+          .filter(account => account.type === 'despesa')
+          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+      }
     } else {
-      return paidAccounts
-        .filter(account => account.type === 'despesa')
-        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+      // Para outros status, mostrar apenas contas pagas/recebidas
+      const paidAccounts = filteredAccounts.filter(account => 
+        account.status === 'pago' || account.status === 'recebido'
+      );
+
+      if (typeFilter === 'todos') {
+        const receitas = paidAccounts
+          .filter(account => account.type === 'receita')
+          .reduce((sum, account) => sum + account.amount, 0);
+        const despesas = paidAccounts
+          .filter(account => account.type === 'despesa')
+          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+        return receitas - despesas;
+      } else if (typeFilter === 'receita') {
+        return paidAccounts
+          .filter(account => account.type === 'receita')
+          .reduce((sum, account) => sum + account.amount, 0);
+      } else {
+        return paidAccounts
+          .filter(account => account.type === 'despesa')
+          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+      }
     }
   };
 
   const getFilteredTotalLabel = () => {
-    if (typeFilter === 'todos') return 'Saldo Total (Pagas/Recebidas)';
-    if (typeFilter === 'receita') return 'Total Receitas (Recebidas)';
-    return 'Total Despesas (Pagas)';
+    if (statusFilter === 'pendente') {
+      if (typeFilter === 'todos') return 'Saldo Total (Pendentes)';
+      if (typeFilter === 'receita') return 'Total Receitas (Pendentes)';
+      return 'Total Despesas (Pendentes)';
+    } else {
+      if (typeFilter === 'todos') return 'Saldo Total (Pagas/Recebidas)';
+      if (typeFilter === 'receita') return 'Total Receitas (Recebidas)';
+      return 'Total Despesas (Pagas)';
+    }
   };
 
   const getFilteredTotalColor = () => {
