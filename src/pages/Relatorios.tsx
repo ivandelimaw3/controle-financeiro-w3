@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
@@ -53,10 +54,11 @@ const Relatorios: React.FC = () => {
     const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
     const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
     
-    // Quando "todos os tipos" está selecionado, mostrar apenas contas pagas/recebidas
-    const matchesPaymentStatus = typeFilter === 'todos' 
-      ? (account.status === 'pago' || account.status === 'recebido')
-      : true;
+    // Corrigir a lógica: quando "todos" está selecionado, mostrar apenas contas pagas/recebidas
+    let matchesPaymentStatus = true;
+    if (typeFilter === 'todos') {
+      matchesPaymentStatus = (account.status === 'pago' || account.status === 'recebido');
+    }
     
     return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear && matchesPaymentStatus;
   });
