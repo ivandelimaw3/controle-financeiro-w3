@@ -71,6 +71,24 @@ const Relatorios: React.FC = () => {
     return null;
   };
 
+  // Calcular total baseado no status selecionado
+  const getStatusTotal = () => {
+    if (statusFilter === 'pendente') {
+      return filteredAccounts
+        .filter(account => account.status === 'pendente')
+        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    } else if (statusFilter === 'pago') {
+      return filteredAccounts
+        .filter(account => account.status === 'pago')
+        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    } else if (statusFilter === 'recebido') {
+      return filteredAccounts
+        .filter(account => account.status === 'recebido')
+        .reduce((sum, account) => sum + account.amount, 0);
+    }
+    return null;
+  };
+
   // Calcular saldo da seleção de mês/ano (apenas para contas pagas/recebidas)
   const getFilteredBalance = () => {
     if (monthFilter !== 'todos' || yearFilter !== 'todos') {
@@ -88,6 +106,7 @@ const Relatorios: React.FC = () => {
   };
 
   const filteredTotal = getFilteredTotal();
+  const statusTotal = getStatusTotal();
   const filteredBalance = getFilteredBalance();
 
   const getStatusColor = (status: string) => {
@@ -262,6 +281,25 @@ const Relatorios: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Campo de Total por Status */}
+            {statusTotal !== null && (
+              <div className="bg-orange-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600 font-medium">
+                    Total de Contas {statusFilter === 'pendente' ? 'Pendentes' : statusFilter === 'pago' ? 'Pagas' : 'Recebidas'}:
+                  </span>
+                  <span className={`text-xl font-bold ${
+                    statusFilter === 'recebido' ? 'text-green-600' : 'text-orange-600'
+                  }`}>
+                    R$ {statusTotal.toFixed(2)}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  * Total filtrado por status: {statusFilter}
+                </div>
+              </div>
+            )}
 
             {/* Campo de Total Filtrado por Tipo */}
             {filteredTotal !== null && (
