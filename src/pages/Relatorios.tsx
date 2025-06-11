@@ -54,7 +54,12 @@ const Relatorios: React.FC = () => {
     const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
     const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
     
-    return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
+    // Quando "todos os tipos" está selecionado, mostrar apenas contas pagas/recebidas
+    const matchesPaymentStatus = typeFilter === 'todos' 
+      ? (account.status === 'pago' || account.status === 'recebido')
+      : true;
+    
+    return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear && matchesPaymentStatus;
   });
 
   // Calcular total filtrado baseado no tipo selecionado
