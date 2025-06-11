@@ -70,6 +70,24 @@ const Relatorios: React.FC = () => {
     return null;
   };
 
+  // Calcular saldo baseado no status selecionado
+  const getStatusBalance = () => {
+    if (statusFilter !== 'todos') {
+      const statusAccounts = filteredAccounts.filter(account => account.status === statusFilter);
+      
+      const receitas = statusAccounts
+        .filter(account => account.type === 'receita')
+        .reduce((sum, account) => sum + account.amount, 0);
+      
+      const despesas = statusAccounts
+        .filter(account => account.type === 'despesa')
+        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+      
+      return receitas - despesas;
+    }
+    return null;
+  };
+
   // Calcular saldo da seleção de mês/ano
   const getFilteredBalance = () => {
     if (monthFilter !== 'todos' || yearFilter !== 'todos') {
@@ -87,6 +105,7 @@ const Relatorios: React.FC = () => {
   };
 
   const filteredTotal = getFilteredTotal();
+  const statusBalance = getStatusBalance();
   const filteredBalance = getFilteredBalance();
 
   const getStatusColor = (status: string) => {
@@ -109,6 +128,19 @@ const Relatorios: React.FC = () => {
         return 'Recebido';
       case 'pendente':
         return 'Pendente';
+      default:
+        return status;
+    }
+  };
+
+  const getStatusFilterLabel = (status: string) => {
+    switch (status) {
+      case 'pago':
+        return 'Pagas';
+      case 'recebido':
+        return 'Recebidas';
+      case 'pendente':
+        return 'Pendentes';
       default:
         return status;
     }
@@ -262,6 +294,22 @@ const Relatorios: React.FC = () => {
               </Select>
             </div>
 
+            {/* Campo de Saldo do Status Selecionado */}
+            {statusBalance !== null && (
+              <div className="bg-purple-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600 font-medium">
+                    Saldo das Contas {getStatusFilterLabel(statusFilter)}:
+                  </span>
+                  <span className={`text-xl font-bold ${
+                    statusBalance >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    R$ {statusBalance.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Campo de Total Filtrado por Tipo */}
             {filteredTotal !== null && (
               <div className="bg-slate-50 rounded-lg p-4 mb-4">
@@ -404,3 +452,5 @@ const Relatorios: React.FC = () => {
 };
 
 export default Relatorios;
+
+}
