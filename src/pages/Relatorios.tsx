@@ -54,38 +54,32 @@ const Relatorios: React.FC = () => {
     const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
     const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
     
-    // Corrigir a lógica: quando "todos" está selecionado, mostrar apenas contas pagas/recebidas
-    let matchesPaymentStatus = true;
-    if (typeFilter === 'todos') {
-      matchesPaymentStatus = (account.status === 'pago' || account.status === 'recebido');
-    }
-    
-    return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear && matchesPaymentStatus;
+    return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
   });
 
-  // Calcular total filtrado baseado no tipo selecionado
+  // Calcular total filtrado baseado no tipo selecionado (apenas para contas pagas/recebidas)
   const getFilteredTotal = () => {
     if (typeFilter === 'receita') {
       return filteredAccounts
-        .filter(account => account.type === 'receita')
+        .filter(account => account.type === 'receita' && account.status === 'recebido')
         .reduce((sum, account) => sum + account.amount, 0);
     } else if (typeFilter === 'despesa') {
       return filteredAccounts
-        .filter(account => account.type === 'despesa')
+        .filter(account => account.type === 'despesa' && account.status === 'pago')
         .reduce((sum, account) => sum + Math.abs(account.amount), 0);
     }
     return null;
   };
 
-  // Calcular saldo da seleção de mês/ano
+  // Calcular saldo da seleção de mês/ano (apenas para contas pagas/recebidas)
   const getFilteredBalance = () => {
     if (monthFilter !== 'todos' || yearFilter !== 'todos') {
       const receitas = filteredAccounts
-        .filter(account => account.type === 'receita')
+        .filter(account => account.type === 'receita' && account.status === 'recebido')
         .reduce((sum, account) => sum + account.amount, 0);
       
       const despesas = filteredAccounts
-        .filter(account => account.type === 'despesa')
+        .filter(account => account.type === 'despesa' && account.status === 'pago')
         .reduce((sum, account) => sum + Math.abs(account.amount), 0);
       
       return receitas - despesas;
@@ -274,13 +268,16 @@ const Relatorios: React.FC = () => {
               <div className="bg-slate-50 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600 font-medium">
-                    Total de {typeFilter === 'receita' ? 'Receitas' : 'Despesas'} Filtradas:
+                    Total de {typeFilter === 'receita' ? 'Receitas Recebidas' : 'Despesas Pagas'} Filtradas:
                   </span>
                   <span className={`text-xl font-bold ${
                     typeFilter === 'receita' ? 'text-green-600' : 'text-red-600'
                   }`}>
                     R$ {filteredTotal.toFixed(2)}
                   </span>
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  * Não inclui contas pendentes no cálculo
                 </div>
               </div>
             )}
@@ -302,6 +299,9 @@ const Relatorios: React.FC = () => {
                   {monthFilter !== 'todos' && `Mês: ${monthFilter}`}
                   {monthFilter !== 'todos' && yearFilter !== 'todos' && ' • '}
                   {yearFilter !== 'todos' && `Ano: ${yearFilter}`}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  * Saldo calculado apenas com contas pagas/recebidas
                 </div>
               </div>
             )}
