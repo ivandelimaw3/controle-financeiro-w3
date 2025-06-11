@@ -69,31 +69,35 @@ const Contas: React.FC = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Calcular total baseado no filtro de tipo
+  // Calcular total baseado no filtro de tipo - APENAS contas pagas/recebidas
   const calculateFilteredTotal = () => {
+    const paidAccounts = filteredAccounts.filter(account => 
+      account.status === 'pago' || account.status === 'recebido'
+    );
+
     if (typeFilter === 'todos') {
-      const receitas = filteredAccounts
+      const receitas = paidAccounts
         .filter(account => account.type === 'receita')
         .reduce((sum, account) => sum + account.amount, 0);
-      const despesas = filteredAccounts
+      const despesas = paidAccounts
         .filter(account => account.type === 'despesa')
         .reduce((sum, account) => sum + Math.abs(account.amount), 0);
       return receitas - despesas;
     } else if (typeFilter === 'receita') {
-      return filteredAccounts
+      return paidAccounts
         .filter(account => account.type === 'receita')
         .reduce((sum, account) => sum + account.amount, 0);
     } else {
-      return filteredAccounts
+      return paidAccounts
         .filter(account => account.type === 'despesa')
         .reduce((sum, account) => sum + Math.abs(account.amount), 0);
     }
   };
 
   const getFilteredTotalLabel = () => {
-    if (typeFilter === 'todos') return 'Saldo Total';
-    if (typeFilter === 'receita') return 'Total Receitas';
-    return 'Total Despesas';
+    if (typeFilter === 'todos') return 'Saldo Total (Pagas/Recebidas)';
+    if (typeFilter === 'receita') return 'Total Receitas (Recebidas)';
+    return 'Total Despesas (Pagas)';
   };
 
   const getFilteredTotalColor = () => {

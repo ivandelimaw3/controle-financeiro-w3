@@ -56,13 +56,13 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
 
   const getTotalReceitas = () => {
     return accounts
-      .filter(t => t.type === 'receita')
+      .filter(t => t.type === 'receita' && t.status === 'recebido')
       .reduce((sum, t) => sum + t.amount, 0);
   };
 
   const getTotalDespesas = () => {
     return accounts
-      .filter(t => t.type === 'despesa')
+      .filter(t => t.type === 'despesa' && t.status === 'pago')
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   };
 
