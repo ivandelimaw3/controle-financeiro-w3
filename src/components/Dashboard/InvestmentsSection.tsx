@@ -8,6 +8,8 @@ import { useInvestmentsData, Investment } from '@/hooks/useInvestmentsData';
 import { Plus, TrendingUp, DollarSign, PieChart, Target } from 'lucide-react';
 
 export const InvestmentsSection: React.FC = () => {
+  console.log('InvestmentsSection: component rendering');
+  
   const {
     investments,
     institutions,
@@ -19,24 +21,39 @@ export const InvestmentsSection: React.FC = () => {
     addInstitution
   } = useInvestmentsData();
 
+  console.log('InvestmentsSection: hook data', { 
+    investmentsCount: investments.length, 
+    institutionsCount: institutions.length, 
+    typesCount: types.length, 
+    loading 
+  });
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
 
   const handleAddInvestment = () => {
+    console.log('InvestmentsSection: opening form for new investment');
     setEditingInvestment(null);
     setIsFormOpen(true);
   };
 
   const handleEditInvestment = (investment: Investment) => {
+    console.log('InvestmentsSection: opening form for edit investment', investment.id);
     setEditingInvestment(investment);
     setIsFormOpen(true);
   };
 
   const handleFormSubmit = async (data: any) => {
-    if (editingInvestment) {
-      await updateInvestment(editingInvestment.id, data);
-    } else {
-      await addInvestment(data);
+    console.log('InvestmentsSection: form submit', data);
+    try {
+      if (editingInvestment) {
+        await updateInvestment(editingInvestment.id, data);
+      } else {
+        await addInvestment(data);
+      }
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error('InvestmentsSection: form submit error', error);
     }
   };
 
@@ -48,12 +65,15 @@ export const InvestmentsSection: React.FC = () => {
       ? investments.reduce((sum, inv) => sum + (inv.yield_percentage || 0), 0) / investments.length 
       : 0;
 
+    console.log('InvestmentsSection: calculated totals', { totalInvested, totalCurrent, totalReturn, averageYield });
+    
     return { totalInvested, totalCurrent, totalReturn, averageYield };
   };
 
   const { totalInvested, totalCurrent, totalReturn, averageYield } = calculateTotals();
 
   if (loading) {
+    console.log('InvestmentsSection: showing loading state');
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -63,6 +83,8 @@ export const InvestmentsSection: React.FC = () => {
       </div>
     );
   }
+
+  console.log('InvestmentsSection: rendering main content');
 
   return (
     <div className="space-y-6">
@@ -77,23 +99,23 @@ export const InvestmentsSection: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <InvestmentCard
           title="Total Investido"
-          value={`R$ ${totalInvested.toFixed(2)}`}
+          value={`R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={DollarSign}
           bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
         />
         
         <InvestmentCard
           title="Valor Atual"
-          value={`R$ ${totalCurrent.toFixed(2)}`}
+          value={`R$ ${totalCurrent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={TrendingUp}
           bgColor="bg-gradient-to-r from-green-500 to-green-600"
         />
         
         <InvestmentCard
           title="Retorno Total"
-          value={`R$ ${totalReturn.toFixed(2)}`}
+          value={`R$ ${totalReturn.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={Target}
-          trend={`${((totalReturn / totalInvested) * 100 || 0).toFixed(2)}%`}
+          trend={totalInvested > 0 ? `${((totalReturn / totalInvested) * 100).toFixed(2)}%` : '0%'}
           trendUp={totalReturn >= 0}
           bgColor={totalReturn >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
         />
@@ -114,7 +136,10 @@ export const InvestmentsSection: React.FC = () => {
 
       <InvestmentForm
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        onClose={() => {
+          console.log('InvestmentsSection: closing form');
+          setIsFormOpen(false);
+        }}
         onSubmit={handleFormSubmit}
         onAddInstitution={addInstitution}
         investment={editingInvestment}

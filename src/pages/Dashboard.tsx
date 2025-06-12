@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -10,6 +9,8 @@ import { useAccounts } from '@/contexts/AccountsContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Dashboard: React.FC = () => {
+  console.log('Dashboard: component rendering');
+  
   const navigate = useNavigate();
   const { 
     loading,
@@ -26,6 +27,15 @@ const Dashboard: React.FC = () => {
   const saldo = getSaldo();
   const contasPendentes = getContasPendentes();
 
+  console.log('Dashboard: accounts data', { 
+    loading, 
+    transactionsCount: transactions.length, 
+    totalReceitas, 
+    totalDespesas, 
+    saldo, 
+    contasPendentes 
+  });
+
   const handleReceitasClick = () => {
     navigate('/contas?type=receita');
   };
@@ -39,6 +49,7 @@ const Dashboard: React.FC = () => {
   };
 
   if (loading) {
+    console.log('Dashboard: showing loading state');
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -50,6 +61,8 @@ const Dashboard: React.FC = () => {
       </Layout>
     );
   }
+
+  console.log('Dashboard: rendering main content');
 
   return (
     <Layout>

@@ -47,9 +47,17 @@ export const useInvestmentsData = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchInvestments = async () => {
-    if (!user) return;
+  console.log('useInvestmentsData: user', user);
+  console.log('useInvestmentsData: loading', loading);
+  console.log('useInvestmentsData: investments count', investments.length);
 
+  const fetchInvestments = async () => {
+    if (!user) {
+      console.log('fetchInvestments: no user, skipping');
+      return;
+    }
+
+    console.log('fetchInvestments: starting fetch for user', user.id);
     try {
       const { data, error } = await supabase
         .from('investments')
@@ -61,7 +69,12 @@ export const useInvestmentsData = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('fetchInvestments error:', error);
+        throw error;
+      }
+      
+      console.log('fetchInvestments: received data', data);
       setInvestments(data || []);
     } catch (error) {
       console.error('Erro ao buscar investimentos:', error);
@@ -70,8 +83,12 @@ export const useInvestmentsData = () => {
   };
 
   const fetchInstitutions = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('fetchInstitutions: no user, skipping');
+      return;
+    }
 
+    console.log('fetchInstitutions: starting fetch for user', user.id);
     try {
       const { data, error } = await supabase
         .from('investment_institutions')
@@ -79,7 +96,12 @@ export const useInvestmentsData = () => {
         .eq('user_id', user.id)
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('fetchInstitutions error:', error);
+        throw error;
+      }
+      
+      console.log('fetchInstitutions: received data', data);
       setInstitutions(data || []);
     } catch (error) {
       console.error('Erro ao buscar instituições:', error);
@@ -87,15 +109,24 @@ export const useInvestmentsData = () => {
   };
 
   const fetchTypes = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('fetchTypes: no user, skipping');
+      return;
+    }
 
+    console.log('fetchTypes: starting fetch');
     try {
       const { data, error } = await supabase
         .from('investment_types')
         .select('*')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('fetchTypes error:', error);
+        throw error;
+      }
+      
+      console.log('fetchTypes: received data', data);
       setTypes(data || []);
     } catch (error) {
       console.error('Erro ao buscar tipos:', error);
@@ -105,6 +136,7 @@ export const useInvestmentsData = () => {
   const addInvestment = async (investment: Omit<Investment, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     if (!user) return;
 
+    console.log('addInvestment: adding investment', investment);
     try {
       const { data, error } = await supabase
         .from('investments')
@@ -112,8 +144,12 @@ export const useInvestmentsData = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('addInvestment error:', error);
+        throw error;
+      }
       
+      console.log('addInvestment: success', data);
       await fetchInvestments();
       toast.success('Investimento adicionado com sucesso!');
       return data;
@@ -125,14 +161,19 @@ export const useInvestmentsData = () => {
   };
 
   const updateInvestment = async (id: number, updates: Partial<Investment>) => {
+    console.log('updateInvestment: updating investment', id, updates);
     try {
       const { error } = await supabase
         .from('investments')
         .update(updates)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('updateInvestment error:', error);
+        throw error;
+      }
       
+      console.log('updateInvestment: success');
       await fetchInvestments();
       toast.success('Investimento atualizado com sucesso!');
     } catch (error) {
@@ -143,14 +184,19 @@ export const useInvestmentsData = () => {
   };
 
   const deleteInvestment = async (id: number) => {
+    console.log('deleteInvestment: deleting investment', id);
     try {
       const { error } = await supabase
         .from('investments')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('deleteInvestment error:', error);
+        throw error;
+      }
       
+      console.log('deleteInvestment: success');
       await fetchInvestments();
       toast.success('Investimento removido com sucesso!');
     } catch (error) {
@@ -163,6 +209,7 @@ export const useInvestmentsData = () => {
   const addInstitution = async (name: string) => {
     if (!user) return;
 
+    console.log('addInstitution: adding institution', name);
     try {
       const { data, error } = await supabase
         .from('investment_institutions')
@@ -170,8 +217,12 @@ export const useInvestmentsData = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('addInstitution error:', error);
+        throw error;
+      }
       
+      console.log('addInstitution: success', data);
       await fetchInstitutions();
       toast.success('Instituição adicionada com sucesso!');
       return data;
@@ -184,6 +235,7 @@ export const useInvestmentsData = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('useInvestmentsData: useEffect triggered for user', user.id);
       const loadData = async () => {
         setLoading(true);
         await Promise.all([
@@ -192,9 +244,13 @@ export const useInvestmentsData = () => {
           fetchTypes()
         ]);
         setLoading(false);
+        console.log('useInvestmentsData: loading complete');
       };
       
       loadData();
+    } else {
+      console.log('useInvestmentsData: no user, setting loading to false');
+      setLoading(false);
     }
   }, [user]);
 
