@@ -12,6 +12,7 @@ import Contas from "./pages/Contas";
 import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
 import Bancos from "./pages/Bancos";
+import Investimentos from "./pages/Investimentos";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,11 @@ const App = () => {
                   <Route path="/bancos" element={
                     <ProtectedRoute>
                       <Bancos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/investimentos" element={
+                    <ProtectedRoute>
+                      <Investimentos />
                     </ProtectedRoute>
                   } />
                   <Route path="/relatorios" element={

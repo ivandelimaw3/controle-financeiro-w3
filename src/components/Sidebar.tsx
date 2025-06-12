@@ -6,7 +6,8 @@ import {
   CreditCard, 
   FolderOpen, 
   TrendingUp,
-  Building2
+  Building2,
+  PieChart
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -17,6 +18,7 @@ export const Sidebar: React.FC = () => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: CreditCard, label: 'Contas', path: '/contas' },
     { icon: Building2, label: 'Bancos', path: '/bancos' },
+    { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
   ];
