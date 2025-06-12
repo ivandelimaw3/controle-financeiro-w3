@@ -161,6 +161,114 @@ export type Database = {
           },
         ]
       }
+      investment_institutions: {
+        Row: {
+          created_at: string | null
+          id: number
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investment_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: number
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: number
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: number
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investments: {
+        Row: {
+          created_at: string | null
+          current_value: number
+          id: number
+          institution_id: number
+          invested_amount: number
+          name: string
+          purchase_date: string
+          type_id: number
+          updated_at: string | null
+          user_id: string
+          yield_percentage: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_value?: number
+          id?: number
+          institution_id: number
+          invested_amount?: number
+          name: string
+          purchase_date: string
+          type_id: number
+          updated_at?: string | null
+          user_id: string
+          yield_percentage?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          current_value?: number
+          id?: number
+          institution_id?: number
+          invested_amount?: number
+          name?: string
+          purchase_date?: string
+          type_id?: number
+          updated_at?: string | null
+          user_id?: string
+          yield_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investments_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "investment_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investments_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "investment_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
