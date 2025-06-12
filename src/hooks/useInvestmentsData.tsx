@@ -16,8 +16,15 @@ export interface Investment {
   user_id: string;
   created_at: string;
   updated_at: string;
-  institution?: InvestmentInstitution;
-  type?: InvestmentType;
+  institution?: {
+    id: number;
+    name: string;
+  };
+  type?: {
+    id: number;
+    name: string;
+    category: string;
+  };
 }
 
 export interface InvestmentInstitution {
