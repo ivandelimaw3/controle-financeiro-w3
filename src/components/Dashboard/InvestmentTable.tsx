@@ -20,6 +20,10 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
     return ((current - invested) / invested) * 100;
   };
 
+  const calculateReturnValue = (invested: number, current: number) => {
+    return current - invested;
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -58,6 +62,7 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
               <TableHead>Tipo</TableHead>
               <TableHead className="text-right">Investido</TableHead>
               <TableHead className="text-right">Valor Atual</TableHead>
+              <TableHead className="text-right">Rendimento</TableHead>
               <TableHead className="text-right">Rentabilidade</TableHead>
               <TableHead className="text-right">Compra</TableHead>
               <TableHead className="text-right">Vencimento</TableHead>
@@ -67,6 +72,7 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
           <TableBody>
             {investments.map((investment) => {
               const returnPercentage = calculateReturn(investment.invested_amount, investment.current_value);
+              const returnValue = calculateReturnValue(investment.invested_amount, investment.current_value);
               const isPositive = returnPercentage >= 0;
               
               return (
@@ -83,6 +89,11 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(investment.invested_amount)}</TableCell>
                   <TableCell className="text-right font-medium">{formatCurrency(investment.current_value)}</TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-medium text-green-600">
+                      {formatCurrency(Math.abs(returnValue))}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className={`flex items-center justify-end gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                       {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
