@@ -18,7 +18,8 @@ export const InvestmentsSection: React.FC = () => {
     addInvestment,
     updateInvestment,
     deleteInvestment,
-    addInstitution
+    addInstitution,
+    addType
   } = useInvestmentsData();
 
   console.log('InvestmentsSection: hook data', { 
@@ -142,6 +143,7 @@ export const InvestmentsSection: React.FC = () => {
         }}
         onSubmit={handleFormSubmit}
         onAddInstitution={addInstitution}
+        onAddType={addType}
         investment={editingInvestment}
         institutions={institutions}
         types={types}

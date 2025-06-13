@@ -39,13 +39,15 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Investidor</TableHead>
               <TableHead>Investimento</TableHead>
               <TableHead>Instituição</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="text-right">Investido</TableHead>
               <TableHead className="text-right">Valor Atual</TableHead>
               <TableHead className="text-right">Rentabilidade</TableHead>
-              <TableHead className="text-right">Data</TableHead>
+              <TableHead className="text-right">Compra</TableHead>
+              <TableHead className="text-right">Vencimento</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -56,6 +58,9 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
               
               return (
                 <TableRow key={investment.id}>
+                  <TableCell className="font-medium">
+                    {investment.investor_name || '-'}
+                  </TableCell>
                   <TableCell className="font-medium">{investment.name}</TableCell>
                   <TableCell>{investment.institution?.name}</TableCell>
                   <TableCell>
@@ -75,6 +80,12 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
                   </TableCell>
                   <TableCell className="text-right text-sm text-slate-600">
                     {format(new Date(investment.purchase_date), 'dd/MM/yyyy', { locale: ptBR })}
+                  </TableCell>
+                  <TableCell className="text-right text-sm text-slate-600">
+                    {investment.maturity_date 
+                      ? format(new Date(investment.maturity_date), 'dd/MM/yyyy', { locale: ptBR })
+                      : '-'
+                    }
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">

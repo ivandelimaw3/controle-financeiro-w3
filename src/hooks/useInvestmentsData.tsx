@@ -13,6 +13,8 @@ export interface Investment {
   current_value: number;
   yield_percentage: number | null;
   purchase_date: string;
+  maturity_date?: string | null;
+  investor_name?: string | null;
   user_id: string;
   created_at: string;
   updated_at: string;
@@ -119,6 +121,7 @@ export const useInvestmentsData = () => {
       const { data, error } = await supabase
         .from('investment_types')
         .select('*')
+        .or(`user_id.eq.${user.id},user_id.eq.00000000-0000-0000-0000-000000000000`)
         .order('name');
 
       if (error) {
@@ -233,6 +236,79 @@ export const useInvestmentsData = () => {
     }
   };
 
+  const addType = async (name: string, category: string) => {
+    if (!user) return;
+
+    console.log('addType: adding type', name, category);
+    try {
+      const { data, error } = await supabase
+        .from('investment_types')
+        .insert([{ name, category, user_id: user.id }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('addType error:', error);
+        throw error;
+      }
+      
+      console.log('addType: success', data);
+      await fetchTypes();
+      toast.success('Tipo de investimento adicionado com sucesso!');
+      return data;
+    } catch (error) {
+      console.error('Erro ao adicionar tipo:', error);
+      toast.error('Erro ao adicionar tipo');
+      throw error;
+    }
+  };
+
+  const updateInvestment = async (id: number, updates: Partial<Investment>) => {
+    console.log('updateInvestment: updating investment', id, updates);
+    try {
+      const { error } = await supabase
+        .from('investments')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) {
+        console.error('updateInvestment error:', error);
+        throw error;
+      }
+      
+      console.log('updateInvestment: success');
+      await fetchInvestments();
+      toast.success('Investimento atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar investimento:', error);
+      toast.error('Erro ao atualizar investimento');
+      throw error;
+    }
+  };
+
+  const deleteInvestment = async (id: number) => {
+    console.log('deleteInvestment: deleting investment', id);
+    try {
+      const { error } = await supabase
+        .from('investments')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('deleteInvestment error:', error);
+        throw error;
+      }
+      
+      console.log('deleteInvestment: success');
+      await fetchInvestments();
+      toast.success('Investimento removido com sucesso!');
+    } catch (error) {
+      console.error('Erro ao remover investimento:', error);
+      toast.error('Erro ao remover investimento');
+      throw error;
+    }
+  };
+
   useEffect(() => {
     if (user) {
       console.log('useInvestmentsData: useEffect triggered for user', user.id);
@@ -263,6 +339,7 @@ export const useInvestmentsData = () => {
     updateInvestment,
     deleteInvestment,
     addInstitution,
+    addType,
     refetch: () => Promise.all([fetchInvestments(), fetchInstitutions(), fetchTypes()])
   };
 };

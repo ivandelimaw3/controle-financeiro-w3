@@ -219,6 +219,8 @@ export type Database = {
           id: number
           institution_id: number
           invested_amount: number
+          investor_name: string | null
+          maturity_date: string | null
           name: string
           purchase_date: string
           type_id: number
@@ -232,6 +234,8 @@ export type Database = {
           id?: number
           institution_id: number
           invested_amount?: number
+          investor_name?: string | null
+          maturity_date?: string | null
           name: string
           purchase_date: string
           type_id: number
@@ -245,6 +249,8 @@ export type Database = {
           id?: number
           institution_id?: number
           invested_amount?: number
+          investor_name?: string | null
+          maturity_date?: string | null
           name?: string
           purchase_date?: string
           type_id?: number

@@ -13,6 +13,7 @@ interface InvestmentFormProps {
   onClose: () => void;
   onSubmit: (investment: any) => Promise<void>;
   onAddInstitution: (name: string) => Promise<any>;
+  onAddType: (name: string, category: string) => Promise<any>;
   investment?: Investment;
   institutions: InvestmentInstitution[];
   types: InvestmentType[];
@@ -23,6 +24,7 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   onClose,
   onSubmit,
   onAddInstitution,
+  onAddType,
   investment,
   institutions,
   types
@@ -34,11 +36,15 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     invested_amount: investment?.invested_amount?.toString() || '',
     current_value: investment?.current_value?.toString() || '',
     yield_percentage: investment?.yield_percentage?.toString() || '',
-    purchase_date: investment?.purchase_date || ''
+    purchase_date: investment?.purchase_date || '',
+    maturity_date: investment?.maturity_date || '',
+    investor_name: investment?.investor_name || ''
   });
   
   const [newInstitution, setNewInstitution] = useState('');
   const [showNewInstitution, setShowNewInstitution] = useState(false);
+  const [newType, setNewType] = useState({ name: '', category: '' });
+  const [showNewType, setShowNewType] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +59,9 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
         invested_amount: parseFloat(formData.invested_amount),
         current_value: parseFloat(formData.current_value),
         yield_percentage: formData.yield_percentage ? parseFloat(formData.yield_percentage) : null,
-        purchase_date: formData.purchase_date
+        purchase_date: formData.purchase_date,
+        maturity_date: formData.maturity_date || null,
+        investor_name: formData.investor_name || null
       });
       onClose();
     } catch (error) {
@@ -76,23 +84,48 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     }
   };
 
+  const handleAddType = async () => {
+    if (!newType.name.trim() || !newType.category.trim()) return;
+    
+    try {
+      const type = await onAddType(newType.name, newType.category);
+      setFormData({ ...formData, type_id: type.id.toString() });
+      setNewType({ name: '', category: '' });
+      setShowNewType(false);
+    } catch (error) {
+      console.error('Erro ao adicionar tipo:', error);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{investment ? 'Editar Investimento' : 'Novo Investimento'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Nome do Investimento</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ex: CDB Banco XYZ"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="investor_name">Nome do Investidor</Label>
+              <Input
+                id="investor_name"
+                value={formData.investor_name}
+                onChange={(e) => setFormData({ ...formData, investor_name: e.target.value })}
+                placeholder="Nome do investidor"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="name">Nome do Investimento</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ex: CDB Banco XYZ"
+                required
+              />
+            </div>
           </div>
 
           <div>
@@ -149,23 +182,73 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
           </div>
 
           <div>
-            <Label>Tipo de Investimento</Label>
-            <Select
-              value={formData.type_id}
-              onValueChange={(value) => setFormData({ ...formData, type_id: value })}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {types.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
-                    {type.name} ({type.category})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Tipo de Investimento</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowNewType(!showNewType)}
+              >
+                <Plus size={16} />
+                Novo
+              </Button>
+            </div>
+            
+            {showNewType ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={newType.name}
+                    onChange={(e) => setNewType({ ...newType, name: e.target.value })}
+                    placeholder="Nome do tipo"
+                  />
+                  <Select
+                    value={newType.category}
+                    onValueChange={(value) => setNewType({ ...newType, category: value })}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="renda_fixa">Renda Fixa</SelectItem>
+                      <SelectItem value="renda_variavel">Renda Variável</SelectItem>
+                      <SelectItem value="fundos">Fundos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={handleAddType} size="sm" className="flex-1">
+                    Adicionar Tipo
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowNewType(false)}
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Select
+                value={formData.type_id}
+                onValueChange={(value) => setFormData({ ...formData, type_id: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {types.map((type) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.name} ({type.category})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -196,7 +279,7 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="yield_percentage">Rentabilidade (%)</Label>
               <Input
@@ -217,6 +300,17 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 value={formData.purchase_date}
                 onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
                 required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="maturity_date">Vencimento</Label>
+              <Input
+                id="maturity_date"
+                type="date"
+                value={formData.maturity_date}
+                onChange={(e) => setFormData({ ...formData, maturity_date: e.target.value })}
+                placeholder="Data de vencimento"
               />
             </div>
           </div>
