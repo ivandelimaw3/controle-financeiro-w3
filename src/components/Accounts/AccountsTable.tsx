@@ -31,7 +31,18 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+    if (!dateString) return '-';
+    
+    try {
+      // Trata a data como local para evitar problemas de timezone
+      const date = new Date(dateString + 'T00:00:00');
+      if (isNaN(date.getTime())) return '-';
+      
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '-';
+    }
   };
 
   return (

@@ -39,31 +39,49 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   });
   const [isFormReady, setIsFormReady] = useState(false);
 
+  // Formatação da data para input
+  const formatDateForInput = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '';
+    
+    // Se a data já estiver no formato YYYY-MM-DD, retorna como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr;
+    }
+    
+    try {
+      // Cria a data como local para evitar problemas de timezone
+      const date = new Date(dateStr + 'T00:00:00');
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+    }
+    
+    return '';
+  };
+
   useEffect(() => {
     if (!isOpen) {
       setIsFormReady(false);
       return;
     }
 
-    // Formatação da data para input
-    const formatDateForInput = (dateStr: string) => {
-      if (!dateStr) return '';
-      try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return '';
-        return date.toISOString().split('T')[0];
-      } catch (error) {
-        return '';
-      }
-    };
-
     if (account?.id) {
+      const formattedDueDate = formatDateForInput(account.dueDate);
+      
+      console.log('AccountModal: original date', account.dueDate);
+      console.log('AccountModal: formatted date', formattedDueDate);
+      
       const newFormData = {
         id: account.id,
         description: account.description || '',
         amount: Math.abs(account.amount) || 0,
         category: account.category || '',
-        dueDate: formatDateForInput(account.dueDate),
+        dueDate: formattedDueDate,
         type: account.type || 'despesa',
         status: account.status || 'pendente'
       };
