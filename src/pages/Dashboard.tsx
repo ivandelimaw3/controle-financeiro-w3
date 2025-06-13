@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Painel de Negócios</h1>
           <p className="text-slate-600">Resumo da sua situação financeira</p>
         </div>
 

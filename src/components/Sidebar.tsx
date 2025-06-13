@@ -15,7 +15,7 @@ export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+    { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
     { icon: CreditCard, label: 'Contas', path: '/contas' },
     { icon: Building2, label: 'Bancos', path: '/bancos' },
     { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
