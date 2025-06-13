@@ -263,52 +263,6 @@ export const useInvestmentsData = () => {
     }
   };
 
-  const updateInvestment = async (id: number, updates: Partial<Investment>) => {
-    console.log('updateInvestment: updating investment', id, updates);
-    try {
-      const { error } = await supabase
-        .from('investments')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) {
-        console.error('updateInvestment error:', error);
-        throw error;
-      }
-      
-      console.log('updateInvestment: success');
-      await fetchInvestments();
-      toast.success('Investimento atualizado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao atualizar investimento:', error);
-      toast.error('Erro ao atualizar investimento');
-      throw error;
-    }
-  };
-
-  const deleteInvestment = async (id: number) => {
-    console.log('deleteInvestment: deleting investment', id);
-    try {
-      const { error } = await supabase
-        .from('investments')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('deleteInvestment error:', error);
-        throw error;
-      }
-      
-      console.log('deleteInvestment: success');
-      await fetchInvestments();
-      toast.success('Investimento removido com sucesso!');
-    } catch (error) {
-      console.error('Erro ao remover investimento:', error);
-      toast.error('Erro ao remover investimento');
-      throw error;
-    }
-  };
-
   useEffect(() => {
     if (user) {
       console.log('useInvestmentsData: useEffect triggered for user', user.id);
