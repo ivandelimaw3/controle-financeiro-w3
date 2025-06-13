@@ -30,7 +30,7 @@ const initialFormData = {
   investor_name: ''
 };
 
-const formatDateForInput = (dateString: string): string => {
+const formatDateForInput = (dateString: string | null | undefined): string => {
   if (!dateString) return '';
   
   // Se a data já estiver no formato YYYY-MM-DD, retorna como está
@@ -38,10 +38,18 @@ const formatDateForInput = (dateString: string): string => {
     return dateString;
   }
   
-  // Se a data estiver no formato ISO, converte para YYYY-MM-DD
-  const date = new Date(dateString);
-  if (!isNaN(date.getTime())) {
-    return date.toISOString().split('T')[0];
+  // Se a data estiver no formato ISO, converte para YYYY-MM-DD sem considerar fuso horário
+  try {
+    // Cria a data como local para evitar problemas de timezone
+    const date = new Date(dateString + 'T00:00:00');
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+  } catch (error) {
+    console.error('Error formatting date:', error);
   }
   
   return '';
@@ -89,6 +97,18 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     if (isOpen) {
       if (investment) {
         console.log('InvestmentForm: editing investment', investment);
+        const formattedPurchaseDate = formatDateForInput(investment.purchase_date);
+        const formattedMaturityDate = formatDateForInput(investment.maturity_date);
+        
+        console.log('InvestmentForm: original dates', {
+          purchase_date: investment.purchase_date,
+          maturity_date: investment.maturity_date
+        });
+        console.log('InvestmentForm: formatted dates', {
+          purchase_date: formattedPurchaseDate,
+          maturity_date: formattedMaturityDate
+        });
+        
         // Editing existing investment
         setFormData({
           name: investment.name || '',
@@ -97,13 +117,9 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
           invested_amount: investment.invested_amount || 0,
           current_value: investment.current_value || 0,
           yield_percentage: investment.yield_percentage?.toString() || '',
-          purchase_date: formatDateForInput(investment.purchase_date) || '',
-          maturity_date: formatDateForInput(investment.maturity_date || '') || '',
+          purchase_date: formattedPurchaseDate,
+          maturity_date: formattedMaturityDate,
           investor_name: investment.investor_name || ''
-        });
-        console.log('InvestmentForm: formatted dates', {
-          purchase_date: formatDateForInput(investment.purchase_date),
-          maturity_date: formatDateForInput(investment.maturity_date || '')
         });
       } else {
         // Creating new investment - reset to initial state

@@ -4,8 +4,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Investment } from '@/hooks/useInvestmentsData';
 import { Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 interface InvestmentTableProps {
   investments: Investment[];
@@ -27,6 +25,21 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '-';
+    
+    try {
+      // Trata a data como local para evitar problemas de timezone
+      const date = new Date(dateString + 'T00:00:00');
+      if (isNaN(date.getTime())) return '-';
+      
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '-';
+    }
   };
 
   return (
@@ -79,13 +92,10 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-sm text-slate-600">
-                    {format(new Date(investment.purchase_date), 'dd/MM/yyyy', { locale: ptBR })}
+                    {formatDate(investment.purchase_date)}
                   </TableCell>
                   <TableCell className="text-right text-sm text-slate-600">
-                    {investment.maturity_date 
-                      ? format(new Date(investment.maturity_date), 'dd/MM/yyyy', { locale: ptBR })
-                      : '-'
-                    }
+                    {formatDate(investment.maturity_date)}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
