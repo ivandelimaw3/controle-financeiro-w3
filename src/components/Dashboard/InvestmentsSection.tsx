@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { InvestmentCard } from './InvestmentCard';
@@ -5,7 +6,7 @@ import { InvestmentForm } from './InvestmentForm';
 import { InvestmentTable } from './InvestmentTable';
 import { InvestmentFilters } from './InvestmentFilters';
 import { useInvestmentsData, Investment } from '@/hooks/useInvestmentsData';
-import { Plus, TrendingUp, DollarSign, PieChart, Target } from 'lucide-react';
+import { Plus, TrendingUp, DollarSign, PieChart, Target, Wallet } from 'lucide-react';
 
 export const InvestmentsSection: React.FC = () => {
   console.log('InvestmentsSection: component rendering');
@@ -131,19 +132,19 @@ export const InvestmentsSection: React.FC = () => {
         onYearChange={setSelectedYear}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <InvestmentCard
+          title="Saldo Total"
+          value={`R$ ${totalCurrent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          icon={Wallet}
+          bgColor="bg-gradient-to-r from-indigo-500 to-indigo-600"
+        />
+        
         <InvestmentCard
           title="Total Investido"
           value={`R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={DollarSign}
           bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
-        />
-        
-        <InvestmentCard
-          title="Valor Atual"
-          value={`R$ ${totalCurrent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={TrendingUp}
-          bgColor="bg-gradient-to-r from-green-500 to-green-600"
         />
         
         <InvestmentCard
@@ -153,6 +154,13 @@ export const InvestmentsSection: React.FC = () => {
           trend={totalInvested > 0 ? `${((totalReturn / totalInvested) * 100).toFixed(2)}%` : '0%'}
           trendUp={totalReturn >= 0}
           bgColor={totalReturn >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
+        />
+        
+        <InvestmentCard
+          title="Rentabilidade"
+          value={averageYield.toFixed(2) + '%'}
+          icon={TrendingUp}
+          bgColor="bg-gradient-to-r from-amber-500 to-amber-600"
         />
         
         <InvestmentCard
