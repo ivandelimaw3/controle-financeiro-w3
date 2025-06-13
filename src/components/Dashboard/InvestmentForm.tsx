@@ -30,6 +30,23 @@ const initialFormData = {
   investor_name: ''
 };
 
+const formatDateForInput = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  // Se a data já estiver no formato YYYY-MM-DD, retorna como está
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return dateString;
+  }
+  
+  // Se a data estiver no formato ISO, converte para YYYY-MM-DD
+  const date = new Date(dateString);
+  if (!isNaN(date.getTime())) {
+    return date.toISOString().split('T')[0];
+  }
+  
+  return '';
+};
+
 export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   isOpen,
   onClose,
@@ -71,6 +88,7 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (investment) {
+        console.log('InvestmentForm: editing investment', investment);
         // Editing existing investment
         setFormData({
           name: investment.name || '',
@@ -79,9 +97,13 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
           invested_amount: investment.invested_amount || 0,
           current_value: investment.current_value || 0,
           yield_percentage: investment.yield_percentage?.toString() || '',
-          purchase_date: investment.purchase_date || '',
-          maturity_date: investment.maturity_date || '',
+          purchase_date: formatDateForInput(investment.purchase_date) || '',
+          maturity_date: formatDateForInput(investment.maturity_date || '') || '',
           investor_name: investment.investor_name || ''
+        });
+        console.log('InvestmentForm: formatted dates', {
+          purchase_date: formatDateForInput(investment.purchase_date),
+          maturity_date: formatDateForInput(investment.maturity_date || '')
         });
       } else {
         // Creating new investment - reset to initial state
@@ -100,7 +122,7 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     setLoading(true);
 
     try {
-      await onSubmit({
+      const submitData = {
         name: formData.name,
         institution_id: parseInt(formData.institution_id),
         type_id: parseInt(formData.type_id),
@@ -110,7 +132,10 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
         purchase_date: formData.purchase_date,
         maturity_date: formData.maturity_date || null,
         investor_name: formData.investor_name || null
-      });
+      };
+      
+      console.log('InvestmentForm: submitting data', submitData);
+      await onSubmit(submitData);
       onClose();
     } catch (error) {
       console.error('Erro ao salvar investimento:', error);
@@ -358,7 +383,10 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 id="purchase_date"
                 type="date"
                 value={formData.purchase_date}
-                onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                onChange={(e) => {
+                  console.log('InvestmentForm: purchase_date changed to', e.target.value);
+                  setFormData({ ...formData, purchase_date: e.target.value });
+                }}
                 required
               />
             </div>
@@ -369,7 +397,10 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 id="maturity_date"
                 type="date"
                 value={formData.maturity_date}
-                onChange={(e) => setFormData({ ...formData, maturity_date: e.target.value })}
+                onChange={(e) => {
+                  console.log('InvestmentForm: maturity_date changed to', e.target.value);
+                  setFormData({ ...formData, maturity_date: e.target.value });
+                }}
                 placeholder="Data de vencimento"
               />
             </div>
