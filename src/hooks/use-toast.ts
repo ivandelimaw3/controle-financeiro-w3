@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 import type {
@@ -7,7 +6,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 2000 // Alterado de 1000000 para 2000 (2 segundos)
+const TOAST_REMOVE_DELAY = 1000 // Alterado para 1000 (1 segundo)
 
 type ToasterToast = ToastProps & {
   id: string
@@ -162,7 +161,7 @@ function toast({ ...props }: Toast) {
     },
   })
 
-  // Auto-dismiss após 2 segundos
+  // Auto-dismiss após 1 segundo
   setTimeout(() => {
     dismiss()
   }, TOAST_REMOVE_DELAY)
