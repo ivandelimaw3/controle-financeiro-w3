@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { InvestmentCard } from './InvestmentCard';
 import { InvestmentForm } from './InvestmentForm';
 import { InvestmentTable } from './InvestmentTable';
+import { InvestmentFilters } from './InvestmentFilters';
 import { useInvestmentsData, Investment } from '@/hooks/useInvestmentsData';
 import { Plus, TrendingUp, DollarSign, PieChart, Target } from 'lucide-react';
 
@@ -31,6 +32,31 @@ export const InvestmentsSection: React.FC = () => {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+
+  // Filtrar investimentos baseado nos critérios de pesquisa
+  const filteredInvestments = useMemo(() => {
+    return investments.filter((investment) => {
+      // Filtro por texto de pesquisa
+      const searchMatch = !searchTerm || 
+        investment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        investment.institution?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        investment.type?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (investment.investor_name && investment.investor_name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      // Filtro por mês
+      const monthMatch = !selectedMonth || 
+        (investment.purchase_date && investment.purchase_date.substring(5, 7) === selectedMonth);
+
+      // Filtro por ano
+      const yearMatch = !selectedYear || 
+        (investment.purchase_date && investment.purchase_date.substring(0, 4) === selectedYear);
+
+      return searchMatch && monthMatch && yearMatch;
+    });
+  }, [investments, searchTerm, selectedMonth, selectedYear]);
 
   const handleAddInvestment = () => {
     console.log('InvestmentsSection: opening form for new investment');
@@ -58,12 +84,12 @@ export const InvestmentsSection: React.FC = () => {
     }
   };
 
-  const calculateTotals = () => {
-    const totalInvested = investments.reduce((sum, inv) => sum + inv.invested_amount, 0);
-    const totalCurrent = investments.reduce((sum, inv) => sum + inv.current_value, 0);
+  const calculateTotals = (investmentsList: Investment[]) => {
+    const totalInvested = investmentsList.reduce((sum, inv) => sum + inv.invested_amount, 0);
+    const totalCurrent = investmentsList.reduce((sum, inv) => sum + inv.current_value, 0);
     const totalReturn = totalCurrent - totalInvested;
-    const averageYield = investments.length > 0 
-      ? investments.reduce((sum, inv) => sum + (inv.yield_percentage || 0), 0) / investments.length 
+    const averageYield = investmentsList.length > 0 
+      ? investmentsList.reduce((sum, inv) => sum + (inv.yield_percentage || 0), 0) / investmentsList.length 
       : 0;
 
     console.log('InvestmentsSection: calculated totals', { totalInvested, totalCurrent, totalReturn, averageYield });
@@ -71,7 +97,7 @@ export const InvestmentsSection: React.FC = () => {
     return { totalInvested, totalCurrent, totalReturn, averageYield };
   };
 
-  const { totalInvested, totalCurrent, totalReturn, averageYield } = calculateTotals();
+  const { totalInvested, totalCurrent, totalReturn, averageYield } = calculateTotals(filteredInvestments);
 
   if (loading) {
     console.log('InvestmentsSection: showing loading state');
@@ -96,6 +122,15 @@ export const InvestmentsSection: React.FC = () => {
           Novo Investimento
         </Button>
       </div>
+
+      <InvestmentFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedMonth={selectedMonth}
+        onMonthChange={setSelectedMonth}
+        selectedYear={selectedYear}
+        onYearChange={setSelectedYear}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <InvestmentCard
@@ -123,14 +158,14 @@ export const InvestmentsSection: React.FC = () => {
         
         <InvestmentCard
           title="Carteira"
-          value={investments.length.toString()}
+          value={filteredInvestments.length.toString()}
           icon={PieChart}
           bgColor="bg-gradient-to-r from-purple-500 to-purple-600"
         />
       </div>
 
       <InvestmentTable
-        investments={investments}
+        investments={filteredInvestments}
         onEdit={handleEditInvestment}
         onDelete={deleteInvestment}
       />
