@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,18 @@ interface InvestmentFormProps {
   types: InvestmentType[];
 }
 
+const initialFormData = {
+  name: '',
+  institution_id: '',
+  type_id: '',
+  invested_amount: '',
+  current_value: '',
+  yield_percentage: '',
+  purchase_date: '',
+  maturity_date: '',
+  investor_name: ''
+};
+
 export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   isOpen,
   onClose,
@@ -29,23 +41,40 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   institutions,
   types
 }) => {
-  const [formData, setFormData] = useState({
-    name: investment?.name || '',
-    institution_id: investment?.institution_id?.toString() || '',
-    type_id: investment?.type_id?.toString() || '',
-    invested_amount: investment?.invested_amount?.toString() || '',
-    current_value: investment?.current_value?.toString() || '',
-    yield_percentage: investment?.yield_percentage?.toString() || '',
-    purchase_date: investment?.purchase_date || '',
-    maturity_date: investment?.maturity_date || '',
-    investor_name: investment?.investor_name || ''
-  });
-  
+  const [formData, setFormData] = useState(initialFormData);
   const [newInstitution, setNewInstitution] = useState('');
   const [showNewInstitution, setShowNewInstitution] = useState(false);
   const [newType, setNewType] = useState({ name: '', category: '' });
   const [showNewType, setShowNewType] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Reset form when modal opens/closes or when investment changes
+  useEffect(() => {
+    if (isOpen) {
+      if (investment) {
+        // Editing existing investment
+        setFormData({
+          name: investment.name || '',
+          institution_id: investment.institution_id?.toString() || '',
+          type_id: investment.type_id?.toString() || '',
+          invested_amount: investment.invested_amount?.toString() || '',
+          current_value: investment.current_value?.toString() || '',
+          yield_percentage: investment.yield_percentage?.toString() || '',
+          purchase_date: investment.purchase_date || '',
+          maturity_date: investment.maturity_date || '',
+          investor_name: investment.investor_name || ''
+        });
+      } else {
+        // Creating new investment - reset to initial state
+        setFormData(initialFormData);
+      }
+      // Reset other form states
+      setNewInstitution('');
+      setShowNewInstitution(false);
+      setNewType({ name: '', category: '' });
+      setShowNewType(false);
+    }
+  }, [isOpen, investment]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
