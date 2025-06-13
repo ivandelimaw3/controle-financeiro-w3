@@ -184,7 +184,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   console.log('useToast render, current state:', state)
 
