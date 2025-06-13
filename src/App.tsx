@@ -29,9 +29,9 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <AccountsProvider>
-            <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
+            <AccountsProvider>
               <div className="min-h-screen">
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
@@ -70,9 +70,9 @@ const App = () => {
                 <Toaster />
                 <Sonner />
               </div>
-            </BrowserRouter>
-          </AccountsProvider>
-        </AuthProvider>
+            </AccountsProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
