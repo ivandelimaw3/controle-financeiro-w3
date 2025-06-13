@@ -49,7 +49,7 @@ export const InvestmentFilters: React.FC<InvestmentFiltersProps> = ({
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+        <div className="flex-none md:w-80">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <Input
