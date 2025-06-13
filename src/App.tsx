@@ -66,7 +66,7 @@ const App = () => {
                   } />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-                <Toaster />
+                <Toaster duration={2000} />
               </div>
             </AccountsProvider>
           </AuthProvider>
