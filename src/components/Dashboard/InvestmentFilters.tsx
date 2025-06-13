@@ -22,7 +22,7 @@ export const InvestmentFilters: React.FC<InvestmentFiltersProps> = ({
   onYearChange
 }) => {
   const months = [
-    { value: '', label: 'Todos os meses' },
+    { value: 'all', label: 'Todos os meses' },
     { value: '01', label: 'Janeiro' },
     { value: '02', label: 'Fevereiro' },
     { value: '03', label: 'Março' },
@@ -39,7 +39,7 @@ export const InvestmentFilters: React.FC<InvestmentFiltersProps> = ({
 
   const currentYear = new Date().getFullYear();
   const years = [
-    { value: '', label: 'Todos os anos' },
+    { value: 'all', label: 'Todos os anos' },
     ...Array.from({ length: 10 }, (_, i) => ({
       value: (currentYear - i).toString(),
       label: (currentYear - i).toString()

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { InvestmentCard } from './InvestmentCard';
@@ -33,8 +32,8 @@ export const InvestmentsSection: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
 
   // Filtrar investimentos baseado nos critérios de pesquisa
   const filteredInvestments = useMemo(() => {
@@ -47,11 +46,11 @@ export const InvestmentsSection: React.FC = () => {
         (investment.investor_name && investment.investor_name.toLowerCase().includes(searchTerm.toLowerCase()));
 
       // Filtro por mês
-      const monthMatch = !selectedMonth || 
+      const monthMatch = selectedMonth === 'all' || 
         (investment.purchase_date && investment.purchase_date.substring(5, 7) === selectedMonth);
 
       // Filtro por ano
-      const yearMatch = !selectedYear || 
+      const yearMatch = selectedYear === 'all' || 
         (investment.purchase_date && investment.purchase_date.substring(0, 4) === selectedYear);
 
       return searchMatch && monthMatch && yearMatch;
