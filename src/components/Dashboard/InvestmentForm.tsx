@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -23,8 +22,8 @@ const initialFormData = {
   name: '',
   institution_id: '',
   type_id: '',
-  invested_amount: '',
-  current_value: '',
+  invested_amount: 0,
+  current_value: 0,
   yield_percentage: '',
   purchase_date: '',
   maturity_date: '',
@@ -48,6 +47,26 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   const [showNewType, setShowNewType] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const formatCurrencyInput = (value: number): string => {
+    if (isNaN(value) || value === null || value === undefined || value === 0) {
+      return '';
+    }
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (inputValue: string): number => {
+    if (!inputValue) return 0;
+    
+    const digitsOnly = inputValue.replace(/\D/g, '');
+    if (!digitsOnly) return 0;
+    
+    const numericValue = parseInt(digitsOnly) / 100;
+    return numericValue;
+  };
+
   // Reset form when modal opens/closes or when investment changes
   useEffect(() => {
     if (isOpen) {
@@ -57,8 +76,8 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
           name: investment.name || '',
           institution_id: investment.institution_id?.toString() || '',
           type_id: investment.type_id?.toString() || '',
-          invested_amount: investment.invested_amount?.toString() || '',
-          current_value: investment.current_value?.toString() || '',
+          invested_amount: investment.invested_amount || 0,
+          current_value: investment.current_value || 0,
           yield_percentage: investment.yield_percentage?.toString() || '',
           purchase_date: investment.purchase_date || '',
           maturity_date: investment.maturity_date || '',
@@ -85,8 +104,8 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
         name: formData.name,
         institution_id: parseInt(formData.institution_id),
         type_id: parseInt(formData.type_id),
-        invested_amount: parseFloat(formData.invested_amount),
-        current_value: parseFloat(formData.current_value),
+        invested_amount: formData.invested_amount,
+        current_value: formData.current_value,
         yield_percentage: formData.yield_percentage ? parseFloat(formData.yield_percentage) : null,
         purchase_date: formData.purchase_date,
         maturity_date: formData.maturity_date || null,
@@ -98,6 +117,12 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAmountChange = (field: 'invested_amount' | 'current_value') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = parseCurrencyInput(inputValue);
+    setFormData(prev => ({ ...prev, [field]: numericValue }));
   };
 
   const handleAddInstitution = async () => {
@@ -283,28 +308,34 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="invested_amount">Valor Investido</Label>
-              <Input
-                id="invested_amount"
-                type="number"
-                step="0.01"
-                value={formData.invested_amount}
-                onChange={(e) => setFormData({ ...formData, invested_amount: e.target.value })}
-                placeholder="0.00"
-                required
-              />
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
+                <Input
+                  id="invested_amount"
+                  type="text"
+                  value={formatCurrencyInput(formData.invested_amount)}
+                  onChange={handleAmountChange('invested_amount')}
+                  className="pl-10"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
             </div>
 
             <div>
               <Label htmlFor="current_value">Valor Atual</Label>
-              <Input
-                id="current_value"
-                type="number"
-                step="0.01"
-                value={formData.current_value}
-                onChange={(e) => setFormData({ ...formData, current_value: e.target.value })}
-                placeholder="0.00"
-                required
-              />
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
+                <Input
+                  id="current_value"
+                  type="text"
+                  value={formatCurrencyInput(formData.current_value)}
+                  onChange={handleAmountChange('current_value')}
+                  className="pl-10"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
             </div>
           </div>
 
