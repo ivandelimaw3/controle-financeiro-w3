@@ -16,25 +16,25 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <FinancialCard
           title="Saldo Total"
-          value={totalBalance}
+          value={`R$ ${totalBalance.toLocaleString('pt-BR')}`}
           icon={DollarSign}
           bgColor="bg-gradient-to-r from-green-500 to-green-600"
         />
         <FinancialCard
           title="Receitas"
-          value={totalIncome}
+          value={`R$ ${totalIncome.toLocaleString('pt-BR')}`}
           icon={TrendingUp}
           bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
         />
         <FinancialCard
           title="Despesas"
-          value={totalExpenses}
+          value={`R$ ${totalExpenses.toLocaleString('pt-BR')}`}
           icon={Calendar}
           bgColor="bg-gradient-to-r from-red-500 to-red-600"
         />
         <FinancialCard
           title="Alertas"
-          value={3}
+          value="3"
           icon={AlertCircle}
           bgColor="bg-gradient-to-r from-yellow-500 to-yellow-600"
         />
