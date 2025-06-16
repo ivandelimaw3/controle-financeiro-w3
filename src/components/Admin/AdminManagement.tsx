@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,7 @@ import { AdminData } from '@/hooks/useAdminControl';
 
 interface AdminManagementProps {
   admins: AdminData[];
-  onRemoveAdmin: (userId: string, email: string) => Promise<boolean>;
+  onRemoveAdmin: (userId: string, userEmail: string) => Promise<boolean>;
   onAddAdmin: (email: string) => Promise<boolean>;
   refreshAdmins: () => Promise<void>;
 }
