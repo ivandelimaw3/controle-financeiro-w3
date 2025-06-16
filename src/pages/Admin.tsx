@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAdminControl } from '@/hooks/useAdminControl';
@@ -34,7 +35,9 @@ import {
   Clock,
   Shield,
   AlertTriangle,
-  RefreshCw 
+  RefreshCw,
+  Check,
+  X
 } from 'lucide-react';
 import AdminManagement from '@/components/Admin/AdminManagement';
 import PremiumRequestsManagement from '@/components/Admin/PremiumRequestsManagement';
@@ -45,7 +48,18 @@ const Admin = () => {
   const { requests, processRequest, fetchPendingRequests } = usePremiumRequests();
   const { toast } = useToast();
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [processingUserId, setProcessingUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Combinar dados de usuários com solicitações pendentes
+  const usersWithRequests = users.map(user => {
+    const pendingRequest = requests.find(req => req.user_id === user.user_id);
+    return {
+      ...user,
+      hasPendingRequest: !!pendingRequest,
+      requestId: pendingRequest?.id
+    };
+  });
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -56,6 +70,27 @@ const Admin = () => {
       title: "Lista atualizada",
       description: "A lista de usuários, administradores e solicitações foi recarregada.",
     });
+  };
+
+  const handleProcessUpgradeRequest = async (requestId: string, action: 'approved' | 'rejected', userEmail: string) => {
+    setProcessingUserId(requestId);
+    const success = await processRequest(requestId, action);
+    
+    if (success) {
+      toast({
+        title: action === 'approved' ? "Upgrade aprovado" : "Upgrade rejeitado",
+        description: `O upgrade de ${userEmail} foi ${action === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso.`,
+      });
+      await Promise.all([fetchAllUsers(), fetchPendingRequests()]);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar a solicitação.",
+        variant: "destructive"
+      });
+    }
+    
+    setProcessingUserId(null);
   };
 
   const handleAddAdmin = async (email: string): Promise<boolean> => {
@@ -177,6 +212,9 @@ const Admin = () => {
   };
 
   const getStatusBadge = (user: any) => {
+    if (user.hasPendingRequest) {
+      return <Badge className="bg-orange-100 text-orange-800">Upgrade Pendente</Badge>;
+    }
     if (user.is_premium) {
       return <Badge className="bg-amber-100 text-amber-800">Premium</Badge>;
     }
@@ -267,7 +305,7 @@ const Admin = () => {
               <div className="flex items-center gap-3">
                 <Crown className="h-8 w-8 text-orange-600" />
                 <div>
-                  <p className="text-sm text-slate-600">Solicitações Pendentes</p>
+                  <p className="text-sm text-slate-600">Upgrades Pendentes</p>
                   <p className="text-2xl font-bold text-slate-800">{requests.length}</p>
                 </div>
               </div>
@@ -280,6 +318,11 @@ const Admin = () => {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Usuários
+              {requests.length > 0 && (
+                <Badge className="ml-1 bg-orange-100 text-orange-800">
+                  {requests.length}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="admins" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -327,7 +370,7 @@ const Admin = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {users.map((user) => (
+                        {usersWithRequests.map((user) => (
                           <TableRow key={user.user_id}>
                             <TableCell className="font-medium">{user.email}</TableCell>
                             <TableCell>
@@ -348,14 +391,37 @@ const Admin = () => {
                             <TableCell>{formatDate(user.trial_end_date)}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleMakeAdmin(user.user_id, user.email)}
-                                >
-                                  <Crown className="h-4 w-4 mr-1" />
-                                  Admin
-                                </Button>
+                                {user.hasPendingRequest ? (
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleProcessUpgradeRequest(user.requestId!, 'approved', user.email)}
+                                      disabled={processingUserId === user.requestId}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      <Check className="h-4 w-4 mr-1" />
+                                      Aprovar
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => handleProcessUpgradeRequest(user.requestId!, 'rejected', user.email)}
+                                      disabled={processingUserId === user.requestId}
+                                    >
+                                      <X className="h-4 w-4 mr-1" />
+                                      Rejeitar
+                                    </Button>
+                                  </div>
+                                ) : !user.is_premium && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleMakeAdmin(user.user_id, user.email)}
+                                  >
+                                    <Crown className="h-4 w-4 mr-1" />
+                                    Admin
+                                  </Button>
+                                )}
                                 
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
