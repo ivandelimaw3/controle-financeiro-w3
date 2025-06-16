@@ -115,12 +115,14 @@ export const InvestmentsSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-slate-800">Investimentos</h2>
-        <Button onClick={handleAddInvestment} className="flex items-center gap-2 shrink-0">
-          <Plus size={20} />
-          Novo Investimento
-        </Button>
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-slate-800">Investimentos</h2>
+          <Button onClick={handleAddInvestment} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+            <Plus size={20} />
+            Novo Investimento
+          </Button>
+        </div>
       </div>
 
       <InvestmentFilters
