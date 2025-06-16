@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAdminControl } from '@/hooks/useAdminControl';
@@ -42,8 +41,10 @@ import {
 import AdminManagement from '@/components/Admin/AdminManagement';
 import PremiumRequestsManagement from '@/components/Admin/PremiumRequestsManagement';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Admin = () => {
+  const { user } = useAuth();
   const { users, admins, loading, isAdmin, deleteUser, makeUserAdmin, removeAdminRole, fetchAllUsers, fetchAllAdmins } = useAdminControl();
   const { requests, processRequest, fetchPendingRequests } = usePremiumRequests();
   const { toast } = useToast();
@@ -60,6 +61,9 @@ const Admin = () => {
       requestId: pendingRequest?.id
     };
   });
+
+  // Encontrar o administrador atual
+  const currentAdmin = admins.find(admin => admin.user_id === user?.id);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -246,6 +250,21 @@ const Admin = () => {
             Atualizar Lista
           </Button>
         </div>
+
+        {/* Informações do administrador atual */}
+        {currentAdmin && (
+          <Card className="mb-6 border-blue-200 bg-blue-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Shield className="h-6 w-6 text-blue-600" />
+                <div>
+                  <p className="font-medium text-blue-900">Logado como Administrador</p>
+                  <p className="text-sm text-blue-700">{currentAdmin.email}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           <Card>
@@ -471,6 +490,7 @@ const Admin = () => {
               onRemoveAdmin={handleRemoveAdmin}
               onAddAdmin={handleAddAdmin}
               refreshAdmins={fetchAllAdmins}
+              currentAdminId={user?.id}
             />
           </TabsContent>
 
