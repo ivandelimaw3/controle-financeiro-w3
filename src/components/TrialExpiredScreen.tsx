@@ -6,7 +6,7 @@ import { useUsageControl } from '@/hooks/useUsageControl';
 import { Crown, Lock, Clock } from 'lucide-react';
 
 export const TrialExpiredScreen: React.FC = () => {
-  const { upgradeTopremium, usageData } = useUsageControl();
+  const { upgradeToPremium, usageData } = useUsageControl();
 
   const handleUpgrade = async () => {
     const success = await upgradeToPremium();

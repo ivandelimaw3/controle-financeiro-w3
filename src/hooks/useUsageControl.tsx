@@ -80,7 +80,7 @@ export const useUsageControl = () => {
     usageData,
     loading,
     checkTrialStatus,
-    upgradeTopremium,
+    upgradeToPremium,
     isTrialExpired: usageData ? !usageData.isTrialActive && !usageData.isPremium : false,
     canUseApp: usageData ? usageData.isTrialActive || usageData.isPremium : false
   };

@@ -1,18 +1,21 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAdminControl } from '@/hooks/useAdminControl';
 import { 
   LayoutDashboard, 
   CreditCard, 
   FolderOpen, 
   TrendingUp,
   Building2,
-  PieChart
+  PieChart,
+  Shield
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin } = useAdminControl();
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
@@ -22,6 +25,10 @@ export const Sidebar: React.FC = () => {
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
   ];
+
+  if (isAdmin) {
+    menuItems.push({ icon: Shield, label: 'Administração', path: '/admin' });
+  }
 
   return (
     <div className="w-64 bg-white shadow-xl border-r border-slate-200">

@@ -82,7 +82,7 @@ export const TrialStatusBanner: React.FC = () => {
             </div>
           </div>
           <Button
-            onClick={upgradeTopremium}
+            onClick={upgradeToPremium}
             variant={isWarning ? 'default' : 'outline'}
             className={isWarning ? 'bg-orange-600 hover:bg-orange-700' : ''}
           >
