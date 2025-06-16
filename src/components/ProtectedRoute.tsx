@@ -1,20 +1,17 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUsageControl } from '@/hooks/useUsageControl';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { TrialExpiredScreen } from './TrialExpiredScreen';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading: authLoading } = useAuth();
-  const { usageData, loading: usageLoading, canUseApp } = useUsageControl();
+  const { user, loading } = useAuth();
 
-  if (authLoading || usageLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="flex items-center gap-3">
@@ -27,11 +24,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
-  }
-
-  // Verificar se o usuário pode usar o app (trial ativo ou premium)
-  if (!canUseApp) {
-    return <TrialExpiredScreen />;
   }
 
   return <>{children}</>;
