@@ -213,6 +213,20 @@ const Admin = () => {
 
   const handleRemoveAdmin = async (adminUserId: string, adminEmail: string): Promise<boolean> => {
     const success = await removeAdminRole(adminUserId);
+    
+    if (success) {
+      toast({
+        title: "Administrador removido",
+        description: `${adminEmail} não é mais administrador.`,
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o administrador.",
+        variant: "destructive"
+      });
+    }
+    
     return success;
   };
 
