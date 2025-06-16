@@ -7,12 +7,15 @@ import {
   FolderOpen, 
   TrendingUp,
   Building2,
-  PieChart
+  PieChart,
+  Settings
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
@@ -22,6 +25,12 @@ export const Sidebar: React.FC = () => {
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
   ];
+
+  // Adicionar item de administração apenas para admins
+  const isAdmin = user?.user_metadata?.role === 'admin'; // Verificar se é admin
+  if (isAdmin) {
+    menuItems.push({ icon: Settings, label: 'Admin - Usuários', path: '/admin/usuarios' });
+  }
 
   return (
     <div className="w-64 bg-white shadow-xl border-r border-slate-200">

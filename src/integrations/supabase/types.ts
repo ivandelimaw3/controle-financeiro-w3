@@ -342,6 +342,8 @@ export type Database = {
           trial_end_date: string
           trial_start_date: string
           updated_at: string
+          upgrade_request_date: string | null
+          upgrade_status: string | null
           user_id: string
         }
         Insert: {
@@ -353,6 +355,8 @@ export type Database = {
           trial_end_date?: string
           trial_start_date?: string
           updated_at?: string
+          upgrade_request_date?: string | null
+          upgrade_status?: string | null
           user_id: string
         }
         Update: {
@@ -364,6 +368,8 @@ export type Database = {
           trial_end_date?: string
           trial_start_date?: string
           updated_at?: string
+          upgrade_request_date?: string | null
+          upgrade_status?: string | null
           user_id?: string
         }
         Relationships: []
@@ -410,6 +416,22 @@ export type Database = {
           notes: string
         }[]
       }
+      get_users_for_admin_review: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          created_at: string
+          trial_start_date: string
+          trial_end_date: string
+          is_trial_active: boolean
+          is_premium: boolean
+          days_remaining: number
+          upgrade_request_date: string
+          upgrade_status: string
+          needs_attention: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -419,6 +441,18 @@ export type Database = {
       }
       process_upgrade_request: {
         Args: { request_id: string; new_status: string; admin_notes?: string }
+        Returns: boolean
+      }
+      process_user_upgrade: {
+        Args: {
+          target_user_id: string
+          new_status: string
+          make_premium?: boolean
+        }
+        Returns: boolean
+      }
+      request_premium_upgrade: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }

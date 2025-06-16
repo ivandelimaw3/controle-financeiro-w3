@@ -12,6 +12,7 @@ import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
 import Bancos from "./pages/Bancos";
 import Investimentos from "./pages/Investimentos";
+import AdminUsers from "./pages/AdminUsers";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -62,6 +63,11 @@ const App = () => {
                   <Route path="/relatorios" element={
                     <ProtectedRoute>
                       <Relatorios />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/usuarios" element={
+                    <ProtectedRoute>
+                      <AdminUsers />
                     </ProtectedRoute>
                   } />
                   <Route path="*" element={<NotFound />} />
