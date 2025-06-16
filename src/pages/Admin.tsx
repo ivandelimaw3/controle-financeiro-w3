@@ -32,13 +32,26 @@ import {
   Calendar,
   Clock,
   Shield,
-  AlertTriangle 
+  AlertTriangle,
+  RefreshCw 
 } from 'lucide-react';
 
 const Admin = () => {
-  const { users, loading, isAdmin, deleteUser, makeUserAdmin } = useAdminControl();
+  const { users, loading, isAdmin, deleteUser, makeUserAdmin, fetchAllUsers } = useAdminControl();
   const { toast } = useToast();
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    console.log('Atualizando lista de usuários manualmente...');
+    await fetchAllUsers();
+    setRefreshing(false);
+    toast({
+      title: "Lista atualizada",
+      description: "A lista de usuários foi recarregada.",
+    });
+  };
 
   if (loading) {
     return (
@@ -123,9 +136,20 @@ const Admin = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Shield className="h-8 w-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-slate-800">Painel Administrativo</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Shield className="h-8 w-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-slate-800">Painel Administrativo</h1>
+          </div>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={refreshing}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar Lista
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -178,86 +202,96 @@ const Admin = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Data de Cadastro</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Dias Restantes</TableHead>
-                    <TableHead>Data de Expiração</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.user_id}>
-                      <TableCell className="font-medium">{user.email}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-slate-500" />
-                          {formatDate(user.created_at)}
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(user)}</TableCell>
-                      <TableCell>
-                        <span className={`font-medium ${
-                          user.days_remaining <= 7 ? 'text-red-600' : 
-                          user.days_remaining <= 14 ? 'text-orange-600' : 'text-green-600'
-                        }`}>
-                          {user.days_remaining} dias
-                        </span>
-                      </TableCell>
-                      <TableCell>{formatDate(user.trial_end_date)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleMakeAdmin(user.user_id, user.email)}
-                          >
-                            <Crown className="h-4 w-4 mr-1" />
-                            Admin
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                disabled={deletingUserId === user.user_id}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Deletar
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja deletar o usuário <strong>{user.email}</strong>? 
-                                  Esta ação não pode ser desfeita e todos os dados do usuário serão removidos permanentemente.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteUser(user.user_id, user.email)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Deletar Usuário
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+            {users.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600">Nenhum usuário encontrado</p>
+                <p className="text-sm text-slate-500 mt-2">
+                  Verifique o console do navegador para mais detalhes
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Data de Cadastro</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Dias Restantes</TableHead>
+                      <TableHead>Data de Expiração</TableHead>
+                      <TableHead>Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.user_id}>
+                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-slate-500" />
+                            {formatDate(user.created_at)}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(user)}</TableCell>
+                        <TableCell>
+                          <span className={`font-medium ${
+                            user.days_remaining <= 7 ? 'text-red-600' : 
+                            user.days_remaining <= 14 ? 'text-orange-600' : 'text-green-600'
+                          }`}>
+                            {user.days_remaining} dias
+                          </span>
+                        </TableCell>
+                        <TableCell>{formatDate(user.trial_end_date)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMakeAdmin(user.user_id, user.email)}
+                            >
+                              <Crown className="h-4 w-4 mr-1" />
+                              Admin
+                            </Button>
+                            
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  disabled={deletingUserId === user.user_id}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Deletar
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja deletar o usuário <strong>{user.email}</strong>? 
+                                    Esta ação não pode ser desfeita e todos os dados do usuário serão removidos permanentemente.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteUser(user.user_id, user.email)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Deletar Usuário
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

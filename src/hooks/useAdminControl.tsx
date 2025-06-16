@@ -24,6 +24,7 @@ export const useAdminControl = () => {
     if (!user) return false;
 
     try {
+      console.log('Verificando status admin para usuário:', user.id);
       const { data, error } = await supabase.rpc('has_role', {
         _user_id: user.id,
         _role: 'admin'
@@ -34,6 +35,7 @@ export const useAdminControl = () => {
         return false;
       }
 
+      console.log('Status admin retornado:', data);
       setIsAdmin(data || false);
       return data || false;
     } catch (error) {
@@ -49,6 +51,7 @@ export const useAdminControl = () => {
     }
 
     try {
+      console.log('Buscando todos os usuários...');
       const { data, error } = await supabase.rpc('get_all_users_with_trial_info');
 
       if (error) {
@@ -56,6 +59,8 @@ export const useAdminControl = () => {
         return;
       }
 
+      console.log('Usuários retornados:', data);
+      console.log('Número de usuários encontrados:', data?.length || 0);
       setUsers(data || []);
     } catch (error) {
       console.error('Erro ao buscar dados de usuários:', error);
@@ -111,10 +116,14 @@ export const useAdminControl = () => {
 
   useEffect(() => {
     const initAdmin = async () => {
+      console.log('Inicializando painel admin...');
       const adminStatus = await checkAdminStatus();
+      console.log('É admin?', adminStatus);
+      
       if (adminStatus) {
         await fetchAllUsers();
       } else {
+        console.log('Usuário não é admin, não carregando lista de usuários');
         setLoading(false);
       }
     };
