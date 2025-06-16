@@ -11,7 +11,7 @@ const AdminUsers = () => {
   const { users, loading, approveUser, rejectUser } = useAdminUsers();
   const { toast } = useToast();
 
-  const handleApprove = async (userId: string) => {
+  const handleApprove = async (userId: string): Promise<boolean> => {
     const success = await approveUser(userId);
     
     if (success) {
@@ -26,9 +26,11 @@ const AdminUsers = () => {
         variant: "destructive"
       });
     }
+
+    return success;
   };
 
-  const handleReject = async (userId: string) => {
+  const handleReject = async (userId: string): Promise<boolean> => {
     const success = await rejectUser(userId);
     
     if (success) {
@@ -43,6 +45,8 @@ const AdminUsers = () => {
         variant: "destructive"
       });
     }
+
+    return success;
   };
 
   const stats = {
