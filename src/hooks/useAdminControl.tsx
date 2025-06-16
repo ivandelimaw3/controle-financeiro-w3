@@ -14,9 +14,17 @@ export interface AdminUserData {
   days_remaining: number;
 }
 
+export interface AdminData {
+  user_id: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
 export const useAdminControl = () => {
   const { user } = useAuth();
   const [users, setUsers] = useState<AdminUserData[]>([]);
+  const [admins, setAdmins] = useState<AdminData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -69,6 +77,54 @@ export const useAdminControl = () => {
     }
   };
 
+  const fetchAllAdmins = async () => {
+    if (!user) return;
+
+    try {
+      console.log('Buscando todos os administradores...');
+      
+      // Buscar roles de admin com informações dos usuários
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          role,
+          created_at
+        `)
+        .eq('role', 'admin');
+
+      if (error) {
+        console.error('Erro ao buscar administradores:', error);
+        return;
+      }
+
+      // Para cada admin, buscar o email do usuário
+      const adminsWithEmails = await Promise.all(
+        (data || []).map(async (admin) => {
+          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(admin.user_id);
+          
+          if (userError) {
+            console.error('Erro ao buscar dados do usuário:', userError);
+            return {
+              ...admin,
+              email: 'Email não disponível'
+            };
+          }
+
+          return {
+            ...admin,
+            email: userData.user?.email || 'Email não disponível'
+          };
+        })
+      );
+
+      console.log('Administradores encontrados:', adminsWithEmails);
+      setAdmins(adminsWithEmails);
+    } catch (error) {
+      console.error('Erro ao buscar administradores:', error);
+    }
+  };
+
   const deleteUser = async (userId: string): Promise<boolean> => {
     if (!user || !isAdmin) return false;
 
@@ -107,9 +163,39 @@ export const useAdminControl = () => {
         return false;
       }
 
+      await fetchAllAdmins(); // Recarregar lista de admins
       return true;
     } catch (error) {
       console.error('Erro ao promover usuário:', error);
+      return false;
+    }
+  };
+
+  const removeAdminRole = async (userId: string): Promise<boolean> => {
+    if (!user || !isAdmin) return false;
+
+    // Não permitir que admin remova seu próprio role
+    if (userId === user.id) {
+      console.error('Admin não pode remover seu próprio role');
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId)
+        .eq('role', 'admin');
+
+      if (error) {
+        console.error('Erro ao remover role admin:', error);
+        return false;
+      }
+
+      await fetchAllAdmins(); // Recarregar lista de admins
+      return true;
+    } catch (error) {
+      console.error('Erro ao remover admin:', error);
       return false;
     }
   };
@@ -121,7 +207,7 @@ export const useAdminControl = () => {
       console.log('É admin?', adminStatus);
       
       if (adminStatus) {
-        await fetchAllUsers();
+        await Promise.all([fetchAllUsers(), fetchAllAdmins()]);
       } else {
         console.log('Usuário não é admin, não carregando lista de usuários');
         setLoading(false);
@@ -133,11 +219,14 @@ export const useAdminControl = () => {
 
   return {
     users,
+    admins,
     loading,
     isAdmin,
     fetchAllUsers,
+    fetchAllAdmins,
     deleteUser,
     makeUserAdmin,
+    removeAdminRole,
     checkAdminStatus
   };
 };
