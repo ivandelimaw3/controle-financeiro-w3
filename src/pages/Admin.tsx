@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAdminControl } from '@/hooks/useAdminControl';
@@ -210,8 +211,8 @@ const Admin = () => {
     }
   };
 
-  const handleRemoveAdmin = async (userId: string, userEmail: string): Promise<boolean> => {
-    const success = await removeAdminRole(userId);
+  const handleRemoveAdmin = async (adminUserId: string, adminEmail: string): Promise<boolean> => {
+    const success = await removeAdminRole(adminUserId);
     return success;
   };
 
