@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAdminControl } from '@/hooks/useAdminControl';
@@ -61,7 +60,7 @@ const Admin = () => {
 
   const handleAddAdmin = async (email: string): Promise<boolean> => {
     try {
-      // Primeiro, buscar o usuário pelo email
+      // Primeiro, buscar o usuário pelo email usando admin.listUsers()
       const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
       
       if (userError) {

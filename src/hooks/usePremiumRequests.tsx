@@ -34,7 +34,12 @@ export const usePremiumRequests = () => {
       }
 
       console.log('Solicitações encontradas:', data);
-      setRequests(data || []);
+      // Garantir que o status seja do tipo correto
+      const typedRequests = (data || []).map(request => ({
+        ...request,
+        status: request.status as 'pending' | 'approved' | 'rejected'
+      }));
+      setRequests(typedRequests);
     } catch (error) {
       console.error('Erro ao buscar solicitações de upgrade:', error);
     } finally {
