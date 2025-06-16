@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAdminControl } from '@/hooks/useAdminControl';
+import { usePremiumRequests } from '@/hooks/usePremiumRequests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,10 +38,12 @@ import {
   RefreshCw 
 } from 'lucide-react';
 import AdminManagement from '@/components/Admin/AdminManagement';
+import PremiumRequestsManagement from '@/components/Admin/PremiumRequestsManagement';
 import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
   const { users, admins, loading, isAdmin, deleteUser, makeUserAdmin, removeAdminRole, fetchAllUsers, fetchAllAdmins } = useAdminControl();
+  const { requests, processRequest, fetchPendingRequests } = usePremiumRequests();
   const { toast } = useToast();
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,11 +51,11 @@ const Admin = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     console.log('Atualizando lista de usuários manualmente...');
-    await Promise.all([fetchAllUsers(), fetchAllAdmins()]);
+    await Promise.all([fetchAllUsers(), fetchAllAdmins(), fetchPendingRequests()]);
     setRefreshing(false);
     toast({
       title: "Lista atualizada",
-      description: "A lista de usuários e administradores foi recarregada.",
+      description: "A lista de usuários, administradores e solicitações foi recarregada.",
     });
   };
 
@@ -66,9 +69,9 @@ const Admin = () => {
         return false;
       }
 
-      const user = userData.users.find(u => u.email === email);
+      const targetUser = userData.users.find(u => u.email === email);
       
-      if (!user) {
+      if (!targetUser) {
         toast({
           title: "Usuário não encontrado",
           description: "Não foi possível encontrar um usuário com este email.",
@@ -81,7 +84,7 @@ const Admin = () => {
       const { data: existingRole, error: roleError } = await supabase
         .from('user_roles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUser.id)
         .eq('role', 'admin')
         .single();
 
@@ -95,7 +98,7 @@ const Admin = () => {
       }
 
       // Adicionar role de admin
-      const success = await makeUserAdmin(user.id);
+      const success = await makeUserAdmin(targetUser.id);
       return success;
     } catch (error) {
       console.error('Erro ao adicionar admin:', error);
@@ -207,7 +210,7 @@ const Admin = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
@@ -259,6 +262,18 @@ const Admin = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <Crown className="h-8 w-8 text-orange-600" />
+                <div>
+                  <p className="text-sm text-slate-600">Solicitações Pendentes</p>
+                  <p className="text-2xl font-bold text-slate-800">{requests.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
@@ -270,6 +285,15 @@ const Admin = () => {
             <TabsTrigger value="admins" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Administradores
+            </TabsTrigger>
+            <TabsTrigger value="premium-requests" className="flex items-center gap-2">
+              <Crown className="h-4 w-4" />
+              Solicitações Premium
+              {requests.length > 0 && (
+                <Badge className="ml-1 bg-orange-100 text-orange-800">
+                  {requests.length}
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -382,6 +406,14 @@ const Admin = () => {
               onRemoveAdmin={handleRemoveAdmin}
               onAddAdmin={handleAddAdmin}
               refreshAdmins={fetchAllAdmins}
+            />
+          </TabsContent>
+
+          <TabsContent value="premium-requests" className="space-y-6">
+            <PremiumRequestsManagement
+              requests={requests}
+              onProcessRequest={processRequest}
+              refreshRequests={fetchPendingRequests}
             />
           </TabsContent>
         </Tabs>
