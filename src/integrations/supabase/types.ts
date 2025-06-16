@@ -275,12 +275,56 @@ export type Database = {
           },
         ]
       }
+      user_usage_control: {
+        Row: {
+          created_at: string
+          id: string
+          is_premium: boolean
+          is_trial_active: boolean
+          trial_days_limit: number
+          trial_end_date: string
+          trial_start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_premium?: boolean
+          is_trial_active?: boolean
+          trial_days_limit?: number
+          trial_end_date?: string
+          trial_start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_premium?: boolean
+          is_trial_active?: boolean
+          trial_days_limit?: number
+          trial_end_date?: string
+          trial_start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_user_trial_status: {
+        Args: { user_uuid: string }
+        Returns: {
+          is_trial_active: boolean
+          is_premium: boolean
+          days_remaining: number
+          trial_end_date: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
