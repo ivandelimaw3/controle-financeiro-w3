@@ -138,6 +138,9 @@ const Admin = () => {
 
       // Adicionar role de admin
       const success = await makeUserAdmin(targetUser.id);
+      if (success) {
+        await fetchAllAdmins();
+      }
       return success;
     } catch (error) {
       console.error('Erro ao adicionar admin:', error);
@@ -219,6 +222,7 @@ const Admin = () => {
         title: "Administrador removido",
         description: `${adminEmail} não é mais administrador.`,
       });
+      await fetchAllAdmins();
     } else {
       toast({
         title: "Erro",
