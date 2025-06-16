@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useUsageControl } from '@/hooks/useUsageControl';
 import { Clock, Crown, AlertTriangle } from 'lucide-react';
+import PremiumUpgradeButton from './PremiumUpgradeButton';
 
 export const TrialStatusBanner: React.FC = () => {
-  const { usageData, loading, upgradeToPremium } = useUsageControl();
+  const { usageData, loading } = useUsageControl();
 
   if (loading || !usageData) {
     return null;
@@ -46,13 +46,7 @@ export const TrialStatusBanner: React.FC = () => {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={upgradeToPremium}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              <Crown className="h-4 w-4 mr-2" />
-              Fazer Upgrade
-            </Button>
+            <PremiumUpgradeButton />
           </div>
         </CardContent>
       </Card>
@@ -81,14 +75,7 @@ export const TrialStatusBanner: React.FC = () => {
               </p>
             </div>
           </div>
-          <Button
-            onClick={upgradeToPremium}
-            variant={isWarning ? 'default' : 'outline'}
-            className={isWarning ? 'bg-orange-600 hover:bg-orange-700' : ''}
-          >
-            <Crown className="h-4 w-4 mr-2" />
-            Fazer Upgrade
-          </Button>
+          <PremiumUpgradeButton />
         </div>
       </CardContent>
     </Card>
