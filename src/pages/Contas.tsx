@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
+import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
+import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
+import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal } from '@/components/Accounts/AccountModal';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Filter, DollarSign, Loader2, Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAccounts, Account } from '@/contexts/AccountsContext';
 
@@ -70,29 +70,6 @@ const Contas: React.FC = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Calcular totais
-  const calculateTotalPago = () => {
-    return accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pago')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-  };
-
-  const calculateTotalRecebido = () => {
-    return accounts
-      .filter(account => account.type === 'receita' && account.status === 'recebido')
-      .reduce((sum, account) => sum + account.amount, 0);
-  };
-
-  const calculateTotalPendente = () => {
-    const receitasPendentes = accounts
-      .filter(account => account.type === 'receita' && account.status === 'pendente')
-      .reduce((sum, account) => sum + account.amount, 0);
-    const despesasPendentes = accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pendente')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-    return receitasPendentes - despesasPendentes;
-  };
-
   const handleSave = async (accountData: Account) => {
     try {
       if (editingAccount?.id) {
@@ -114,7 +91,6 @@ const Contas: React.FC = () => {
     console.log('=== handleEdit chamado ===');
     console.log('Conta original:', account);
     
-    // Criar uma cópia limpa da conta para edição
     const accountToEdit: Account = {
       id: account.id,
       description: account.description,
@@ -154,105 +130,19 @@ const Contas: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Contas</h1>
-            <p className="text-slate-600">Gerencie suas contas a pagar e receber</p>
-          </div>
-          <Button
-            onClick={handleNewAccount}
-            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-          >
-            <Plus size={20} className="mr-2" />
-            Nova Conta
-          </Button>
-        </div>
+        <AccountsHeader onNewAccount={handleNewAccount} />
 
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search size={20} className="absolute left-3 top-3 text-slate-400" />
-              <Input
-                placeholder="Pesquisar contas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter size={16} className="mr-2" />
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os Status</SelectItem>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="pago">Pago</SelectItem>
-                <SelectItem value="recebido">Recebido</SelectItem>
-              </SelectContent>
-            </Select>
+          <AccountsFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            typeFilter={typeFilter}
+            setTypeFilter={setTypeFilter}
+          />
 
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter size={16} className="mr-2" />
-                <SelectValue placeholder="Filtrar por tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os Tipos</SelectItem>
-                <SelectItem value="receita">Receitas</SelectItem>
-                <SelectItem value="despesa">Despesas</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Cards de Totais */}
-          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Total Pago */}
-            <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <TrendingDown size={20} className="text-red-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-slate-600">Total Pago</p>
-                  <p className="text-xl font-bold text-red-600">
-                    R$ {calculateTotalPago().toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Total Recebido */}
-            <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <TrendingUp size={20} className="text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-slate-600">Total Recebido</p>
-                  <p className="text-xl font-bold text-green-600">
-                    R$ {calculateTotalRecebido().toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Saldo Pendente */}
-            <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Clock size={20} className="text-yellow-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-slate-600">Saldo Pendente</p>
-                  <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    R$ {calculateTotalPendente().toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AccountsSummaryCards accounts={accounts} />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
