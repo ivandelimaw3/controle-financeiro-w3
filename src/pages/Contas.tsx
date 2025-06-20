@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -6,7 +7,7 @@ import { AccountModal } from '@/components/Accounts/AccountModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Filter, DollarSign, Loader2, Clock } from 'lucide-react';
+import { Plus, Search, Filter, DollarSign, Loader2, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAccounts, Account } from '@/contexts/AccountsContext';
 
@@ -69,84 +70,27 @@ const Contas: React.FC = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Calcular total baseado no filtro de tipo e status
-  const calculateFilteredTotal = () => {
-    // Se o filtro de status for 'pendente', mostrar apenas contas pendentes
-    if (statusFilter === 'pendente') {
-      const pendingAccounts = filteredAccounts.filter(account => account.status === 'pendente');
-      
-      if (typeFilter === 'todos') {
-        const receitas = pendingAccounts
-          .filter(account => account.type === 'receita')
-          .reduce((sum, account) => sum + account.amount, 0);
-        const despesas = pendingAccounts
-          .filter(account => account.type === 'despesa')
-          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-        return receitas - despesas;
-      } else if (typeFilter === 'receita') {
-        return pendingAccounts
-          .filter(account => account.type === 'receita')
-          .reduce((sum, account) => sum + account.amount, 0);
-      } else {
-        return pendingAccounts
-          .filter(account => account.type === 'despesa')
-          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-      }
-    } else {
-      // Para outros status, mostrar apenas contas pagas/recebidas
-      const paidAccounts = filteredAccounts.filter(account => 
-        account.status === 'pago' || account.status === 'recebido'
-      );
-
-      if (typeFilter === 'todos') {
-        const receitas = paidAccounts
-          .filter(account => account.type === 'receita')
-          .reduce((sum, account) => sum + account.amount, 0);
-        const despesas = paidAccounts
-          .filter(account => account.type === 'despesa')
-          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-        return receitas - despesas;
-      } else if (typeFilter === 'receita') {
-        return paidAccounts
-          .filter(account => account.type === 'receita')
-          .reduce((sum, account) => sum + account.amount, 0);
-      } else {
-        return paidAccounts
-          .filter(account => account.type === 'despesa')
-          .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-      }
-    }
-  };
-
-  // Calcular saldo total pendente
-  const calculatePendingTotal = () => {
-    const pendingAccounts = filteredAccounts.filter(account => account.status === 'pendente');
-    const receitas = pendingAccounts
-      .filter(account => account.type === 'receita')
-      .reduce((sum, account) => sum + account.amount, 0);
-    const despesas = pendingAccounts
-      .filter(account => account.type === 'despesa')
+  // Calcular totais
+  const calculateTotalPago = () => {
+    return accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pago')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-    return receitas - despesas;
   };
 
-  const getFilteredTotalLabel = () => {
-    if (statusFilter === 'pendente') {
-      if (typeFilter === 'todos') return 'Saldo Total (Pendentes)';
-      if (typeFilter === 'receita') return 'Total Receitas (Pendentes)';
-      return 'Total Despesas (Pendentes)';
-    } else {
-      if (typeFilter === 'todos') return 'Saldo Total (Pagas/Recebidas)';
-      if (typeFilter === 'receita') return 'Total Receitas (Recebidas)';
-      return 'Total Despesas (Pagas)';
-    }
+  const calculateTotalRecebido = () => {
+    return accounts
+      .filter(account => account.type === 'receita' && account.status === 'recebido')
+      .reduce((sum, account) => sum + account.amount, 0);
   };
 
-  const getFilteredTotalColor = () => {
-    const total = calculateFilteredTotal();
-    if (typeFilter === 'receita') return 'text-green-600';
-    if (typeFilter === 'despesa') return 'text-red-600';
-    return total >= 0 ? 'text-green-600' : 'text-red-600';
+  const calculateTotalPendente = () => {
+    const receitasPendentes = accounts
+      .filter(account => account.type === 'receita' && account.status === 'pendente')
+      .reduce((sum, account) => sum + account.amount, 0);
+    const despesasPendentes = accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pendente')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    return receitasPendentes - despesasPendentes;
   };
 
   const handleSave = async (accountData: Account) => {
@@ -262,50 +206,58 @@ const Contas: React.FC = () => {
             </Select>
           </div>
 
-          <div className="mb-6 space-y-4">
-            {/* Campo de Saldo Total */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <DollarSign size={20} className="text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">{getFilteredTotalLabel()}</p>
-                    <p className={`text-2xl font-bold ${getFilteredTotalColor()}`}>
-                      {typeFilter === 'despesa' ? '' : typeFilter === 'receita' ? '+' : ''}R$ {Math.abs(calculateFilteredTotal()).toFixed(2)}
-                    </p>
-                  </div>
+          {/* Cards de Totais */}
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Total Pago */}
+            <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <TrendingDown size={20} className="text-red-600" />
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-slate-600">
-                    {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta' : 'contas'}
+                <div className="flex-1">
+                  <p className="text-sm text-slate-600">Total Pago</p>
+                  <p className="text-xl font-bold text-red-600">
+                    R$ {calculateTotalPago().toFixed(2)}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Campo de Saldo Total Pendente */}
-            <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
-                    <Clock size={20} className="text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Saldo Total Pendente</p>
-                    <p className={`text-xl font-bold ${calculatePendingTotal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      R$ {calculatePendingTotal().toFixed(2)}
-                    </p>
-                  </div>
+            {/* Total Recebido */}
+            <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <TrendingUp size={20} className="text-green-600" />
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-slate-600">
-                    {filteredAccounts.filter(account => account.status === 'pendente').length} pendentes
+                <div className="flex-1">
+                  <p className="text-sm text-slate-600">Total Recebido</p>
+                  <p className="text-xl font-bold text-green-600">
+                    R$ {calculateTotalRecebido().toFixed(2)}
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Saldo Pendente */}
+            <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Clock size={20} className="text-yellow-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-slate-600">Saldo Pendente</p>
+                  <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    R$ {calculateTotalPendente().toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <p className="text-sm text-slate-600 text-center">
+              {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
+            </p>
           </div>
 
           <AccountsTable
