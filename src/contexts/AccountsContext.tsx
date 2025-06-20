@@ -48,7 +48,11 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
       description: account.description,
       amount: account.amount,
       category: account.category,
-      date: new Date(account.dueDate).toLocaleDateString('pt-BR'),
+      date: new Date(account.dueDate).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
       type: account.type,
       status: account.status
     }));
