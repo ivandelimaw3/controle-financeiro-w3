@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useAccountsData, Account, Transaction } from '@/hooks/useAccountsData';
 
@@ -43,19 +42,33 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
   } = useAccountsData();
 
   const getTransactions = (): Transaction[] => {
-    return accounts.map(account => ({
-      id: account.id,
-      description: account.description,
-      amount: account.amount,
-      category: account.category,
-      date: new Date(account.dueDate).toLocaleDateString('pt-BR', {
+    return accounts.map(account => {
+      // Debug log para verificar a data original
+      console.log('Data original do banco:', account.dueDate);
+      
+      // Criar data sem problemas de fuso horário
+      const dueDateStr = account.dueDate;
+      const [year, month, day] = dueDateStr.split('-');
+      const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      const formattedDate = localDate.toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
-      }),
-      type: account.type,
-      status: account.status
-    }));
+      });
+      
+      console.log('Data formatada:', formattedDate);
+      
+      return {
+        id: account.id,
+        description: account.description,
+        amount: account.amount,
+        category: account.category,
+        date: formattedDate,
+        type: account.type,
+        status: account.status
+      };
+    });
   };
 
   const getTotalReceitas = () => {
