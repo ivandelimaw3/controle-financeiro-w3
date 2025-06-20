@@ -275,15 +275,189 @@ export type Database = {
           },
         ]
       }
+      premium_upgrade_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_usage_control: {
+        Row: {
+          created_at: string
+          id: string
+          is_premium: boolean
+          is_trial_active: boolean
+          trial_days_limit: number
+          trial_end_date: string
+          trial_start_date: string
+          updated_at: string
+          upgrade_request_date: string | null
+          upgrade_status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_premium?: boolean
+          is_trial_active?: boolean
+          trial_days_limit?: number
+          trial_end_date?: string
+          trial_start_date?: string
+          updated_at?: string
+          upgrade_request_date?: string | null
+          upgrade_status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_premium?: boolean
+          is_trial_active?: boolean
+          trial_days_limit?: number
+          trial_end_date?: string
+          trial_start_date?: string
+          updated_at?: string
+          upgrade_request_date?: string | null
+          upgrade_status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_user_trial_status: {
+        Args: { user_uuid: string }
+        Returns: {
+          is_trial_active: boolean
+          is_premium: boolean
+          days_remaining: number
+          trial_end_date: string
+        }[]
+      }
+      delete_user_account: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
+      get_all_users_with_trial_info: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          created_at: string
+          trial_start_date: string
+          trial_end_date: string
+          is_trial_active: boolean
+          is_premium: boolean
+          days_remaining: number
+        }[]
+      }
+      get_pending_upgrade_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          user_id: string
+          user_email: string
+          requested_at: string
+          status: string
+          notes: string
+        }[]
+      }
+      get_users_for_admin_review: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          created_at: string
+          trial_start_date: string
+          trial_end_date: string
+          is_trial_active: boolean
+          is_premium: boolean
+          days_remaining: number
+          upgrade_request_date: string
+          upgrade_status: string
+          needs_attention: boolean
+        }[]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
+      process_upgrade_request: {
+        Args: { request_id: string; new_status: string; admin_notes?: string }
+        Returns: boolean
+      }
+      process_user_upgrade: {
+        Args: {
+          target_user_id: string
+          new_status: string
+          make_premium?: boolean
+        }
+        Returns: boolean
+      }
+      request_premium_upgrade: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -398,6 +572,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

@@ -9,7 +9,7 @@ import { Bank, BankInput } from '@/hooks/useBanksData';
 
 interface BankFormProps {
   bank?: Bank;
-  onSubmit: (data: BankInput) => void;
+  onSubmit: (data: BankInput & { balance?: number }) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -20,12 +20,13 @@ export const BankForm: React.FC<BankFormProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const [formData, setFormData] = useState<BankInput>({
+  const [formData, setFormData] = useState<BankInput & { balance?: number }>({
     name: '',
     agency: '',
     account_number: '',
     account_type: 'corrente',
-    nickname: ''
+    nickname: '',
+    balance: 0
   });
 
   useEffect(() => {
@@ -35,7 +36,8 @@ export const BankForm: React.FC<BankFormProps> = ({
         agency: bank.agency,
         account_number: bank.account_number,
         account_type: bank.account_type,
-        nickname: bank.nickname || ''
+        nickname: bank.nickname || '',
+        balance: bank.balance
       });
     }
   }, [bank]);
@@ -45,7 +47,7 @@ export const BankForm: React.FC<BankFormProps> = ({
     onSubmit(formData);
   };
 
-  const handleChange = (field: keyof BankInput, value: string) => {
+  const handleChange = (field: keyof (BankInput & { balance: number }), value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -135,6 +137,26 @@ export const BankForm: React.FC<BankFormProps> = ({
             </SelectContent>
           </Select>
         </div>
+
+        {bank && (
+          <div>
+            <Label htmlFor="balance" className="text-slate-700">
+              Saldo Atual
+            </Label>
+            <Input
+              id="balance"
+              type="number"
+              step="0.01"
+              value={formData.balance || 0}
+              onChange={(e) => handleChange('balance', parseFloat(e.target.value) || 0)}
+              placeholder="Ex: 1500.00"
+              className="mt-1"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Ajuste o saldo atual da conta
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3 pt-4">
