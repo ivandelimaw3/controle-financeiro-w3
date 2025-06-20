@@ -17,7 +17,8 @@ const Dashboard: React.FC = () => {
     getTotalReceitas, 
     getTotalDespesas, 
     getSaldo, 
-    getContasPendentes 
+    getContasPendentes,
+    accounts
   } = useAccounts();
 
   const transactions = getTransactions();
@@ -26,13 +27,63 @@ const Dashboard: React.FC = () => {
   const saldo = getSaldo();
   const contasPendentes = getContasPendentes();
 
+  // Calcular receitas e despesas do mês corrente
+  const getCurrentMonthReceitas = () => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    return accounts
+      .filter(account => {
+        if (account.type !== 'receita' || account.status !== 'recebido') return false;
+        const dueDate = new Date(account.dueDate);
+        return dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, account) => sum + account.amount, 0);
+  };
+
+  const getCurrentMonthDespesas = () => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    return accounts
+      .filter(account => {
+        if (account.type !== 'despesa' || account.status !== 'pago') return false;
+        const dueDate = new Date(account.dueDate);
+        return dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+  };
+
+  // Calcular receitas e despesas previstas (pendentes)
+  const getReceitasPrevistas = () => {
+    return accounts
+      .filter(account => account.type === 'receita' && account.status === 'pendente')
+      .reduce((sum, account) => sum + account.amount, 0);
+  };
+
+  const getDespesasPrevistas = () => {
+    return accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pendente')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+  };
+
+  const receitasDoMes = getCurrentMonthReceitas();
+  const despesasDoMes = getCurrentMonthDespesas();
+  const receitasPrevistas = getReceitasPrevistas();
+  const despesasPrevistas = getDespesasPrevistas();
+  const saldoPrevisto = receitasPrevistas - despesasPrevistas;
+
   console.log('Dashboard: accounts data', { 
     loading, 
     transactionsCount: transactions.length, 
     totalReceitas, 
     totalDespesas, 
     saldo, 
-    contasPendentes 
+    contasPendentes,
+    receitasDoMes,
+    despesasDoMes,
+    receitasPrevistas,
+    despesasPrevistas
   });
 
   const handleReceitasClick = () => {
@@ -82,7 +133,7 @@ const Dashboard: React.FC = () => {
           />
           <FinancialCard
             title="Receitas"
-            value={`R$ ${totalReceitas.toFixed(2)}`}
+            value={`R$ ${receitasDoMes.toFixed(2)}`}
             icon={TrendingUp}
             trend="8%"
             trendUp={true}
@@ -91,7 +142,7 @@ const Dashboard: React.FC = () => {
           />
           <FinancialCard
             title="Despesas"
-            value={`R$ ${totalDespesas.toFixed(2)}`}
+            value={`R$ ${despesasDoMes.toFixed(2)}`}
             icon={TrendingDown}
             trend="3%"
             trendUp={false}
@@ -115,15 +166,17 @@ const Dashboard: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
                 <span className="text-green-700 font-medium">Receitas Previstas</span>
-                <span className="text-green-700 font-bold">R$ {(totalReceitas + 800).toFixed(2)}</span>
+                <span className="text-green-700 font-bold">R$ {receitasPrevistas.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
                 <span className="text-red-700 font-medium">Despesas Previstas</span>
-                <span className="text-red-700 font-bold">R$ {(totalDespesas + 200).toFixed(2)}</span>
+                <span className="text-red-700 font-bold">R$ {despesasPrevistas.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
                 <span className="text-blue-700 font-medium">Saldo Previsto</span>
-                <span className="text-blue-700 font-bold">R$ {(saldo + 600).toFixed(2)}</span>
+                <span className={`font-bold ${saldoPrevisto >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                  R$ {saldoPrevisto.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
