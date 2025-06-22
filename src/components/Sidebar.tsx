@@ -7,12 +7,15 @@ import {
   FolderOpen, 
   TrendingUp,
   Building2,
-  PieChart
+  PieChart,
+  Shield
 } from 'lucide-react';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin } = useUserRoles();
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
@@ -22,6 +25,11 @@ export const Sidebar: React.FC = () => {
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
   ];
+
+  // Adicionar item de admin apenas se o usuário for admin
+  if (isAdmin) {
+    menuItems.push({ icon: Shield, label: 'Administração', path: '/admin' });
+  }
 
   return (
     <div className="w-64 bg-white shadow-xl border-r border-slate-200">

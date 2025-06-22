@@ -1,0 +1,210 @@
+
+import React from 'react';
+import { Layout } from '@/components/Layout';
+import { useUserRoles } from '@/hooks/useUserRoles';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Shield, ShieldCheck, Users, Calendar, Clock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const Admin: React.FC = () => {
+  const { loading, isAdmin, users, makeUserAdmin, removeAdminRole } = useUserRoles();
+  const { toast } = useToast();
+
+  const handleMakeAdmin = async (userId: string, userEmail: string) => {
+    try {
+      await makeUserAdmin(userId);
+      toast({
+        title: "Sucesso",
+        description: `${userEmail} agora é administrador.`
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao tornar usuário administrador.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRemoveAdmin = async (userId: string, userEmail: string) => {
+    try {
+      await removeAdminRole(userId);
+      toast({
+        title: "Sucesso",
+        description: `${userEmail} não é mais administrador.`
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover role de administrador.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <span className="text-lg text-slate-600">Carregando...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <CardTitle className="text-red-600">Acesso Negado</CardTitle>
+              <CardDescription>
+                Você não tem permissão para acessar esta página. Apenas administradores podem ver esta área.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+            <ShieldCheck className="h-8 w-8 text-blue-600" />
+            Administração
+          </h1>
+          <p className="text-slate-600">Gerenciar usuários e permissões do sistema</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{users.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Usuários Ativos</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {users.filter(u => u.is_trial_active || u.is_premium).length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Usuários Premium</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {users.filter(u => u.is_premium).length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Usuários Cadastrados</CardTitle>
+            <CardDescription>
+              Lista de todos os usuários registrados no sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Data de Criação</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Dias Restantes</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.user_id}>
+                    <TableCell className="font-medium">{user.email}</TableCell>
+                    <TableCell>{formatDate(user.created_at)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {user.is_premium && (
+                          <Badge variant="default" className="bg-yellow-100 text-yellow-800">
+                            Premium
+                          </Badge>
+                        )}
+                        {user.is_trial_active && (
+                          <Badge variant="secondary" className="bg-green-100 text-green-800">
+                            Trial Ativo
+                          </Badge>
+                        )}
+                        {!user.is_trial_active && !user.is_premium && (
+                          <Badge variant="destructive">
+                            Expirado
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.is_premium ? '∞' : user.days_remaining > 0 ? user.days_remaining : '0'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleMakeAdmin(user.user_id, user.email)}
+                        >
+                          Tornar Admin
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleRemoveAdmin(user.user_id, user.email)}
+                        >
+                          Remover Admin
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
+  );
+};
+
+export default Admin;
