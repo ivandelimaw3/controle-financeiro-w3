@@ -455,6 +455,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      update_user_status: {
+        Args: {
+          target_user_id: string
+          is_premium: boolean
+          is_trial_active: boolean
+          extend_trial_days?: number
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"

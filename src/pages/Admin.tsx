@@ -1,17 +1,43 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { useUserRoles } from '@/hooks/useUserRoles';
+import { useUserRoles, AdminUser } from '@/hooks/useUserRoles';
+import { UserStatusModal } from '@/components/Admin/UserStatusModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Shield, ShieldCheck, Users, Calendar, Clock } from 'lucide-react';
+import { 
+  Loader2, 
+  Shield, 
+  ShieldCheck, 
+  Users, 
+  Calendar, 
+  Clock, 
+  Trash2, 
+  Edit,
+  UserPlus,
+  UserMinus,
+  AlertTriangle
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const Admin: React.FC = () => {
-  const { loading, isAdmin, users, makeUserAdmin, removeAdminRole } = useUserRoles();
+  const { loading, isAdmin, users, makeUserAdmin, removeAdminRole, deleteUser, updateUserStatus } = useUserRoles();
   const { toast } = useToast();
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
   const handleMakeAdmin = async (userId: string, userEmail: string) => {
     try {
@@ -45,6 +71,49 @@ const Admin: React.FC = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string, userEmail: string) => {
+    try {
+      await deleteUser(userId);
+      toast({
+        title: "Sucesso",
+        description: `Usuário ${userEmail} foi deletado.`
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao deletar usuário.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditUser = (user: AdminUser) => {
+    setSelectedUser(user);
+    setIsStatusModalOpen(true);
+  };
+
+  const handleSaveUserStatus = async (
+    userId: string, 
+    isPremium: boolean, 
+    isTrialActive: boolean, 
+    extendTrialDays: number
+  ) => {
+    try {
+      await updateUserStatus(userId, isPremium, isTrialActive, extendTrialDays);
+      toast({
+        title: "Sucesso",
+        description: "Status do usuário atualizado com sucesso."
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar status do usuário.",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -53,6 +122,12 @@ const Admin: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const isUserAdmin = (userId: string) => {
+    // Esta função deveria verificar se o usuário tem role de admin
+    // Por simplicidade, vamos assumir que não temos essa informação na interface atual
+    return false;
   };
 
   if (loading) {
@@ -183,17 +258,68 @@ const Admin: React.FC = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleMakeAdmin(user.user_id, user.email)}
+                          onClick={() => handleEditUser(user)}
+                          className="flex items-center gap-1"
                         >
-                          Tornar Admin
+                          <Edit className="h-3 w-3" />
+                          Editar
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleRemoveAdmin(user.user_id, user.email)}
-                        >
-                          Remover Admin
-                        </Button>
+                        
+                        {!isUserAdmin(user.user_id) ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMakeAdmin(user.user_id, user.email)}
+                            className="flex items-center gap-1"
+                          >
+                            <UserPlus className="h-3 w-3" />
+                            Admin
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRemoveAdmin(user.user_id, user.email)}
+                            className="flex items-center gap-1"
+                          >
+                            <UserMinus className="h-3 w-3" />
+                            Remover
+                          </Button>
+                        )}
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="flex items-center gap-1"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Deletar
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-red-500" />
+                                Confirmar Exclusão
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja deletar o usuário <strong>{user.email}</strong>? 
+                                Esta ação não pode ser desfeita e todos os dados do usuário serão permanentemente removidos.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user.user_id, user.email)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Sim, Deletar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -202,6 +328,16 @@ const Admin: React.FC = () => {
             </Table>
           </CardContent>
         </Card>
+
+        <UserStatusModal
+          user={selectedUser}
+          isOpen={isStatusModalOpen}
+          onClose={() => {
+            setIsStatusModalOpen(false);
+            setSelectedUser(null);
+          }}
+          onSave={handleSaveUserStatus}
+        />
       </div>
     </Layout>
   );

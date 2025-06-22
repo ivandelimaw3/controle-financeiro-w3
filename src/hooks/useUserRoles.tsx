@@ -120,12 +120,70 @@ export const useUserRoles = () => {
     }
   };
 
+  const deleteUser = async (userId: string) => {
+    try {
+      console.log('Deletando usuário:', userId);
+      
+      const { data, error } = await supabase.rpc('delete_user_account', {
+        target_user_id: userId
+      });
+
+      if (error) {
+        console.error('Erro ao deletar usuário:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Falha ao deletar usuário');
+      }
+
+      await fetchAllUsers();
+    } catch (error) {
+      console.error('Erro ao deletar usuário:', error);
+      throw error;
+    }
+  };
+
+  const updateUserStatus = async (
+    userId: string, 
+    isPremium: boolean, 
+    isTrialActive: boolean,
+    extendTrialDays: number = 0
+  ) => {
+    try {
+      console.log('Atualizando status do usuário:', { userId, isPremium, isTrialActive, extendTrialDays });
+      
+      const { data, error } = await supabase.rpc('update_user_status', {
+        target_user_id: userId,
+        is_premium: isPremium,
+        is_trial_active: isTrialActive,
+        extend_trial_days: extendTrialDays
+      });
+
+      if (error) {
+        console.error('Erro ao atualizar status do usuário:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Falha ao atualizar status do usuário');
+      }
+
+      await fetchAllUsers();
+    } catch (error) {
+      console.error('Erro ao atualizar status do usuário:', error);
+      throw error;
+    }
+  };
+
   return {
     loading,
     isAdmin,
     users,
     makeUserAdmin,
     removeAdminRole,
+    deleteUser,
+    updateUserStatus,
     refreshUsers: fetchAllUsers
   };
 };
