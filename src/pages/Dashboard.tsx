@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -6,6 +5,16 @@ import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
 import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
+
+interface Transaction {
+  id: number;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+  type: 'receita' | 'despesa';
+  status: 'pendente' | 'pago' | 'recebido';
+}
 
 const Dashboard: React.FC = () => {
   console.log('Dashboard: component rendering');
@@ -22,11 +31,19 @@ const Dashboard: React.FC = () => {
   } = useAccounts();
 
   // Converter accounts para transactions com o campo date
-  const getTransactionsWithDate = () => {
-    return accounts.slice(0, 5).map(account => ({
-      ...account,
-      date: account.dueDate // Usar dueDate como date
-    }));
+  const getTransactionsWithDate = (): Transaction[] => {
+    return accounts
+      .filter(account => account.id !== undefined) // Filtrar apenas contas com ID
+      .slice(0, 5)
+      .map(account => ({
+        id: account.id!,
+        description: account.description,
+        amount: account.amount,
+        category: account.category,
+        date: account.dueDate,
+        type: account.type,
+        status: account.status
+      }));
   };
 
   const transactions = getTransactionsWithDate();
@@ -141,7 +158,7 @@ const Dashboard: React.FC = () => {
           />
           <FinancialCard
             title="Receitas"
-            value={`R$ ${receitasDoMes.toFixed(2)}`}
+            value={`R$ ${totalReceitas.toFixed(2)}`}
             icon={TrendingUp}
             trend="8%"
             trendUp={true}
@@ -150,7 +167,7 @@ const Dashboard: React.FC = () => {
           />
           <FinancialCard
             title="Despesas"
-            value={`R$ ${despesasDoMes.toFixed(2)}`}
+            value={`R$ ${totalDespesas.toFixed(2)}`}
             icon={TrendingDown}
             trend="3%"
             trendUp={false}
@@ -173,17 +190,17 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Resumo Mensal</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
-                <span className="text-green-700 font-medium">Receitas Previstas</span>
-                <span className="text-green-700 font-bold">R$ {receitasPrevistas.toFixed(2)}</span>
+                <span className="text-green-700 font-medium">Receitas do Mês</span>
+                <span className="text-green-700 font-bold">R$ {totalReceitas.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
-                <span className="text-red-700 font-medium">Despesas Previstas</span>
-                <span className="text-red-700 font-bold">R$ {despesasPrevistas.toFixed(2)}</span>
+                <span className="text-red-700 font-medium">Despesas do Mês</span>
+                <span className="text-red-700 font-bold">R$ {totalDespesas.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
-                <span className="text-blue-700 font-medium">Saldo Previsto</span>
-                <span className={`font-bold ${saldoPrevisto >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
-                  R$ {saldoPrevisto.toFixed(2)}
+                <span className="text-blue-700 font-medium">Saldo Atual</span>
+                <span className={`font-bold ${saldo >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                  R$ {saldo.toFixed(2)}
                 </span>
               </div>
             </div>
