@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface Account {
   id: number;
@@ -27,14 +28,22 @@ export const useAccountsData = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
+    if (!user?.id) {
+      setAccounts([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -74,6 +83,15 @@ export const useAccountsData = () => {
 
   // Adicionar nova conta
   const addAccount = async (accountData: Omit<Account, 'id'>) => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('accounts')
@@ -83,7 +101,8 @@ export const useAccountsData = () => {
           category: accountData.category,
           due_date: accountData.dueDate,
           type: accountData.type,
-          status: accountData.status
+          status: accountData.status,
+          user_id: user.id
         }])
         .select()
         .single();
@@ -127,6 +146,15 @@ export const useAccountsData = () => {
 
   // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('accounts')
@@ -138,7 +166,8 @@ export const useAccountsData = () => {
           type: updatedAccount.type,
           status: updatedAccount.status
         })
-        .eq('id', updatedAccount.id);
+        .eq('id', updatedAccount.id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao atualizar conta:', error);
@@ -170,11 +199,21 @@ export const useAccountsData = () => {
 
   // Deletar conta
   const deleteAccount = async (id: number) => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('accounts')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao deletar conta:', error);
@@ -204,11 +243,21 @@ export const useAccountsData = () => {
 
   // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('accounts')
         .update({ status })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao atualizar status:', error);
@@ -241,7 +290,7 @@ export const useAccountsData = () => {
   // Carregar contas ao montar o componente
   useEffect(() => {
     fetchAccounts();
-  }, []);
+  }, [user?.id]);
 
   return {
     accounts,

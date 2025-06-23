@@ -21,7 +21,15 @@ const Dashboard: React.FC = () => {
     accounts
   } = useAccounts();
 
-  const transactions = getTransactions();
+  // Converter accounts para transactions com o campo date
+  const getTransactionsWithDate = () => {
+    return accounts.slice(0, 5).map(account => ({
+      ...account,
+      date: account.dueDate // Usar dueDate como date
+    }));
+  };
+
+  const transactions = getTransactionsWithDate();
   const totalReceitas = getTotalReceitas();
   const totalDespesas = getTotalDespesas();
   const saldo = getSaldo();
