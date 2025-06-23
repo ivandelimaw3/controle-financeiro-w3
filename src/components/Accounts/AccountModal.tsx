@@ -37,6 +37,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     type: 'despesa',
     status: 'pendente'
   });
+  const [isFormReady, setIsFormReady] = useState(false);
 
   // Formatação da data para input
   const formatDateForInput = (dateStr: string | null | undefined) => {
@@ -65,14 +66,15 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) {
+      setIsFormReady(false);
       return;
     }
 
-    console.log('AccountModal: Modal aberto, preparando formulário');
-
     if (account?.id) {
-      console.log('AccountModal: Editando conta existente', account);
       const formattedDueDate = formatDateForInput(account.dueDate);
+      
+      console.log('AccountModal: original date', account.dueDate);
+      console.log('AccountModal: formatted date', formattedDueDate);
       
       const newFormData = {
         id: account.id,
@@ -85,7 +87,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       };
       setFormData(newFormData);
     } else {
-      console.log('AccountModal: Criando nova conta');
       setFormData({
         description: '',
         amount: 0,
@@ -96,17 +97,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       });
     }
 
-    // Carregar categorias se necessário
-    if (!categoriesFromDB || categoriesFromDB.length === 0) {
-      console.log('AccountModal: Carregando categorias');
-      refreshCategories();
-    }
+    // Refresh das categorias e marcar como pronto
+    refreshCategories().finally(() => {
+      setIsFormReady(true);
+    });
   }, [isOpen, account, refreshCategories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('AccountModal: Salvando conta', formData);
     
     const finalAmount = formData.type === 'despesa' ? -Math.abs(formData.amount) : Math.abs(formData.amount);
     
@@ -116,14 +114,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     };
     
     onSave(accountToSave);
+    onClose();
   };
 
   const handleRefreshCategories = async () => {
     try {
-      console.log('AccountModal: Atualizando categorias');
       await refreshCategories();
     } catch (error) {
-      console.error('AccountModal: Erro ao atualizar categorias', error);
+      // Error is handled by the hook
     }
   };
 
@@ -148,15 +146,21 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </button>
         </div>
 
-        <AccountForm
-          formData={formData}
-          setFormData={setFormData}
-          categories={categoriesFromDB || []}
-          onRefreshCategories={handleRefreshCategories}
-          onSubmit={handleSubmit}
-          onCancel={onClose}
-          isEditing={isEditing}
-        />
+        {!isFormReady ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-slate-600">Carregando...</div>
+          </div>
+        ) : (
+          <AccountForm
+            formData={formData}
+            setFormData={setFormData}
+            categories={categoriesFromDB || []}
+            onRefreshCategories={handleRefreshCategories}
+            onSubmit={handleSubmit}
+            onCancel={onClose}
+            isEditing={isEditing}
+          />
+        )}
       </div>
     </div>
   );
