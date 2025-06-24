@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface Account {
   id: number;
@@ -27,14 +28,26 @@ export const useAccountsData = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
       setLoading(true);
+      
+      // Verificar se o usuário está autenticado
+      if (!user) {
+        console.log('Usuário não autenticado');
+        setAccounts([]);
+        return;
+      }
+
+      console.log('Carregando contas para usuário:', user.email);
+      
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -59,7 +72,7 @@ export const useAccountsData = () => {
       }));
 
       setAccounts(transformedAccounts);
-      console.log('Contas carregadas do Supabase:', transformedAccounts.length, 'contas');
+      console.log('Contas carregadas:', transformedAccounts.length, 'contas encontradas');
     } catch (error) {
       console.error('Erro ao carregar contas:', error);
       toast({
@@ -75,6 +88,15 @@ export const useAccountsData = () => {
   // Adicionar nova conta
   const addAccount = async (accountData: Omit<Account, 'id'>) => {
     try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('accounts')
         .insert([{
@@ -83,7 +105,8 @@ export const useAccountsData = () => {
           category: accountData.category,
           due_date: accountData.dueDate,
           type: accountData.type,
-          status: accountData.status
+          status: accountData.status,
+          user_id: user.id
         }])
         .select()
         .single();
@@ -128,6 +151,15 @@ export const useAccountsData = () => {
   // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
     try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('accounts')
         .update({
@@ -138,7 +170,8 @@ export const useAccountsData = () => {
           type: updatedAccount.type,
           status: updatedAccount.status
         })
-        .eq('id', updatedAccount.id);
+        .eq('id', updatedAccount.id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao atualizar conta:', error);
@@ -171,10 +204,20 @@ export const useAccountsData = () => {
   // Deletar conta
   const deleteAccount = async (id: number) => {
     try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('accounts')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao deletar conta:', error);
@@ -205,10 +248,20 @@ export const useAccountsData = () => {
   // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('accounts')
         .update({ status })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao atualizar status:', error);
@@ -238,10 +291,15 @@ export const useAccountsData = () => {
     }
   };
 
-  // Carregar contas ao montar o componente
+  // Carregar contas quando o usuário mudar
   useEffect(() => {
-    fetchAccounts();
-  }, []);
+    if (user) {
+      fetchAccounts();
+    } else {
+      setAccounts([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   return {
     accounts,
