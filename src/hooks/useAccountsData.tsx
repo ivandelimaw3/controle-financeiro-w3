@@ -37,18 +37,35 @@ export const useAccountsData = () => {
       
       // Verificar se o usuário está autenticado
       if (!user) {
-        console.log('Usuário não autenticado');
+        console.log('Usuário não autenticado - fetchAccounts');
         setAccounts([]);
         return;
       }
 
-      console.log('Carregando contas para usuário:', user.email);
+      console.log('=== DEBUG FETCH ACCOUNTS ===');
+      console.log('Usuário autenticado:', user.email);
+      console.log('User ID:', user.id);
       
+      // Primeiro, vamos verificar se há contas sem filtro para debug
+      const { data: allData, error: allError } = await supabase
+        .from('accounts')
+        .select('*');
+      
+      console.log('Total de contas na tabela (sem filtro):', allData?.length || 0);
+      if (allData && allData.length > 0) {
+        console.log('Primeira conta encontrada:', allData[0]);
+        console.log('User IDs das contas:', allData.map(acc => acc.user_id));
+      }
+
+      // Agora buscar contas do usuário específico
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+
+      console.log('Contas filtradas para user_id:', user.id);
+      console.log('Resultado da query:', { data, error });
 
       if (error) {
         console.error('Erro ao carregar contas:', error);
@@ -72,7 +89,8 @@ export const useAccountsData = () => {
       }));
 
       setAccounts(transformedAccounts);
-      console.log('Contas carregadas:', transformedAccounts.length, 'contas encontradas');
+      console.log('Contas transformadas e setadas:', transformedAccounts.length, 'contas encontradas');
+      console.log('=== FIM DEBUG FETCH ACCOUNTS ===');
     } catch (error) {
       console.error('Erro ao carregar contas:', error);
       toast({
@@ -293,6 +311,9 @@ export const useAccountsData = () => {
 
   // Carregar contas quando o usuário mudar
   useEffect(() => {
+    console.log('=== useEffect triggered ===');
+    console.log('User state:', user ? { email: user.email, id: user.id } : 'null');
+    
     if (user) {
       fetchAccounts();
     } else {
