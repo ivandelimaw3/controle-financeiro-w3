@@ -26,6 +26,17 @@ export const BankCard: React.FC<BankCardProps> = ({
     }).format(value);
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
   const getAccountTypeLabel = (type: string) => {
     const types: { [key: string]: string } = {
       'corrente': 'Corrente',
@@ -73,6 +84,9 @@ export const BankCard: React.FC<BankCardProps> = ({
           <p className="text-sm text-muted-foreground">Saldo Atual</p>
           <p className="text-2xl font-bold text-green-600">
             {formatCurrency(bank.balance)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Última atualização: {formatDate(bank.updated_at)}
           </p>
         </div>
 
