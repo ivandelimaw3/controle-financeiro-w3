@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Investment {
   id: number;
@@ -48,10 +48,7 @@ export const useInvestmentsData = () => {
   const [types, setTypes] = useState<InvestmentType[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-
-  console.log('useInvestmentsData: user', user);
-  console.log('useInvestmentsData: loading', loading);
-  console.log('useInvestmentsData: investments count', investments.length);
+  const { toast } = useToast();
 
   const fetchInvestments = async () => {
     if (!user) {
@@ -59,7 +56,6 @@ export const useInvestmentsData = () => {
       return;
     }
 
-    console.log('fetchInvestments: starting fetch for user', user.id);
     try {
       const { data, error } = await supabase
         .from('investments')
@@ -73,24 +69,30 @@ export const useInvestmentsData = () => {
 
       if (error) {
         console.error('fetchInvestments error:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os investimentos.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      console.log('fetchInvestments: received data', data);
       setInvestments(data || []);
     } catch (error) {
       console.error('Erro ao buscar investimentos:', error);
-      toast.error('Erro ao carregar investimentos');
+      toast({
+        title: "Erro", 
+        description: "Erro ao carregar investimentos",
+        variant: "destructive"
+      });
     }
   };
 
   const fetchInstitutions = async () => {
     if (!user) {
-      console.log('fetchInstitutions: no user, skipping');
       return;
     }
 
-    console.log('fetchInstitutions: starting fetch for user', user.id);
     try {
       const { data, error } = await supabase
         .from('investment_institutions')
@@ -100,10 +102,9 @@ export const useInvestmentsData = () => {
 
       if (error) {
         console.error('fetchInstitutions error:', error);
-        throw error;
+        return;
       }
       
-      console.log('fetchInstitutions: received data', data);
       setInstitutions(data || []);
     } catch (error) {
       console.error('Erro ao buscar instituições:', error);
@@ -112,11 +113,9 @@ export const useInvestmentsData = () => {
 
   const fetchTypes = async () => {
     if (!user) {
-      console.log('fetchTypes: no user, skipping');
       return;
     }
 
-    console.log('fetchTypes: starting fetch');
     try {
       const { data, error } = await supabase
         .from('investment_types')
@@ -126,10 +125,9 @@ export const useInvestmentsData = () => {
 
       if (error) {
         console.error('fetchTypes error:', error);
-        throw error;
+        return;
       }
       
-      console.log('fetchTypes: received data', data);
       setTypes(data || []);
     } catch (error) {
       console.error('Erro ao buscar tipos:', error);
@@ -137,9 +135,15 @@ export const useInvestmentsData = () => {
   };
 
   const addInvestment = async (investment: Omit<Investment, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    console.log('addInvestment: adding investment', investment);
     try {
       const { data, error } = await supabase
         .from('investments')
@@ -149,70 +153,127 @@ export const useInvestmentsData = () => {
 
       if (error) {
         console.error('addInvestment error:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Não foi possível adicionar o investimento.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      console.log('addInvestment: success', data);
       await fetchInvestments();
-      toast.success('Investimento adicionado com sucesso!');
+      toast({
+        title: "Sucesso",
+        description: "Investimento adicionado com sucesso!",
+      });
       return data;
     } catch (error) {
       console.error('Erro ao adicionar investimento:', error);
-      toast.error('Erro ao adicionar investimento');
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar investimento",
+        variant: "destructive"
+      });
       throw error;
     }
   };
 
   const updateInvestment = async (id: number, updates: Partial<Investment>) => {
-    console.log('updateInvestment: updating investment', id, updates);
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('investments')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('updateInvestment error:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar o investimento.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      console.log('updateInvestment: success');
       await fetchInvestments();
-      toast.success('Investimento atualizado com sucesso!');
+      toast({
+        title: "Sucesso",
+        description: "Investimento atualizado com sucesso!",
+      });
     } catch (error) {
       console.error('Erro ao atualizar investimento:', error);
-      toast.error('Erro ao atualizar investimento');
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar investimento",
+        variant: "destructive"
+      });
       throw error;
     }
   };
 
   const deleteInvestment = async (id: number) => {
-    console.log('deleteInvestment: deleting investment', id);
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('investments')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('deleteInvestment error:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Não foi possível remover o investimento.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      console.log('deleteInvestment: success');
       await fetchInvestments();
-      toast.success('Investimento removido com sucesso!');
+      toast({
+        title: "Sucesso",
+        description: "Investimento removido com sucesso!",
+      });
     } catch (error) {
       console.error('Erro ao remover investimento:', error);
-      toast.error('Erro ao remover investimento');
+      toast({
+        title: "Erro",
+        description: "Erro ao remover investimento",
+        variant: "destructive"
+      });
       throw error;
     }
   };
 
   const addInstitution = async (name: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    console.log('addInstitution: adding institution', name);
     try {
       const { data, error } = await supabase
         .from('investment_institutions')
@@ -222,24 +283,41 @@ export const useInvestmentsData = () => {
 
       if (error) {
         console.error('addInstitution error:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Não foi possível adicionar a instituição.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      console.log('addInstitution: success', data);
       await fetchInstitutions();
-      toast.success('Instituição adicionada com sucesso!');
+      toast({
+        title: "Sucesso",
+        description: "Instituição adicionada com sucesso!",
+      });
       return data;
     } catch (error) {
       console.error('Erro ao adicionar instituição:', error);
-      toast.error('Erro ao adicionar instituição');
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar instituição",
+        variant: "destructive"
+      });
       throw error;
     }
   };
 
   const addType = async (name: string, category: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    console.log('addType: adding type', name, category);
     try {
       const { data, error } = await supabase
         .from('investment_types')
@@ -249,23 +327,33 @@ export const useInvestmentsData = () => {
 
       if (error) {
         console.error('addType error:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Não foi possível adicionar o tipo.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      console.log('addType: success', data);
       await fetchTypes();
-      toast.success('Tipo de investimento adicionado com sucesso!');
+      toast({
+        title: "Sucesso",
+        description: "Tipo de investimento adicionado com sucesso!",
+      });
       return data;
     } catch (error) {
       console.error('Erro ao adicionar tipo:', error);
-      toast.error('Erro ao adicionar tipo');
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar tipo",
+        variant: "destructive"
+      });
       throw error;
     }
   };
 
   useEffect(() => {
     if (user) {
-      console.log('useInvestmentsData: useEffect triggered for user', user.id);
       const loadData = async () => {
         setLoading(true);
         await Promise.all([
@@ -274,12 +362,10 @@ export const useInvestmentsData = () => {
           fetchTypes()
         ]);
         setLoading(false);
-        console.log('useInvestmentsData: loading complete');
       };
       
       loadData();
     } else {
-      console.log('useInvestmentsData: no user, setting loading to false');
       setLoading(false);
     }
   }, [user]);
