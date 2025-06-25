@@ -28,7 +28,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onSave,
   account
 }) => {
-  const { categories: categoriesFromDB, refreshCategories, loading: categoriesLoading } = useCategoriesData();
+  const { categories: categoriesFromDB, refreshCategories, loading: categoriesLoading, addCategory } = useCategoriesData();
   const [formData, setFormData] = useState<Account>({
     description: '',
     amount: 0,
@@ -127,11 +127,24 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     onClose();
   };
 
+  // Função para atualizar categorias após criar nova categoria
   const handleRefreshCategories = async () => {
     try {
       await refreshCategories();
+      console.log('Categories refreshed successfully');
     } catch (error) {
-      // Error is handled by the hook
+      console.error('Error refreshing categories:', error);
+    }
+  };
+
+  // Função para adicionar nova categoria e atualizar a lista
+  const handleAddCategory = async (categoryData: { name: string; type: 'receita' | 'despesa'; color: string }) => {
+    try {
+      await addCategory(categoryData);
+      console.log('New category added, refreshing list...');
+      // A lista já será atualizada automaticamente pelo hook useCategoriesData
+    } catch (error) {
+      console.error('Error adding category:', error);
     }
   };
 
@@ -166,6 +179,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             setFormData={setFormData}
             categories={categoriesFromDB || []}
             onRefreshCategories={handleRefreshCategories}
+            onAddCategory={handleAddCategory}
             onSubmit={handleSubmit}
             onCancel={onClose}
             isEditing={isEditing}

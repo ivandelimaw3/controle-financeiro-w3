@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ interface AccountFormProps {
   setFormData: React.Dispatch<React.SetStateAction<Account>>;
   categories: Category[];
   onRefreshCategories: () => void;
+  onAddCategory?: (categoryData: { name: string; type: 'receita' | 'despesa'; color: string }) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   isEditing: boolean;
@@ -32,6 +34,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   setFormData,
   categories,
   onRefreshCategories,
+  onAddCategory,
   onSubmit,
   onCancel,
   isEditing
@@ -158,6 +161,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         categories={categories || []}
         accountType={formData.type || 'despesa'}
         onRefresh={onRefreshCategories}
+        onAddCategory={onAddCategory}
       />
 
       <div>
