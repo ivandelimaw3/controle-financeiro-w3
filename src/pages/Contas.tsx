@@ -72,12 +72,16 @@ const Contas: React.FC = () => {
 
   const handleSave = async (accountData: Account) => {
     try {
+      console.log('Contas: Dados recebidos para salvar:', accountData);
+      
       if (editingAccount?.id) {
-        console.log('Atualizando conta existente:', accountData);
+        console.log('Contas: Atualizando conta existente');
         await updateAccount(accountData);
       } else {
-        console.log('Criando nova conta:', accountData);
-        await addAccount(accountData);
+        console.log('Contas: Criando nova conta');
+        // Remover o ID se estiver presente ao criar nova conta
+        const { id, ...accountWithoutId } = accountData;
+        await addAccount(accountWithoutId);
       }
       
       setEditingAccount(undefined);

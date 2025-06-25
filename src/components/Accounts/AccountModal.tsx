@@ -106,7 +106,17 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const finalAmount = formData.type === 'despesa' ? -Math.abs(formData.amount) : Math.abs(formData.amount);
+    // Corrigir a lógica: receitas devem ser positivas, despesas negativas
+    let finalAmount = Math.abs(formData.amount); // Sempre começar com valor positivo
+    
+    // Se for despesa, tornar negativo
+    if (formData.type === 'despesa') {
+      finalAmount = -finalAmount;
+    }
+    
+    console.log('AccountModal: Saving account with type:', formData.type);
+    console.log('AccountModal: Original amount:', formData.amount);
+    console.log('AccountModal: Final amount:', finalAmount);
     
     const accountToSave = {
       ...formData,
