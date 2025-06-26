@@ -69,7 +69,7 @@ const Auth: React.FC = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            Controle Financeiro W3
+            Controle de Assistência Técnica
           </CardTitle>
           <CardDescription>
             {isLogin ? 'Faça login em sua conta' : 'Crie sua nova conta'}
