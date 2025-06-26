@@ -3,10 +3,11 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  Users, 
-  Package,
-  Wrench,
+  CreditCard, 
+  FolderOpen, 
   TrendingUp,
+  Building2,
+  PieChart,
   Shield
 } from 'lucide-react';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -17,10 +18,11 @@ export const Sidebar: React.FC = () => {
   const { isAdmin } = useUserRoles();
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'Clientes', path: '/clientes' },
-    { icon: Package, label: 'Produtos', path: '/produtos' },
-    { icon: Wrench, label: 'Ordens de Serviço', path: '/ordens' },
+    { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
+    { icon: CreditCard, label: 'Contas', path: '/contas' },
+    { icon: Building2, label: 'Bancos', path: '/bancos' },
+    { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
+    { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
   ];
 

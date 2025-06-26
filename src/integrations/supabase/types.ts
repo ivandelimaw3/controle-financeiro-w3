@@ -117,42 +117,6 @@ export type Database = {
         }
         Relationships: []
       }
-      clients: {
-        Row: {
-          address: string | null
-          cpf: string | null
-          created_at: string | null
-          email: string | null
-          id: number
-          name: string
-          phone: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          address?: string | null
-          cpf?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: number
-          name: string
-          phone?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          address?: string | null
-          cpf?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: number
-          name?: string
-          phone?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       deposits: {
         Row: {
           amount: number
@@ -346,45 +310,6 @@ export type Database = {
           requested_at?: string
           status?: string
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      products: {
-        Row: {
-          created_at: string | null
-          id: number
-          manufacturer: string | null
-          model: string | null
-          name: string
-          observations: string | null
-          serial_number: string | null
-          type: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          manufacturer?: string | null
-          model?: string | null
-          name: string
-          observations?: string | null
-          serial_number?: string | null
-          type: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          manufacturer?: string | null
-          model?: string | null
-          name?: string
-          observations?: string | null
-          serial_number?: string | null
-          type?: string
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
@@ -20,10 +20,6 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
       .reduce((sum, account) => sum + account.amount, 0);
   };
 
-  const calculateSaldoFinal = () => {
-    return calculateTotalRecebido() - calculateTotalPago();
-  };
-
   const calculateTotalPendente = () => {
     const receitasPendentes = accounts
       .filter(account => account.type === 'receita' && account.status === 'pendente')
@@ -35,22 +31,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   };
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* Total Recebido */}
-      <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <TrendingUp size={20} className="text-green-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Total Recebido</p>
-            <p className="text-xl font-bold text-green-600">
-              R$ {calculateTotalRecebido().toFixed(2)}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Total Pago */}
       <div className="p-4 bg-red-50 rounded-xl border border-red-200">
         <div className="flex items-center gap-3">
@@ -66,16 +47,16 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
         </div>
       </div>
 
-      {/* Saldo Final */}
-      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+      {/* Total Recebido */}
+      <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <DollarSign size={20} className="text-blue-600" />
+          <div className="p-2 bg-green-100 rounded-lg">
+            <TrendingUp size={20} className="text-green-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Final</p>
-            <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              R$ {calculateSaldoFinal().toFixed(2)}
+            <p className="text-sm text-slate-600">Total Recebido</p>
+            <p className="text-xl font-bold text-green-600">
+              R$ {calculateTotalRecebido().toFixed(2)}
             </p>
           </div>
         </div>
