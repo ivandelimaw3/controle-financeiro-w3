@@ -14,13 +14,45 @@ interface ClientFormProps {
   isLoading?: boolean;
 }
 
+// Função para aplicar máscara de telefone
+const formatPhone = (value: string) => {
+  // Remove tudo que não é número
+  const numbers = value.replace(/\D/g, '');
+  
+  // Aplica a máscara (11)99999-9999
+  if (numbers.length <= 2) {
+    return `(${numbers}`;
+  } else if (numbers.length <= 7) {
+    return `(${numbers.slice(0, 2)})${numbers.slice(2)}`;
+  } else {
+    return `(${numbers.slice(0, 2)})${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  }
+};
+
+// Função para aplicar máscara de CPF
+const formatCPF = (value: string) => {
+  // Remove tudo que não é número
+  const numbers = value.replace(/\D/g, '');
+  
+  // Aplica a máscara 000.000.000-00
+  if (numbers.length <= 3) {
+    return numbers;
+  } else if (numbers.length <= 6) {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+  } else if (numbers.length <= 9) {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+  } else {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
+  }
+};
+
 export const ClientForm: React.FC<ClientFormProps> = ({ 
   client, 
   onSubmit, 
   onCancel, 
   isLoading 
 }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     defaultValues: {
       name: client?.name || '',
       email: client?.email || '',
@@ -29,6 +61,19 @@ export const ClientForm: React.FC<ClientFormProps> = ({
       address: client?.address || '',
     }
   });
+
+  const phoneValue = watch('phone');
+  const cpfValue = watch('cpf');
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setValue('phone', formatted);
+  };
+
+  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCPF(e.target.value);
+    setValue('cpf', formatted);
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -58,8 +103,10 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         <Label htmlFor="phone">Telefone</Label>
         <Input
           id="phone"
-          {...register('phone')}
+          value={phoneValue}
+          onChange={handlePhoneChange}
           placeholder="(11) 99999-9999"
+          maxLength={14}
         />
       </div>
 
@@ -67,8 +114,10 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         <Label htmlFor="cpf">CPF</Label>
         <Input
           id="cpf"
-          {...register('cpf')}
+          value={cpfValue}
+          onChange={handleCPFChange}
           placeholder="000.000.000-00"
+          maxLength={14}
         />
       </div>
 
