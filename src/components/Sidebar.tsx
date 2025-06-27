@@ -1,81 +1,57 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Home, 
+  LayoutDashboard, 
   CreditCard, 
-  FileText, 
-  BarChart, 
-  Building2, 
-  TrendingUp, 
-  Settings,
-  LogOut,
-  PieChart
+  FolderOpen, 
+  TrendingUp,
+  Building2,
+  PieChart,
+  Shield
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
-const Sidebar: React.FC = () => {
+export const Sidebar: React.FC = () => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const { isAdmin } = useUserRoles();
 
   const menuItems = [
-    { icon: Home, label: 'Dashboard', path: '/dashboard' },
+    { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
     { icon: CreditCard, label: 'Contas', path: '/contas' },
-    { icon: FileText, label: 'Relatórios', path: '/relatorios' },
-    { icon: PieChart, label: 'Análise Gráfica', path: '/analise-grafica' },
     { icon: Building2, label: 'Bancos', path: '/bancos' },
-    { icon: TrendingUp, label: 'Investimentos', path: '/investimentos' },
-    { icon: Settings, label: 'Categorias', path: '/categorias' },
+    { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
+    { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
+    { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
   ];
 
-  const handleLogout = () => {
-    signOut();
-  };
+  // Adicionar item de admin apenas se o usuário for admin
+  if (isAdmin) {
+    menuItems.push({ icon: Shield, label: 'Administração', path: '/admin' });
+  }
 
   return (
-    <div className="bg-white h-screen w-64 shadow-lg flex flex-col">
-      <div className="p-6 border-b border-slate-200">
-        <h1 className="text-xl font-bold text-slate-800">FinanceApp</h1>
-      </div>
-      
-      <nav className="flex-1 p-4">
+    <div className="w-64 bg-white shadow-xl border-r border-slate-200">
+      <nav className="p-4">
         <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
+          {menuItems.map((item) => (
+            <li key={item.path}>
+              <button
+                onClick={() => navigate(item.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                  location.pathname === item.path
+                    ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <item.icon size={20} />
+                {item.label}
+              </button>
+            </li>
+          ))}
         </ul>
       </nav>
-
-      <div className="p-4 border-t border-slate-200">
-        <Button
-          variant="ghost"
-          onClick={handleLogout}
-          className="w-full justify-start text-slate-600 hover:text-slate-800 hover:bg-slate-100"
-        >
-          <LogOut size={20} className="mr-3" />
-          Sair
-        </Button>
-      </div>
     </div>
   );
 };
-
-export default Sidebar;
