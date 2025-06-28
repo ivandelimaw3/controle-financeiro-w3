@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,13 @@ const Analise: React.FC = () => {
   const { categories } = useCategoriesData();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  // Cores variadas para o gráfico de pizza
+  const COLORS = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', 
+    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+    '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2'
+  ];
 
   // Gerar opções de meses e anos
   const months = [
@@ -79,54 +87,56 @@ const Analise: React.FC = () => {
     }));
   }, [accounts]);
 
-  // Dados para gráfico de pizza melhorado - usar apenas categorias cadastradas
+  // Dados para gráfico de pizza - filtrar por mês/ano selecionado
   const pieChartData = useMemo(() => {
-    console.log('Filtrando dados do gráfico de pizza...');
+    console.log('=== DEBUG GRÁFICO DE PIZZA ===');
     console.log('Mês selecionado:', selectedMonth, 'Ano selecionado:', selectedYear);
-    console.log('Categorias cadastradas:', categories);
+    console.log('Total de contas:', accounts.length);
     
-    // Criar mapa de categorias cadastradas para despesas
-    const registeredCategories = categories
-      .filter(cat => cat.type === 'despesa')
-      .reduce((acc, cat) => {
-        acc[cat.name] = { name: cat.name, value: 0, color: cat.color };
-        return acc;
-      }, {} as { [key: string]: { name: string; value: number; color: string } });
-
-    console.log('Categorias registradas para despesas:', registeredCategories);
-    
-    // Somar valores das contas filtradas por mês/ano nas categorias cadastradas
+    // Filtrar contas do mês/ano selecionado que são despesas
     const filteredAccounts = accounts.filter(account => {
       const date = parseISO(account.dueDate);
       const accountMonth = getMonth(date);
       const accountYear = getYear(date);
       
-      return account.type === 'despesa' && 
-             accountMonth === selectedMonth && 
-             accountYear === selectedYear;
+      const isExpense = account.type === 'despesa';
+      const matchesMonth = accountMonth === selectedMonth;
+      const matchesYear = accountYear === selectedYear;
+      
+      console.log(`Conta: ${account.description}, Categoria: ${account.category}, Data: ${account.dueDate}, Tipo: ${account.type}, Mês: ${accountMonth}, Ano: ${accountYear}, Passa filtro: ${isExpense && matchesMonth && matchesYear}`);
+      
+      return isExpense && matchesMonth && matchesYear;
     });
 
-    console.log('Contas filtradas:', filteredAccounts);
-
+    console.log('Contas filtradas (despesas do período):', filteredAccounts.length);
+    
+    // Agrupar por categoria
+    const categoryTotals: { [key: string]: number } = {};
+    
     filteredAccounts.forEach(account => {
-      // Verificar se a categoria da conta existe nas categorias cadastradas
-      if (registeredCategories[account.category]) {
-        registeredCategories[account.category].value += Math.abs(account.amount);
+      const category = account.category;
+      if (!categoryTotals[category]) {
+        categoryTotals[category] = 0;
       }
+      categoryTotals[category] += Math.abs(account.amount);
     });
 
-    // Converter para array e filtrar apenas categorias com valores > 0
-    const result = Object.values(registeredCategories)
-      .filter(category => category.value > 0)
-      .map(category => ({
-        name: category.name,
-        value: category.value,
-        color: category.color
+    console.log('Totais por categoria:', categoryTotals);
+
+    // Converter para array e adicionar cores
+    const result = Object.entries(categoryTotals)
+      .filter(([_, value]) => value > 0)
+      .map(([name, value], index) => ({
+        name,
+        value,
+        color: COLORS[index % COLORS.length]
       }));
 
-    console.log('Dados finais do gráfico de pizza:', result);
+    console.log('Dados finais do gráfico:', result);
+    console.log('=== FIM DEBUG ===');
+    
     return result;
-  }, [accounts, categories, selectedMonth, selectedYear]);
+  }, [accounts, selectedMonth, selectedYear]);
 
   // Calcular totais
   const totals = useMemo(() => {
@@ -229,7 +239,7 @@ const Analise: React.FC = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Despesas por Categoria Cadastrada</CardTitle>
+              <CardTitle>Despesas por Categoria</CardTitle>
               <div className="flex gap-4">
                 <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
                   <SelectTrigger className="w-40">
@@ -263,7 +273,7 @@ const Analise: React.FC = () => {
             {pieChartData.length > 0 ? (
               <div className="space-y-4">
                 <div className="text-sm text-slate-600">
-                  Mostrando apenas categorias cadastradas com despesas no período selecionado
+                  Despesas de {months[selectedMonth].label} de {selectedYear}
                 </div>
                 <ResponsiveContainer width="100%" height={400}>
                   <PieChart>
@@ -307,8 +317,7 @@ const Analise: React.FC = () => {
               <div className="flex flex-col items-center justify-center h-[400px] text-slate-500">
                 <p className="text-lg mb-2">Nenhuma despesa encontrada</p>
                 <p className="text-sm text-center">
-                  Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}<br/>
-                  nas categorias registradas no sistema.
+                  Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.
                 </p>
               </div>
             )}
