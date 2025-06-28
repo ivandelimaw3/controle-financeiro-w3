@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,24 +16,6 @@ const Relatorios: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState('todos');
   const [monthFilter, setMonthFilter] = useState('todos');
   const [yearFilter, setYearFilter] = useState('todos');
-
-  // Dados simulados para os gráficos
-  const monthlyData = [
-    { month: 'Jan', receitas: 4000, despesas: 2400 },
-    { month: 'Fev', receitas: 3000, despesas: 1398 },
-    { month: 'Mar', receitas: 5000, despesas: 2000 },
-    { month: 'Abr', receitas: 2780, despesas: 3908 },
-    { month: 'Mai', receitas: 1890, despesas: 4800 },
-    { month: 'Jun', receitas: 2390, despesas: 3800 },
-  ];
-
-  const categoryData = [
-    { name: 'Moradia', value: 1200, color: '#EF4444' },
-    { name: 'Alimentação', value: 800, color: '#8B5CF6' },
-    { name: 'Transporte', value: 300, color: '#EC4899' },
-    { name: 'Lazer', value: 400, color: '#6366F1' },
-    { name: 'Utilidades', value: 200, color: '#F59E0B' },
-  ];
 
   // Gerar lista de anos disponíveis
   const availableYears = Array.from(new Set(
@@ -395,53 +376,6 @@ const Relatorios: React.FC = () => {
               Nenhuma conta encontrada com os filtros aplicados.
             </div>
           )}
-        </div>
-
-        {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Gráfico de Barras - Receitas vs Despesas */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              Receitas vs Despesas - Últimos 6 Meses
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`R$ ${value}`, '']} />
-                <Legend />
-                <Bar dataKey="receitas" fill="#10B981" name="Receitas" />
-                <Bar dataKey="despesas" fill="#EF4444" name="Despesas" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Gráfico de Pizza - Despesas por Categoria */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              Despesas por Categoria
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`R$ ${value}`, 'Valor']} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
         </div>
       </div>
     </Layout>

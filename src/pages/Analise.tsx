@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
-import { format, parseISO, getMonth, getYear } from 'date-fns';
+import { format, parseISO, getMonth, getYear, subMonths, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
@@ -42,22 +42,34 @@ const Analise: React.FC = () => {
     return Array.from(years).sort((a, b) => b - a);
   }, [accounts]);
 
-  // Dados para gráfico de barras (receitas e despesas por mês)
+  // Dados para gráfico de barras (últimos 6 meses)
   const barChartData = useMemo(() => {
+    const now = new Date();
+    const sixMonthsAgo = subMonths(now, 6);
+    
     const monthlyData: { [key: string]: { receitas: number; despesas: number } } = {};
+    
+    // Inicializar os últimos 6 meses com valores zero
+    for (let i = 5; i >= 0; i--) {
+      const date = subMonths(now, i);
+      const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
+      monthlyData[monthKey] = { receitas: 0, despesas: 0 };
+    }
     
     accounts.forEach(account => {
       const date = parseISO(account.dueDate);
-      const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
       
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { receitas: 0, despesas: 0 };
-      }
-      
-      if (account.type === 'receita') {
-        monthlyData[monthKey].receitas += account.amount;
-      } else {
-        monthlyData[monthKey].despesas += account.amount;
+      // Filtrar apenas contas dos últimos 6 meses
+      if (isAfter(date, sixMonthsAgo) && isBefore(date, now)) {
+        const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
+        
+        if (monthlyData[monthKey]) {
+          if (account.type === 'receita') {
+            monthlyData[monthKey].receitas += account.amount;
+          } else {
+            monthlyData[monthKey].despesas += Math.abs(account.amount);
+          }
+        }
       }
     });
 
@@ -65,7 +77,7 @@ const Analise: React.FC = () => {
       month,
       receitas: data.receitas,
       despesas: data.despesas,
-    })).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+    }));
   }, [accounts]);
 
   // Dados para gráfico de pizza (despesas por categoria no mês selecionado)
@@ -80,7 +92,7 @@ const Analise: React.FC = () => {
                getYear(date) === selectedYear;
       })
       .forEach(account => {
-        categoryData[account.category] = (categoryData[account.category] || 0) + account.amount;
+        categoryData[account.category] = (categoryData[account.category] || 0) + Math.abs(account.amount);
       });
 
     return Object.entries(categoryData).map(([category, value]) => ({
@@ -97,7 +109,7 @@ const Analise: React.FC = () => {
     
     const despesas = accounts
       .filter(account => account.type === 'despesa')
-      .reduce((sum, account) => sum + account.amount, 0);
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
 
     return { receitas, despesas, saldo: receitas - despesas };
   }, [accounts]);
@@ -159,10 +171,10 @@ const Analise: React.FC = () => {
           </Card>
         </div>
 
-        {/* Gráfico de Barras */}
+        {/* Gráfico de Barras - Últimos 6 Meses */}
         <Card>
           <CardHeader>
-            <CardTitle>Receitas vs Despesas por Mês</CardTitle>
+            <CardTitle>Receitas vs Despesas - Últimos 6 Meses</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="min-h-[300px]">
