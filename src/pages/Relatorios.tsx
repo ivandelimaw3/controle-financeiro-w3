@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
@@ -28,8 +27,12 @@ const Relatorios: React.FC = () => {
     const accountMonth = accountDate.getMonth() + 1;
     const accountYear = accountDate.getFullYear();
 
-    const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.category.toLowerCase().includes(searchTerm.toLowerCase());
+    // Melhorar a pesquisa por texto - buscar tanto na descrição quanto na categoria
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesSearch = searchTerm === '' || 
+                         account.description.toLowerCase().includes(searchLower) ||
+                         account.category.toLowerCase().includes(searchLower);
+    
     const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
     const matchesType = typeFilter === 'todos' || account.type === typeFilter;
     const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
@@ -190,7 +193,7 @@ const Relatorios: React.FC = () => {
               <div className="relative flex-1">
                 <Search size={20} className="absolute left-3 top-3 text-slate-400" />
                 <Input
-                  placeholder="Pesquisar contas..."
+                  placeholder="Pesquisar por descrição ou categoria..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -324,6 +327,18 @@ const Relatorios: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Mostrar informação da pesquisa quando há termo de busca */}
+            {searchTerm && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Search size={16} className="text-blue-600" />
+                  <span className="text-sm text-blue-800">
+                    Resultados para: "<strong>{searchTerm}</strong>" - {filteredAccounts.length} conta(s) encontrada(s)
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -373,7 +388,10 @@ const Relatorios: React.FC = () => {
 
           {filteredAccounts.length === 0 && (
             <div className="p-8 text-center text-slate-500">
-              Nenhuma conta encontrada com os filtros aplicados.
+              {searchTerm ? 
+                `Nenhuma conta encontrada para "${searchTerm}".` : 
+                'Nenhuma conta encontrada com os filtros aplicados.'
+              }
             </div>
           )}
         </div>
