@@ -8,7 +8,8 @@ import {
   TrendingUp,
   Building2,
   PieChart,
-  Shield
+  Shield,
+  BarChart3
 } from 'lucide-react';
 import { useUserRoles } from '@/hooks/useUserRoles';
 
@@ -23,6 +24,7 @@ export const Sidebar: React.FC = () => {
     { icon: Building2, label: 'Bancos', path: '/bancos' },
     { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
+    { icon: BarChart3, label: 'Análise Gráfica', path: '/analise' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
   ];
 
