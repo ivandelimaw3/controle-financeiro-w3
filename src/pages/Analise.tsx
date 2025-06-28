@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,14 +5,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useAccounts } from '@/contexts/AccountsContext';
+import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { format, parseISO, getMonth, getYear, subMonths, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
 const Analise: React.FC = () => {
   const { accounts } = useAccounts();
+  const { categories } = useCategoriesData();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -80,26 +79,54 @@ const Analise: React.FC = () => {
     }));
   }, [accounts]);
 
-  // Dados para gráfico de pizza (despesas por categoria no mês selecionado)
+  // Dados para gráfico de pizza melhorado - usar apenas categorias cadastradas
   const pieChartData = useMemo(() => {
-    const categoryData: { [key: string]: number } = {};
+    console.log('Filtrando dados do gráfico de pizza...');
+    console.log('Mês selecionado:', selectedMonth, 'Ano selecionado:', selectedYear);
+    console.log('Categorias cadastradas:', categories);
     
-    accounts
-      .filter(account => {
-        const date = parseISO(account.dueDate);
-        return account.type === 'despesa' && 
-               getMonth(date) === selectedMonth && 
-               getYear(date) === selectedYear;
-      })
-      .forEach(account => {
-        categoryData[account.category] = (categoryData[account.category] || 0) + Math.abs(account.amount);
-      });
+    // Criar mapa de categorias cadastradas para despesas
+    const registeredCategories = categories
+      .filter(cat => cat.type === 'despesa')
+      .reduce((acc, cat) => {
+        acc[cat.name] = { name: cat.name, value: 0, color: cat.color };
+        return acc;
+      }, {} as { [key: string]: { name: string; value: number; color: string } });
 
-    return Object.entries(categoryData).map(([category, value]) => ({
-      name: category,
-      value,
-    }));
-  }, [accounts, selectedMonth, selectedYear]);
+    console.log('Categorias registradas para despesas:', registeredCategories);
+    
+    // Somar valores das contas filtradas por mês/ano nas categorias cadastradas
+    const filteredAccounts = accounts.filter(account => {
+      const date = parseISO(account.dueDate);
+      const accountMonth = getMonth(date);
+      const accountYear = getYear(date);
+      
+      return account.type === 'despesa' && 
+             accountMonth === selectedMonth && 
+             accountYear === selectedYear;
+    });
+
+    console.log('Contas filtradas:', filteredAccounts);
+
+    filteredAccounts.forEach(account => {
+      // Verificar se a categoria da conta existe nas categorias cadastradas
+      if (registeredCategories[account.category]) {
+        registeredCategories[account.category].value += Math.abs(account.amount);
+      }
+    });
+
+    // Converter para array e filtrar apenas categorias com valores > 0
+    const result = Object.values(registeredCategories)
+      .filter(category => category.value > 0)
+      .map(category => ({
+        name: category.name,
+        value: category.value,
+        color: category.color
+      }));
+
+    console.log('Dados finais do gráfico de pizza:', result);
+    return result;
+  }, [accounts, categories, selectedMonth, selectedYear]);
 
   // Calcular totais
   const totals = useMemo(() => {
@@ -202,7 +229,7 @@ const Analise: React.FC = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Despesas por Categoria</CardTitle>
+              <CardTitle>Despesas por Categoria Cadastrada</CardTitle>
               <div className="flex gap-4">
                 <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
                   <SelectTrigger className="w-40">
@@ -234,33 +261,55 @@ const Analise: React.FC = () => {
           </CardHeader>
           <CardContent>
             {pieChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
-                <PieChart>
-                  <Pie
-                    data={pieChartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => [
-                      `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                      'Valor'
-                    ]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                <div className="text-sm text-slate-600">
+                  Mostrando apenas categorias cadastradas com despesas no período selecionado
+                </div>
+                <ResponsiveContainer width="100%" height={400}>
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={120}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => [
+                        `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                        'Valor'
+                      ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                {/* Legenda das categorias */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+                  {pieChartData.map((category, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      ></div>
+                      <span className="text-sm text-slate-700">{category.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
-              <div className="flex items-center justify-center h-[400px] text-slate-500">
-                <p>Nenhuma despesa encontrada para o período selecionado</p>
+              <div className="flex flex-col items-center justify-center h-[400px] text-slate-500">
+                <p className="text-lg mb-2">Nenhuma despesa encontrada</p>
+                <p className="text-sm text-center">
+                  Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}<br/>
+                  nas categorias registradas no sistema.
+                </p>
               </div>
             )}
           </CardContent>
