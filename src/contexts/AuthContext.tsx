@@ -42,25 +42,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state change:', event);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await checkUserStatus(session.user.id);
-        } else {
-          setUserStatus(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // Get initial session
+    let mounted = true;
+    
+    // Get initial session first
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -71,7 +58,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && event === 'SIGNED_IN') {
+          await checkUserStatus(session.user.id);
+        } else if (!session?.user) {
+          setUserStatus(null);
+        }
+        
+        if (loading) setLoading(false);
+      }
+    );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkUserStatus = async (userId: string) => {
