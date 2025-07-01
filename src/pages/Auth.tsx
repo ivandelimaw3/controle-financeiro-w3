@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, UserPlus } from 'lucide-react';
+import { Loader2, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -34,11 +34,31 @@ const Auth: React.FC = () => {
         : await signUp(email, password);
 
       if (error) {
-        toast({
-          title: "Erro",
-          description: error.message,
-          variant: "destructive"
-        });
+        // Verificar se é erro de conta expirada
+        if (error.message && error.message.includes('expirou')) {
+          toast({
+            title: "Conta Expirada",
+            description: (
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Sua conta expirou</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Entre em contato com o administrador para renovar seu acesso.
+                  </p>
+                </div>
+              </div>
+            ),
+            variant: "destructive",
+            duration: 6000
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: error.message || "Ocorreu um erro durante a autenticação.",
+            variant: "destructive"
+          });
+        }
       } else {
         if (isLogin) {
           toast({
@@ -53,12 +73,32 @@ const Auth: React.FC = () => {
           });
         }
       }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro inesperado.",
-        variant: "destructive"
-      });
+    } catch (error: any) {
+      // Tratar erro de conta expirada
+      if (error.message && error.message.includes('expirou')) {
+        toast({
+          title: "Conta Expirada",
+          description: (
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Sua conta expirou</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Entre em contato com o administrador para renovar seu acesso.
+                </p>
+              </div>
+            </div>
+          ),
+          variant: "destructive",
+          duration: 6000
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro inesperado.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
