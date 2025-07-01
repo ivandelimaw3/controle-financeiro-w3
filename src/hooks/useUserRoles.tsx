@@ -28,46 +28,54 @@ export const useUserRoles = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      checkAdminStatus();
-    }
-  }, [user]);
-
-  const checkAdminStatus = async () => {
-    try {
-      console.log('Verificando status de admin para usuário:', user?.id);
+    let mounted = true;
+    
+    const initializeAdminStatus = async () => {
+      if (!user || !mounted) return;
       
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .eq('role', 'admin')
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao verificar role de admin:', error);
-        setIsAdmin(false);
-      } else {
-        const adminStatus = !!data;
-        console.log('Status de admin:', adminStatus);
-        setIsAdmin(adminStatus);
-        
-        if (adminStatus) {
-          await fetchAllUsers();
+        if (!mounted) return;
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Erro ao verificar role de admin:', error);
+          setIsAdmin(false);
+        } else {
+          const adminStatus = !!data;
+          setIsAdmin(adminStatus);
+          
+          // Só busca usuários se for admin e não tiver usuários ainda
+          if (adminStatus && users.length === 0) {
+            await fetchAllUsers();
+          }
+        }
+      } catch (error) {
+        if (mounted) {
+          console.error('Erro ao verificar status de admin:', error);
+          setIsAdmin(false);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
         }
       }
-    } catch (error) {
-      console.error('Erro ao verificar status de admin:', error);
-      setIsAdmin(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    initializeAdminStatus();
+
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]); // Só executa quando o ID do usuário muda
 
   const fetchAllUsers = async () => {
     try {
-      console.log('Buscando todos os usuários...');
-      
       const { data, error } = await supabase.rpc('get_all_users_with_trial_info');
 
       if (error) {
@@ -75,7 +83,6 @@ export const useUserRoles = () => {
         return;
       }
 
-      console.log('Usuários encontrados:', data);
       setUsers(data || []);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
