@@ -68,20 +68,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const status = await checkUserStatus(user.id);
     setUserStatus(status);
-
-    // Verificar se o usuário expirou
-    if (status && !status.is_premium && !status.is_trial_active) {
-      toast({
-        title: "Conta Expirada",
-        description: "Sua conta expirou. Entre em contato com o administrador para renovar seu acesso.",
-        variant: "destructive"
-      });
-      
-      // Desconectar usuário expirado
-      setTimeout(() => {
-        signOut();
-      }, 3000);
-    }
   };
 
   useEffect(() => {
@@ -117,16 +103,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Verificação periódica do status do usuário a cada 5 minutos
-  useEffect(() => {
-    if (!user) return;
-
-    const interval = setInterval(() => {
-      handleUserStatusCheck(user);
-    }, 5 * 60 * 1000); // 5 minutos
-
-    return () => clearInterval(interval);
-  }, [user]);
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -142,30 +118,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
-
-    if (error) {
-      return { error };
-    }
-
-    // Verificar status do usuário após login bem-sucedido
-    if (data.user) {
-      const status = await checkUserStatus(data.user.id);
-      
-      if (status && !status.is_premium && !status.is_trial_active) {
-        // Usuário expirado, fazer logout imediatamente
-        await supabase.auth.signOut();
-        return { 
-          error: { 
-            message: "Sua conta expirou. Entre em contato com o administrador para renovar seu acesso.",
-            name: "AccountExpiredError"
-          } 
-        };
-      }
-    }
 
     return { error };
   };
