@@ -2,19 +2,10 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-
-interface UserStatus {
-  is_trial_active: boolean;
-  is_premium: boolean;
-  days_remaining: number;
-  trial_end_date: string;
-}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  userStatus: UserStatus | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -38,71 +29,28 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  const checkUserStatus = async (userId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('check_user_trial_status', {
-        user_uuid: userId
-      });
-
-      if (error) {
-        console.error('Erro ao verificar status:', error);
-        return null;
-      }
-
-      return data?.[0] || null;
-    } catch (error) {
-      console.error('Erro ao verificar status:', error);
-      return null;
-    }
-  };
-
-  const handleUserStatusCheck = async (user: User | null) => {
-    if (!user) {
-      setUserStatus(null);
-      return;
-    }
-
-    const status = await checkUserStatus(user.id);
-    setUserStatus(status);
-  };
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event);
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await handleUserStatusCheck(session.user);
-        } else {
-          setUserStatus(null);
-        }
-        
         setLoading(false);
       }
     );
 
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await handleUserStatusCheck(session.user);
-      }
-      
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -122,7 +70,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       email,
       password
     });
-
     return { error };
   };
 
@@ -134,7 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider value={{
       user,
       session,
-      userStatus,
       loading,
       signUp,
       signIn,

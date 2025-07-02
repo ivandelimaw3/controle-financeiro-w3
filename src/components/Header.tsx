@@ -3,37 +3,10 @@ import React from 'react';
 import { User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 
 export const Header: React.FC = () => {
-  const { user, userStatus, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
-
-  const getStatusBadge = () => {
-    if (!userStatus) return null;
-
-    if (userStatus.is_premium) {
-      return (
-        <Badge variant="default" className="bg-yellow-500 text-white hover:bg-yellow-600">
-          Premium
-        </Badge>
-      );
-    }
-
-    if (userStatus.is_trial_active && userStatus.days_remaining > 0) {
-      return (
-        <Badge variant="secondary" className="bg-blue-500 text-white hover:bg-blue-600">
-          Trial ({userStatus.days_remaining}d)
-        </Badge>
-      );
-    }
-
-    return (
-      <Badge variant="destructive">
-        Expirado
-      </Badge>
-    );
-  };
 
   const handleLogout = async () => {
     try {
@@ -66,10 +39,7 @@ export const Header: React.FC = () => {
             <User size={16} className="text-white" />
           </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-slate-700">Usuário</p>
-              {getStatusBadge()}
-            </div>
+            <p className="text-sm font-medium text-slate-700">Usuário</p>
             <p className="text-xs text-slate-500">{user?.email || 'user@example.com'}</p>
           </div>
           <button 
