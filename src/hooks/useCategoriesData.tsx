@@ -8,8 +8,6 @@ export interface Category {
   name: string;
   type: 'receita' | 'despesa';
   color: string;
-  parent_id?: number | null;
-  children?: Category[];
 }
 
 export const useCategoriesData = () => {
@@ -41,27 +39,16 @@ export const useCategoriesData = () => {
 
       console.log('Dados recebidos do Supabase:', data);
 
-      // Transformar dados do Supabase para o formato hierárquico
-      const allCategories: Category[] = (data || []).map(category => ({
+      // Transformar dados do Supabase
+      const categories: Category[] = (data || []).map(category => ({
         id: category.id,
         name: category.name,
         type: category.type as 'receita' | 'despesa',
-        color: category.color,
-        parent_id: category.parent_id,
-        children: []
+        color: category.color
       }));
 
-      // Organizar em hierarquia
-      const parentCategories = allCategories.filter(cat => !cat.parent_id);
-      const childCategories = allCategories.filter(cat => cat.parent_id);
-
-      // Adicionar filhos aos pais
-      parentCategories.forEach(parent => {
-        parent.children = childCategories.filter(child => child.parent_id === parent.id);
-      });
-
-      setCategories(parentCategories);
-      console.log('Categorias carregadas com sucesso:', parentCategories.length, 'categorias principais');
+      setCategories(categories);
+      console.log('Categorias carregadas com sucesso:', categories.length, 'categorias');
     } catch (error) {
       console.error('Erro inesperado ao carregar categorias:', error);
       toast({
@@ -76,7 +63,7 @@ export const useCategoriesData = () => {
   }, [toast]);
 
   // Adicionar nova categoria
-  const addCategory = async (categoryData: Omit<Category, 'id' | 'children'>) => {
+  const addCategory = async (categoryData: Omit<Category, 'id'>) => {
     try {
       console.log('Adicionando nova categoria:', categoryData);
       
@@ -86,7 +73,6 @@ export const useCategoriesData = () => {
           name: categoryData.name,
           type: categoryData.type,
           color: categoryData.color,
-          parent_id: categoryData.parent_id,
           user_id: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()

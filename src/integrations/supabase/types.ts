@@ -93,7 +93,6 @@ export type Database = {
           created_at: string | null
           id: number
           name: string
-          parent_id: number | null
           type: string
           updated_at: string | null
           user_id: string | null
@@ -103,7 +102,6 @@ export type Database = {
           created_at?: string | null
           id?: number
           name: string
-          parent_id?: number | null
           type: string
           updated_at?: string | null
           user_id?: string | null
@@ -113,20 +111,11 @@ export type Database = {
           created_at?: string | null
           id?: number
           name?: string
-          parent_id?: number | null
           type?: string
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "categories_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       deposits: {
         Row: {

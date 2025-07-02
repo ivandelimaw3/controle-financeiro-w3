@@ -14,25 +14,15 @@ const Categorias: React.FC = () => {
   const [formData, setFormData] = useState({ 
     name: '', 
     type: 'despesa' as 'receita' | 'despesa', 
-    color: '#3B82F6',
-    parent_id: null as number | null
+    color: '#3B82F6'
   });
-  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  
 
   const colorOptions = [
     '#3B82F6', '#10B981', '#EF4444', '#F59E0B', 
     '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'
   ];
 
-  const toggleExpanded = (categoryId: number) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId);
-    } else {
-      newExpanded.add(categoryId);
-    }
-    setExpandedCategories(newExpanded);
-  };
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
@@ -48,14 +38,13 @@ const Categorias: React.FC = () => {
       await addCategory({
         name: formData.name,
         type: formData.type,
-        color: formData.color,
-        parent_id: formData.parent_id
+        color: formData.color
       });
     }
     
     setIsModalOpen(false);
     setEditingCategory(undefined);
-    setFormData({ name: '', type: 'despesa', color: '#3B82F6', parent_id: null });
+    setFormData({ name: '', type: 'despesa', color: '#3B82F6' });
     refreshCategories();
   };
 
@@ -64,8 +53,7 @@ const Categorias: React.FC = () => {
     setFormData({ 
       name: category.name, 
       type: category.type, 
-      color: category.color,
-      parent_id: category.parent_id || null
+      color: category.color
     });
     setIsModalOpen(true);
   };
@@ -75,91 +63,52 @@ const Categorias: React.FC = () => {
     refreshCategories();
   };
 
-  const handleNewCategory = (parentId?: number) => {
+  const handleNewCategory = () => {
     setEditingCategory(undefined);
     setFormData({ 
       name: '', 
       type: 'despesa', 
-      color: '#3B82F6',
-      parent_id: parentId || null
+      color: '#3B82F6'
     });
     setIsModalOpen(true);
   };
 
-  const renderCategoryTree = (category: Category, level = 0) => {
-    const hasChildren = category.children && category.children.length > 0;
-    const isExpanded = expandedCategories.has(category.id);
-
-    return (
-      <div key={category.id} className="space-y-2">
+  const renderCategory = (category: Category) => (
+    <div 
+      key={category.id}
+      className={`flex items-center justify-between p-3 rounded-xl transition-colors ${
+        category.type === 'receita' ? 'bg-green-50' : 'bg-red-50'
+      }`}
+    >
+      <div className="flex items-center gap-3">
         <div 
-          className={`flex items-center justify-between p-3 rounded-xl transition-colors ${
-            category.type === 'receita' ? 'bg-green-50' : 'bg-red-50'
-          }`}
-          style={{ marginLeft: level * 20 }}
-        >
-          <div className="flex items-center gap-3">
-            {hasChildren && (
-              <button
-                onClick={() => toggleExpanded(category.id)}
-                className="p-1 hover:bg-white rounded transition-colors"
-              >
-                {isExpanded ? (
-                  <ChevronDown size={16} className="text-slate-600" />
-                ) : (
-                  <ChevronRight size={16} className="text-slate-600" />
-                )}
-              </button>
-            )}
-            {!hasChildren && level > 0 && <div className="w-6" />}
-            <div 
-              className="w-4 h-4 rounded-full" 
-              style={{ backgroundColor: category.color }}
-            />
-            <span className={`font-medium text-slate-800 ${level > 0 ? 'text-sm' : 'text-base'}`}>
-              {category.name}
-            </span>
-          </div>
-          <div className="flex gap-2">
-            {level === 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleNewCategory(category.id)}
-                className="hover:bg-green-50 text-xs"
-                title="Adicionar subcategoria"
-              >
-                <Plus size={12} className="mr-1" />
-                Sub
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleEdit(category)}
-              className="hover:bg-blue-50"
-            >
-              <Edit size={14} />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDelete(category.id)}
-              className="hover:bg-red-50 hover:text-red-600"
-            >
-              <Trash2 size={14} />
-            </Button>
-          </div>
-        </div>
-
-        {hasChildren && isExpanded && (
-          <div className="space-y-2">
-            {category.children?.map(child => renderCategoryTree(child, level + 1))}
-          </div>
-        )}
+          className="w-4 h-4 rounded-full" 
+          style={{ backgroundColor: category.color }}
+        />
+        <span className="font-medium text-slate-800">
+          {category.name}
+        </span>
       </div>
-    );
-  };
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleEdit(category)}
+          className="hover:bg-blue-50"
+        >
+          <Edit size={14} />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleDelete(category.id)}
+          className="hover:bg-red-50 hover:text-red-600"
+        >
+          <Trash2 size={14} />
+        </Button>
+      </div>
+    </div>
+  );
 
   const receitaCategories = categories.filter(cat => cat.type === 'receita');
   const despesaCategories = categories.filter(cat => cat.type === 'despesa');
@@ -205,7 +154,7 @@ const Categorias: React.FC = () => {
               {despesaCategories.length === 0 ? (
                 <p className="text-slate-500 text-center py-4">Nenhuma categoria de despesa encontrada</p>
               ) : (
-                despesaCategories.map(category => renderCategoryTree(category))
+                despesaCategories.map(category => renderCategory(category))
               )}
             </div>
           </div>
@@ -220,7 +169,7 @@ const Categorias: React.FC = () => {
               {receitaCategories.length === 0 ? (
                 <p className="text-slate-500 text-center py-4">Nenhuma categoria de receita encontrada</p>
               ) : (
-                receitaCategories.map(category => renderCategoryTree(category))
+                receitaCategories.map(category => renderCategory(category))
               )}
             </div>
           </div>
