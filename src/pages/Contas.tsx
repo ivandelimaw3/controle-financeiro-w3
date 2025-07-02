@@ -28,6 +28,8 @@ const Contas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
+  const [monthFilter, setMonthFilter] = useState(new Date().getMonth().toString());
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
 
@@ -68,13 +70,12 @@ const Contas: React.FC = () => {
       const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
       const matchesType = typeFilter === 'todos' || account.type === typeFilter;
       
-      // Filtrar apenas contas do mês corrente
+      // Filtrar por mês e ano
       const accountDate = new Date(account.dueDate);
-      const currentDate = new Date();
-      const isCurrentMonth = accountDate.getMonth() === currentDate.getMonth() && 
-                            accountDate.getFullYear() === currentDate.getFullYear();
+      const matchesMonth = monthFilter === 'todos' || accountDate.getMonth() === parseInt(monthFilter);
+      const matchesYear = yearFilter === 'todos' || accountDate.getFullYear() === parseInt(yearFilter);
       
-      return matchesSearch && matchesStatus && matchesType && isCurrentMonth;
+      return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
     })
     .sort((a, b) => {
       // Ordenar por data de vencimento de forma decrescente (mais recentes primeiro)
@@ -155,6 +156,10 @@ const Contas: React.FC = () => {
             setStatusFilter={setStatusFilter}
             typeFilter={typeFilter}
             setTypeFilter={setTypeFilter}
+            monthFilter={monthFilter}
+            setMonthFilter={setMonthFilter}
+            yearFilter={yearFilter}
+            setYearFilter={setYearFilter}
           />
 
           <AccountsSummaryCards accounts={accounts} />

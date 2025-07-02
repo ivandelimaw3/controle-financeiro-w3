@@ -11,6 +11,10 @@ interface AccountsFiltersProps {
   setStatusFilter: (value: string) => void;
   typeFilter: string;
   setTypeFilter: (value: string) => void;
+  monthFilter: string;
+  setMonthFilter: (value: string) => void;
+  yearFilter: string;
+  setYearFilter: (value: string) => void;
 }
 
 export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
@@ -19,8 +23,31 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
   statusFilter,
   setStatusFilter,
   typeFilter,
-  setTypeFilter
+  setTypeFilter,
+  monthFilter,
+  setMonthFilter,
+  yearFilter,
+  setYearFilter
 }) => {
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+  
+  const months = [
+    { value: 'todos', label: 'Todos os Meses' },
+    { value: '0', label: 'Janeiro' },
+    { value: '1', label: 'Fevereiro' },
+    { value: '2', label: 'Março' },
+    { value: '3', label: 'Abril' },
+    { value: '4', label: 'Maio' },
+    { value: '5', label: 'Junho' },
+    { value: '6', label: 'Julho' },
+    { value: '7', label: 'Agosto' },
+    { value: '8', label: 'Setembro' },
+    { value: '9', label: 'Outubro' },
+    { value: '10', label: 'Novembro' },
+    { value: '11', label: 'Dezembro' }
+  ];
+
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
       <div className="relative flex-1">
@@ -32,6 +59,35 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
           className="pl-10"
         />
       </div>
+      
+      <Select value={monthFilter} onValueChange={setMonthFilter}>
+        <SelectTrigger className="w-full sm:w-48">
+          <Filter size={16} className="mr-2" />
+          <SelectValue placeholder="Filtrar por mês" />
+        </SelectTrigger>
+        <SelectContent>
+          {months.map((month) => (
+            <SelectItem key={month.value} value={month.value}>
+              {month.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={yearFilter} onValueChange={setYearFilter}>
+        <SelectTrigger className="w-full sm:w-48">
+          <Filter size={16} className="mr-2" />
+          <SelectValue placeholder="Filtrar por ano" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="todos">Todos os Anos</SelectItem>
+          {years.map((year) => (
+            <SelectItem key={year} value={year.toString()}>
+              {year}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       
       <Select value={statusFilter} onValueChange={setStatusFilter}>
         <SelectTrigger className="w-full sm:w-48">
