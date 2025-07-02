@@ -2,10 +2,19 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface UserStatus {
+  is_trial_active: boolean;
+  is_premium: boolean;
+  days_remaining: number;
+  trial_end_date: string;
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  userStatus: UserStatus | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -29,28 +38,95 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const checkUserStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('check_user_trial_status', {
+        user_uuid: userId
+      });
+
+      if (error) {
+        console.error('Erro ao verificar status:', error);
+        return null;
+      }
+
+      return data?.[0] || null;
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+      return null;
+    }
+  };
+
+  const handleUserStatusCheck = async (user: User | null) => {
+    if (!user) {
+      setUserStatus(null);
+      return;
+    }
+
+    const status = await checkUserStatus(user.id);
+    setUserStatus(status);
+
+    // Verificar se o usuário expirou
+    if (status && !status.is_premium && !status.is_trial_active) {
+      toast({
+        title: "Conta Expirada",
+        description: "Sua conta expirou. Entre em contato com o administrador para renovar seu acesso.",
+        variant: "destructive"
+      });
+      
+      // Desconectar usuário expirado
+      setTimeout(() => {
+        signOut();
+      }, 3000);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state change:', event);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await handleUserStatusCheck(session.user);
+        } else {
+          setUserStatus(null);
+        }
+        
         setLoading(false);
       }
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await handleUserStatusCheck(session.user);
+      }
+      
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Verificação periódica do status do usuário a cada 5 minutos
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(() => {
+      handleUserStatusCheck(user);
+    }, 5 * 60 * 1000); // 5 minutos
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -66,10 +142,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
+
+    if (error) {
+      return { error };
+    }
+
+    // Verificar status do usuário após login bem-sucedido
+    if (data.user) {
+      const status = await checkUserStatus(data.user.id);
+      
+      if (status && !status.is_premium && !status.is_trial_active) {
+        // Usuário expirado, fazer logout imediatamente
+        await supabase.auth.signOut();
+        return { 
+          error: { 
+            message: "Sua conta expirou. Entre em contato com o administrador para renovar seu acesso.",
+            name: "AccountExpiredError"
+          } 
+        };
+      }
+    }
+
     return { error };
   };
 
@@ -81,6 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider value={{
       user,
       session,
+      userStatus,
       loading,
       signUp,
       signIn,
