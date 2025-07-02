@@ -50,13 +50,13 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      <div className="relative flex-1">
+      <div className="relative flex-1 max-w-lg">
         <Search size={20} className="absolute left-3 top-3 text-slate-400" />
         <Input
           placeholder="Pesquisar contas..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className="pl-10 h-12 text-base"
         />
       </div>
       

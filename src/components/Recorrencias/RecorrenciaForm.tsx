@@ -5,10 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Recorrencia } from '@/hooks/useRecorrenciasData';
-import { calcularProximaExecucao } from '@/lib/dateUtils';
-import { useCategoriesData } from '@/hooks/useCategoriesData';
+import { format } from 'date-fns';
 import { useBanksData } from '@/hooks/useBanksData';
 import { usePaymentMethodsData } from '@/hooks/usePaymentMethodsData';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { PaymentMethodForm } from '@/components/PaymentMethods/PaymentMethodForm';
+import { Plus } from 'lucide-react';
+import { useCategoriesData } from '@/hooks/useCategoriesData';
+import { calcularProximaExecucao } from '@/lib/dateUtils';
 
 interface RecorrenciaFormProps {
   onSubmit: (data: Omit<Recorrencia, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<boolean>;
@@ -25,48 +29,94 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
 }) => {
   const { categories } = useCategoriesData();
   const { banks } = useBanksData();
-  const { paymentMethods } = usePaymentMethodsData();
-  const [formData, setFormData] = useState({
-    tipo: initialData?.tipo || 'receita' as 'receita' | 'despesa',
+  const { paymentMethods, createPaymentMethod, fetchPaymentMethods } = usePaymentMethodsData();
+  const [showPaymentMethodForm, setShowPaymentMethodForm] = useState(false);
+  
+  const [formData, setFormData] = useState<Partial<Recorrencia>>({
     titulo: initialData?.titulo || '',
     valor: initialData?.valor || 0,
     categoria: initialData?.categoria || '',
-    data_inicio: initialData?.data_inicio || new Date().toISOString().split('T')[0],
-    frequencia: initialData?.frequencia || 'mensal' as 'mensal' | 'semanal' | 'anual',
-    bank_id: initialData?.bank_id || null,
-    payment_method_id: initialData?.payment_method_id || '',
-    installments: initialData?.installments || 1,
+    tipo: initialData?.tipo || 'despesa',
+    frequencia: initialData?.frequencia || 'mensal',
+    data_inicio: initialData?.data_inicio || format(new Date(), 'yyyy-MM-dd'),
+    bank_id: initialData?.bank_id || undefined,
+    payment_method_id: initialData?.payment_method_id || undefined,
+    installments: initialData?.installments || 1
   });
+
+  const formatCurrencyInput = (value: number): string => {
+    if (isNaN(value) || value === null || value === undefined || value === 0) {
+      return '';
+    }
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (inputValue: string): number => {
+    if (!inputValue) return 0;
+    
+    // Remove todos os caracteres que não são dígitos
+    const digitsOnly = inputValue.replace(/\D/g, '');
+    
+    // Se não há dígitos, retorna 0
+    if (!digitsOnly) return 0;
+    
+    // Converte para número dividindo por 100 (para considerar os centavos)
+    const numericValue = parseInt(digitsOnly) / 100;
+    
+    return numericValue;
+  };
+
+  const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Parse do valor digitado
+    const numericValue = parseCurrencyInput(inputValue);
+    
+    // Atualiza o estado com o valor numérico
+    setFormData({ ...formData, valor: numericValue });
+  };
+
+  const handleCreatePaymentMethod = async (data: Omit<any, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    const success = await createPaymentMethod(data);
+    if (success) {
+      setShowPaymentMethodForm(false);
+      fetchPaymentMethods();
+    }
+    return success;
+  };
   
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.titulo || !formData.categoria || formData.valor <= 0) {
+    if (!formData.titulo || !formData.categoria || !formData.valor || formData.valor <= 0) {
       return;
     }
 
     setLoading(true);
     
-    const proximaExecucao = calcularProximaExecucao(formData.data_inicio, formData.frequencia);
+    const proximaExecucao = calcularProximaExecucao(formData.data_inicio!, formData.frequencia!);
     
     const success = await onSubmit({
       ...formData,
       proxima_execucao: proximaExecucao
-    });
+    } as Omit<Recorrencia, 'id' | 'user_id' | 'created_at' | 'updated_at'>);
     
     if (success && !isEditing) {
       setFormData({
-        tipo: 'receita',
         titulo: '',
         valor: 0,
         categoria: '',
-        data_inicio: new Date().toISOString().split('T')[0],
+        tipo: 'despesa',
         frequencia: 'mensal',
-        bank_id: null,
-        payment_method_id: '',
-        installments: 1,
+        data_inicio: format(new Date(), 'yyyy-MM-dd'),
+        bank_id: undefined,
+        payment_method_id: undefined,
+        installments: 1
       });
     }
     
@@ -78,7 +128,7 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEditing ? 'Editar Recorrência' : 'Nova Recorrência'}</CardTitle>
+        <CardTitle>{isEditing ? 'Editar Conta Recorrente' : 'Nova Conta Recorrente'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,20 +161,25 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
                 required
               />
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="valor">Valor (R$)</Label>
+          <div>
+            <Label htmlFor="valor">Valor</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
               <Input
                 id="valor"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.valor}
-                onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) || 0 })}
+                type="text"
+                value={formatCurrencyInput(formData.valor || 0)}
+                onChange={handleValorChange}
+                className="pl-10"
+                placeholder="0,00"
                 required
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="categoria">Categoria</Label>
               <Select
@@ -145,17 +200,6 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="data_inicio">Data de Início</Label>
-              <Input
-                id="data_inicio"
-                type="date"
-                value={formData.data_inicio}
-                onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
               <Label htmlFor="frequencia">Frequência</Label>
               <Select
                 value={formData.frequencia}
@@ -173,13 +217,41 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="data_inicio">Data de Início</Label>
+              <Input
+                id="data_inicio"
+                type="date"
+                value={formData.data_inicio}
+                onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="installments">Número de Parcelas</Label>
+              <Input
+                id="installments"
+                type="number"
+                min="1"
+                max="60"
+                value={formData.installments}
+                onChange={(e) => setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="bank_id">Banco de Origem</Label>
               <Select
                 value={formData.bank_id?.toString() || ''}
                 onValueChange={(value) => 
-                  setFormData({ ...formData, bank_id: value ? parseInt(value) : null })
+                  setFormData({ ...formData, bank_id: value ? parseInt(value) : undefined })
                 }
               >
                 <SelectTrigger>
@@ -197,40 +269,42 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
 
             <div>
               <Label htmlFor="payment_method_id">Método de Pagamento</Label>
-              <Select
-                value={formData.payment_method_id}
-                onValueChange={(value) => setFormData({ ...formData, payment_method_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um método" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.id} value={method.id}>
-                      {method.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="installments">Número de Parcelas</Label>
-              <Input
-                id="installments"
-                type="number"
-                min="1"
-                max="60"
-                value={formData.installments}
-                onChange={(e) => setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })}
-                required
-              />
+              <div className="flex gap-2">
+                <Select
+                  value={formData.payment_method_id || ''}
+                  onValueChange={(value) => setFormData({ ...formData, payment_method_id: value })}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Selecione um método de pagamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentMethods.map((method) => (
+                      <SelectItem key={method.id} value={method.id}>
+                        {method.name} ({method.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Dialog open={showPaymentMethodForm} onOpenChange={setShowPaymentMethodForm}>
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="outline" size="sm">
+                      <Plus size={16} />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <PaymentMethodForm
+                      onSubmit={handleCreatePaymentMethod}
+                      onCancel={() => setShowPaymentMethodForm(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar Recorrência'}
+              {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar Conta Recorrente'}
             </Button>
             {onCancel && (
               <Button type="button" variant="outline" onClick={onCancel}>

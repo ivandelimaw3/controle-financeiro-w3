@@ -65,7 +65,7 @@ export default function Recorrencias() {
           <div>
             <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
               <RotateCcw className="text-blue-600" size={32} />
-              Recorrências
+              Contas Recorrentes
             </h1>
             <p className="text-slate-600 mt-2">Gerencie suas receitas e despesas recorrentes</p>
           </div>
@@ -74,7 +74,7 @@ export default function Recorrencias() {
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600">
                 <Plus size={20} className="mr-2" />
-                Nova Recorrência
+                Nova Conta Recorrente
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
