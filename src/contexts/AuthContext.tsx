@@ -118,34 +118,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
-
-    if (error) {
-      return { error };
-    }
-
-    // Verificar status do usuário após 2 segundos do login
-    if (data.user) {
-      setTimeout(async () => {
-        const status = await checkUserStatus(data.user.id);
-        
-        if (status && !status.is_premium && !status.is_trial_active) {
-          toast({
-            title: "Conta Expirada",
-            description: "Sua conta expirou. Entre em contato com o administrador para renovar seu acesso.",
-            variant: "destructive"
-          });
-          
-          // Fazer logout do usuário expirado
-          setTimeout(() => {
-            signOut();
-          }, 3000);
-        }
-      }, 2000);
-    }
 
     return { error };
   };
