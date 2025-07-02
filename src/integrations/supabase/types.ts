@@ -278,6 +278,33 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       premium_upgrade_requests: {
         Row: {
           approved_at: string | null
@@ -316,11 +343,14 @@ export type Database = {
       }
       recorrencias: {
         Row: {
+          bank_id: number | null
           categoria: string
           created_at: string | null
           data_inicio: string
           frequencia: string
           id: string
+          installments: number | null
+          payment_method_id: string | null
           proxima_execucao: string
           tipo: string
           titulo: string
@@ -329,11 +359,14 @@ export type Database = {
           valor: number
         }
         Insert: {
+          bank_id?: number | null
           categoria: string
           created_at?: string | null
           data_inicio: string
           frequencia: string
           id?: string
+          installments?: number | null
+          payment_method_id?: string | null
           proxima_execucao: string
           tipo: string
           titulo: string
@@ -342,11 +375,14 @@ export type Database = {
           valor: number
         }
         Update: {
+          bank_id?: number | null
           categoria?: string
           created_at?: string | null
           data_inicio?: string
           frequencia?: string
           id?: string
+          installments?: number | null
+          payment_method_id?: string | null
           proxima_execucao?: string
           tipo?: string
           titulo?: string
@@ -354,7 +390,15 @@ export type Database = {
           user_id?: string
           valor?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recorrencias_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

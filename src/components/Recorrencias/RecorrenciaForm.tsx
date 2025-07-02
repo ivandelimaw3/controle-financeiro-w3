@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Recorrencia } from '@/hooks/useRecorrenciasData';
 import { calcularProximaExecucao } from '@/lib/dateUtils';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
+import { useBanksData } from '@/hooks/useBanksData';
+import { usePaymentMethodsData } from '@/hooks/usePaymentMethodsData';
 
 interface RecorrenciaFormProps {
   onSubmit: (data: Omit<Recorrencia, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<boolean>;
@@ -22,6 +24,8 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
   isEditing = false
 }) => {
   const { categories } = useCategoriesData();
+  const { banks } = useBanksData();
+  const { paymentMethods } = usePaymentMethodsData();
   const [formData, setFormData] = useState({
     tipo: initialData?.tipo || 'receita' as 'receita' | 'despesa',
     titulo: initialData?.titulo || '',
@@ -29,6 +33,9 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
     categoria: initialData?.categoria || '',
     data_inicio: initialData?.data_inicio || new Date().toISOString().split('T')[0],
     frequencia: initialData?.frequencia || 'mensal' as 'mensal' | 'semanal' | 'anual',
+    bank_id: initialData?.bank_id || null,
+    payment_method_id: initialData?.payment_method_id || '',
+    installments: initialData?.installments || 1,
   });
   
   const [loading, setLoading] = useState(false);
@@ -57,6 +64,9 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
         categoria: '',
         data_inicio: new Date().toISOString().split('T')[0],
         frequencia: 'mensal',
+        bank_id: null,
+        payment_method_id: '',
+        installments: 1,
       });
     }
     
@@ -162,6 +172,59 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
                   <SelectItem value="anual">Anual</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="bank_id">Banco de Origem</Label>
+              <Select
+                value={formData.bank_id?.toString() || ''}
+                onValueChange={(value) => 
+                  setFormData({ ...formData, bank_id: value ? parseInt(value) : null })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um banco" />
+                </SelectTrigger>
+                <SelectContent>
+                  {banks.map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id.toString()}>
+                      {bank.nickname || bank.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="payment_method_id">Método de Pagamento</Label>
+              <Select
+                value={formData.payment_method_id}
+                onValueChange={(value) => setFormData({ ...formData, payment_method_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um método" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="installments">Número de Parcelas</Label>
+              <Input
+                id="installments"
+                type="number"
+                min="1"
+                max="60"
+                value={formData.installments}
+                onChange={(e) => setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })}
+                required
+              />
             </div>
           </div>
 

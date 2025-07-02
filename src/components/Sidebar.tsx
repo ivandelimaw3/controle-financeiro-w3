@@ -33,12 +33,13 @@ export const Sidebar: React.FC = () => {
 
   const categoriasItems = [
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
-    { icon: RotateCcw, label: 'Recorrências', path: '/recorrencias' }
+    { icon: RotateCcw, label: 'Recorrências', path: '/recorrencias' },
+    { icon: CreditCard, label: 'Métodos Pagamento', path: '/metodos-pagamento' }
   ];
 
   React.useEffect(() => {
     // Manter submenu aberto se estiver em uma das páginas de categorias
-    if (location.pathname === '/categorias' || location.pathname === '/recorrencias') {
+    if (location.pathname === '/categorias' || location.pathname === '/recorrencias' || location.pathname === '/metodos-pagamento') {
       setShowCategoriasSubmenu(true);
     }
   }, [location.pathname]);
@@ -69,7 +70,7 @@ export const Sidebar: React.FC = () => {
             <button
               onClick={() => setShowCategoriasSubmenu(!showCategoriasSubmenu)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
-                (location.pathname === '/categorias' || location.pathname === '/recorrencias')
+                (location.pathname === '/categorias' || location.pathname === '/recorrencias' || location.pathname === '/metodos-pagamento')
                   ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}

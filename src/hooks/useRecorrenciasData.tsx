@@ -12,6 +12,9 @@ export interface Recorrencia {
   data_inicio: string;
   frequencia: 'mensal' | 'semanal' | 'anual';
   proxima_execucao: string;
+  bank_id?: number;
+  payment_method_id?: string;
+  installments?: number;
   created_at: string;
   updated_at: string;
 }
