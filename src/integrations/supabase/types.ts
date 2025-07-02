@@ -314,6 +314,48 @@ export type Database = {
         }
         Relationships: []
       }
+      recorrencias: {
+        Row: {
+          categoria: string
+          created_at: string | null
+          data_inicio: string
+          frequencia: string
+          id: string
+          proxima_execucao: string
+          tipo: string
+          titulo: string
+          updated_at: string | null
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          categoria: string
+          created_at?: string | null
+          data_inicio: string
+          frequencia: string
+          id?: string
+          proxima_execucao: string
+          tipo: string
+          titulo: string
+          updated_at?: string | null
+          user_id: string
+          valor: number
+        }
+        Update: {
+          categoria?: string
+          created_at?: string | null
+          data_inicio?: string
+          frequencia?: string
+          id?: string
+          proxima_execucao?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string | null
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
