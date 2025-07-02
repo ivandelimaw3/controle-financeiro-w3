@@ -61,14 +61,25 @@ const Contas: React.FC = () => {
     );
   }
 
-  const filteredAccounts = accounts.filter(account => {
-    const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
-    const matchesType = typeFilter === 'todos' || account.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  const filteredAccounts = accounts
+    .filter(account => {
+      const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           account.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
+      const matchesType = typeFilter === 'todos' || account.type === typeFilter;
+      
+      // Filtrar apenas contas do mês corrente
+      const accountDate = new Date(account.dueDate);
+      const currentDate = new Date();
+      const isCurrentMonth = accountDate.getMonth() === currentDate.getMonth() && 
+                            accountDate.getFullYear() === currentDate.getFullYear();
+      
+      return matchesSearch && matchesStatus && matchesType && isCurrentMonth;
+    })
+    .sort((a, b) => {
+      // Ordenar por data de vencimento de forma decrescente (mais recentes primeiro)
+      return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+    });
 
   const handleSave = async (accountData: Account) => {
     try {

@@ -62,27 +62,27 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
           <tbody>
             {accounts.map((account, index) => (
               <tr key={account.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
-                <td className="p-4">
+                <td className="py-2 px-4">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${account.type === 'receita' ? 'bg-green-100' : 'bg-red-100'}`}>
                       <DollarSign size={16} className={account.type === 'receita' ? 'text-green-600' : 'text-red-600'} />
                     </div>
-                    <span className="font-medium text-slate-800">{account.description}</span>
+                    <span className="font-bold text-slate-800">{account.description}</span>
                   </div>
                 </td>
-                <td className="p-4 text-slate-600">{account.category}</td>
-                <td className="p-4">
+                <td className="py-2 px-4 text-slate-600">{account.category}</td>
+                <td className="py-2 px-4">
                   <span className={`font-semibold ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
                     {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                   </span>
                 </td>
-                <td className="p-4">
+                <td className="py-2 px-4">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Calendar size={14} />
                     {formatDate(account.dueDate)}
                   </div>
                 </td>
-                <td className="p-4">
+                <td className="py-2 px-4">
                   <Select
                     value={account.status}
                     onValueChange={(value) => onStatusChange(account.id, value)}
@@ -98,7 +98,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="p-4">
+                <td className="py-2 px-4">
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
