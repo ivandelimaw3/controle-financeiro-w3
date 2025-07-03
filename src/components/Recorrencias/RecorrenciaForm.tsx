@@ -163,19 +163,36 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="valor">Valor</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
-              <Input
-                id="valor"
-                type="text"
-                value={formatCurrencyInput(formData.valor || 0)}
-                onChange={handleValorChange}
-                className="pl-10"
-                placeholder="0,00"
-                required
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="valor">Valor Total</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
+                <Input
+                  id="valor"
+                  type="text"
+                  value={formatCurrencyInput(formData.valor || 0)}
+                  onChange={handleValorChange}
+                  className="pl-10"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="valor_parcela">Valor da Parcela</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
+                <Input
+                  id="valor_parcela"
+                  type="text"
+                  value={formatCurrencyInput((formData.valor || 0) / (formData.installments || 1))}
+                  className="pl-10 bg-slate-50"
+                  placeholder="0,00"
+                  readOnly
+                />
+              </div>
             </div>
           </div>
 

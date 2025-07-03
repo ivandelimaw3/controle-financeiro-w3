@@ -55,20 +55,58 @@ export const useRecorrenciasData = () => {
         return false;
       }
 
-      const { error } = await supabase
+      // Criar a recorrência
+      const { error: recorrenciaError } = await supabase
         .from('recorrencias')
         .insert({
           ...recorrenciaData,
           user_id: user.id
         });
 
-      if (error) {
-        console.error('Error creating recorrencia:', error);
+      if (recorrenciaError) {
+        console.error('Error creating recorrencia:', recorrenciaError);
         toast.error('Erro ao criar recorrência');
         return false;
       }
 
-      toast.success('Recorrência criada com sucesso!');
+      // Criar as parcelas na tabela accounts
+      const valorParcela = recorrenciaData.valor / (recorrenciaData.installments || 1);
+      const parcelas = [];
+
+      for (let i = 0; i < (recorrenciaData.installments || 1); i++) {
+        const dataVencimento = new Date(recorrenciaData.data_inicio);
+        
+        // Calcular data de vencimento baseada na frequência
+        if (recorrenciaData.frequencia === 'mensal') {
+          dataVencimento.setMonth(dataVencimento.getMonth() + i);
+        } else if (recorrenciaData.frequencia === 'semanal') {
+          dataVencimento.setDate(dataVencimento.getDate() + (i * 7));
+        } else if (recorrenciaData.frequencia === 'anual') {
+          dataVencimento.setFullYear(dataVencimento.getFullYear() + i);
+        }
+
+        parcelas.push({
+          user_id: user.id,
+          description: `${recorrenciaData.titulo} - Parcela ${i + 1}/${recorrenciaData.installments || 1}`,
+          amount: valorParcela,
+          due_date: dataVencimento.toISOString().split('T')[0],
+          category: recorrenciaData.categoria,
+          type: recorrenciaData.tipo,
+          status: 'Pendente'
+        });
+      }
+
+      const { error: parcelasError } = await supabase
+        .from('accounts')
+        .insert(parcelas);
+
+      if (parcelasError) {
+        console.error('Error creating parcelas:', parcelasError);
+        toast.error('Erro ao criar parcelas');
+        return false;
+      }
+
+      toast.success('Recorrência e parcelas criadas com sucesso!');
       await fetchRecorrencias();
       return true;
     } catch (error) {
