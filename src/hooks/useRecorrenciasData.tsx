@@ -92,7 +92,7 @@ export const useRecorrenciasData = () => {
           due_date: dataVencimento.toISOString().split('T')[0],
           category: recorrenciaData.categoria,
           type: recorrenciaData.tipo,
-          status: 'Pendente'
+          status: 'pendente'
         });
       }
 
