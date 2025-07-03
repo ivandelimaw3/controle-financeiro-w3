@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Plus, RotateCcw } from 'lucide-react';
 import { RecorrenciaForm } from '@/components/Recorrencias/RecorrenciaForm';
 import { RecorrenciasTable } from '@/components/Recorrencias/RecorrenciasTable';
+import { ParcelasTable } from '@/components/Recorrencias/ParcelasTable';
 import { useRecorrenciasData, Recorrencia } from '@/hooks/useRecorrenciasData';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Recorrencias() {
-  const { recorrencias, loading, createRecorrencia, updateRecorrencia, deleteRecorrencia } = useRecorrenciasData();
+  const { recorrencias, loading, createRecorrencia, updateRecorrencia, deleteRecorrencia, fetchParcelas, updateParcelaStatus } = useRecorrenciasData();
   const [showForm, setShowForm] = useState(false);
   const [editingRecorrencia, setEditingRecorrencia] = useState<Recorrencia | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [parcelas, setParcelas] = useState<any[]>([]);
+  const [parcelasLoading, setParcelasLoading] = useState(false);
 
   const handleCreate = async (data: Omit<Recorrencia, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     const success = await createRecorrencia(data);
@@ -40,8 +44,27 @@ export default function Recorrencias() {
     const success = await deleteRecorrencia(id);
     if (success) {
       setDeleteId(null);
+      loadParcelas();
     }
   };
+
+  const loadParcelas = async () => {
+    setParcelasLoading(true);
+    const data = await fetchParcelas();
+    setParcelas(data);
+    setParcelasLoading(false);
+  };
+
+  const handleParcelaStatusChange = async (id: number, status: string) => {
+    const success = await updateParcelaStatus(id, status as 'pendente' | 'pago' | 'recebido');
+    if (success) {
+      loadParcelas();
+    }
+  };
+
+  useEffect(() => {
+    loadParcelas();
+  }, [recorrencias]);
 
   const getSummary = () => {
     const totalReceitas = recorrencias
@@ -108,18 +131,40 @@ export default function Recorrencias() {
           </div>
         </div>
 
-        {/* Table */}
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : (
-          <RecorrenciasTable
-            recorrencias={recorrencias}
-            onEdit={handleEdit}
-            onDelete={setDeleteId}
-          />
-        )}
+        {/* Tabs */}
+        <Tabs defaultValue="recorrencias" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="recorrencias">Contas Recorrentes</TabsTrigger>
+            <TabsTrigger value="parcelas">Parcelas Geradas</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="recorrencias" className="mt-6">
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <RecorrenciasTable
+                recorrencias={recorrencias}
+                onEdit={handleEdit}
+                onDelete={setDeleteId}
+              />
+            )}
+          </TabsContent>
+          
+          <TabsContent value="parcelas" className="mt-6">
+            {parcelasLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <ParcelasTable
+                parcelas={parcelas}
+                onStatusChange={handleParcelaStatusChange}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Edit Dialog */}
         <Dialog open={!!editingRecorrencia} onOpenChange={() => setEditingRecorrencia(null)}>

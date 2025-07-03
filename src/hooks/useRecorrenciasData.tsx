@@ -166,12 +166,56 @@ export const useRecorrenciasData = () => {
     fetchRecorrencias();
   }, []);
 
+  const fetchParcelas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('*')
+        .like('description', '%Parcela%')
+        .order('due_date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching parcelas:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error:', error);
+      return [];
+    }
+  };
+
+  const updateParcelaStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
+    try {
+      const { error } = await supabase
+        .from('accounts')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating parcela status:', error);
+        toast.error('Erro ao atualizar status da parcela');
+        return false;
+      }
+
+      toast.success('Status da parcela atualizado com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Erro ao atualizar status da parcela');
+      return false;
+    }
+  };
+
   return {
     recorrencias,
     loading,
     fetchRecorrencias,
     createRecorrencia,
     updateRecorrencia,
-    deleteRecorrencia
+    deleteRecorrencia,
+    fetchParcelas,
+    updateParcelaStatus
   };
 };
