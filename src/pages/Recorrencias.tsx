@@ -148,6 +148,11 @@ export default function Recorrencias() {
                 recorrencias={recorrencias}
                 onEdit={handleEdit}
                 onDelete={setDeleteId}
+                onStatusChange={(recorrenciaId, status) => {
+                  // Por enquanto apenas mostra o status, mas não há função específica para alterar
+                  // o status da recorrência em si, apenas das parcelas individuais
+                  console.log('Status change requested for recorrencia:', recorrenciaId, status);
+                }}
               />
             )}
           </TabsContent>
