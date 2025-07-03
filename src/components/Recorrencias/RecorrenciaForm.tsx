@@ -181,18 +181,16 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="valor_parcela">Valor da Parcela</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
-                <Input
-                  id="valor_parcela"
-                  type="text"
-                  value={formatCurrencyInput((formData.valor || 0) / (formData.installments || 1))}
-                  className="pl-10 bg-slate-50"
-                  placeholder="0,00"
-                  readOnly
-                />
-              </div>
+              <Label htmlFor="installments">Parcelas</Label>
+              <Input
+                id="installments"
+                type="number"
+                min="1"
+                max="60"
+                value={formData.installments}
+                onChange={(e) => setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })}
+                required
+              />
             </div>
           </div>
 
@@ -249,16 +247,18 @@ export const RecorrenciaForm: React.FC<RecorrenciaFormProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="installments">Número de Parcelas</Label>
-              <Input
-                id="installments"
-                type="number"
-                min="1"
-                max="60"
-                value={formData.installments}
-                onChange={(e) => setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })}
-                required
-              />
+              <Label htmlFor="valor_parcela">Valor da Parcela</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
+                <Input
+                  id="valor_parcela"
+                  type="text"
+                  value={formatCurrencyInput((formData.valor || 0) / (formData.installments || 1))}
+                  className="pl-10 bg-slate-50"
+                  placeholder="0,00"
+                  readOnly
+                />
+              </div>
             </div>
           </div>
 

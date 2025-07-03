@@ -80,9 +80,9 @@ export const useRecorrenciasData = () => {
       });
 
       for (let i = 0; i < (recorrenciaData.installments || 1); i++) {
-        const dataVencimento = new Date(recorrenciaData.data_inicio);
+        const dataVencimento = new Date();
         
-        // Calcular data de vencimento baseada na frequência
+        // Calcular data de vencimento baseada na frequência iniciando da data atual
         if (recorrenciaData.frequencia === 'mensal') {
           dataVencimento.setMonth(dataVencimento.getMonth() + i);
         } else if (recorrenciaData.frequencia === 'semanal') {
