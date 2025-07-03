@@ -352,6 +352,7 @@ export type Database = {
           installments: number | null
           payment_method_id: string | null
           proxima_execucao: string
+          status: string
           tipo: string
           titulo: string
           updated_at: string | null
@@ -368,6 +369,7 @@ export type Database = {
           installments?: number | null
           payment_method_id?: string | null
           proxima_execucao: string
+          status?: string
           tipo: string
           titulo: string
           updated_at?: string | null
@@ -384,6 +386,7 @@ export type Database = {
           installments?: number | null
           payment_method_id?: string | null
           proxima_execucao?: string
+          status?: string
           tipo?: string
           titulo?: string
           updated_at?: string | null

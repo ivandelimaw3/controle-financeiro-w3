@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Recorrencias() {
-  const { recorrencias, loading, createRecorrencia, updateRecorrencia, deleteRecorrencia, fetchParcelas, updateParcelaStatus } = useRecorrenciasData();
+  const { recorrencias, loading, createRecorrencia, updateRecorrencia, deleteRecorrencia, fetchParcelas, updateParcelaStatus, updateRecorrenciaStatus } = useRecorrenciasData();
   const [showForm, setShowForm] = useState(false);
   const [editingRecorrencia, setEditingRecorrencia] = useState<Recorrencia | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -148,11 +148,7 @@ export default function Recorrencias() {
                 recorrencias={recorrencias}
                 onEdit={handleEdit}
                 onDelete={setDeleteId}
-                onStatusChange={(recorrenciaId, status) => {
-                  // Por enquanto apenas mostra o status, mas não há função específica para alterar
-                  // o status da recorrência em si, apenas das parcelas individuais
-                  console.log('Status change requested for recorrencia:', recorrenciaId, status);
-                }}
+                onStatusChange={updateRecorrenciaStatus}
               />
             )}
           </TabsContent>

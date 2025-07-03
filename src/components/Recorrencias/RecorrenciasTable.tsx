@@ -101,28 +101,28 @@ export const RecorrenciasTable: React.FC<RecorrenciasTableProps> = ({
                      {formatDate(recorrencia.proxima_execucao)}
                    </div>
                  </td>
-                 <td className="py-2 px-4">
-                   {onStatusChange ? (
-                     <Select
-                       value="pendente"
-                       onValueChange={(value) => onStatusChange(recorrencia.id, value)}
-                     >
-                       <SelectTrigger className={`w-32 h-8 text-xs ${getStatusColor('pendente')}`}>
-                         <SelectValue />
-                       </SelectTrigger>
-                       <SelectContent>
-                         <SelectItem value="pendente">Pendente</SelectItem>
-                         <SelectItem value={recorrencia.tipo === 'receita' ? 'recebido' : 'pago'}>
-                           {recorrencia.tipo === 'receita' ? 'Recebido' : 'Pago'}
-                         </SelectItem>
-                       </SelectContent>
-                     </Select>
-                   ) : (
-                     <Badge className={getStatusColor('pendente')}>
-                       Pendente
-                     </Badge>
-                   )}
-                 </td>
+                  <td className="py-2 px-4">
+                    {onStatusChange ? (
+                      <Select
+                        value={recorrencia.status || 'pendente'}
+                        onValueChange={(value) => onStatusChange(recorrencia.id, value)}
+                      >
+                        <SelectTrigger className={`w-32 h-8 text-xs ${getStatusColor(recorrencia.status || 'pendente')}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">Pendente</SelectItem>
+                          <SelectItem value={recorrencia.tipo === 'receita' ? 'recebido' : 'pago'}>
+                            {recorrencia.tipo === 'receita' ? 'Recebido' : 'Pago'}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge className={getStatusColor(recorrencia.status || 'pendente')}>
+                        {recorrencia.status === 'pago' ? 'Pago' : recorrencia.status === 'recebido' ? 'Recebido' : 'Pendente'}
+                      </Badge>
+                    )}
+                  </td>
                  <td className="py-2 px-4">
                    <div className="flex gap-2">
                      <Button

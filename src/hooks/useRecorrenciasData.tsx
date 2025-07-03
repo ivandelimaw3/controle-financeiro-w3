@@ -15,6 +15,7 @@ export interface Recorrencia {
   bank_id?: number;
   payment_method_id?: string;
   installments?: number;
+  status?: string;
   created_at: string;
   updated_at: string;
 }
@@ -214,6 +215,29 @@ export const useRecorrenciasData = () => {
     }
   };
 
+  const updateRecorrenciaStatus = async (id: string, status: 'pendente' | 'pago' | 'recebido') => {
+    try {
+      const { error } = await supabase
+        .from('recorrencias')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating recorrencia status:', error);
+        toast.error('Erro ao atualizar status da recorrência');
+        return false;
+      }
+
+      toast.success('Status da recorrência atualizado com sucesso!');
+      await fetchRecorrencias();
+      return true;
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Erro ao atualizar status da recorrência');
+      return false;
+    }
+  };
+
   return {
     recorrencias,
     loading,
@@ -222,6 +246,7 @@ export const useRecorrenciasData = () => {
     updateRecorrencia,
     deleteRecorrencia,
     fetchParcelas,
-    updateParcelaStatus
+    updateParcelaStatus,
+    updateRecorrenciaStatus
   };
 };
