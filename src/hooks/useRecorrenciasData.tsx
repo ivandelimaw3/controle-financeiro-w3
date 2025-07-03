@@ -72,6 +72,12 @@ export const useRecorrenciasData = () => {
       // Criar as parcelas na tabela accounts
       const valorParcela = recorrenciaData.valor / (recorrenciaData.installments || 1);
       const parcelas = [];
+      
+      console.log('Criando parcelas:', {
+        valorTotal: recorrenciaData.valor,
+        numParcelas: recorrenciaData.installments,
+        valorParcela: valorParcela
+      });
 
       for (let i = 0; i < (recorrenciaData.installments || 1); i++) {
         const dataVencimento = new Date(recorrenciaData.data_inicio);
