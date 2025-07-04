@@ -131,7 +131,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="amount" className="text-slate-700">Valor</Label>
+          <Label htmlFor="amount" className="text-slate-700">Valor Total</Label>
           <div className="relative mt-1">
             <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
             <Input

@@ -106,6 +106,7 @@ export const useAccountsData = () => {
       if (accountData.qtd_parcelas && accountData.qtd_parcelas > 1) {
         const recorrenteId = crypto.randomUUID();
         const registros = [];
+        const valorPorParcela = accountData.amount / accountData.qtd_parcelas;
 
         for (let i = 0; i < accountData.qtd_parcelas; i++) {
           const data = new Date(accountData.dueDate);
@@ -113,7 +114,7 @@ export const useAccountsData = () => {
 
           registros.push({
             description: accountData.description,
-            amount: accountData.amount,
+            amount: valorPorParcela,
             category: accountData.category,
             due_date: data.toISOString().split('T')[0],
             type: accountData.type,
