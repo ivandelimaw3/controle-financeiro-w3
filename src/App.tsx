@@ -9,8 +9,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Contas from "./pages/Contas";
 import Categorias from "./pages/Categorias";
-import Recorrencias from "./pages/Recorrencias";
-import MetodosPagamento from "./pages/MetodosPagamento";
 import Relatorios from "./pages/Relatorios";
 import Bancos from "./pages/Bancos";
 import Investimentos from "./pages/Investimentos";
@@ -51,16 +49,6 @@ const App = () => {
                   <Route path="/categorias" element={
                     <ProtectedRoute>
                       <Categorias />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/recorrencias" element={
-                    <ProtectedRoute>
-                      <Recorrencias />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/metodos-pagamento" element={
-                    <ProtectedRoute>
-                      <MetodosPagamento />
                     </ProtectedRoute>
                   } />
                   <Route path="/bancos" element={
