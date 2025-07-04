@@ -55,6 +55,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
               <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
               <th className="text-left p-4 font-semibold text-slate-700">Valor</th>
               <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Parcela</th>
               <th className="text-left p-4 font-semibold text-slate-700">Status</th>
               <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
             </tr>
@@ -81,6 +82,15 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                     <Calendar size={14} />
                     {formatDate(account.dueDate)}
                   </div>
+                </td>
+                <td className="py-2 px-4">
+                  {account.parcela ? (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {account.parcela}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">-</span>
+                  )}
                 </td>
                 <td className="py-2 px-4">
                   <Select

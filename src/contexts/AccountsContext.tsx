@@ -1,10 +1,10 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAccountsData, Account, Transaction } from '@/hooks/useAccountsData';
+import { useAccountsData, Account, Transaction, CreateAccountData } from '@/hooks/useAccountsData';
 
 interface AccountsContextType {
   accounts: Account[];
   loading: boolean;
-  addAccount: (account: Omit<Account, 'id'>) => Promise<void>;
+  addAccount: (account: CreateAccountData) => Promise<void>;
   updateAccount: (account: Account) => Promise<void>;
   deleteAccount: (id: number) => Promise<void>;
   updateAccountStatus: (id: number, status: 'pendente' | 'pago' | 'recebido') => Promise<void>;
@@ -112,4 +112,4 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
 };
 
 // Exportar tipos para compatibilidade
-export type { Account, Transaction };
+export type { Account, Transaction, CreateAccountData };

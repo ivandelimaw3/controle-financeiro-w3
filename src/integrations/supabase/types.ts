@@ -17,6 +17,8 @@ export type Database = {
           description: string
           due_date: string
           id: number
+          parcela: string | null
+          recorrente_id: string | null
           status: string
           type: string
           updated_at: string | null
@@ -29,6 +31,8 @@ export type Database = {
           description: string
           due_date: string
           id?: number
+          parcela?: string | null
+          recorrente_id?: string | null
           status: string
           type: string
           updated_at?: string | null
@@ -41,6 +45,8 @@ export type Database = {
           description?: string
           due_date?: string
           id?: number
+          parcela?: string | null
+          recorrente_id?: string | null
           status?: string
           type?: string
           updated_at?: string | null

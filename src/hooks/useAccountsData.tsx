@@ -12,6 +12,12 @@ export interface Account {
   dueDate: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
+  parcela?: string;
+  recorrente_id?: string;
+}
+
+export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
+  qtd_parcelas?: number;
 }
 
 export interface Transaction {
@@ -65,7 +71,9 @@ export const useAccountsData = () => {
         category: account.category,
         dueDate: account.due_date,
         type: account.type as 'receita' | 'despesa',
-        status: account.status as 'pendente' | 'pago' | 'recebido'
+        status: account.status as 'pendente' | 'pago' | 'recebido',
+        parcela: account.parcela,
+        recorrente_id: account.recorrente_id
       }));
 
       setAccounts(transformedAccounts);
@@ -82,8 +90,8 @@ export const useAccountsData = () => {
     }
   };
 
-  // Adicionar nova conta
-  const addAccount = async (accountData: Omit<Account, 'id'>) => {
+  // Adicionar nova conta ou criar parcelas recorrentes
+  const addAccount = async (accountData: CreateAccountData) => {
     try {
       if (!user) {
         toast({
@@ -94,47 +102,108 @@ export const useAccountsData = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('accounts')
-        .insert([{
-          description: accountData.description,
-          amount: accountData.amount,
-          category: accountData.category,
-          due_date: accountData.dueDate,
-          type: accountData.type,
-          status: accountData.status,
-          user_id: user.id
-        }])
-        .select()
-        .single();
+      // Se tem quantidade de parcelas, criar múltiplas contas
+      if (accountData.qtd_parcelas && accountData.qtd_parcelas > 1) {
+        const recorrenteId = crypto.randomUUID();
+        const registros = [];
 
-      if (error) {
-        console.error('Erro ao criar conta:', error);
+        for (let i = 0; i < accountData.qtd_parcelas; i++) {
+          const data = new Date(accountData.dueDate);
+          data.setMonth(data.getMonth() + i);
+
+          registros.push({
+            description: accountData.description,
+            amount: accountData.amount,
+            category: accountData.category,
+            due_date: data.toISOString().split('T')[0],
+            type: accountData.type,
+            status: accountData.status,
+            user_id: user.id,
+            parcela: `${i + 1}/${accountData.qtd_parcelas}`,
+            recorrente_id: recorrenteId
+          });
+        }
+
+        const { data: insertData, error } = await supabase
+          .from('accounts')
+          .insert(registros)
+          .select();
+
+        if (error) {
+          console.error('Erro ao criar parcelas:', error);
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar as parcelas.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Transformar e adicionar à lista local
+        const newAccounts = insertData.map(account => ({
+          id: account.id,
+          description: account.description,
+          amount: parseFloat(account.amount.toString()),
+          category: account.category,
+          dueDate: account.due_date,
+          type: account.type as 'receita' | 'despesa',
+          status: account.status as 'pendente' | 'pago' | 'recebido',
+          parcela: account.parcela,
+          recorrente_id: account.recorrente_id
+        }));
+
+        setAccounts(prev => [...newAccounts, ...prev]);
+        
         toast({
-          title: "Erro",
-          description: "Não foi possível criar a conta.",
-          variant: "destructive"
+          title: "Sucesso",
+          description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
         });
-        return;
+      } else {
+        // Criar conta única
+        const { data, error } = await supabase
+          .from('accounts')
+          .insert([{
+            description: accountData.description,
+            amount: accountData.amount,
+            category: accountData.category,
+            due_date: accountData.dueDate,
+            type: accountData.type,
+            status: accountData.status,
+            user_id: user.id
+          }])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Erro ao criar conta:', error);
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar a conta.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Transformar e adicionar à lista local
+        const newAccount: Account = {
+          id: data.id,
+          description: data.description,
+          amount: parseFloat(data.amount.toString()),
+          category: data.category,
+          dueDate: data.due_date,
+          type: data.type as 'receita' | 'despesa',
+          status: data.status as 'pendente' | 'pago' | 'recebido',
+          parcela: data.parcela,
+          recorrente_id: data.recorrente_id
+        };
+
+        setAccounts(prev => [newAccount, ...prev]);
+        
+        toast({
+          title: "Sucesso",
+          description: "Conta criada com sucesso.",
+        });
       }
-
-      // Transformar e adicionar à lista local
-      const newAccount: Account = {
-        id: data.id,
-        description: data.description,
-        amount: parseFloat(data.amount.toString()),
-        category: data.category,
-        dueDate: data.due_date,
-        type: data.type as 'receita' | 'despesa',
-        status: data.status as 'pendente' | 'pago' | 'recebido'
-      };
-
-      setAccounts(prev => [newAccount, ...prev]);
-      
-      toast({
-        title: "Sucesso",
-        description: "Conta criada com sucesso.",
-      });
     } catch (error) {
       console.error('Erro ao criar conta:', error);
       toast({

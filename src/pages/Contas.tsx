@@ -9,7 +9,7 @@ import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal } from '@/components/Accounts/AccountModal';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAccounts, Account } from '@/contexts/AccountsContext';
+import { useAccounts, Account, CreateAccountData } from '@/contexts/AccountsContext';
 
 const Contas: React.FC = () => {
   const { toast } = useToast();
@@ -82,18 +82,23 @@ const Contas: React.FC = () => {
       return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
     });
 
-  const handleSave = async (accountData: Account) => {
+  const handleSave = async (accountData: CreateAccountData | Account) => {
     try {
       console.log('Contas: Dados recebidos para salvar:', accountData);
       
       if (editingAccount?.id) {
         console.log('Contas: Atualizando conta existente');
-        await updateAccount(accountData);
+        // Para edição, converter para Account
+        const accountToUpdate: Account = {
+          ...accountData,
+          id: editingAccount.id
+        };
+        await updateAccount(accountToUpdate);
       } else {
         console.log('Contas: Criando nova conta');
-        // Remover o ID se estiver presente ao criar nova conta
-        const { id, ...accountWithoutId } = accountData;
-        await addAccount(accountWithoutId);
+        // Para criação, usar como CreateAccountData
+        const { id, ...accountWithoutId } = accountData as any;
+        await addAccount(accountWithoutId as CreateAccountData);
       }
       
       setEditingAccount(undefined);

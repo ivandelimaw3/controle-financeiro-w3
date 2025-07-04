@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { AccountForm } from './AccountForm';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
+import { CreateAccountData } from '@/hooks/useAccountsData';
 
 interface Account {
   id?: number;
@@ -12,12 +13,15 @@ interface Account {
   dueDate: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
+  parcela?: string;
+  recorrente_id?: string;
+  qtd_parcelas?: number;
 }
 
 interface AccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (account: Account) => void;
+  onSave: (account: CreateAccountData | Account) => void;
   account?: Account;
   categories?: string[];
 }
@@ -35,7 +39,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     category: '',
     dueDate: '',
     type: 'despesa',
-    status: 'pendente'
+    status: 'pendente',
+    qtd_parcelas: 1
   });
   const [isFormReady, setIsFormReady] = useState(false);
 
@@ -83,7 +88,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         category: account.category || '',
         dueDate: formattedDueDate,
         type: account.type || 'despesa',
-        status: account.status || 'pendente'
+        status: account.status || 'pendente',
+        qtd_parcelas: 1 // Para edição, sempre 1 parcela
       };
       setFormData(newFormData);
     } else {
@@ -93,7 +99,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         category: '',
         dueDate: '',
         type: 'despesa',
-        status: 'pendente'
+        status: 'pendente',
+        qtd_parcelas: 1
       });
     }
 

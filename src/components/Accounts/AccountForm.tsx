@@ -16,6 +16,9 @@ interface Account {
   dueDate: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
+  parcela?: string;
+  recorrente_id?: string;
+  qtd_parcelas?: number;
 }
 
 interface AccountFormProps {
@@ -106,6 +109,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, dueDate: e.target.value });
   };
 
+  const handleParcellasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 1;
+    setFormData({ ...formData, qtd_parcelas: value });
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
@@ -164,17 +172,33 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         onAddCategory={onAddCategory}
       />
 
-      <div>
-        <Label htmlFor="dueDate" className="text-slate-700">Data de Vencimento</Label>
-        <div className="relative mt-1">
-          <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="dueDate" className="text-slate-700">Data de Início</Label>
+          <div className="relative mt-1">
+            <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
+            <Input
+              id="dueDate"
+              type="date"
+              value={formData.dueDate || ''}
+              onChange={handleDateChange}
+              className="pl-10"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="qtd_parcelas" className="text-slate-700">Parcelas</Label>
           <Input
-            id="dueDate"
-            type="date"
-            value={formData.dueDate || ''}
-            onChange={handleDateChange}
-            className="pl-10"
-            required
+            id="qtd_parcelas"
+            type="number"
+            min="1"
+            max="60"
+            value={formData.qtd_parcelas || 1}
+            onChange={handleParcellasChange}
+            className="mt-1"
+            placeholder="1"
           />
         </div>
       </div>
@@ -188,12 +212,15 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         >
           Cancelar
         </Button>
-        <Button
-          type="submit"
-          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-        >
-          {isEditing ? 'Atualizar' : 'Criar'}
-        </Button>
+          <Button
+            type="submit"
+            className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+          >
+            {isEditing ? 'Atualizar' : 
+             (formData.qtd_parcelas && formData.qtd_parcelas > 1) ? 
+             `Criar ${formData.qtd_parcelas} Parcelas` : 
+             'Criar'}
+          </Button>
       </div>
     </form>
   );
