@@ -21,7 +21,7 @@ export const useAccountsReminder = (accounts: Account[]) => {
       
       toast({
         title: "⚠️ Lembrete de Pagamento",
-        description: `Hoje é a data para Pagamento desta Conta: ${accountNames}`,
+        description: "Hoje é a data para Pagamento desta Conta!!",
         duration: 2000,
         action: (
           <Button
