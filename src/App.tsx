@@ -1,5 +1,6 @@
 
 import { Toaster } from "sonner";
+import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -79,6 +80,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <Toaster duration={2000} />
+                <ShadcnToaster />
               </div>
             </AccountsProvider>
           </AuthProvider>
