@@ -10,6 +10,7 @@ import { AccountModal } from '@/components/Accounts/AccountModal';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAccounts, Account, CreateAccountData } from '@/contexts/AccountsContext';
+import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 
 const Contas: React.FC = () => {
   const { toast } = useToast();
@@ -22,6 +23,9 @@ const Contas: React.FC = () => {
     deleteAccount, 
     updateAccountStatus 
   } = useAccounts();
+  
+  // Ativar sistema de lembretes para contas vencendo hoje
+  useAccountsReminder(accounts);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | undefined>();
