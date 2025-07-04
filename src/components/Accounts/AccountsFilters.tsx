@@ -33,7 +33,6 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
   
   const months = [
-    { value: 'todos', label: 'Todos os Meses' },
     { value: '0', label: 'Janeiro' },
     { value: '1', label: 'Fevereiro' },
     { value: '2', label: 'Março' },
@@ -45,7 +44,8 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
     { value: '8', label: 'Setembro' },
     { value: '9', label: 'Outubro' },
     { value: '10', label: 'Novembro' },
-    { value: '11', label: 'Dezembro' }
+    { value: '11', label: 'Dezembro' },
+    { value: 'todos', label: 'Todos os Meses' }
   ];
 
   return (
