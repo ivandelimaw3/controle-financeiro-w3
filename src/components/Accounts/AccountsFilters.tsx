@@ -15,6 +15,7 @@ interface AccountsFiltersProps {
   setMonthFilter: (value: string) => void;
   yearFilter: string;
   setYearFilter: (value: string) => void;
+  accounts: any[];
 }
 
 export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
@@ -27,26 +28,54 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
   monthFilter,
   setMonthFilter,
   yearFilter,
-  setYearFilter
+  setYearFilter,
+  accounts
 }) => {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
   
-  const months = [
-    { value: '0', label: 'Janeiro' },
-    { value: '1', label: 'Fevereiro' },
-    { value: '2', label: 'Março' },
-    { value: '3', label: 'Abril' },
-    { value: '4', label: 'Maio' },
-    { value: '5', label: 'Junho' },
-    { value: '6', label: 'Julho' },
-    { value: '7', label: 'Agosto' },
-    { value: '8', label: 'Setembro' },
-    { value: '9', label: 'Outubro' },
-    { value: '10', label: 'Novembro' },
-    { value: '11', label: 'Dezembro' },
-    { value: 'todos', label: 'Todos os Meses' }
-  ];
+  // Gerar meses dinamicamente baseado nas contas existentes
+  const getAvailableMonths = () => {
+    const currentMonth = new Date().getMonth();
+    const monthsFromAccounts = new Set<number>();
+    
+    // Adicionar meses das contas existentes
+    accounts.forEach(account => {
+      const accountDate = new Date(account.dueDate);
+      monthsFromAccounts.add(accountDate.getMonth());
+    });
+    
+    // Se não há contas, mostrar apenas o mês atual
+    if (monthsFromAccounts.size === 0) {
+      monthsFromAccounts.add(currentMonth);
+    }
+    
+    // Converter para array ordenado iniciando do mês atual
+    const sortedMonths = Array.from(monthsFromAccounts).sort((a, b) => {
+      // Colocar mês atual primeiro, depois os outros em ordem
+      if (a === currentMonth && b !== currentMonth) return -1;
+      if (b === currentMonth && a !== currentMonth) return 1;
+      return a - b;
+    });
+    
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    
+    const months = [{ value: 'todos', label: 'Todos os Meses' }];
+    
+    sortedMonths.forEach(monthIndex => {
+      months.push({
+        value: monthIndex.toString(),
+        label: monthNames[monthIndex]
+      });
+    });
+    
+    return months;
+  };
+  
+  const months = getAvailableMonths();
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">

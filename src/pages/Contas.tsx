@@ -28,7 +28,7 @@ const Contas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
-  const [monthFilter, setMonthFilter] = useState(new Date().getMonth().toString());
+  const [monthFilter, setMonthFilter] = useState('todos');
   const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
@@ -165,6 +165,7 @@ const Contas: React.FC = () => {
             setMonthFilter={setMonthFilter}
             yearFilter={yearFilter}
             setYearFilter={setYearFilter}
+            accounts={accounts}
           />
 
           <AccountsSummaryCards accounts={accounts} />
