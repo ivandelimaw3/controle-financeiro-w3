@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface Account {
   id: number;
@@ -35,6 +37,12 @@ export const useAccountsData = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Função para invalidar cache dos bancos
+  const invalidateBanksCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['banks'] });
+  };
 
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
@@ -158,6 +166,9 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [...newAccounts, ...prev]);
         
+        // Invalidar cache dos bancos para atualizar saldos
+        invalidateBanksCache();
+        
         toast({
           title: "Sucesso",
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
@@ -204,6 +215,9 @@ export const useAccountsData = () => {
         };
 
         setAccounts(prev => [newAccount, ...prev]);
+        
+        // Invalidar cache dos bancos para atualizar saldos
+        invalidateBanksCache();
         
         toast({
           title: "Sucesso",
@@ -260,6 +274,9 @@ export const useAccountsData = () => {
         acc.id === updatedAccount.id ? updatedAccount : acc
       ));
 
+      // Invalidar cache dos bancos para atualizar saldos
+      invalidateBanksCache();
+
       toast({
         title: "Sucesso",
         description: "Conta atualizada com sucesso.",
@@ -303,6 +320,9 @@ export const useAccountsData = () => {
       }
 
       setAccounts(prev => prev.filter(acc => acc.id !== id));
+
+      // Invalidar cache dos bancos para atualizar saldos
+      invalidateBanksCache();
 
       toast({
         title: "Sucesso",
@@ -349,6 +369,9 @@ export const useAccountsData = () => {
       setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
+
+      // Invalidar cache dos bancos para atualizar saldos
+      invalidateBanksCache();
 
       toast({
         title: "Sucesso",
