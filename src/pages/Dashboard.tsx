@@ -117,9 +117,13 @@ const Dashboard: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Painel de Negócios</h1>
-          <p className="text-slate-600">Resumo da sua situação financeira</p>
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">Painel de Negócios</h1>
+              <p className="text-slate-600">Resumo da sua situação financeira</p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

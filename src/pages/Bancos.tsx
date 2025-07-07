@@ -104,20 +104,25 @@ const Bancos = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800">Meus Bancos</h1>
-            <p className="text-slate-600 mt-1">
-              Gerencie suas contas bancárias e registre depósitos
-            </p>
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 flex justify-start">
+              <Button
+                onClick={() => setShowBankForm(true)}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Banco
+              </Button>
+            </div>
+            
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">Meus Bancos</h1>
+              <p className="text-slate-600">Gerencie suas contas bancárias e registre depósitos</p>
+            </div>
+            
+            <div className="flex-1"></div>
           </div>
-          <Button
-            onClick={() => setShowBankForm(true)}
-            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Banco
-          </Button>
         </div>
 
         {banks.length === 0 ? (

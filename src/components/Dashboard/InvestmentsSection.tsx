@@ -1,196 +1,210 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Plus, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InvestmentCard } from './InvestmentCard';
+import { InvestmentFilters } from './InvestmentFilters';
 import { InvestmentForm } from './InvestmentForm';
 import { InvestmentTable } from './InvestmentTable';
-import { InvestmentFilters } from './InvestmentFilters';
-import { useInvestmentsData, Investment } from '@/hooks/useInvestmentsData';
-import { Plus, TrendingUp, DollarSign, PieChart, Target, Wallet } from 'lucide-react';
+import { useInvestmentsData } from '@/hooks/useInvestmentsData';
 
-export const InvestmentsSection: React.FC = () => {
-  console.log('InvestmentsSection: component rendering');
-  
+export const InvestmentsSection = () => {
+  const [showForm, setShowForm] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
+
   const {
     investments,
     institutions,
     types,
-    loading,
-    addInvestment,
+    isLoading,
+    error,
+    createInvestment,
     updateInvestment,
     deleteInvestment,
-    addInstitution,
-    addType
+    isCreating,
+    isUpdating
   } = useInvestmentsData();
 
-  console.log('InvestmentsSection: hook data', { 
-    investmentsCount: investments.length, 
-    institutionsCount: institutions.length, 
-    typesCount: types.length, 
-    loading 
-  });
-
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('all');
-  const [selectedYear, setSelectedYear] = useState('all');
-
-  // Filtrar investimentos baseado nos critérios de pesquisa
-  const filteredInvestments = useMemo(() => {
-    return investments.filter((investment) => {
-      // Filtro por texto de pesquisa
-      const searchMatch = !searchTerm || 
-        investment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        investment.institution?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        investment.type?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (investment.investor_name && investment.investor_name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      // Filtro por mês
-      const monthMatch = selectedMonth === 'all' || 
-        (investment.purchase_date && investment.purchase_date.substring(5, 7) === selectedMonth);
-
-      // Filtro por ano
-      const yearMatch = selectedYear === 'all' || 
-        (investment.purchase_date && investment.purchase_date.substring(0, 4) === selectedYear);
-
-      return searchMatch && monthMatch && yearMatch;
-    });
-  }, [investments, searchTerm, selectedMonth, selectedYear]);
-
-  const handleAddInvestment = () => {
-    console.log('InvestmentsSection: opening form for new investment');
-    setEditingInvestment(null);
-    setIsFormOpen(true);
+  const handleCreateInvestment = (investmentData) => {
+    createInvestment(investmentData);
+    setShowForm(false);
   };
 
-  const handleEditInvestment = (investment: Investment) => {
-    console.log('InvestmentsSection: opening form for edit investment', investment.id);
-    setEditingInvestment(investment);
-    setIsFormOpen(true);
-  };
-
-  const handleFormSubmit = async (data: any) => {
-    console.log('InvestmentsSection: form submit', data);
-    try {
-      if (editingInvestment) {
-        await updateInvestment(editingInvestment.id, data);
-      } else {
-        await addInvestment(data);
-      }
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('InvestmentsSection: form submit error', error);
+  const handleUpdateInvestment = (investmentData) => {
+    if (editingInvestment) {
+      updateInvestment({ id: editingInvestment.id, ...investmentData });
+      setEditingInvestment(null);
+      setShowForm(false);
     }
   };
 
-  const calculateTotals = (investmentsList: Investment[]) => {
-    const totalInvested = investmentsList.reduce((sum, inv) => sum + inv.invested_amount, 0);
-    const totalCurrent = investmentsList.reduce((sum, inv) => sum + inv.current_value, 0);
-    const totalReturn = totalCurrent - totalInvested;
-    const averageYield = investmentsList.length > 0 
-      ? investmentsList.reduce((sum, inv) => sum + (inv.yield_percentage || 0), 0) / investmentsList.length 
-      : 0;
-
-    console.log('InvestmentsSection: calculated totals', { totalInvested, totalCurrent, totalReturn, averageYield });
-    
-    return { totalInvested, totalCurrent, totalReturn, averageYield };
+  const handleDeleteInvestment = (id) => {
+    if (confirm('Tem certeza que deseja excluir este investimento?')) {
+      deleteInvestment(id);
+    }
   };
 
-  const { totalInvested, totalCurrent, totalReturn, averageYield } = calculateTotals(filteredInvestments);
+  const handleEditInvestment = (investment) => {
+    setEditingInvestment(investment);
+    setShowForm(true);
+  };
 
-  if (loading) {
-    console.log('InvestmentsSection: showing loading state');
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingInvestment(null);
+  };
+
+  // Filter and sort investments
+  const filteredInvestments = investments
+    .filter(inv => {
+      const matchesSearch = inv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           inv.investor_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = categoryFilter === 'all' || 
+                             inv.investment_types?.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'value':
+          return b.current_value - a.current_value;
+        case 'date':
+          return new Date(b.purchase_date) - new Date(a.purchase_date);
+        default:
+          return 0;
+      }
+    });
+
+  // Calculate totals
+  const totalInvested = investments.reduce((sum, inv) => sum + inv.invested_amount, 0);
+  const totalCurrent = investments.reduce((sum, inv) => sum + inv.current_value, 0);
+  const totalGain = totalCurrent - totalInvested;
+  const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
+
+  if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-800">Investimentos</h2>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto" />
+          <p className="mt-2 text-slate-600">Carregando investimentos...</p>
         </div>
-        <div className="text-center py-8 text-slate-500">Carregando investimentos...</div>
       </div>
     );
   }
 
-  console.log('InvestmentsSection: rendering main content');
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Erro ao carregar investimentos. Tente novamente.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4">
+      <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-800">Investimentos</h2>
-          <Button onClick={handleAddInvestment} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
-            <Plus size={20} />
-            Novo Investimento
-          </Button>
+          <div className="flex-1 flex justify-start">
+            <Button
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+            >
+              <Plus size={20} className="mr-2" />
+              Novo Investimento
+            </Button>
+          </div>
+          
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Investimentos</h1>
+            <p className="text-slate-600">Gerencie sua carteira de investimentos</p>
+          </div>
+          
+          <div className="flex-1"></div>
         </div>
       </div>
 
-      <InvestmentFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        selectedMonth={selectedMonth}
-        onMonthChange={setSelectedMonth}
-        selectedYear={selectedYear}
-        onYearChange={setSelectedYear}
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <InvestmentCard
-          title="Saldo Total"
-          value={`R$ ${totalCurrent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={Wallet}
-          bgColor="bg-gradient-to-r from-indigo-500 to-indigo-600"
-        />
-        
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <InvestmentCard
           title="Total Investido"
-          value={`R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={DollarSign}
+          value={`R$ ${totalInvested.toFixed(2)}`}
+          icon={TrendingUp}
           bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
         />
-        
         <InvestmentCard
-          title="Retorno Total"
-          value={`R$ ${totalReturn.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={Target}
-          trend={totalInvested > 0 ? `${((totalReturn / totalInvested) * 100).toFixed(2)}%` : '0%'}
-          trendUp={totalReturn >= 0}
-          bgColor={totalReturn >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
+          title="Valor Atual"
+          value={`R$ ${totalCurrent.toFixed(2)}`}
+          icon={TrendingUp}
+          bgColor="bg-gradient-to-r from-green-500 to-green-600"
         />
-        
+        <InvestmentCard
+          title="Ganho/Perda"
+          value={`R$ ${totalGain.toFixed(2)}`}
+          icon={TrendingUp}
+          bgColor={totalGain >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
+        />
         <InvestmentCard
           title="Rentabilidade"
-          value={averageYield.toFixed(2) + '%'}
+          value={`${gainPercentage.toFixed(2)}%`}
           icon={TrendingUp}
-          bgColor="bg-gradient-to-r from-amber-500 to-amber-600"
-        />
-        
-        <InvestmentCard
-          title="Carteira"
-          value={filteredInvestments.length.toString()}
-          icon={PieChart}
-          bgColor="bg-gradient-to-r from-purple-500 to-purple-600"
+          bgColor={gainPercentage >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
         />
       </div>
 
-      <InvestmentTable
-        investments={filteredInvestments}
-        onEdit={handleEditInvestment}
-        onDelete={deleteInvestment}
-      />
+      {/* Filters */}
+      <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+        <InvestmentFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          types={types}
+        />
 
-      <InvestmentForm
-        isOpen={isFormOpen}
-        onClose={() => {
-          console.log('InvestmentsSection: closing form');
-          setIsFormOpen(false);
-        }}
-        onSubmit={handleFormSubmit}
-        onAddInstitution={addInstitution}
-        onAddType={addType}
-        investment={editingInvestment}
-        institutions={institutions}
-        types={types}
-      />
+        <div className="mb-4">
+          <p className="text-sm text-slate-600 text-center">
+            {filteredInvestments.length} {filteredInvestments.length === 1 ? 'investimento encontrado' : 'investimentos encontrados'}
+          </p>
+        </div>
+
+        <InvestmentTable
+          investments={filteredInvestments}
+          institutions={institutions}
+          types={types}
+          onEdit={handleEditInvestment}
+          onDelete={handleDeleteInvestment}
+        />
+      </div>
+
+      {/* Investment Form Dialog */}
+      <Dialog open={showForm} onOpenChange={closeForm}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingInvestment ? 'Editar Investimento' : 'Novo Investimento'}
+            </DialogTitle>
+          </DialogHeader>
+          <InvestmentForm
+            investment={editingInvestment}
+            institutions={institutions}
+            types={types}
+            onSubmit={editingInvestment ? handleUpdateInvestment : handleCreateInvestment}
+            onCancel={closeForm}
+            isLoading={isCreating || isUpdating}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
