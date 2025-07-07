@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { AccountForm } from './AccountForm';
@@ -16,6 +15,7 @@ interface Account {
   parcela?: string;
   recorrente_id?: string;
   qtd_parcelas?: number;
+  bank_id?: number;
 }
 
 interface AccountModalProps {
@@ -40,7 +40,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     dueDate: '',
     type: 'despesa',
     status: 'pendente',
-    qtd_parcelas: 1
+    qtd_parcelas: 1,
+    bank_id: undefined
   });
   const [isFormReady, setIsFormReady] = useState(false);
 
@@ -89,7 +90,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         dueDate: formattedDueDate,
         type: account.type || 'despesa',
         status: account.status || 'pendente',
-        qtd_parcelas: 1 // Para edição, sempre 1 parcela
+        qtd_parcelas: 1, // Para edição, sempre 1 parcela
+        bank_id: account.bank_id
       };
       setFormData(newFormData);
     } else {
@@ -100,7 +102,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         dueDate: '',
         type: 'despesa',
         status: 'pendente',
-        qtd_parcelas: 1
+        qtd_parcelas: 1,
+        bank_id: undefined
       });
     }
 

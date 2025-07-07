@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Calendar, DollarSign } from 'lucide-react';
+import { Calendar, DollarSign, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CategorySelect } from './CategorySelect';
 import { Category } from '@/hooks/useCategoriesData';
+import { useBanksOptions } from '@/hooks/useBanksOptions';
 
 interface Account {
   id?: number;
@@ -19,6 +20,7 @@ interface Account {
   parcela?: string;
   recorrente_id?: string;
   qtd_parcelas?: number;
+  bank_id?: number;
 }
 
 interface AccountFormProps {
@@ -42,6 +44,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   onCancel,
   isEditing
 }) => {
+  const { banksOptions, isLoading: banksLoading } = useBanksOptions();
+
   // Verificação de segurança
   if (!formData) {
     return (
@@ -114,6 +118,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, qtd_parcelas: value });
   };
 
+  const handleBankChange = (value: string) => {
+    setFormData({ ...formData, bank_id: parseInt(value) });
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
@@ -158,6 +166,35 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             <SelectContent>
               <SelectItem value="receita">Receita</SelectItem>
               <SelectItem value="despesa">Despesa</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Seleção de Banco */}
+      <div>
+        <Label htmlFor="bank" className="text-slate-700">Banco</Label>
+        <div className="relative mt-1">
+          <Building2 size={16} className="absolute left-3 top-3 text-slate-400" />
+          <Select
+            value={formData.bank_id ? formData.bank_id.toString() : ''}
+            onValueChange={handleBankChange}
+          >
+            <SelectTrigger className="pl-10">
+              <SelectValue placeholder="Selecione o banco" />
+            </SelectTrigger>
+            <SelectContent>
+              {banksLoading ? (
+                <SelectItem value="" disabled>Carregando bancos...</SelectItem>
+              ) : banksOptions.length === 0 ? (
+                <SelectItem value="" disabled>Nenhum banco cadastrado</SelectItem>
+              ) : (
+                banksOptions.map((bank) => (
+                  <SelectItem key={bank.value} value={bank.value}>
+                    {bank.label}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>

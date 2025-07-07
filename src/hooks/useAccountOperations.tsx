@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Account, CreateAccountData, useAccounts } from '@/contexts/AccountsContext';
 
@@ -43,7 +44,8 @@ export const useAccountOperations = () => {
       category: account.category,
       dueDate: account.dueDate,
       type: account.type,
-      status: account.status
+      status: account.status,
+      bank_id: account.bank_id
     };
     
     console.log('Conta preparada para edição:', accountToEdit);

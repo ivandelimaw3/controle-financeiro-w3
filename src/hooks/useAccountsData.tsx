@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +13,7 @@ export interface Account {
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
   recorrente_id?: string;
+  bank_id?: number;
 }
 
 export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
@@ -73,7 +73,8 @@ export const useAccountsData = () => {
         type: account.type as 'receita' | 'despesa',
         status: account.status as 'pendente' | 'pago' | 'recebido',
         parcela: account.parcela,
-        recorrente_id: account.recorrente_id
+        recorrente_id: account.recorrente_id,
+        bank_id: account.bank_id
       }));
 
       setAccounts(transformedAccounts);
@@ -121,7 +122,8 @@ export const useAccountsData = () => {
             status: accountData.status,
             user_id: user.id,
             parcela: `${i + 1}/${accountData.qtd_parcelas}`,
-            recorrente_id: recorrenteId
+            recorrente_id: recorrenteId,
+            bank_id: accountData.bank_id
           });
         }
 
@@ -150,7 +152,8 @@ export const useAccountsData = () => {
           type: account.type as 'receita' | 'despesa',
           status: account.status as 'pendente' | 'pago' | 'recebido',
           parcela: account.parcela,
-          recorrente_id: account.recorrente_id
+          recorrente_id: account.recorrente_id,
+          bank_id: account.bank_id
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
@@ -170,7 +173,8 @@ export const useAccountsData = () => {
             due_date: accountData.dueDate,
             type: accountData.type,
             status: accountData.status,
-            user_id: user.id
+            user_id: user.id,
+            bank_id: accountData.bank_id
           }])
           .select()
           .single();
@@ -195,7 +199,8 @@ export const useAccountsData = () => {
           type: data.type as 'receita' | 'despesa',
           status: data.status as 'pendente' | 'pago' | 'recebido',
           parcela: data.parcela,
-          recorrente_id: data.recorrente_id
+          recorrente_id: data.recorrente_id,
+          bank_id: data.bank_id
         };
 
         setAccounts(prev => [newAccount, ...prev]);
@@ -235,7 +240,8 @@ export const useAccountsData = () => {
           category: updatedAccount.category,
           due_date: updatedAccount.dueDate,
           type: updatedAccount.type,
-          status: updatedAccount.status
+          status: updatedAccount.status,
+          bank_id: updatedAccount.bank_id
         })
         .eq('id', updatedAccount.id)
         .eq('user_id', user.id);
