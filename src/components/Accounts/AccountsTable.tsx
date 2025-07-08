@@ -21,6 +21,11 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
 }) => {
   const { banks } = useBanksData();
   
+  // Função para formatar valores com vírgula
+  const formatCurrency = (value: number): string => {
+    return Math.abs(value).toFixed(2).replace('.', ',');
+  };
+  
   const getBankName = (bankId?: number) => {
     if (!bankId) return '-';
     const bank = banks.find(b => b.id === bankId);
@@ -62,7 +67,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
             <tr>
               <th className="text-left p-4 font-semibold text-slate-700">Descrição</th>
               <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
-              <th className="text-left p-4 font-semibold text-slate-700">Valor</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Valor (R$)</th>
               <th className="text-left p-4 font-semibold text-slate-700">Banco</th>
               <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
               <th className="text-left p-4 font-semibold text-slate-700">Parcela</th>
@@ -83,8 +88,11 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 </td>
                 <td className="py-2 px-4 text-slate-600">{account.category}</td>
                 <td className="py-2 px-4">
-                  <span className={`font-semibold ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
-                    {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
+                  <span 
+                    className={`font-semibold text-lg ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}
+                    style={{ fontSize: '1.18em' }}
+                  >
+                    {account.type === 'receita' ? '+' : '-'}{formatCurrency(account.amount)}
                   </span>
                 </td>
                 <td className="py-2 px-4">

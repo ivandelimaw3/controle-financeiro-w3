@@ -79,7 +79,10 @@ const App = () => {
                   } />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-                <Toaster duration={2000} />
+                <Toaster 
+                  duration={2000}
+                  closeButton={true}
+                />
                 <ShadcnToaster />
               </div>
             </AccountsProvider>
