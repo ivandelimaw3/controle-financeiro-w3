@@ -8,10 +8,6 @@ interface AccountsSummaryCardsProps {
 }
 
 export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
-  const formatCurrency = (amount: number) => {
-    return Math.abs(amount).toFixed(2).replace('.', ',');
-  };
-
   const calculateTotalPago = () => {
     return accounts
       .filter(account => account.type === 'despesa' && account.status === 'pago')
@@ -49,7 +45,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Recebido</p>
             <p className="text-xl font-bold text-green-600">
-              R$ {formatCurrency(calculateTotalRecebido())}
+              R$ {calculateTotalRecebido().toFixed(2)}
             </p>
           </div>
         </div>
@@ -64,7 +60,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Pago</p>
             <p className="text-xl font-bold text-red-600">
-              R$ {formatCurrency(calculateTotalPago())}
+              R$ {calculateTotalPago().toFixed(2)}
             </p>
           </div>
         </div>
@@ -79,7 +75,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Final</p>
             <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              R$ {formatCurrency(calculateSaldoFinal())}
+              R$ {calculateSaldoFinal().toFixed(2)}
             </p>
           </div>
         </div>
@@ -94,7 +90,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Pendente</p>
             <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              R$ {formatCurrency(calculateTotalPendente())}
+              R$ {calculateTotalPendente().toFixed(2)}
             </p>
           </div>
         </div>

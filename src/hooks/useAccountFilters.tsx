@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Account } from '@/contexts/AccountsContext';
@@ -8,8 +7,7 @@ export const useAccountFilters = (accounts: Account[]) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
-  // Inicializar com o mês corrente em vez de "todos"
-  const [monthFilter, setMonthFilter] = useState(new Date().getMonth().toString());
+  const [monthFilter, setMonthFilter] = useState('todos');
   const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
 
   // Aplicar filtros da URL ao carregar a página

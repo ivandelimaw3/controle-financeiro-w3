@@ -54,10 +54,6 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return Math.abs(amount).toFixed(2).replace('.', ',');
-  };
-
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
@@ -66,7 +62,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
             <tr>
               <th className="text-left p-4 font-semibold text-slate-700">Descrição</th>
               <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
-              <th className="text-left p-4 font-semibold text-slate-700">Valor (R$)</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Valor</th>
               <th className="text-left p-4 font-semibold text-slate-700">Banco</th>
               <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
               <th className="text-left p-4 font-semibold text-slate-700">Parcela</th>
@@ -87,8 +83,8 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 </td>
                 <td className="py-2 px-4 text-slate-600">{account.category}</td>
                 <td className="py-2 px-4">
-                  <span className={`font-semibold text-sm ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
-                    {account.type === 'receita' ? '+' : '-'}{formatCurrency(account.amount)}
+                  <span className={`font-semibold ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
+                    {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                   </span>
                 </td>
                 <td className="py-2 px-4">
@@ -100,7 +96,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 <td className="py-2 px-4">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Calendar size={14} />
-                    <span className="text-xs">{formatDate(account.dueDate)}</span>
+                    {formatDate(account.dueDate)}
                   </div>
                 </td>
                 <td className="py-2 px-4">

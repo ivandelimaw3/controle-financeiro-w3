@@ -33,7 +33,7 @@ export const useAccountsReminder = (accounts: Account[]) => {
       toast({
         title: "⚠️ Lembrete de Pagamento",
         description: `Hoje é a data para Pagamento desta Despesa!! ${expenseNames}`,
-        duration: 2000, // Reduzido para 2 segundos
+        duration: 3000, // 3 segundos
       });
     }
   };
