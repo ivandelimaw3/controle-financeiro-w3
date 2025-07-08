@@ -87,7 +87,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 </td>
                 <td className="py-2 px-4 text-slate-600">{account.category}</td>
                 <td className="py-2 px-4">
-                  <span className={`font-semibold text-xs ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`font-semibold text-sm ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
                     {account.type === 'receita' ? '+' : '-'}{formatCurrency(account.amount)}
                   </span>
                 </td>
