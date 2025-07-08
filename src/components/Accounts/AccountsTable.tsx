@@ -83,7 +83,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 </td>
                 <td className="py-2 px-4 text-slate-600">{account.category}</td>
                 <td className="py-2 px-4">
-                  <span className={`font-semibold ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`font-semibold text-xs ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
                     {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                   </span>
                 </td>
@@ -96,7 +96,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 <td className="py-2 px-4">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Calendar size={14} />
-                    {formatDate(account.dueDate)}
+                    <span className="text-xs">{formatDate(account.dueDate)}</span>
                   </div>
                 </td>
                 <td className="py-2 px-4">
