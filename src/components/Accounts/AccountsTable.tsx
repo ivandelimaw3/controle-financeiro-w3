@@ -65,7 +65,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="text-left p-4 font-semibold text-slate-700">Descrição</th>
+              <th className="text-left p-4 font-semibold text-slate-700 w-1/4 min-w-[200px]">Descrição</th>
               <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
               <th className="text-left p-4 font-semibold text-slate-700">Valor (R$)</th>
               <th className="text-left p-4 font-semibold text-slate-700">Banco</th>
@@ -78,12 +78,12 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
           <tbody>
             {accounts.map((account, index) => (
               <tr key={account.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
-                <td className="py-2 px-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${account.type === 'receita' ? 'bg-green-100' : 'bg-red-100'}`}>
+                <td className="py-2 px-4 w-1/4 min-w-[200px]">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg ${account.type === 'receita' ? 'bg-green-100' : 'bg-red-100'} flex-shrink-0`}>
                       <DollarSign size={16} className={account.type === 'receita' ? 'text-green-600' : 'text-red-600'} />
                     </div>
-                    <span className="text-slate-800">{account.description}</span>
+                    <span className="text-slate-800 break-words leading-relaxed">{account.description}</span>
                   </div>
                 </td>
                 <td className="py-2 px-4 text-slate-600">{account.category}</td>
