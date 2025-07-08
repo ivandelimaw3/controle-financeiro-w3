@@ -83,13 +83,13 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                     <div className={`p-2 rounded-lg ${account.type === 'receita' ? 'bg-green-100' : 'bg-red-100'}`}>
                       <DollarSign size={16} className={account.type === 'receita' ? 'text-green-600' : 'text-red-600'} />
                     </div>
-                    <span className="font-semibold text-xs text-slate-800">{account.description}</span>
+                    <span className="text-slate-800">{account.description}</span>
                   </div>
                 </td>
                 <td className="py-2 px-4 text-slate-600">{account.category}</td>
                 <td className="py-2 px-4">
                   <span 
-                    className={`font-semibold text-lg ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}
+                    className={`font-semibold ${account.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}
                     style={{ fontSize: '1.18em' }}
                   >
                     {account.type === 'receita' ? '+' : '-'}{formatCurrency(account.amount)}
