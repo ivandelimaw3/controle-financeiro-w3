@@ -34,30 +34,8 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
   
-  // Gerar meses dinamicamente baseado nas contas existentes
-  const getAvailableMonths = () => {
-    const currentMonth = new Date().getMonth();
-    const monthsFromAccounts = new Set<number>();
-    
-    // Adicionar meses das contas existentes
-    accounts.forEach(account => {
-      const accountDate = new Date(account.dueDate);
-      monthsFromAccounts.add(accountDate.getMonth());
-    });
-    
-    // Se não há contas, mostrar apenas o mês atual
-    if (monthsFromAccounts.size === 0) {
-      monthsFromAccounts.add(currentMonth);
-    }
-    
-    // Converter para array ordenado iniciando do mês atual
-    const sortedMonths = Array.from(monthsFromAccounts).sort((a, b) => {
-      // Colocar mês atual primeiro, depois os outros em ordem
-      if (a === currentMonth && b !== currentMonth) return -1;
-      if (b === currentMonth && a !== currentMonth) return 1;
-      return a - b;
-    });
-    
+  // Gerar todos os meses do ano
+  const getAllMonths = () => {
     const monthNames = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
@@ -65,17 +43,18 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
     
     const months = [{ value: 'todos', label: 'Todos os Meses' }];
     
-    sortedMonths.forEach(monthIndex => {
+    // Adicionar todos os meses do ano
+    monthNames.forEach((monthName, index) => {
       months.push({
-        value: monthIndex.toString(),
-        label: monthNames[monthIndex]
+        value: index.toString(),
+        label: monthName
       });
     });
     
     return months;
   };
   
-  const months = getAvailableMonths();
+  const months = getAllMonths();
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
