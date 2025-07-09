@@ -37,20 +37,26 @@ export const useAccountFilters = (accounts: Account[]) => {
         const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
         const matchesType = typeFilter === 'todos' || account.type === typeFilter;
         
-        // Filtrar por mês e ano - corrigir a lógica aqui
+        // Filtrar por mês e ano - usar dueDate que é o campo correto
         const accountDate = new Date(account.dueDate);
-        const matchesMonth = monthFilter === 'todos' || accountDate.getMonth() === parseInt(monthFilter);
-        const matchesYear = yearFilter === 'todos' || accountDate.getFullYear() === parseInt(yearFilter);
+        const accountMonth = accountDate.getMonth(); // getMonth() retorna 0-11
+        const accountYear = accountDate.getFullYear();
+        
+        const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
+        const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
         
         console.log('Filtering account:', {
           description: account.description,
           dueDate: account.dueDate,
-          accountMonth: accountDate.getMonth(),
+          accountMonth: accountMonth,
           filterMonth: monthFilter,
+          filterMonthParsed: parseInt(monthFilter),
           matchesMonth,
-          accountYear: accountDate.getFullYear(),
+          accountYear: accountYear,
           filterYear: yearFilter,
-          matchesYear
+          filterYearParsed: parseInt(yearFilter),
+          matchesYear,
+          finalMatch: matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear
         });
         
         return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
