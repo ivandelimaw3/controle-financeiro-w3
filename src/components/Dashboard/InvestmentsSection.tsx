@@ -21,31 +21,30 @@ export const InvestmentsSection = () => {
     investments,
     institutions,
     types,
-    isLoading,
-    error,
-    createInvestment,
+    loading,
+    addInvestment,
     updateInvestment,
     deleteInvestment,
-    isCreating,
-    isUpdating
+    addInstitution,
+    addType
   } = useInvestmentsData();
 
-  const handleCreateInvestment = (investmentData) => {
-    createInvestment(investmentData);
+  const handleCreateInvestment = async (investmentData) => {
+    await addInvestment(investmentData);
     setShowForm(false);
   };
 
-  const handleUpdateInvestment = (investmentData) => {
+  const handleUpdateInvestment = async (investmentData) => {
     if (editingInvestment) {
-      updateInvestment({ id: editingInvestment.id, ...investmentData });
+      await updateInvestment(editingInvestment.id, investmentData);
       setEditingInvestment(null);
       setShowForm(false);
     }
   };
 
-  const handleDeleteInvestment = (id) => {
+  const handleDeleteInvestment = async (id) => {
     if (confirm('Tem certeza que deseja excluir este investimento?')) {
-      deleteInvestment(id);
+      await deleteInvestment(id);
     }
   };
 
@@ -65,7 +64,7 @@ export const InvestmentsSection = () => {
       const matchesSearch = inv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            inv.investor_name?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === 'all' || 
-                             inv.investment_types?.category === categoryFilter;
+                             inv.type?.category === categoryFilter;
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
@@ -73,21 +72,21 @@ export const InvestmentsSection = () => {
         case 'name':
           return a.name.localeCompare(b.name);
         case 'value':
-          return b.current_value - a.current_value;
+          return Number(b.current_value) - Number(a.current_value);
         case 'date':
-          return new Date(b.purchase_date) - new Date(a.purchase_date);
+          return new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime();
         default:
           return 0;
       }
     });
 
   // Calculate totals
-  const totalInvested = investments.reduce((sum, inv) => sum + inv.invested_amount, 0);
-  const totalCurrent = investments.reduce((sum, inv) => sum + inv.current_value, 0);
+  const totalInvested = investments.reduce((sum, inv) => sum + Number(inv.invested_amount), 0);
+  const totalCurrent = investments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
   const totalGain = totalCurrent - totalInvested;
   const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -95,17 +94,6 @@ export const InvestmentsSection = () => {
           <p className="mt-2 text-slate-600">Carregando investimentos...</p>
         </div>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Erro ao carregar investimentos. Tente novamente.
-        </AlertDescription>
-      </Alert>
     );
   }
 
@@ -164,12 +152,11 @@ export const InvestmentsSection = () => {
       <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
         <InvestmentFilters
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          categoryFilter={categoryFilter}
-          setCategoryFilter={setCategoryFilter}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          types={types}
+          onSearchChange={setSearchTerm}
+          selectedMonth="all"
+          onMonthChange={() => {}}
+          selectedYear="all"
+          onYearChange={() => {}}
         />
 
         <div className="mb-4">
@@ -180,8 +167,6 @@ export const InvestmentsSection = () => {
 
         <InvestmentTable
           investments={filteredInvestments}
-          institutions={institutions}
-          types={types}
           onEdit={handleEditInvestment}
           onDelete={handleDeleteInvestment}
         />
@@ -196,12 +181,14 @@ export const InvestmentsSection = () => {
             </DialogTitle>
           </DialogHeader>
           <InvestmentForm
+            isOpen={showForm}
+            onClose={closeForm}
+            onSubmit={editingInvestment ? handleUpdateInvestment : handleCreateInvestment}
+            onAddInstitution={addInstitution}
+            onAddType={addType}
             investment={editingInvestment}
             institutions={institutions}
             types={types}
-            onSubmit={editingInvestment ? handleUpdateInvestment : handleCreateInvestment}
-            onCancel={closeForm}
-            isLoading={isCreating || isUpdating}
           />
         </DialogContent>
       </Dialog>

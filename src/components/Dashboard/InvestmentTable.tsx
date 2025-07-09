@@ -71,8 +71,10 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
           </TableHeader>
           <TableBody>
             {investments.map((investment) => {
-              const returnPercentage = calculateReturn(investment.invested_amount, investment.current_value);
-              const returnValue = calculateReturnValue(investment.invested_amount, investment.current_value);
+              const investedAmount = Number(investment.invested_amount);
+              const currentValue = Number(investment.current_value);
+              const returnPercentage = calculateReturn(investedAmount, currentValue);
+              const returnValue = calculateReturnValue(investedAmount, currentValue);
               const isPositive = returnPercentage >= 0;
               
               return (
@@ -87,8 +89,8 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
                       {investment.type?.name}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">{formatCurrency(investment.invested_amount)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(investment.current_value)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(investedAmount)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(currentValue)}</TableCell>
                   <TableCell className="text-right">
                     <span className="font-medium text-green-600">
                       {formatCurrency(Math.abs(returnValue))}
