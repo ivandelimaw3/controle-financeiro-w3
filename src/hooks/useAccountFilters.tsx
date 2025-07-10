@@ -30,7 +30,11 @@ export const useAccountFilters = (accounts: Account[]) => {
   }, [location.search]);
 
   const filteredAccounts = useMemo(() => {
-    return accounts
+    console.log('=== INÍCIO DO FILTRO ===');
+    console.log('Total de contas:', accounts.length);
+    console.log('Filtros ativos:', { searchTerm, statusFilter, typeFilter, monthFilter, yearFilter });
+
+    const filtered = accounts
       .filter(account => {
         const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              account.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -42,24 +46,22 @@ export const useAccountFilters = (accounts: Account[]) => {
         const accountMonth = accountDate.getMonth(); // getMonth() retorna 0-11
         const accountYear = accountDate.getFullYear();
         
-        // Corrigir a comparação do mês - converter monthFilter para número e comparar corretamente
+        // Converter monthFilter para número apenas se não for 'todos'
         const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
         const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
         
-        // Debug específico para agosto (mês 7)
-        if (monthFilter === '7') {
-          console.log('Debugging August filter:', {
-            description: account.description,
-            dueDate: account.dueDate,
-            accountMonth: accountMonth,
-            filterMonth: monthFilter,
-            filterMonthParsed: parseInt(monthFilter),
-            matchesMonth: accountMonth === parseInt(monthFilter),
-            accountYear: accountYear,
-            filterYear: yearFilter,
-            matchesYear: yearFilter === 'todos' || accountYear === parseInt(yearFilter),
-            finalMatch: matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear
-          });
+        // Log detalhado para cada conta quando o filtro de mês não for 'todos'
+        if (monthFilter !== 'todos') {
+          console.log(`Conta: ${account.description}`);
+          console.log(`- Data: ${account.dueDate}`);
+          console.log(`- Mês da conta: ${accountMonth} (${accountDate.toLocaleDateString('pt-BR', { month: 'long' })})`);
+          console.log(`- Filtro de mês: ${monthFilter} (convertido: ${parseInt(monthFilter)})`);
+          console.log(`- Match mês: ${matchesMonth}`);
+          console.log(`- Ano da conta: ${accountYear}`);
+          console.log(`- Filtro de ano: ${yearFilter}`);
+          console.log(`- Match ano: ${matchesYear}`);
+          console.log(`- Resultado final: ${matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear}`);
+          console.log('---');
         }
         
         return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
@@ -68,6 +70,11 @@ export const useAccountFilters = (accounts: Account[]) => {
         // Ordenar por data de vencimento de forma decrescente (mais recentes primeiro)
         return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
       });
+
+    console.log('Contas filtradas:', filtered.length);
+    console.log('=== FIM DO FILTRO ===');
+    
+    return filtered;
   }, [accounts, searchTerm, statusFilter, typeFilter, monthFilter, yearFilter]);
 
   return {
