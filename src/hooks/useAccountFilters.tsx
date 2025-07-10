@@ -42,22 +42,25 @@ export const useAccountFilters = (accounts: Account[]) => {
         const accountMonth = accountDate.getMonth(); // getMonth() retorna 0-11
         const accountYear = accountDate.getFullYear();
         
+        // Corrigir a comparação do mês - converter monthFilter para número e comparar corretamente
         const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
         const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
         
-        console.log('Filtering account:', {
-          description: account.description,
-          dueDate: account.dueDate,
-          accountMonth: accountMonth,
-          filterMonth: monthFilter,
-          filterMonthParsed: parseInt(monthFilter),
-          matchesMonth,
-          accountYear: accountYear,
-          filterYear: yearFilter,
-          filterYearParsed: parseInt(yearFilter),
-          matchesYear,
-          finalMatch: matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear
-        });
+        // Debug específico para agosto (mês 7)
+        if (monthFilter === '7') {
+          console.log('Debugging August filter:', {
+            description: account.description,
+            dueDate: account.dueDate,
+            accountMonth: accountMonth,
+            filterMonth: monthFilter,
+            filterMonthParsed: parseInt(monthFilter),
+            matchesMonth: accountMonth === parseInt(monthFilter),
+            accountYear: accountYear,
+            filterYear: yearFilter,
+            matchesYear: yearFilter === 'todos' || accountYear === parseInt(yearFilter),
+            finalMatch: matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear
+          });
+        }
         
         return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
       })
