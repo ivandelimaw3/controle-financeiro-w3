@@ -42,7 +42,7 @@ export const useAccountFilters = (accounts: Account[]) => {
         const matchesType = typeFilter === 'todos' || account.type === typeFilter;
         
         // Filtrar por mês e ano - usar dueDate que é o campo correto
-        const accountDate = new Date(account.dueDate);
+        const accountDate = new Date(account.dueDate + 'T12:00:00');
         const accountMonth = accountDate.getMonth(); // getMonth() retorna 0-11
         const accountYear = accountDate.getFullYear();
         
