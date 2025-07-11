@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAccounts } from '@/contexts/AccountsContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Relatorios: React.FC = () => {
   const { accounts, getTotalReceitas, getTotalDespesas, getSaldo } = useAccounts();
@@ -16,10 +17,20 @@ const Relatorios: React.FC = () => {
   const [monthFilter, setMonthFilter] = useState('todos');
   const [yearFilter, setYearFilter] = useState('todos');
 
+  const { toast } = useToast();
+
   // Gerar lista de anos disponíveis
   const availableYears = Array.from(new Set(
     accounts.map(account => new Date(account.dueDate).getFullYear())
   )).sort((a, b) => b - a);
+
+  const handleExportPDF = () => {
+    toast({
+      title: "Exportação de PDF em desenvolvimento",
+      description: "Esta funcionalidade será implementada em breve.",
+      duration: 2000,
+    });
+  };
 
   // Filtrar contas baseado nos filtros
   const filteredAccounts = accounts.filter(account => {
@@ -130,7 +141,10 @@ const Relatorios: React.FC = () => {
             <h1 className="text-3xl font-bold text-slate-800 mb-2">Relatórios</h1>
             <p className="text-slate-600">Análise detalhada das suas finanças</p>
           </div>
-          <Button className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600">
+          <Button 
+            onClick={handleExportPDF}
+            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+          >
             <Download size={20} className="mr-2" />
             Exportar PDF
           </Button>

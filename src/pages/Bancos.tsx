@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Building2, AlertCircle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -10,12 +9,15 @@ import { BankForm } from '@/components/Banks/BankForm';
 import { DepositForm } from '@/components/Banks/DepositForm';
 import { useBanksData, Bank, BankInput } from '@/hooks/useBanksData';
 import { useDepositsData } from '@/hooks/useDepositsData';
+import { useToast } from '@/hooks/use-toast';
 
 const Bancos = () => {
   const [showBankForm, setShowBankForm] = useState(false);
   const [showDepositForm, setShowDepositForm] = useState(false);
   const [editingBank, setEditingBank] = useState<Bank | undefined>();
   const [selectedBankForDeposit, setSelectedBankForDeposit] = useState<Bank | undefined>();
+
+  const { toast } = useToast();
 
   const {
     banks,
@@ -33,6 +35,10 @@ const Bancos = () => {
   const handleCreateBank = (bankData: BankInput) => {
     createBank(bankData);
     setShowBankForm(false);
+    toast({
+      title: "Banco criado com sucesso!",
+      duration: 2000,
+    });
   };
 
   const handleUpdateBank = (bankData: BankInput) => {
@@ -40,12 +46,20 @@ const Bancos = () => {
       updateBank({ id: editingBank.id, ...bankData });
       setEditingBank(undefined);
       setShowBankForm(false);
+      toast({
+        title: "Banco atualizado com sucesso!",
+        duration: 2000,
+      });
     }
   };
 
   const handleDeleteBank = (id: number) => {
     if (confirm('Tem certeza que deseja excluir este banco?')) {
       deleteBank(id);
+      toast({
+        title: "Banco excluído com sucesso!",
+        duration: 2000,
+      });
     }
   };
 
@@ -63,6 +77,10 @@ const Bancos = () => {
     createDeposit(depositData);
     setShowDepositForm(false);
     setSelectedBankForDeposit(undefined);
+    toast({
+      title: "Depósito registrado com sucesso!",
+      duration: 2000,
+    });
   };
 
   const closeBankForm = () => {

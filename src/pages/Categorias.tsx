@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCategoriesData, Category } from '@/hooks/useCategoriesData';
+import { useToast } from '@/hooks/use-toast';
 
 const Categorias: React.FC = () => {
   const { categories, loading, addCategory, updateCategory, deleteCategory, refreshCategories } = useCategoriesData();
@@ -17,12 +18,12 @@ const Categorias: React.FC = () => {
     color: '#3B82F6'
   });
   
+  const { toast } = useToast();
 
   const colorOptions = [
     '#3B82F6', '#10B981', '#EF4444', '#F59E0B', 
     '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'
   ];
-
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
@@ -34,11 +35,19 @@ const Categorias: React.FC = () => {
         ...formData,
         id: editingCategory.id
       } as Category);
+      toast({
+        title: "Categoria atualizada com sucesso!",
+        duration: 2000,
+      });
     } else {
       await addCategory({
         name: formData.name,
         type: formData.type,
         color: formData.color
+      });
+      toast({
+        title: "Categoria criada com sucesso!",
+        duration: 2000,
       });
     }
     
@@ -60,6 +69,10 @@ const Categorias: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     await deleteCategory(id);
+    toast({
+      title: "Categoria excluída com sucesso!",
+      duration: 2000,
+    });
     refreshCategories();
   };
 
