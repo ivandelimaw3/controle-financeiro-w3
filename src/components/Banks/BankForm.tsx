@@ -57,9 +57,7 @@ const formatCurrency = (value: number) => {
     }).format(value);
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-  return (
+   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-4">
         <div>
