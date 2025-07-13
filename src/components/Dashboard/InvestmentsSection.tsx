@@ -86,6 +86,14 @@ export const InvestmentsSection = () => {
   const totalGain = totalCurrent - totalInvested;
   const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
+  // Format currency to Brazilian Real
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -124,19 +132,19 @@ export const InvestmentsSection = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <InvestmentCard
           title="Total Investido"
-          value={`R$ ${totalInvested.toFixed(2)}`}
+          value={formatCurrency(totalInvested)}
           icon={TrendingUp}
           bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
         />
         <InvestmentCard
           title="Valor Atual"
-          value={`R$ ${totalCurrent.toFixed(2)}`}
+          value={formatCurrency(totalCurrent)}
           icon={TrendingUp}
           bgColor="bg-gradient-to-r from-green-500 to-green-600"
         />
         <InvestmentCard
           title="Ganho/Perda"
-          value={`R$ ${totalGain.toFixed(2)}`}
+          value={formatCurrency(totalGain)}
           icon={TrendingUp}
           bgColor={totalGain >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
         />
