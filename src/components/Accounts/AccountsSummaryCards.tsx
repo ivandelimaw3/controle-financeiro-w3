@@ -8,9 +8,12 @@ interface AccountsSummaryCardsProps {
 }
 
 export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
-  // Função para formatar valores com vírgula
+  // Função para formatar valores em reais brasileiros
   const formatCurrency = (value: number): string => {
-    return value.toFixed(2).replace('.', ',');
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
   const calculateTotalPago = () => {
@@ -50,7 +53,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Recebido</p>
             <p className="text-xl font-bold text-green-600">
-              R$ {formatCurrency(calculateTotalRecebido())}
+              {formatCurrency(calculateTotalRecebido())}
             </p>
           </div>
         </div>
@@ -65,7 +68,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Pago</p>
             <p className="text-xl font-bold text-red-600">
-              R$ {formatCurrency(calculateTotalPago())}
+              {formatCurrency(calculateTotalPago())}
             </p>
           </div>
         </div>
@@ -80,7 +83,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Final</p>
             <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              R$ {formatCurrency(calculateSaldoFinal())}
+              {formatCurrency(calculateSaldoFinal())}
             </p>
           </div>
         </div>
@@ -95,7 +98,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Pendente</p>
             <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              R$ {formatCurrency(calculateTotalPendente())}
+              {formatCurrency(calculateTotalPendente())}
             </p>
           </div>
         </div>
