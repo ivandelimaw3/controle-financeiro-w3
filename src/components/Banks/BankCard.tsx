@@ -82,7 +82,7 @@ export const BankCard: React.FC<BankCardProps> = ({
 
         <div className="pt-2 border-t">
           <p className="text-sm text-muted-foreground">Saldo Atual</p>
-          <p className="text-2xl font-bold text-green-600">
+          <p className={`text-2xl font-bold ${bank.balance < 0 ? 'text-red-600' : 'text-green-600'}`}>
             {formatCurrency(bank.balance)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
