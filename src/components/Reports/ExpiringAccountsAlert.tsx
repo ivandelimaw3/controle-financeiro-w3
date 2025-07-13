@@ -69,7 +69,7 @@ export const ExpiringAccountsAlert: React.FC = () => {
     <div className="space-y-4 mb-6">
       {/* Alerta para contas vencendo amanhã */}
       {expiringTomorrow.length > 0 && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="bg-white">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle className="flex items-center gap-2">
             <Calendar size={16} />
@@ -112,7 +112,7 @@ export const ExpiringAccountsAlert: React.FC = () => {
 
       {/* Alerta para contas vencendo em dois dias */}
       {expiringInTwoDays.length > 0 && (
-        <Alert className="border-orange-200 bg-orange-50">
+        <Alert className="border-orange-200 bg-white">
           <Clock className="h-4 w-4 text-orange-600" />
           <AlertTitle className="flex items-center gap-2 text-orange-800">
             <Calendar size={16} />
