@@ -140,22 +140,31 @@ export const BankForm: React.FC<BankFormProps> = ({
 
         {bank && (
           <div>
-            <Label htmlFor="balance" className="text-slate-700">
-              Saldo Atual
-            </Label>
-            <Input
-              id="balance"
-              type="number"
-              step="0.01"
-              value={formData.balance || 0}
-              onChange={(e) => handleChange('balance', parseFloat(e.target.value) || 0)}
-              placeholder="Ex: 1500.00"
-              className="mt-1"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Ajuste o saldo atual da conta
-            </p>
-          </div>
+  <Label htmlFor="balance" className="text-slate-700">
+    Saldo Atual
+  </Label>
+
+  {/* Mostra o valor atual formatado antes da edição */}
+  <p className="text-sm text-slate-500 mb-1">
+    Valor atual: {formatCurrency(formData.balance || 0)}
+  </p>
+
+  <Input
+    id="balance"
+    type="number"
+    step="0.01"
+    value={formData.balance || 0}
+    onChange={(e) =>
+      handleChange('balance', parseFloat(e.target.value) || 0)
+    }
+    placeholder="Ex: 1500.00"
+    className="mt-1"
+  />
+
+  <p className="text-xs text-muted-foreground mt-1">
+    Ajuste o saldo atual da conta
+  </p>
+</div>
         )}
       </div>
 
