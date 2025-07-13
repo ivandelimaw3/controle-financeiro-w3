@@ -50,7 +50,15 @@ export const BankForm: React.FC<BankFormProps> = ({
   const handleChange = (field: keyof (BankInput & { balance: number }), value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
 
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-4">
