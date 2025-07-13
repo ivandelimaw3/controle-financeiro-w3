@@ -17,11 +17,14 @@ const Analise: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Cores variadas para o gráfico de pizza
+  // Cores diversificadas para o gráfico de pizza - expandida para mais categorias
   const COLORS = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', 
     '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-    '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2'
+    '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
+    '#AED6F1', '#A9DFBF', '#F9E79F', '#F5B7B1', '#D2B4DE',
+    '#A3E4D7', '#F4D03F', '#EC7063', '#AF7AC5', '#5DADE2',
+    '#58D68D', '#F7DC6F', '#F1948A', '#BB8FCE', '#76D7C4'
   ];
 
   // Gerar opções de meses e anos
@@ -103,8 +106,6 @@ const Analise: React.FC = () => {
       const matchesMonth = accountMonth === selectedMonth;
       const matchesYear = accountYear === selectedYear;
       
-      console.log(`Conta: ${account.description}, Categoria: ${account.category}, Data: ${account.dueDate}, Tipo: ${account.type}, Mês: ${accountMonth}, Ano: ${accountYear}, Passa filtro: ${isExpense && matchesMonth && matchesYear}`);
-      
       return isExpense && matchesMonth && matchesYear;
     });
 
@@ -123,14 +124,22 @@ const Analise: React.FC = () => {
 
     console.log('Totais por categoria:', categoryTotals);
 
-    // Converter para array e adicionar cores
+    // Converter para array, ordenar por valor (maior para menor) e adicionar cores
     const result = Object.entries(categoryTotals)
       .filter(([_, value]) => value > 0)
+      .sort(([, a], [, b]) => b - a) // Ordenar por valor decrescente
       .map(([name, value], index) => ({
         name,
         value,
-        color: COLORS[index % COLORS.length]
+        color: COLORS[index % COLORS.length],
+        percentage: 0 // Será calculado após ter todos os dados
       }));
+
+    // Calcular porcentagens
+    const total = result.reduce((sum, item) => sum + item.value, 0);
+    result.forEach(item => {
+      item.percentage = total > 0 ? (item.value / total) * 100 : 0;
+    });
 
     console.log('Dados finais do gráfico:', result);
     console.log('=== FIM DEBUG ===');
@@ -160,6 +169,30 @@ const Analise: React.FC = () => {
       label: "Despesas",
       color: "#ef4444",
     },
+  };
+
+  // Componente customizado para labels do gráfico de pizza
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+    if (percent < 0.05) return null; // Não mostrar label para fatias muito pequenas (menos de 5%)
+    
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        fontSize="12"
+        fontWeight="bold"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
   };
 
   return (
@@ -235,7 +268,7 @@ const Analise: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Controles e Gráfico de Pizza */}
+        {/* Controles e Gráfico de Pizza - Atualizado */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -275,46 +308,56 @@ const Analise: React.FC = () => {
                 <div className="text-sm text-slate-600">
                   Despesas de {months[selectedMonth].label} de {selectedYear}
                 </div>
-                <ResponsiveContainer width="100%" height={400}>
+                <ResponsiveContainer width="100%" height={450}>
                   <PieChart>
                     <Pie
                       data={pieChartData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={120}
+                      label={renderCustomizedLabel}
+                      outerRadius={140}
                       fill="#8884d8"
                       dataKey="value"
+                      stroke="#fff"
+                      strokeWidth={2}
                     >
                       {pieChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => [
+                      formatter={(value: number, name: string) => [
                         `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                        'Valor'
+                        name
                       ]}
+                      labelFormatter={(label) => `Categoria: ${label}`}
                     />
                   </PieChart>
                 </ResponsiveContainer>
                 
-                {/* Legenda das categorias */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+                {/* Legenda das categorias - Melhorada */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
                   {pieChartData.map((category, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                    <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-slate-50">
                       <div 
-                        className="w-4 h-4 rounded-full" 
+                        className="w-5 h-5 rounded-full flex-shrink-0" 
                         style={{ backgroundColor: category.color }}
                       ></div>
-                      <span className="text-sm text-slate-700">{category.name}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-slate-700 block truncate">
+                          {category.name}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {category.percentage.toFixed(1)}% • R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[400px] text-slate-500">
+              <div className="flex flex-col items-center justify-center h-[450px] text-slate-500">
                 <p className="text-lg mb-2">Nenhuma despesa encontrada</p>
                 <p className="text-sm text-center">
                   Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.
