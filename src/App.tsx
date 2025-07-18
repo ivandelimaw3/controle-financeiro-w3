@@ -11,12 +11,12 @@ import Contas from "./pages/Contas";
 import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
 import Bancos from "./pages/Bancos";
-import Cartoes from "./pages/Cartoes";
 import Investimentos from "./pages/Investimentos";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
+import Cartoes from "./pages/Cartoes";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,14 +57,14 @@ const App = () => {
                       <Bancos />
                     </ProtectedRoute>
                   } />
-                  <Route path="/cartoes" element={
-                    <ProtectedRoute>
-                      <Cartoes />
-                    </ProtectedRoute>
-                  } />
                   <Route path="/investimentos" element={
                     <ProtectedRoute>
                       <Investimentos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/cartoes" element={
+                    <ProtectedRoute>
+                      <Cartoes />
                     </ProtectedRoute>
                   } />
                   <Route path="/analise" element={
