@@ -49,7 +49,7 @@ export const useCardsData = () => {
     queryKey: ['cards'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('cards' as any)
+        .from('cards')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -58,7 +58,7 @@ export const useCardsData = () => {
         throw error;
       }
 
-      return data as Card[];
+      return (data || []) as Card[];
     }
   });
 
@@ -70,7 +70,7 @@ export const useCardsData = () => {
       if (!user) throw new Error('Usuário não autenticado');
 
       const { data, error } = await supabase
-        .from('cards' as any)
+        .from('cards')
         .insert({
           ...cardData,
           user_id: user.id
@@ -106,7 +106,7 @@ export const useCardsData = () => {
   const updateCardMutation = useMutation({
     mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
       const { data, error } = await supabase
-        .from('cards' as any)
+        .from('cards')
         .update(cardData)
         .eq('id', id)
         .select()
@@ -140,7 +140,7 @@ export const useCardsData = () => {
   const deleteCardMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from('cards' as any)
+        .from('cards')
         .delete()
         .eq('id', id);
 
