@@ -45,6 +45,10 @@ export const CardForm: React.FC<CardFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.card_type || !formData.card_brand) {
+      alert('Selecione o tipo e a bandeira do cartão.');
+      return;
+    }
     onSubmit(formData);
   };
 
@@ -138,7 +142,11 @@ export const CardForm: React.FC<CardFormProps> = ({
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={isLoading}>
           Cancelar
         </Button>
-        <Button type="submit" className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+          disabled={isLoading || !formData.card_type || !formData.card_brand}
+        >
           {isLoading ? 'Salvando...' : (card ? 'Atualizar' : 'Salvar')}
         </Button>
       </div>
