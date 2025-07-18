@@ -31,8 +31,8 @@ export const CardForm: React.FC<CardFormProps> = ({
     card_number: '',
     expiry: '',
     cvv: '',
-    card_type: '',
-    card_brand: ''
+    card_type: undefined as any,
+    card_brand: undefined as any,
   });
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export const CardForm: React.FC<CardFormProps> = ({
         <div>
           <Label htmlFor="card_type">Tipo do cartão *</Label>
           <Select
-            value={formData.card_type}
+            value={formData.card_type ?? ''}
             onValueChange={value => handleChange('card_type', value)}
             required
           >
@@ -120,7 +120,7 @@ export const CardForm: React.FC<CardFormProps> = ({
         <div>
           <Label htmlFor="card_brand">Bandeira *</Label>
           <Select
-            value={formData.card_brand}
+            value={formData.card_brand ?? ''}
             onValueChange={value => handleChange('card_brand', value)}
             required
           >
