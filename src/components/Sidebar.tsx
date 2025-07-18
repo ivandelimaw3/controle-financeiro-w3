@@ -23,6 +23,7 @@ export const Sidebar: React.FC = () => {
     { icon: CreditCard, label: 'Contas', path: '/contas' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
     { icon: Building2, label: 'Bancos', path: '/bancos' },
+    { icon: CreditCard, label: 'Cartões', path: '/cartoes' },
     { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: BarChart3, label: 'Análise Gráfica', path: '/analise' },

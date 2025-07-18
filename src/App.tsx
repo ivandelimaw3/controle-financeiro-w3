@@ -1,4 +1,3 @@
-
 import { Toaster } from "sonner";
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import Contas from "./pages/Contas";
 import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
 import Bancos from "./pages/Bancos";
+import Cartoes from "./pages/Cartoes";
 import Investimentos from "./pages/Investimentos";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
@@ -55,6 +55,11 @@ const App = () => {
                   <Route path="/bancos" element={
                     <ProtectedRoute>
                       <Bancos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/cartoes" element={
+                    <ProtectedRoute>
+                      <Cartoes />
                     </ProtectedRoute>
                   } />
                   <Route path="/investimentos" element={
