@@ -1,38 +1,13 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { CardInput } from '@/components/Cards/CardForm';
 
-export interface Card {
+export interface Card extends CardInput {
   id: number;
-  user_id: string;
-  bank_id?: number;
-  card_name: string;
-  card_number: string;
-  card_type: string;
-  card_brand: string;
-  holder_name: string;
-  expiry_date: string;
-  credit_limit: number;
-  current_balance: number;
-  is_active: boolean;
-  nickname?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CardInput {
-  card_name: string;
-  card_number: string;
-  card_type: string;
-  card_brand: string;
-  holder_name: string;
-  expiry_date: string;
-  credit_limit?: number;
-  current_balance?: number;
-  bank_id?: number;
-  nickname?: string;
-  is_active?: boolean;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const useCardsData = () => {
@@ -52,12 +27,10 @@ export const useCardsData = () => {
         .from('cards')
         .select('*')
         .order('created_at', { ascending: false });
-
       if (error) {
         console.error('Erro ao buscar cartões:', error);
         throw error;
       }
-
       return (data || []) as Card[];
     }
   });
@@ -66,38 +39,33 @@ export const useCardsData = () => {
   const createCardMutation = useMutation({
     mutationFn: async (cardData: CardInput) => {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) throw new Error('Usuário não autenticado');
-
       const { data, error } = await supabase
         .from('cards')
         .insert({
           ...cardData,
-          user_id: user.id
+          user_id: user?.id
         })
         .select()
         .single();
-
       if (error) {
         console.error('Erro ao criar cartão:', error);
         throw error;
       }
-
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cards'] });
       toast({
-        title: "Cartão cadastrado com sucesso!",
-        description: "O cartão foi adicionado à sua lista.",
+        title: 'Cartão cadastrado com sucesso!',
+        description: 'O cartão foi adicionado à sua lista.',
       });
     },
     onError: (error) => {
       console.error('Erro ao cadastrar cartão:', error);
       toast({
-        title: "Erro ao cadastrar cartão",
-        description: "Não foi possível cadastrar o cartão. Tente novamente.",
-        variant: "destructive",
+        title: 'Erro ao cadastrar cartão',
+        description: 'Não foi possível cadastrar o cartão. Tente novamente.',
+        variant: 'destructive',
       });
     }
   });
@@ -107,31 +75,29 @@ export const useCardsData = () => {
     mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
       const { data, error } = await supabase
         .from('cards')
-        .update(cardData)
+        .update({ ...cardData, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single();
-
       if (error) {
         console.error('Erro ao atualizar cartão:', error);
         throw error;
       }
-
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cards'] });
       toast({
-        title: "Cartão atualizado com sucesso!",
-        description: "As informações do cartão foram atualizadas.",
+        title: 'Cartão atualizado com sucesso!',
+        description: 'As informações do cartão foram atualizadas.',
       });
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
       toast({
-        title: "Erro ao atualizar cartão",
-        description: "Não foi possível atualizar o cartão. Tente novamente.",
-        variant: "destructive",
+        title: 'Erro ao atualizar cartão',
+        description: 'Não foi possível atualizar o cartão. Tente novamente.',
+        variant: 'destructive',
       });
     }
   });
@@ -143,7 +109,6 @@ export const useCardsData = () => {
         .from('cards')
         .delete()
         .eq('id', id);
-
       if (error) {
         console.error('Erro ao deletar cartão:', error);
         throw error;
@@ -152,16 +117,16 @@ export const useCardsData = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cards'] });
       toast({
-        title: "Cartão removido com sucesso!",
-        description: "O cartão foi removido da sua lista.",
+        title: 'Cartão removido com sucesso!',
+        description: 'O cartão foi removido da sua lista.',
       });
     },
     onError: (error) => {
       console.error('Erro ao deletar cartão:', error);
       toast({
-        title: "Erro ao remover cartão",
-        description: "Não foi possível remover o cartão. Tente novamente.",
-        variant: "destructive",
+        title: 'Erro ao remover cartão',
+        description: 'Não foi possível remover o cartão. Tente novamente.',
+        variant: 'destructive',
       });
     }
   });
@@ -178,4 +143,4 @@ export const useCardsData = () => {
     isUpdating: updateCardMutation.isPending,
     isDeleting: deleteCardMutation.isPending,
   };
-};
+}; 
