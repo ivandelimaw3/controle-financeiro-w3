@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, CreditCard, AlertCircle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -169,4 +168,4 @@ const Cartoes = () => {
   );
 };
 
-export default Cartoes;
+export default Cartoes; 
