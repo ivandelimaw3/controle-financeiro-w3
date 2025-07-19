@@ -1,53 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBanksOptions } from '@/hooks/useBanksOptions';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-export interface CardInput {
-  holder_name: string;
-  card_number: string;
-  expiry: string;
-  cvv: string;
-  card_type: string;
-  card_brand: string;
-}
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useBanksOptions } from '@/hooks/useBanksOptions'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 interface CardFormProps {
   card?: {
-    id: string;
-    name: string;
-    limit: number;
-    bank_id?: string;
-    due_date: number;
-    closing_date: number;
-  };
-  onSuccess: () => void;
-  onCancel: () => void;
+    id: string
+    name: string
+    limit: number
+    bank_id?: string
+    due_date: number
+    closing_date: number
+  }
+  onSuccess: () => void
+  onCancel: () => void
 }
 
-export const CardForm: React.FC<CardFormProps> = ({ card, onSuccess, onCancel }) => {
-  const [name, setName] = useState(card?.name || '');
-  const [limit, setLimit] = useState(card?.limit?.toString() || '');
-  const [bankId, setBankId] = useState(card?.bank_id || '');
-  const [dueDate, setDueDate] = useState(card?.due_date?.toString() || '');
-  const [closingDate, setClosingDate] = useState(card?.closing_date?.toString() || '');
-  const [loading, setLoading] = useState(false);
+export function CardForm({ card, onSuccess, onCancel }: CardFormProps) {
+  const [name, setName] = useState(card?.name || '')
+  const [limit, setLimit] = useState(card?.limit?.toString() || '')
+  const [bankId, setBankId] = useState(card?.bank_id || '')
+  const [dueDate, setDueDate] = useState(card?.due_date?.toString() || '')
+  const [closingDate, setClosingDate] = useState(card?.closing_date?.toString() || '')
+  const [loading, setLoading] = useState(false)
 
-  const { banks, loading: banksLoading } = useBanksOptions();
+  const { banks, loading: banksLoading } = useBanksOptions()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     
     if (!name || !limit || !bankId || !dueDate || !closingDate) {
-      toast.error('Todos os campos são obrigatórios');
-      return;
+      toast.error('Todos os campos são obrigatórios')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
 
     try {
       const cardData = {
@@ -56,35 +47,35 @@ export const CardForm: React.FC<CardFormProps> = ({ card, onSuccess, onCancel })
         bank_id: bankId,
         due_date: parseInt(dueDate),
         closing_date: parseInt(closingDate)
-      };
+      }
 
       if (card) {
         // Atualizar cartão existente
         const { error } = await supabase
           .from('cards')
           .update(cardData)
-          .eq('id', card.id);
+          .eq('id', card.id)
 
-        if (error) throw error;
-        toast.success('Cartão atualizado com sucesso!');
+        if (error) throw error
+        toast.success('Cartão atualizado com sucesso!')
       } else {
         // Criar novo cartão
         const { error } = await supabase
           .from('cards')
-          .insert([cardData]);
+          .insert([cardData])
 
-        if (error) throw error;
-        toast.success('Cartão criado com sucesso!');
+        if (error) throw error
+        toast.success('Cartão criado com sucesso!')
       }
 
-      onSuccess();
+      onSuccess()
     } catch (error) {
-      console.error('Erro ao salvar cartão:', error);
-      toast.error('Erro ao salvar cartão');
+      console.error('Erro ao salvar cartão:', error)
+      toast.error('Erro ao salvar cartão')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -165,5 +156,5 @@ export const CardForm: React.FC<CardFormProps> = ({ card, onSuccess, onCancel })
         </Button>
       </div>
     </form>
-  );
-}; 
+  )
+} 
