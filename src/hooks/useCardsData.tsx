@@ -66,9 +66,9 @@ export const useCardsData = () => {
         console.log('Card data:', card);
         const transformedCard = {
           ...card,
-          bank_name: card.banks?.name,
-          current_balance: card.current_balance || 0,
-          payment_date: card.payment_date || 0
+          bank_name: card.banks?.name || 'Não informado',
+          current_balance: card.current_balance !== null && card.current_balance !== undefined ? Number(card.current_balance) : 0,
+          payment_date: card.payment_date !== null && card.payment_date !== undefined ? Number(card.payment_date) : 0
         };
         console.log('Transformed card:', transformedCard);
         return transformedCard;
