@@ -1,38 +1,16 @@
 
-import { useState, useEffect } from 'react'
-import { supabase } from '../integrations/supabase/client'
+import { useBanksData } from '@/hooks/useBanksData';
 
-export interface BankOption {
-  id: string
-  name: string
-}
+export const useBanksOptions = () => {
+  const { banks, isLoading } = useBanksData();
+  
+  const banksOptions = banks.map(bank => ({
+    value: bank.id.toString(),
+    label: bank.nickname || bank.name
+  }));
 
-export function useBanksOptions() {
-  const [banks, setBanks] = useState<BankOption[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchBanks()
-  }, [])
-
-  const fetchBanks = async () => {
-    try {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('banks')
-        .select('id, name')
-        .order('name')
-
-      if (error) throw error
-
-      setBanks(data || [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar bancos')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return { banks, loading, error, refetch: fetchBanks }
-}
+  return {
+    banksOptions,
+    isLoading
+  };
+};
