@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CardCard } from '@/components/Cards/CardCard';
 import { CardForm } from '@/components/Cards/CardForm';
-import { useCardsData, Card, CardInput } from '@/hooks/useCardsData';
+import { useCardsData, Card } from '@/hooks/useCardsData';
 import { useToast } from '@/hooks/use-toast';
 
 const Cartoes = () => {
@@ -26,7 +26,12 @@ const Cartoes = () => {
     isUpdating
   } = useCardsData();
 
-  const handleCreateCard = (cardData: CardInput) => {
+  // Debug: verificar dados
+  console.log('Cartões carregados:', cards);
+  console.log('Loading:', isLoading);
+  console.log('Erro:', error);
+
+  const handleCreateCard = (cardData: any) => {
     createCard(cardData);
     setShowCardForm(false);
     toast({
@@ -35,7 +40,7 @@ const Cartoes = () => {
     });
   };
 
-  const handleUpdateCard = (cardData: CardInput) => {
+  const handleUpdateCard = (cardData: any) => {
     if (editingCard) {
       updateCard({ id: editingCard.id, ...cardData });
       setEditingCard(undefined);
