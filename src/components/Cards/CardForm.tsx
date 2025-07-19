@@ -1,90 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBanksOptions } from '@/hooks/useBanksOptions';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useBanksOptions } from '@/hooks/useBanksOptions'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 export interface CardInput {
-  holder_name: string;
-  card_number: string;
-  expiry: string;
-  cvv: string;
-  card_type: string;
-  card_brand: string;
+  name: string
+  limit_amount: number
+  bank_id?: number
+  due_date: number
+  closing_date: number
 }
 
 interface CardFormProps {
   card?: {
-    id: string;
-    name: string;
-    limit: number;
-    bank_id?: string;
-    due_date: number;
-    closing_date: number;
-  };
-  onSuccess: () => void;
-  onCancel: () => void;
+    id: number
+    name: string
+    limit_amount: number
+    bank_id?: number
+    due_date: number
+    closing_date: number
+  }
+  onSubmit: (data: CardInput) => void
+  onCancel: () => void
+  isLoading?: boolean
 }
 
-export const CardForm: React.FC<CardFormProps> = ({ card, onSuccess, onCancel }) => {
-  const [name, setName] = useState(card?.name || '');
-  const [limit, setLimit] = useState(card?.limit?.toString() || '');
-  const [bankId, setBankId] = useState(card?.bank_id || '');
-  const [dueDate, setDueDate] = useState(card?.due_date?.toString() || '');
-  const [closingDate, setClosingDate] = useState(card?.closing_date?.toString() || '');
-  const [loading, setLoading] = useState(false);
+export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFormProps) {
+  const [name, setName] = useState(card?.name || '')
+  const [limit, setLimit] = useState(card?.limit_amount?.toString() || '')
+  const [bankId, setBankId] = useState(card?.bank_id?.toString() || '')
+  const [dueDate, setDueDate] = useState(card?.due_date?.toString() || '')
+  const [closingDate, setClosingDate] = useState(card?.closing_date?.toString() || '')
 
-  const { banks, loading: banksLoading } = useBanksOptions();
+  const { banks, loading: banksLoading } = useBanksOptions()
+
+  // Debug: verificar se os bancos estão sendo carregados
+  useEffect(() => {
+    console.log('Bancos carregados:', banks)
+    console.log('Loading bancos:', banksLoading)
+  }, [banks, banksLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     
     if (!name || !limit || !bankId || !dueDate || !closingDate) {
-      toast.error('Todos os campos são obrigatórios');
-      return;
+      toast.error('Todos os campos são obrigatórios')
+      return
     }
 
-    setLoading(true);
-
-    try {
-      const cardData = {
-        name,
-        limit: parseFloat(limit),
-        bank_id: bankId,
-        due_date: parseInt(dueDate),
-        closing_date: parseInt(closingDate)
-      };
-
-      if (card) {
-        // Atualizar cartão existente
-        const { error } = await supabase
-          .from('cards')
-          .update(cardData)
-          .eq('id', card.id);
-
-        if (error) throw error;
-        toast.success('Cartão atualizado com sucesso!');
-      } else {
-        // Criar novo cartão
-        const { error } = await supabase
-          .from('cards')
-          .insert([cardData]);
-
-        if (error) throw error;
-        toast.success('Cartão criado com sucesso!');
-      }
-
-      onSuccess();
-    } catch (error) {
-      console.error('Erro ao salvar cartão:', error);
-      toast.error('Erro ao salvar cartão');
-    } finally {
-      setLoading(false);
+    const cardData: CardInput = {
+      name,
+      limit_amount: parseFloat(limit),
+      bank_id: bankId ? parseInt(bankId) : undefined,
+      due_date: parseInt(dueDate),
+      closing_date: parseInt(closingDate)
     }
-  };
+
+    onSubmit(cardData)
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -157,13 +134,13 @@ export const CardForm: React.FC<CardFormProps> = ({ card, onSuccess, onCancel })
       </div>
 
       <div className="flex gap-2 pt-4">
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Salvando...' : (card ? 'Atualizar' : 'Criar')}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Salvando...' : (card ? 'Atualizar' : 'Criar')}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
       </div>
     </form>
-  );
-}; 
+  )
+} 

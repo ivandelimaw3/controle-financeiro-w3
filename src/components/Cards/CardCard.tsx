@@ -9,10 +9,10 @@ import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
 interface CardData {
-  id: string
+  id: number
   name: string
-  limit: number
-  bank_id?: string
+  limit_amount: number
+  bank_id?: number
   bank_name?: string
   due_date: number
   closing_date: number
@@ -22,7 +22,7 @@ interface CardData {
 interface CardCardProps {
   card: CardData
   onEdit: (card: CardData) => void
-  onDelete: (id: string) => void
+  onDelete: (id: number) => void
 }
 
 export function CardCard({ card, onEdit, onDelete }: CardCardProps) {
@@ -65,7 +65,7 @@ export function CardCard({ card, onEdit, onDelete }: CardCardProps) {
                 <Badge variant="secondary">{card.bank_name}</Badge>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">Limite: R$ {card.limit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-sm text-muted-foreground">Limite: R$ {card.limit_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             <p className="text-sm text-muted-foreground">Vencimento: {card.due_date}º dia</p>
             <p className="text-sm text-muted-foreground">Fechamento: {card.closing_date}º dia</p>
           </div>
