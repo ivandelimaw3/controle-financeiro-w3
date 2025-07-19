@@ -16,48 +16,100 @@ export const CardCard: React.FC<CardCardProps> = ({
   onEdit,
   onDelete
 }) => {
-  const formatCurrency = (value: any) => {
-    if (value === null || value === undefined || isNaN(value)) {
+  // Função segura para formatar moeda
+  const safeFormatCurrency = (value: any) => {
+    try {
+      if (value === null || value === undefined || isNaN(value)) {
+        return 'R$ 0,00';
+      }
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(Number(value));
+    } catch (error) {
+      console.error('Erro ao formatar moeda:', error);
       return 'R$ 0,00';
     }
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(Number(value));
   };
 
-  const formatCardNumber = (number: string) => {
-    if (!number) return '**** **** **** ****';
-    return number.replace(/(\d{4})(?=\d)/g, '$1 ');
+  // Função segura para formatar número do cartão
+  const safeFormatCardNumber = (number: any) => {
+    try {
+      if (!number || typeof number !== 'string') return '**** **** **** ****';
+      return number.replace(/(\d{4})(?=\d)/g, '$1 ');
+    } catch (error) {
+      return '**** **** **** ****';
+    }
   };
 
-  const formatExpiryDate = (date: string) => {
-    if (!date) return 'MM/AA';
-    return date.replace(/(\d{2})(\d{2})/, '$1/$2');
+  // Função segura para formatar data de validade
+  const safeFormatExpiryDate = (date: any) => {
+    try {
+      if (!date || typeof date !== 'string') return 'MM/AA';
+      return date.replace(/(\d{2})(\d{2})/, '$1/$2');
+    } catch (error) {
+      return 'MM/AA';
+    }
   };
 
-  const getCardBrandLabel = (brand: string) => {
-    const brands: { [key: string]: string } = {
-      'visa': 'Visa',
-      'mastercard': 'Mastercard',
-      'elo': 'Elo',
-      'amex': 'American Express',
-      'hipercard': 'Hipercard',
-      'discover': 'Discover'
-    };
-    return brands[brand.toLowerCase()] || brand;
+  // Função segura para obter label da bandeira
+  const safeGetCardBrandLabel = (brand: any) => {
+    try {
+      if (!brand || typeof brand !== 'string') return 'Desconhecida';
+      const brands: { [key: string]: string } = {
+        'visa': 'Visa',
+        'mastercard': 'Mastercard',
+        'elo': 'Elo',
+        'amex': 'American Express',
+        'hipercard': 'Hipercard',
+        'discover': 'Discover'
+      };
+      return brands[brand.toLowerCase()] || brand;
+    } catch (error) {
+      return 'Desconhecida';
+    }
   };
 
-  const getCardBrandColor = (brand: string) => {
-    const colors: { [key: string]: string } = {
-      'visa': 'bg-blue-600',
-      'mastercard': 'bg-red-600',
-      'elo': 'bg-green-600',
-      'amex': 'bg-blue-800',
-      'hipercard': 'bg-purple-600',
-      'discover': 'bg-orange-600'
-    };
-    return colors[brand.toLowerCase()] || 'bg-gray-600';
+  // Função segura para obter cor da bandeira
+  const safeGetCardBrandColor = (brand: any) => {
+    try {
+      if (!brand || typeof brand !== 'string') return 'bg-gray-600';
+      const colors: { [key: string]: string } = {
+        'visa': 'bg-blue-600',
+        'mastercard': 'bg-red-600',
+        'elo': 'bg-green-600',
+        'amex': 'bg-blue-800',
+        'hipercard': 'bg-purple-600',
+        'discover': 'bg-orange-600'
+      };
+      return colors[brand.toLowerCase()] || 'bg-gray-600';
+    } catch (error) {
+      return 'bg-gray-600';
+    }
+  };
+
+  // Função segura para obter valor numérico
+  const safeGetNumber = (value: any) => {
+    try {
+      if (value === null || value === undefined || isNaN(value)) {
+        return 0;
+      }
+      return Number(value);
+    } catch (error) {
+      return 0;
+    }
+  };
+
+  // Função segura para obter string
+  const safeGetString = (value: any, defaultValue: string = '') => {
+    try {
+      if (value === null || value === undefined) {
+        return defaultValue;
+      }
+      return String(value);
+    } catch (error) {
+      return defaultValue;
+    }
   };
 
   return (
@@ -68,15 +120,15 @@ export const CardCard: React.FC<CardCardProps> = ({
             <CreditCard className="h-8 w-8 text-blue-600" />
             <div>
               <CardTitle className="text-lg">
-                {card.name}
+                {safeGetString(card.name, 'Nome não informado')}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                {formatCardNumber(card.card_number)}
+                {safeFormatCardNumber(card.card_number)}
               </p>
             </div>
           </div>
-          <Badge className={getCardBrandColor(card.card_brand)}>
-            {getCardBrandLabel(card.card_brand)}
+          <Badge className={safeGetCardBrandColor(card.card_brand)}>
+            {safeGetCardBrandLabel(card.card_brand)}
           </Badge>
         </div>
       </CardHeader>
@@ -85,7 +137,7 @@ export const CardCard: React.FC<CardCardProps> = ({
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Validade</p>
-            <p className="font-medium">{formatExpiryDate(card.expiry_date)}</p>
+            <p className="font-medium">{safeFormatExpiryDate(card.expiry_date)}</p>
           </div>
           <div>
             <p className="text-muted-foreground">CVV</p>
@@ -96,18 +148,18 @@ export const CardCard: React.FC<CardCardProps> = ({
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Banco</p>
-            <p className="font-medium">{card.bank_name || 'Não informado'}</p>
+            <p className="font-medium">{safeGetString(card.bank_name, 'Não informado')}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Data Pagamento</p>
-            <p className="font-medium">{Number(card.payment_date) || 0}º dia</p>
+            <p className="font-medium">{safeGetNumber(card.payment_date)}º dia</p>
           </div>
         </div>
 
         <div className="pt-2 border-t">
           <p className="text-sm text-muted-foreground">Débito Atual</p>
-          <p className={`text-2xl font-bold ${(Number(card.current_balance) || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {formatCurrency(card.current_balance)}
+          <p className={`text-2xl font-bold ${safeGetNumber(card.current_balance) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+            {safeFormatCurrency(card.current_balance)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Última atualização: {card.updated_at ? new Date(card.updated_at).toLocaleDateString('pt-BR') : 'N/A'}
