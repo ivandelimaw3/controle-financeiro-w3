@@ -122,6 +122,14 @@ const Cartoes = () => {
           </div>
         </div>
 
+        {/* Debug: mostrar dados */}
+        <div className="bg-gray-100 p-4 rounded">
+          <h3 className="font-bold mb-2">Debug - Dados dos Cartões:</h3>
+          <pre className="text-sm">
+            {JSON.stringify(cards, null, 2)}
+          </pre>
+        </div>
+
         {cards.length === 0 ? (
           <div className="text-center py-12">
             <CreditCard className="h-16 w-16 text-slate-300 mx-auto mb-4" />
