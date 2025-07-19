@@ -1,7 +1,17 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { CardInput } from '@/components/Cards/CardForm';
+
+export interface CardInput {
+  holder_name: string;
+  card_number: string;
+  expiry: string;
+  cvv: string;
+  card_type: string;
+  card_brand: string;
+  bank_id?: number;
+}
 
 export interface Card extends CardInput {
   id: number;
@@ -143,4 +153,4 @@ export const useCardsData = () => {
     isUpdating: updateCardMutation.isPending,
     isDeleting: deleteCardMutation.isPending,
   };
-}; 
+};

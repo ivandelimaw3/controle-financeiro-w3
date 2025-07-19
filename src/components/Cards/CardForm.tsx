@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBanksOptions } from '@/hooks/useBanksOptions';
 
 export interface CardInput {
   holder_name: string;
@@ -11,6 +13,7 @@ export interface CardInput {
   cvv: string;
   card_type: string;
   card_brand: string;
+  bank_id?: number;
 }
 
 interface CardFormProps {
@@ -26,6 +29,8 @@ export const CardForm: React.FC<CardFormProps> = ({
   onCancel,
   isLoading = false
 }) => {
+  const { banksOptions, isLoading: isLoadingBanks } = useBanksOptions();
+  
   const [formData, setFormData] = useState<CardInput>({
     holder_name: '',
     card_number: '',
@@ -33,13 +38,14 @@ export const CardForm: React.FC<CardFormProps> = ({
     cvv: '',
     card_type: undefined as any,
     card_brand: undefined as any,
+    bank_id: undefined
   });
 
   useEffect(() => {
     if (card) setFormData(card);
   }, [card]);
 
-  const handleChange = (field: keyof CardInput, value: string) => {
+  const handleChange = (field: keyof CardInput, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -100,6 +106,26 @@ export const CardForm: React.FC<CardFormProps> = ({
           />
         </div>
       </div>
+      <div>
+        <Label htmlFor="bank_id">Banco</Label>
+        <Select
+          value={formData.bank_id?.toString() ?? ''}
+          onValueChange={value => handleChange('bank_id', value ? parseInt(value) : undefined)}
+          disabled={isLoadingBanks}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={isLoadingBanks ? "Carregando bancos..." : "Selecione um banco"} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Nenhum banco</SelectItem>
+            {banksOptions.map((bank) => (
+              <SelectItem key={bank.value} value={bank.value}>
+                {bank.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="card_type">Tipo do cartão *</Label>
@@ -152,4 +178,4 @@ export const CardForm: React.FC<CardFormProps> = ({
       </div>
     </form>
   );
-}; 
+};
