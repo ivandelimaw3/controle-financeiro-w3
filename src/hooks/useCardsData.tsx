@@ -13,9 +13,16 @@ export interface CardInput {
   bank_id?: number;
 }
 
-export interface Card extends CardInput {
+export interface Card {
   id: number;
   user_id?: string;
+  holder_name: string;
+  card_number: string;
+  expiry: string;
+  cvv: string;
+  card_type: string;
+  card_brand: string;
+  bank_id?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -52,7 +59,13 @@ export const useCardsData = () => {
       const { data, error } = await supabase
         .from('cards')
         .insert({
-          ...cardData,
+          holder_name: cardData.holder_name,
+          card_number: cardData.card_number,
+          expiry: cardData.expiry,
+          cvv: cardData.cvv,
+          card_type: cardData.card_type,
+          card_brand: cardData.card_brand,
+          bank_id: cardData.bank_id,
           user_id: user?.id
         })
         .select()
@@ -85,7 +98,16 @@ export const useCardsData = () => {
     mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
       const { data, error } = await supabase
         .from('cards')
-        .update({ ...cardData, updated_at: new Date().toISOString() })
+        .update({
+          holder_name: cardData.holder_name,
+          card_number: cardData.card_number,
+          expiry: cardData.expiry,
+          cvv: cardData.cvv,
+          card_type: cardData.card_type,
+          card_brand: cardData.card_brand,
+          bank_id: cardData.bank_id,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', id)
         .select()
         .single();

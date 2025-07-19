@@ -113,53 +113,41 @@ export type Database = {
         Row: {
           bank_id: number | null
           card_brand: string
-          card_name: string
           card_number: string
           card_type: string
           created_at: string | null
-          credit_limit: number | null
-          current_balance: number | null
-          expiry_date: string
+          cvv: string
+          expiry: string
           holder_name: string
           id: number
-          is_active: boolean | null
-          nickname: string | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           bank_id?: number | null
           card_brand: string
-          card_name: string
           card_number: string
-          card_type?: string
+          card_type: string
           created_at?: string | null
-          credit_limit?: number | null
-          current_balance?: number | null
-          expiry_date: string
+          cvv: string
+          expiry: string
           holder_name: string
           id?: number
-          is_active?: boolean | null
-          nickname?: string | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           bank_id?: number | null
           card_brand?: string
-          card_name?: string
           card_number?: string
           card_type?: string
           created_at?: string | null
-          credit_limit?: number | null
-          current_balance?: number | null
-          expiry_date?: string
+          cvv?: string
+          expiry?: string
           holder_name?: string
           id?: number
-          is_active?: boolean | null
-          nickname?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
