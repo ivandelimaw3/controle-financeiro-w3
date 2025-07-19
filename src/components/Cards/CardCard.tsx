@@ -28,6 +28,21 @@ interface CardCardProps {
 export function CardCard({ card, onEdit, onDelete }: CardCardProps) {
   const [loading, setLoading] = useState(false)
 
+  // Função segura para formatar valores
+  const safeFormatCurrency = (value: any) => {
+    if (value === null || value === undefined || isNaN(value)) {
+      return 'R$ 0,00';
+    }
+    return `R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  };
+
+  const safeFormatNumber = (value: any) => {
+    if (value === null || value === undefined || isNaN(value)) {
+      return '0';
+    }
+    return String(value);
+  };
+
   const handleDelete = async () => {
     if (!confirm('Tem certeza que deseja excluir este cartão?')) return
 
@@ -57,7 +72,7 @@ export function CardCard({ card, onEdit, onDelete }: CardCardProps) {
           <CreditCard className="h-8 w-8 text-blue-600" />
           <div>
             <CardTitle className="text-lg">
-              {card.name}
+              {card.name || 'Nome não informado'}
             </CardTitle>
             {card.bank_name && (
               <div className="flex items-center gap-2">
@@ -65,9 +80,9 @@ export function CardCard({ card, onEdit, onDelete }: CardCardProps) {
                 <Badge variant="secondary">{card.bank_name}</Badge>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">Limite: R$ {card.limit_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className="text-sm text-muted-foreground">Vencimento: {card.due_date}º dia</p>
-            <p className="text-sm text-muted-foreground">Fechamento: {card.closing_date}º dia</p>
+            <p className="text-sm text-muted-foreground">Limite: {safeFormatCurrency(card.limit_amount)}</p>
+            <p className="text-sm text-muted-foreground">Vencimento: {safeFormatNumber(card.due_date)}º dia</p>
+            <p className="text-sm text-muted-foreground">Fechamento: {safeFormatNumber(card.closing_date)}º dia</p>
           </div>
         </div>
       </CardHeader>
