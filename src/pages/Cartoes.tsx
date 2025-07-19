@@ -91,13 +91,14 @@ const Cartoes = () => {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Erro ao carregar cartões. Tente novamente.
+            Erro ao carregar cartões: {error.message}
           </AlertDescription>
         </Alert>
       </Layout>
     );
   }
 
+  // Debug: mostrar dados simples
   return (
     <Layout>
       <div className="space-y-6">
@@ -122,35 +123,34 @@ const Cartoes = () => {
           </div>
         </div>
 
-        {cards.length === 0 ? (
-          <div className="text-center py-12">
-            <CreditCard className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-slate-600 mb-2">
-              Nenhum cartão cadastrado
-            </h3>
-            <p className="text-slate-500 mb-6">
-              Adicione seu primeiro cartão para começar a gerenciar suas finanças.
-            </p>
-            <Button
-              onClick={() => setShowCardForm(true)}
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Primeiro Cartão
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cards.map((card) => (
-              <CardCard
-                key={card.id}
-                card={card}
-                onEdit={handleEditCard}
-                onDelete={handleDeleteCard}
-              />
-            ))}
-          </div>
-        )}
+        {/* Debug: mostrar dados simples */}
+        <div className="bg-gray-100 p-4 rounded">
+          <h3 className="font-bold mb-2">Debug - Dados dos Cartões:</h3>
+          <pre className="text-sm">
+            {JSON.stringify(cards, null, 2)}
+          </pre>
+        </div>
+
+        {/* Versão simples dos cartões */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {cards.map((card) => (
+            <div key={card.id} className="border rounded-lg p-4 bg-white">
+              <h3 className="font-bold text-lg">{card.name || 'Nome não informado'}</h3>
+              <p>Banco: {card.bank_name || 'Não informado'}</p>
+              <p>Limite: R$ {(card.limit_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <p>Vencimento: {card.due_date || 0}º dia</p>
+              <p>Fechamento: {card.closing_date || 0}º dia</p>
+              <div className="mt-4 flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleEditCard(card)}>
+                  Editar
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleDeleteCard(card.id)}>
+                  Excluir
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* Dialog para Formulário de Cartão */}
         <Dialog open={showCardForm} onOpenChange={closeCardForm}>
