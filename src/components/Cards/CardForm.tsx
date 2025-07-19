@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBanksOptions } from '@/hooks/useBanksOptions';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface CardInput {
   holder_name: string;
@@ -14,140 +17,151 @@ export interface CardInput {
 }
 
 interface CardFormProps {
-  card?: CardInput;
-  onSubmit: (data: CardInput) => void;
+  card?: {
+    id: string;
+    name: string;
+    limit: number;
+    bank_id?: string;
+    due_date: number;
+    closing_date: number;
+  };
+  onSuccess: () => void;
   onCancel: () => void;
-  isLoading?: boolean;
 }
 
-export const CardForm: React.FC<CardFormProps> = ({
-  card,
-  onSubmit,
-  onCancel,
-  isLoading = false
-}) => {
-  const [formData, setFormData] = useState<CardInput>({
-    holder_name: '',
-    card_number: '',
-    expiry: '',
-    cvv: '',
-    card_type: undefined as any,
-    card_brand: undefined as any,
-  });
+export const CardForm: React.FC<CardFormProps> = ({ card, onSuccess, onCancel }) => {
+  const [name, setName] = useState(card?.name || '');
+  const [limit, setLimit] = useState(card?.limit?.toString() || '');
+  const [bankId, setBankId] = useState(card?.bank_id || '');
+  const [dueDate, setDueDate] = useState(card?.due_date?.toString() || '');
+  const [closingDate, setClosingDate] = useState(card?.closing_date?.toString() || '');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (card) setFormData(card);
-  }, [card]);
+  const { banks, loading: banksLoading } = useBanksOptions();
 
-  const handleChange = (field: keyof CardInput, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.card_type || !formData.card_brand) {
-      alert('Selecione o tipo e a bandeira do cartão.');
+    
+    if (!name || !limit || !bankId || !dueDate || !closingDate) {
+      toast.error('Todos os campos são obrigatórios');
       return;
     }
-    onSubmit(formData);
+
+    setLoading(true);
+
+    try {
+      const cardData = {
+        name,
+        limit: parseFloat(limit),
+        bank_id: bankId,
+        due_date: parseInt(dueDate),
+        closing_date: parseInt(closingDate)
+      };
+
+      if (card) {
+        // Atualizar cartão existente
+        const { error } = await supabase
+          .from('cards')
+          .update(cardData)
+          .eq('id', card.id);
+
+        if (error) throw error;
+        toast.success('Cartão atualizado com sucesso!');
+      } else {
+        // Criar novo cartão
+        const { error } = await supabase
+          .from('cards')
+          .insert([cardData]);
+
+        if (error) throw error;
+        toast.success('Cartão criado com sucesso!');
+      }
+
+      onSuccess();
+    } catch (error) {
+      console.error('Erro ao salvar cartão:', error);
+      toast.error('Erro ao salvar cartão');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="holder_name">Nome do titular *</Label>
+      <div className="space-y-2">
+        <Label htmlFor="name">Nome do Cartão</Label>
         <Input
-          id="holder_name"
-          type="text"
-          value={formData.holder_name}
-          onChange={e => handleChange('holder_name', e.target.value)}
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Digite o nome do cartão"
           required
         />
       </div>
-      <div>
-        <Label htmlFor="card_number">Número do cartão *</Label>
+
+      <div className="space-y-2">
+        <Label htmlFor="bank">Banco</Label>
+        <Select value={bankId} onValueChange={setBankId} disabled={banksLoading}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione um banco" />
+          </SelectTrigger>
+          <SelectContent>
+            {banks.map((bank) => (
+              <SelectItem key={bank.id} value={bank.id}>
+                {bank.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="limit">Limite</Label>
         <Input
-          id="card_number"
-          type="text"
-          value={formData.card_number}
-          onChange={e => handleChange('card_number', e.target.value)}
-          maxLength={19}
+          id="limit"
+          type="number"
+          step="0.01"
+          value={limit}
+          onChange={(e) => setLimit(e.target.value)}
+          placeholder="0,00"
           required
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="expiry">Data de validade (MM/AA) *</Label>
-          <Input
-            id="expiry"
-            type="text"
-            placeholder="MM/AA"
-            value={formData.expiry}
-            onChange={e => handleChange('expiry', e.target.value)}
-            pattern="^(0[1-9]|1[0-2])\/\d{2}$"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="cvv">Código de segurança (CVV) *</Label>
-          <Input
-            id="cvv"
-            type="text"
-            value={formData.cvv}
-            onChange={e => handleChange('cvv', e.target.value)}
-            maxLength={4}
-            required
-          />
-        </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="dueDate">Dia do Vencimento</Label>
+        <Input
+          id="dueDate"
+          type="number"
+          min="1"
+          max="31"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          placeholder="1-31"
+          required
+        />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="card_type">Tipo do cartão *</Label>
-          <Select
-            value={formData.card_type ?? ''}
-            onValueChange={value => handleChange('card_type', value)}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="credito">Crédito</SelectItem>
-              <SelectItem value="debito">Débito</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="card_brand">Bandeira *</Label>
-          <Select
-            value={formData.card_brand ?? ''}
-            onValueChange={value => handleChange('card_brand', value)}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a bandeira" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="visa">Visa</SelectItem>
-              <SelectItem value="mastercard">MasterCard</SelectItem>
-              <SelectItem value="elo">Elo</SelectItem>
-              <SelectItem value="amex">American Express</SelectItem>
-              <SelectItem value="hipercard">Hipercard</SelectItem>
-              <SelectItem value="outro">Outro</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="closingDate">Dia do Fechamento</Label>
+        <Input
+          id="closingDate"
+          type="number"
+          min="1"
+          max="31"
+          value={closingDate}
+          onChange={(e) => setClosingDate(e.target.value)}
+          placeholder="1-31"
+          required
+        />
       </div>
-      <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={isLoading}>
-          Cancelar
+
+      <div className="flex gap-2 pt-4">
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Salvando...' : (card ? 'Atualizar' : 'Criar')}
         </Button>
-        <Button
-          type="submit"
-          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-          disabled={isLoading || !formData.card_type || !formData.card_brand}
-        >
-          {isLoading ? 'Salvando...' : (card ? 'Atualizar' : 'Salvar')}
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
         </Button>
       </div>
     </form>
