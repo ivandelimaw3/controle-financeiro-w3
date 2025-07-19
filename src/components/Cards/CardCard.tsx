@@ -16,11 +16,14 @@ export const CardCard: React.FC<CardCardProps> = ({
   onEdit,
   onDelete
 }) => {
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: any) => {
+    if (value === null || value === undefined || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(value || 0);
+    }).format(Number(value));
   };
 
   const formatCardNumber = (number: string) => {
@@ -97,13 +100,13 @@ export const CardCard: React.FC<CardCardProps> = ({
           </div>
           <div>
             <p className="text-muted-foreground">Data Pagamento</p>
-            <p className="font-medium">{card.payment_date || 0}º dia</p>
+            <p className="font-medium">{Number(card.payment_date) || 0}º dia</p>
           </div>
         </div>
 
         <div className="pt-2 border-t">
           <p className="text-sm text-muted-foreground">Débito Atual</p>
-          <p className={`text-2xl font-bold ${(card.current_balance || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+          <p className={`text-2xl font-bold ${(Number(card.current_balance) || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
             {formatCurrency(card.current_balance)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
