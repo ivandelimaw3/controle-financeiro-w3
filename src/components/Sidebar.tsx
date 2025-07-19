@@ -21,11 +21,11 @@ export const Sidebar: React.FC = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
     { icon: CreditCard, label: 'Contas', path: '/contas' },
+    { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: CreditCard, label: 'Cartões', path: '/cartoes' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
     { icon: Building2, label: 'Bancos', path: '/bancos' },
     { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
-    { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
     { icon: BarChart3, label: 'Análise Gráfica', path: '/analise' },
   ];
 
