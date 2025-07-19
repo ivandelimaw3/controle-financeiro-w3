@@ -4,7 +4,6 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CardCard } from '@/components/Cards/CardCard';
 import { CardForm } from '@/components/Cards/CardForm';
 import { useCardsData, Card, CardInput } from '@/hooks/useCardsData';
 import { useToast } from '@/hooks/use-toast';
@@ -70,6 +69,21 @@ const Cartoes = () => {
   const closeCardForm = () => {
     setShowCardForm(false);
     setEditingCard(undefined);
+  };
+
+  // Função segura para formatar moeda
+  const safeFormatCurrency = (value: any) => {
+    try {
+      if (value === null || value === undefined || isNaN(value)) {
+        return 'R$ 0,00';
+      }
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(Number(value));
+    } catch (error) {
+      return 'R$ 0,00';
+    }
   };
 
   if (isLoading) {
@@ -150,12 +164,62 @@ const Cartoes = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cards.map((card) => (
-              <CardCard
-                key={card.id}
-                card={card}
-                onEdit={handleEditCard}
-                onDelete={handleDeleteCard}
-              />
+              <div key={card.id} className="border rounded-lg p-4 bg-white hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="h-6 w-6 text-blue-600" />
+                    <div>
+                      <h3 className="font-bold text-lg">{card.name || 'Nome não informado'}</h3>
+                      <p className="text-sm text-gray-600">{card.card_number || '**** **** **** ****'}</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                    {card.card_brand || 'Desconhecida'}
+                  </span>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Validade:</span>
+                    <span>{card.expiry_date || 'MM/AA'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Banco:</span>
+                    <span>{card.bank_name || 'Não informado'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Pagamento:</span>
+                    <span>{card.payment_date || 0}º dia</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Débito Atual:</span>
+                      <span className={`font-bold ${(Number(card.current_balance) || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {safeFormatCurrency(card.current_balance)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditCard(card)}
+                    className="flex-1"
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteCard(card.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Excluir
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         )}
