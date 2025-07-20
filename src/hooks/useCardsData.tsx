@@ -57,6 +57,7 @@ export const useCardsData = () => {
           )
         `)
         .order('created_at', { ascending: false });
+      
       if (error) {
         console.error('Erro ao buscar cartões:', error);
         throw error;
@@ -88,8 +89,7 @@ export const useCardsData = () => {
       
       // Mapear os dados para o formato esperado pelo banco
       const dbCardData = {
-        card_name: cardData.name,
-        holder_name: cardData.name, // Usando o nome do cartão como nome do portador por enquanto
+        name: cardData.name,
         card_number: cardData.card_number,
         expiry_date: cardData.expiry_date,
         cvv: cardData.cvv,
@@ -134,8 +134,7 @@ export const useCardsData = () => {
     mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
       // Mapear os dados para o formato esperado pelo banco
       const dbCardData = {
-        card_name: cardData.name,
-        holder_name: cardData.name,
+        name: cardData.name,
         card_number: cardData.card_number,
         expiry_date: cardData.expiry_date,
         cvv: cardData.cvv,

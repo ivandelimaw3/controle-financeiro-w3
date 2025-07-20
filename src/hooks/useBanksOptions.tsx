@@ -44,5 +44,13 @@ export function useBanksOptions() {
     }
   }
 
-  return { banks, loading, error, refetch: fetchBanks }
+  return { 
+    banks, 
+    loading, 
+    error, 
+    refetch: fetchBanks,
+    // Compatibilidade com hooks que esperam estas propriedades
+    banksOptions: banks,
+    isLoading: loading
+  }
 }
