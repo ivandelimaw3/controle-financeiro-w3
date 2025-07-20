@@ -29,7 +29,13 @@ export function useBanksOptions() {
 
       if (error) throw error
 
-      setBanks(data || [])
+      // Converter id para string para compatibilidade
+      const transformedData = (data || []).map(bank => ({
+        id: bank.id.toString(),
+        name: bank.name
+      }))
+      
+      setBanks(transformedData)
     } catch (err) {
       console.error('Erro ao carregar bancos:', err)
       setError(err instanceof Error ? err.message : 'Erro ao carregar bancos')

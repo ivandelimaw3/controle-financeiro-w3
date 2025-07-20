@@ -67,6 +67,39 @@ export const CardListItem: React.FC<CardListItemProps> = ({
     return brands[brand?.toLowerCase()] || brand || 'Desconhecida';
   };
 
+  // Função para mascarar número do cartão
+  const maskCardNumber = (cardNumber: string) => {
+    if (!cardNumber) return '**** **** **** ****';
+    const cleaned = cardNumber.replace(/\s/g, '');
+    if (cleaned.length < 4) return '**** **** **** ****';
+    const lastFour = cleaned.slice(-4);
+    return `**** **** **** ${lastFour}`;
+  };
+
+  // Função para formatar data de pagamento
+  const formatPaymentDate = (day: number) => {
+    if (!day || day < 1 || day > 31) return '00/00/0000';
+    
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    
+    // Se o dia já passou neste mês, usar o próximo mês
+    let paymentMonth = currentMonth;
+    let paymentYear = currentYear;
+    
+    if (day < today.getDate()) {
+      paymentMonth++;
+      if (paymentMonth > 11) {
+        paymentMonth = 0;
+        paymentYear++;
+      }
+    }
+    
+    const paymentDate = new Date(paymentYear, paymentMonth, day);
+    return paymentDate.toLocaleDateString('pt-BR');
+  };
+
   return (
     <div className="border rounded-lg p-4 bg-white hover:shadow-lg transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -76,8 +109,8 @@ export const CardListItem: React.FC<CardListItemProps> = ({
             <h3 className="font-bold text-lg">
               {safeGetString(card.name, 'Nome não informado')}
             </h3>
-            <p className="text-sm text-gray-600">
-              {safeGetString(card.card_number, '**** **** **** ****')}
+            <p className="text-sm text-gray-600 font-mono">
+              {maskCardNumber(card.card_number)}
             </p>
           </div>
         </div>
@@ -96,8 +129,10 @@ export const CardListItem: React.FC<CardListItemProps> = ({
           <span>{safeGetString(card.bank_name, 'Não informado')}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-600">Pagamento:</span>
-          <span>{safeGetNumber(card.payment_date)}º dia</span>
+          <span className="text-gray-600">Vencimento:</span>
+          <span className="font-mono text-xs">
+            {formatPaymentDate(safeGetNumber(card.payment_date))}
+          </span>
         </div>
         <div className="pt-2 border-t">
           <div className="flex justify-between">

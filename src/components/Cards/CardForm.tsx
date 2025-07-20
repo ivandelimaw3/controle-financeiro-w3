@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,7 +41,8 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
   useEffect(() => {
     console.log('Bancos carregados:', banks)
     console.log('Loading bancos:', banksLoading)
-  }, [banks, banksLoading])
+    console.log('Bank ID atual:', bankId)
+  }, [banks, banksLoading, bankId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -159,7 +161,7 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
         <Label htmlFor="bank">Banco</Label>
         <Select value={bankId} onValueChange={setBankId} disabled={banksLoading}>
           <SelectTrigger>
-            <SelectValue placeholder="Selecione um banco" />
+            <SelectValue placeholder={banksLoading ? "Carregando..." : "Selecione um banco"} />
           </SelectTrigger>
           <SelectContent>
             {banks.map((bank) => (
@@ -169,6 +171,9 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
             ))}
           </SelectContent>
         </Select>
+        {banks.length === 0 && !banksLoading && (
+          <p className="text-sm text-gray-500">Nenhum banco encontrado. Cadastre um banco primeiro.</p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -186,7 +191,7 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="paymentDate">Data de Pagamento</Label>
+          <Label htmlFor="paymentDate">Dia do Vencimento</Label>
           <Input
             id="paymentDate"
             type="number"
@@ -197,6 +202,7 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
             placeholder="1-31"
             required
           />
+          <p className="text-xs text-gray-500">Dia do mês para vencimento da fatura</p>
         </div>
       </div>
 

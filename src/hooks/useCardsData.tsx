@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -84,12 +85,24 @@ export const useCardsData = () => {
     mutationFn: async (cardData: CardInput) => {
       const { data: { user } } = await supabase.auth.getUser();
       console.log('Dados do cartão a serem inseridos:', { ...cardData, user_id: user?.id });
+      
+      // Mapear os dados para o formato esperado pelo banco
+      const dbCardData = {
+        card_name: cardData.name,
+        holder_name: cardData.name, // Usando o nome do cartão como nome do portador por enquanto
+        card_number: cardData.card_number,
+        expiry_date: cardData.expiry_date,
+        cvv: cardData.cvv,
+        card_brand: cardData.card_brand,
+        current_balance: cardData.current_balance,
+        bank_id: cardData.bank_id,
+        payment_date: cardData.payment_date,
+        user_id: user?.id
+      };
+      
       const { data, error } = await supabase
         .from('cards')
-        .insert({
-          ...cardData,
-          user_id: user?.id
-        })
+        .insert(dbCardData)
         .select()
         .single();
       if (error) {
@@ -119,9 +132,23 @@ export const useCardsData = () => {
   // Atualizar cartão
   const updateCardMutation = useMutation({
     mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
+      // Mapear os dados para o formato esperado pelo banco
+      const dbCardData = {
+        card_name: cardData.name,
+        holder_name: cardData.name,
+        card_number: cardData.card_number,
+        expiry_date: cardData.expiry_date,
+        cvv: cardData.cvv,
+        card_brand: cardData.card_brand,
+        current_balance: cardData.current_balance,
+        bank_id: cardData.bank_id,
+        payment_date: cardData.payment_date,
+        updated_at: new Date().toISOString()
+      };
+      
       const { data, error } = await supabase
         .from('cards')
-        .update({ ...cardData, updated_at: new Date().toISOString() })
+        .update(dbCardData)
         .eq('id', id)
         .select()
         .single();
