@@ -134,18 +134,19 @@ export const useCardsData = () => {
     mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
       console.log('Dados para atualização do cartão:', { id, ...cardData });
       
-      // Mapear os dados para o formato esperado pelo banco
-      const dbCardData = {
-        name: cardData.name,
-        card_number: cardData.card_number,
-        expiry_date: cardData.expiry_date,
-        cvv: cardData.cvv,
-        card_brand: cardData.card_brand,
-        current_balance: cardData.current_balance,
-        bank_id: cardData.bank_id,
-        payment_date: cardData.payment_date,
-        updated_at: new Date().toISOString()
-      };
+      // Mapear os dados para o formato esperado pelo banco - SEM alterar o nome se não foi fornecido
+      const dbCardData: any = {};
+      
+      if (cardData.name !== undefined) dbCardData.name = cardData.name;
+      if (cardData.card_number !== undefined) dbCardData.card_number = cardData.card_number;
+      if (cardData.expiry_date !== undefined) dbCardData.expiry_date = cardData.expiry_date;
+      if (cardData.cvv !== undefined) dbCardData.cvv = cardData.cvv;
+      if (cardData.card_brand !== undefined) dbCardData.card_brand = cardData.card_brand;
+      if (cardData.current_balance !== undefined) dbCardData.current_balance = cardData.current_balance;
+      if (cardData.bank_id !== undefined) dbCardData.bank_id = cardData.bank_id;
+      if (cardData.payment_date !== undefined) dbCardData.payment_date = cardData.payment_date;
+      
+      dbCardData.updated_at = new Date().toISOString();
       
       console.log('Dados formatados para o banco:', dbCardData);
       
@@ -153,7 +154,24 @@ export const useCardsData = () => {
         .from('cards')
         .update(dbCardData)
         .eq('id', id)
-        .select()
+        .select(`
+          id,
+          user_id,
+          name,
+          card_number,
+          expiry_date,
+          cvv,
+          card_brand,
+          current_balance,
+          bank_id,
+          payment_date,
+          created_at,
+          updated_at,
+          banks (
+            id,
+            name
+          )
+        `)
         .single();
       if (error) {
         console.error('Erro ao atualizar cartão:', error);
@@ -220,4 +238,4 @@ export const useCardsData = () => {
     isUpdating: updateCardMutation.isPending,
     isDeleting: deleteCardMutation.isPending,
   };
-}; 
+};
