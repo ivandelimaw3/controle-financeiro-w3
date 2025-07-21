@@ -132,6 +132,8 @@ export const useCardsData = () => {
   // Atualizar cartão
   const updateCardMutation = useMutation({
     mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
+      console.log('Dados para atualização do cartão:', { id, ...cardData });
+      
       // Mapear os dados para o formato esperado pelo banco
       const dbCardData = {
         name: cardData.name,
@@ -145,6 +147,8 @@ export const useCardsData = () => {
         updated_at: new Date().toISOString()
       };
       
+      console.log('Dados formatados para o banco:', dbCardData);
+      
       const { data, error } = await supabase
         .from('cards')
         .update(dbCardData)
@@ -155,6 +159,7 @@ export const useCardsData = () => {
         console.error('Erro ao atualizar cartão:', error);
         throw error;
       }
+      console.log('Cartão atualizado com sucesso:', data);
       return data;
     },
     onSuccess: () => {

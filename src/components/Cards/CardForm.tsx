@@ -42,7 +42,8 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
     console.log('Bancos carregados:', banks)
     console.log('Loading bancos:', banksLoading)
     console.log('Bank ID atual:', bankId)
-  }, [banks, banksLoading, bankId])
+    console.log('Card atual:', card)
+  }, [banks, banksLoading, bankId, card])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +53,17 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
       return
     }
 
+    console.log('Dados do formulário antes do submit:', {
+      name,
+      cardNumber,
+      expiryDate,
+      cvv,
+      cardBrand,
+      currentBalance,
+      bankId,
+      paymentDate
+    })
+
     const cardData: CardInput = {
       name,
       card_number: cardNumber,
@@ -59,10 +71,11 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
       cvv,
       card_brand: cardBrand,
       current_balance: parseFloat(currentBalance) || 0,
-      bank_id: bankId ? parseInt(bankId) : undefined,
+      bank_id: parseInt(bankId),
       payment_date: parseInt(paymentDate)
     }
 
+    console.log('Dados formatados para envio:', cardData)
     onSubmit(cardData)
   }
 
