@@ -19,7 +19,7 @@ interface CardFormProps {
     bank_id?: number
     payment_date: number
   }
-  onSubmit: (data: CardInput) => void
+  onSubmit: (data: CardInput | (CardInput & { id: number })) => void
   onCancel: () => void
   isLoading?: boolean
 }
@@ -36,7 +36,7 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
 
   const { banks, loading: banksLoading } = useBanksOptions()
 
-  // Atualiza os estados quando o cartão for carregado
+  // Atualiza os estados ao receber o cartão para edição
   useEffect(() => {
     if (card) {
       setName(card.name || '')
@@ -50,7 +50,7 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
     }
   }, [card])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!name || !cardNumber || !expiryDate || !cvv || !cardBrand || !bankId || !paymentDate) {
@@ -65,11 +65,16 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
       cvv,
       card_brand: cardBrand,
       current_balance: parseFloat(currentBalance) || 0,
-      bank_id: parseInt(bankId, 10),
-      payment_date: parseInt(paymentDate, 10)
+      bank_id: bankId ? parseInt(bankId) : undefined,
+      payment_date: parseInt(paymentDate)
     }
 
-    onSubmit(cardData)
+    // Se for edição, inclui o ID
+    if (card?.id) {
+      onSubmit({ ...cardData, id: card.id })
+    } else {
+      onSubmit(cardData)
+    }
   }
 
   const formatCardNumber = (value: string) => {
@@ -85,7 +90,10 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
 
   const formatExpiryDate = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
-    return v.length >= 2 ? v.substring(0, 2) + '/' + v.substring(2, 4) : v
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4)
+    }
+    return v
   }
 
   return (
@@ -164,7 +172,7 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
           </SelectTrigger>
           <SelectContent>
             {banks.map((bank) => (
-              <SelectItem key={bank.id} value={String(bank.id)}>
+              <SelectItem key={bank.id} value={bank.id.toString()}>
                 {bank.name}
               </SelectItem>
             ))}
