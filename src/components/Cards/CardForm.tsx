@@ -25,43 +25,38 @@ interface CardFormProps {
 }
 
 export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFormProps) {
-  const [name, setName] = useState(card?.name || '')
-  const [cardNumber, setCardNumber] = useState(card?.card_number || '')
-  const [expiryDate, setExpiryDate] = useState(card?.expiry_date || '')
-  const [cvv, setCvv] = useState(card?.cvv || '')
-  const [cardBrand, setCardBrand] = useState(card?.card_brand || '')
-  const [currentBalance, setCurrentBalance] = useState(card?.current_balance?.toString() || '')
-  const [bankId, setBankId] = useState(card?.bank_id?.toString() || '')
-  const [paymentDate, setPaymentDate] = useState(card?.payment_date?.toString() || '')
+  const [name, setName] = useState('')
+  const [cardNumber, setCardNumber] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [cvv, setCvv] = useState('')
+  const [cardBrand, setCardBrand] = useState('')
+  const [currentBalance, setCurrentBalance] = useState('')
+  const [bankId, setBankId] = useState('')
+  const [paymentDate, setPaymentDate] = useState('')
 
   const { banks, loading: banksLoading } = useBanksOptions()
 
-  // Debug: verificar se os bancos estão sendo carregados
+  // Atualiza os estados quando o cartão for carregado
   useEffect(() => {
-    console.log('Bancos carregados:', banks)
-    console.log('Loading bancos:', banksLoading)
-    console.log('Bank ID atual:', bankId)
-    console.log('Card atual:', card)
-  }, [banks, banksLoading, bankId, card])
+    if (card) {
+      setName(card.name || '')
+      setCardNumber(card.card_number || '')
+      setExpiryDate(card.expiry_date || '')
+      setCvv(card.cvv || '')
+      setCardBrand(card.card_brand || '')
+      setCurrentBalance(card.current_balance?.toString() || '')
+      setBankId(card.bank_id?.toString() || '')
+      setPaymentDate(card.payment_date?.toString() || '')
+    }
+  }, [card])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!name || !cardNumber || !expiryDate || !cvv || !cardBrand || !bankId || !paymentDate) {
       toast.error('Todos os campos são obrigatórios')
       return
     }
-
-    console.log('Dados do formulário antes do submit:', {
-      name,
-      cardNumber,
-      expiryDate,
-      cvv,
-      cardBrand,
-      currentBalance,
-      bankId,
-      paymentDate
-    })
 
     const cardData: CardInput = {
       name,
@@ -70,11 +65,10 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
       cvv,
       card_brand: cardBrand,
       current_balance: parseFloat(currentBalance) || 0,
-      bank_id: parseInt(bankId),
-      payment_date: parseInt(paymentDate)
+      bank_id: parseInt(bankId, 10),
+      payment_date: parseInt(paymentDate, 10)
     }
 
-    console.log('Dados formatados para envio:', cardData)
     onSubmit(cardData)
   }
 
@@ -86,19 +80,12 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
     for (let i = 0, len = match.length; i < len; i += 4) {
       parts.push(match.substring(i, i + 4))
     }
-    if (parts.length) {
-      return parts.join(' ')
-    } else {
-      return v
-    }
+    return parts.length ? parts.join(' ') : v
   }
 
   const formatExpiryDate = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
-    if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4)
-    }
-    return v
+    return v.length >= 2 ? v.substring(0, 2) + '/' + v.substring(2, 4) : v
   }
 
   return (
@@ -177,7 +164,7 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
           </SelectTrigger>
           <SelectContent>
             {banks.map((bank) => (
-              <SelectItem key={bank.id} value={bank.id}>
+              <SelectItem key={bank.id} value={String(bank.id)}>
                 {bank.name}
               </SelectItem>
             ))}
