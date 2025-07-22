@@ -164,25 +164,16 @@ export function CardForm({ card, onSubmit, onCancel, isLoading = false }: CardFo
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="bank">Banco</Label>
-        <Select value={bankId} onValueChange={setBankId} disabled={banksLoading}>
-          <SelectTrigger>
-            <SelectValue placeholder={banksLoading ? "Carregando..." : "Selecione um banco"} />
-          </SelectTrigger>
-          <SelectContent>
-            {banks.map((bank) => (
-              <SelectItem key={bank.id} value={bank.id.toString()}>
-                {bank.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {banks.length === 0 && !banksLoading && (
-          <p className="text-sm text-gray-500">Nenhum banco encontrado. Cadastre um banco primeiro.</p>
-        )}
-      </div>
-
+     <div className="space-y-2">
+  <Label htmlFor="bankName">Banco</Label>
+  <Input
+    id="bankName"
+    value={bankName}
+    onChange={(e) => setBankName(e.target.value)}
+    placeholder="Digite o nome do banco"
+    required
+    />
+    </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="currentBalance">Débito Atual (R$)</Label>
