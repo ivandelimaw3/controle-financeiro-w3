@@ -1,23 +1,20 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface CardInput {
-  name: string
-  card_number: string
-  expiry_date: string
-  cvv: string
-  card_brand: string
-  current_balance: number
-  bank_id?: number
-  payment_date: number
-  user_id?: string
+  name: string;
+  number: string;
+  expiration_date: string;
+  payment_date: number;
+  credit_limit: number;
+  used_value: number;
+  bank_id: number;
+  user_id?: string;
 }
 
 export interface Card extends CardInput {
-  id: number;
-  user_id?: string;
+  id: string;
   created_at?: string;
   updated_at?: string;
   bank_name?: string;
@@ -42,13 +39,12 @@ export const useCardsData = () => {
           id,
           user_id,
           name,
-          card_number,
-          expiry_date,
-          cvv,
-          card_brand,
-          current_balance,
-          bank_id,
+          number,
+          expiration_date,
           payment_date,
+          credit_limit,
+          used_value,
+          bank_id,
           created_at,
           updated_at,
           banks (
@@ -57,26 +53,21 @@ export const useCardsData = () => {
           )
         `)
         .order('created_at', { ascending: false });
-      
+
       if (error) {
         console.error('Erro ao buscar cartões:', error);
         throw error;
       }
-      
+
       // Transformar os dados para incluir o nome do banco
-      const transformedData = (data || []).map(card => {
-        console.log('Card data:', card);
-        const transformedCard = {
-          ...card,
-          bank_name: card.banks?.name || 'Não informado',
-          current_balance: card.current_balance !== null && card.current_balance !== undefined ? Number(card.current_balance) : 0,
-          payment_date: card.payment_date !== null && card.payment_date !== undefined ? Number(card.payment_date) : 0
-        };
-        console.log('Transformed card:', transformedCard);
-        return transformedCard;
-      });
-      
-      console.log('Transformed data:', transformedData);
+      const transformedData = (data || []).map(card => ({
+        ...card,
+        bank_name: card.banks?.name || 'Não informado',
+        payment_date: card.payment_date !== null && card.payment_date !== undefined ? Number(card.payment_date) : 0,
+        credit_limit: card.credit_limit !== null && card.credit_limit !== undefined ? Number(card.credit_limit) : 0,
+        used_value: card.used_value !== null && card.used_value !== undefined ? Number(card.used_value) : 0,
+      }));
+
       return transformedData as Card[];
     }
   });
@@ -85,21 +76,18 @@ export const useCardsData = () => {
   const createCardMutation = useMutation({
     mutationFn: async (cardData: CardInput) => {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('Dados do cartão a serem inseridos:', { ...cardData, user_id: user?.id });
-      
-      // Mapear os dados para o formato esperado pelo banco
+
       const dbCardData = {
         name: cardData.name,
-        card_number: cardData.card_number,
-        expiry_date: cardData.expiry_date,
-        cvv: cardData.cvv,
-        card_brand: cardData.card_brand,
-        current_balance: cardData.current_balance,
-        bank_id: cardData.bank_id,
+        number: cardData.number,
+        expiration_date: cardData.expiration_date,
         payment_date: cardData.payment_date,
+        credit_limit: cardData.credit_limit,
+        used_value: cardData.used_value,
+        bank_id: cardData.bank_id,
         user_id: user?.id
       };
-      
+
       const { data, error } = await supabase
         .from('cards')
         .insert(dbCardData)
@@ -109,7 +97,6 @@ export const useCardsData = () => {
         console.error('Erro ao criar cartão:', error);
         throw error;
       }
-      console.log('Cartão criado com sucesso:', data);
       return data;
     },
     onSuccess: () => {
@@ -131,25 +118,19 @@ export const useCardsData = () => {
 
   // Atualizar cartão
   const updateCardMutation = useMutation({
-    mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: number }) => {
-      console.log('Dados para atualização do cartão:', { id, ...cardData });
-      
-      // Mapear os dados para o formato esperado pelo banco - SEM alterar o nome se não foi fornecido
+    mutationFn: async ({ id, ...cardData }: Partial<Card> & { id: string }) => {
       const dbCardData: any = {};
-      
+
       if (cardData.name !== undefined) dbCardData.name = cardData.name;
-      if (cardData.card_number !== undefined) dbCardData.card_number = cardData.card_number;
-      if (cardData.expiry_date !== undefined) dbCardData.expiry_date = cardData.expiry_date;
-      if (cardData.cvv !== undefined) dbCardData.cvv = cardData.cvv;
-      if (cardData.card_brand !== undefined) dbCardData.card_brand = cardData.card_brand;
-      if (cardData.current_balance !== undefined) dbCardData.current_balance = cardData.current_balance;
-      if (cardData.bank_id !== undefined) dbCardData.bank_id = cardData.bank_id;
+      if (cardData.number !== undefined) dbCardData.number = cardData.number;
+      if (cardData.expiration_date !== undefined) dbCardData.expiration_date = cardData.expiration_date;
       if (cardData.payment_date !== undefined) dbCardData.payment_date = cardData.payment_date;
-      
+      if (cardData.credit_limit !== undefined) dbCardData.credit_limit = cardData.credit_limit;
+      if (cardData.used_value !== undefined) dbCardData.used_value = cardData.used_value;
+      if (cardData.bank_id !== undefined) dbCardData.bank_id = cardData.bank_id;
+
       dbCardData.updated_at = new Date().toISOString();
-      
-      console.log('Dados formatados para o banco:', dbCardData);
-      
+
       const { data, error } = await supabase
         .from('cards')
         .update(dbCardData)
@@ -158,13 +139,12 @@ export const useCardsData = () => {
           id,
           user_id,
           name,
-          card_number,
-          expiry_date,
-          cvv,
-          card_brand,
-          current_balance,
-          bank_id,
+          number,
+          expiration_date,
           payment_date,
+          credit_limit,
+          used_value,
+          bank_id,
           created_at,
           updated_at,
           banks (
@@ -177,7 +157,6 @@ export const useCardsData = () => {
         console.error('Erro ao atualizar cartão:', error);
         throw error;
       }
-      console.log('Cartão atualizado com sucesso:', data);
       return data;
     },
     onSuccess: () => {
@@ -199,7 +178,7 @@ export const useCardsData = () => {
 
   // Deletar cartão
   const deleteCardMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('cards')
         .delete()
