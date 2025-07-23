@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Card as CardType } from '@/hooks/useCardsData';
 interface CardListItemProps {
   card: CardType;
   onEdit: (card: CardType) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }
 
 export const CardListItem: React.FC<CardListItemProps> = ({
@@ -54,50 +53,13 @@ export const CardListItem: React.FC<CardListItemProps> = ({
     }
   };
 
-  // Função para obter label da bandeira
-  const getCardBrandLabel = (brand: string) => {
-    const brands: { [key: string]: string } = {
-      'visa': 'Visa',
-      'mastercard': 'Mastercard',
-      'elo': 'Elo',
-      'amex': 'American Express',
-      'hipercard': 'Hipercard',
-      'discover': 'Discover'
-    };
-    return brands[brand?.toLowerCase()] || brand || 'Desconhecida';
-  };
-
-  // Função para mascarar número do cartão
+  // Função para mascarar número do cartão (mostra só os 4 últimos)
   const maskCardNumber = (cardNumber: string) => {
     if (!cardNumber) return '**** **** **** ****';
     const cleaned = cardNumber.replace(/\s/g, '');
     if (cleaned.length < 4) return '**** **** **** ****';
     const lastFour = cleaned.slice(-4);
     return `**** **** **** ${lastFour}`;
-  };
-
-  // Função para formatar data de pagamento
-  const formatPaymentDate = (day: number) => {
-    if (!day || day < 1 || day > 31) return '00/00/0000';
-    
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    
-    // Se o dia já passou neste mês, usar o próximo mês
-    let paymentMonth = currentMonth;
-    let paymentYear = currentYear;
-    
-    if (day < today.getDate()) {
-      paymentMonth++;
-      if (paymentMonth > 11) {
-        paymentMonth = 0;
-        paymentYear++;
-      }
-    }
-    
-    const paymentDate = new Date(paymentYear, paymentMonth, day);
-    return paymentDate.toLocaleDateString('pt-BR');
   };
 
   return (
@@ -110,37 +72,34 @@ export const CardListItem: React.FC<CardListItemProps> = ({
               {safeGetString(card.name, 'Nome não informado')}
             </h3>
             <p className="text-sm text-gray-600 font-mono">
-              {maskCardNumber(card.card_number)}
+              {maskCardNumber(card.number)}
             </p>
           </div>
         </div>
-        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-          {getCardBrandLabel(card.card_brand)}
-        </span>
       </div>
       
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-gray-600">Validade:</span>
-          <span>{safeGetString(card.expiry_date, 'MM/AA')}</span>
+          <span>{safeGetString(card.expiration_date, 'MM/AA')}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-600">Banco:</span>
           <span>{safeGetString(card.bank_name, 'Não informado')}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-600">Vencimento:</span>
+          <span className="text-gray-600">Dia do Pagamento:</span>
           <span className="font-mono text-xs">
-            {formatPaymentDate(safeGetNumber(card.payment_date))}
+            {safeGetNumber(card.payment_date)}º dia
           </span>
         </div>
-        <div className="pt-2 border-t">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Débito Atual:</span>
-            <span className={`font-bold ${safeGetNumber(card.current_balance) > 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {safeFormatCurrency(card.current_balance)}
-            </span>
-          </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600">Limite:</span>
+          <span>{safeFormatCurrency(card.credit_limit)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600">Valor Utilizado:</span>
+          <span>{safeFormatCurrency(card.used_value)}</span>
         </div>
       </div>
 
