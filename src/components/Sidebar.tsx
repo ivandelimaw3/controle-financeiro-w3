@@ -3,6 +3,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
+  CreditCard, 
   FolderOpen, 
   TrendingUp,
   Building2,
@@ -21,6 +22,7 @@ export const Sidebar: React.FC = () => {
     { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
     { icon: CreditCard, label: 'Contas', path: '/contas' },
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
+    { icon: CreditCard, label: 'Cartões', path: '/cartoes' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
     { icon: Building2, label: 'Bancos', path: '/bancos' },
     { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
