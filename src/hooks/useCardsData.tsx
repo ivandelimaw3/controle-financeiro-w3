@@ -24,7 +24,7 @@ export const useCardsData = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar cartões do usuário
+  // Buscar cartões do usuário autenticado
   const {
     data: cards = [],
     isLoading,
@@ -33,6 +33,12 @@ export const useCardsData = () => {
   } = useQuery({
     queryKey: ['cards'],
     queryFn: async () => {
+      // Obter usuário autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('cards')
         .select(`
@@ -52,6 +58,7 @@ export const useCardsData = () => {
             name
           )
         `)
+        .eq('user_id', user.id) // <-- FILTRO PELO USUÁRIO AUTENTICADO
         .order('created_at', { ascending: false });
 
       if (error) {
