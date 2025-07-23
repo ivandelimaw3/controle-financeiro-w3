@@ -27,11 +27,11 @@ export const useCartoes = () => {
       setError(null);
 
       let query = supabase
-  .from("cartoes_credito")
-  .select(`
-    *,
-    bank_id:banks(id, name, agency, account_number, account_type, nickname, balance)
-  `);
+        .from('cartoes_credito')
+        .select(`
+          *,
+          bank:banks(id, name, agency, account_number, account_type, nickname, balance)
+        `);
 
       // Aplicar filtros
       if (filters?.bank_id) {
