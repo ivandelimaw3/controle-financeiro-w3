@@ -53,9 +53,16 @@ export function useCreditCardsData() {
 
   async function createCreditCard(card: CreditCardInput) {
     setIsCreating(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setIsCreating(false);
+      setError('Usuário não autenticado');
+      return;
+    }
     const formattedCard = {
       ...card,
       card_number: formatCardNumber(card.card_number),
+      user_id: user.id,
     };
     console.log('Enviando cartão para o Supabase:', formattedCard);
     const { error } = await supabase.from("cards").insert([formattedCard]);
