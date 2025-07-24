@@ -16,7 +16,7 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
-import { CartoesPage } from "./components/CartoesPage-banks";
+import CartoesCredito from "./pages/CartoesCredito";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,7 +64,7 @@ const App = () => {
                   } />
                   <Route path="/cartoes" element={
                     <ProtectedRoute>
-                      <CartoesPage />
+                      <CartoesCredito />
                     </ProtectedRoute>
                   } />
                   <Route path="/analise" element={
