@@ -45,7 +45,7 @@ export function useCreditCardsData() {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("cards")
-      .select("id,user_id,card_name,card_number,expiry_date,bank_id,current_value,created_at,updated_at,bank_name,due_date");
+      .select("id,user_id,card_name,card_number,expiry_date,current_value,created_at,updated_at,bank_name,due_date");
     if (!error) setCreditCards(data || []);
     else setError(error);
     setIsLoading(false);
