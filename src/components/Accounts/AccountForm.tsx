@@ -175,28 +175,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       <div>
         <Label htmlFor="bank" className="text-slate-700">Banco</Label>
         <div className="relative mt-1">
-          <Building2 size={16} className="absolute left-3 top-3 text-slate-400" />
-          <Select
-            value={formData.bank_id ? formData.bank_id.toString() : ''}
-            onValueChange={handleBankChange}
-          >
-            <SelectTrigger className="pl-10">
-              <SelectValue placeholder="Selecione o banco" />
-            </SelectTrigger>
-            <SelectContent>
-              {banksLoading ? (
-                <SelectItem value="" disabled>Carregando bancos...</SelectItem>
-              ) : banksOptions.length === 0 ? (
-                <SelectItem value="" disabled>Nenhum banco cadastrado</SelectItem>
-              ) : (
-                banksOptions.map((bank) => (
-                  <SelectItem key={bank.value} value={bank.value}>
-                    {bank.label}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
+          <Input
+            id="bank"
+            type="text"
+            value="Seleção de banco temporariamente indisponível"
+            disabled
+            className="pl-10 bg-gray-100 text-gray-500 cursor-not-allowed"
+          />
         </div>
       </div>
 
