@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { supabase } from '../integrations/supabase/client'
 
@@ -24,19 +23,22 @@ export function useBanksOptions() {
         .from('banks')
         .select('id, name')
         .order('name')
-
+  
       console.log('Resposta da busca de bancos:', { data, error })
-
+  
       if (error) throw error
-
-      // Converter id para string para compatibilidade
-      const transformedData = (data || []).map(bank => ({
-        id: bank.id.toString(),
-        name: bank.name
-      }))
+  
+      // Filtro para garantir apenas bancos com id válido
+      const transformedData = (data || [])
+        .filter(bank => !!bank.id && bank.id !== 'undefined' && bank.id !== 'null' && bank.id !== '')
+        .map(bank => ({
+          id: bank.id.toString(),
+          name: bank.name
+        }))
       
       setBanks(transformedData)
     } catch (err) {
+      
       console.error('Erro ao carregar bancos:', err)
       setError(err instanceof Error ? err.message : 'Erro ao carregar bancos')
     } finally {
