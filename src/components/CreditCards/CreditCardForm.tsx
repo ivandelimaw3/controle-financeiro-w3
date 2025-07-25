@@ -35,7 +35,6 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
     card_name: '',
     card_number: '',
     expiry_date: '',
-    bank_id: 0,
     current_value: 0,
     bank_name: '',
     due_date: '',
