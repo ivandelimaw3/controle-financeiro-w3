@@ -7,7 +7,6 @@ export interface CreditCard {
   card_name: string;
   card_number: string;
   expiry_date: string; // date (YYYY-MM-DD)
-  bank_id: number;
   current_value: number;
   created_at: string;
   updated_at: string;
