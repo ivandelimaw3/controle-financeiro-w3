@@ -84,7 +84,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
         <span className="text-xs text-muted-foreground">Apenas números, máximo 16 dígitos</span>
       </div>
       <div>
-        <Label htmlFor="expiry_date">Validade (AAAA-MM-DD) *</Label>
+        <Label htmlFor="expiry_date">Validade (MM-AAAA) *</Label>
         <Input
           id="expiry_date"
           type="date"
@@ -112,17 +112,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
           onChange={e => handleChange('bank_name', e.target.value)}
         />
       </div>
-      <div>
-        <Label htmlFor="bank_id">Banco *</Label>
-        <Input
-          id="bank_id"
-          type="number"
-          value={formData.bank_id}
-          onChange={e => handleChange('bank_id', Number(e.target.value))}
-          required
-        />
-      </div>
-      <div>
+       <div>
         <Label htmlFor="current_value">Valor Atual *</Label>
         <Input
           id="current_value"
