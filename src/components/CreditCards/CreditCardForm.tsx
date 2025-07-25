@@ -1,21 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CreditCard, CreditCardInput } from '@/hooks/useCreditCardsData';
+import React, { useEffect, useState } from 'react';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
+import { Label } from '../ui/Label';
 
 function formatCardNumber(value: string) {
-  // Remove tudo que não for dígito e formata em blocos de 4
-  return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{4})(?=\d)/g, '$1 ')
+    .trim();
 }
 
-function formatDateBR(value: string) {
-  // Remove tudo que não for dígito e formata para DD/MM/AAAA
-  let v = value.replace(/\D/g, '').slice(0, 8);
-  if (v.length >= 5) return v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4, 8);
-  if (v.length >= 3) return v.slice(0, 2) + '/' + v.slice(2, 4);
-  if (v.length >= 1) return v;
-  return '';
+interface CreditCard {
+  card_name: string;
+  card_number: string;
+  expiry_date: string;
+  current_value: number;
+  bank_name?: string;
+  due_date: string;
+}
+
+interface CreditCardInput {
+  card_name: string;
+  card_number: string;
+  expiry_date: string;
+  current_value: number;
+  bank_name?: string;
+  due_date: string;
 }
 
 interface CreditCardFormProps {
@@ -41,24 +51,17 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
   });
 
   useEffect(() => {
-  if (card) {
-    let expiry = card.expiry_date;
-    // Se vier no formato YYYY-MM-DD ou YYYY-MM, converte para MM/AAAA
-    if (/^\d{4}-\d{2}-\d{2}$/.test(expiry)) {
-      expiry = expiry.slice(5, 7) + '/' + expiry.slice(0, 4); // MM/AAAA
-    } else if (/^\d{4}-\d{2}$/.test(expiry)) {
-      expiry = expiry.slice(5, 7) + '/' + expiry.slice(0, 4); // MM/AAAA
+    if (card) {
+      setFormData({
+        card_name: card.card_name,
+        card_number: card.card_number,
+        expiry_date: card.expiry_date,
+        current_value: card.current_value,
+        bank_name: card.bank_name || '',
+        due_date: card.due_date,
+      });
     }
-    setFormData({
-      card_name: card.card_name,
-      card_number: card.card_number,
-      expiry_date: expiry,
-      current_value: card.current_value,
-      bank_name: card.bank_name || '',
-      due_date: card.due_date,
-    });
-  }
-}, [card]);
+  }, [card]);
 
   const handleChange = (field: keyof CreditCardInput, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -89,24 +92,16 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
         <span className="text-xs text-muted-foreground">Apenas números, máximo 16 dígitos</span>
       </div>
       <div>
-        
-<Label htmlFor="expiry_date">Validade (MM-AAAA) *</Label>
-<Input
-  id="expiry_date"
-  type="text"
-  value={formData.expiry_date}
-  onChange={e => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 6) value = value.slice(0, 6);
-    if (value.length > 2) value = value.slice(0, 2) + '/' + value.slice(2);
-    handleChange('expiry_date', value);
-  }}
-  placeholder="MM/AAAA"
-  maxLength={7}
-  required
-/>
-   </div>
-   <div>
+        <Label htmlFor="expiry_date">Validade (MM-AAAA) *</Label>
+        <Input
+          id="expiry_date"
+          type="date"
+          value={formData.expiry_date}
+          onChange={e => handleChange('expiry_date', e.target.value)}
+          required
+        />
+      </div>
+      <div>
         <Label htmlFor="due_date">Dia de Vencimento *</Label>
         <Input
           id="due_date"
@@ -125,7 +120,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
           onChange={e => handleChange('bank_name', e.target.value)}
         />
       </div>
-       <div>
+      <div>
         <Label htmlFor="current_value">Valor Atual *</Label>
         <Input
           id="current_value"
@@ -146,4 +141,4 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
       </div>
     </form>
   );
-}; 
+};
