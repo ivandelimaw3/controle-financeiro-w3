@@ -41,17 +41,24 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
   });
 
   useEffect(() => {
-    if (card) {
-      setFormData({
-        card_name: card.card_name,
-        card_number: card.card_number,
-        expiry_date: card.expiry_date,
-        current_value: card.current_value,
-        bank_name: card.bank_name || '',
-        due_date: card.due_date,
-      });
+  if (card) {
+    let expiry = card.expiry_date;
+    // Se vier no formato YYYY-MM-DD ou YYYY-MM, converte para MM/AAAA
+    if (/^\d{4}-\d{2}-\d{2}$/.test(expiry)) {
+      expiry = expiry.slice(5, 7) + '/' + expiry.slice(0, 4); // MM/AAAA
+    } else if (/^\d{4}-\d{2}$/.test(expiry)) {
+      expiry = expiry.slice(5, 7) + '/' + expiry.slice(0, 4); // MM/AAAA
     }
-  }, [card]);
+    setFormData({
+      card_name: card.card_name,
+      card_number: card.card_number,
+      expiry_date: expiry,
+      current_value: card.current_value,
+      bank_name: card.bank_name || '',
+      due_date: card.due_date,
+    });
+  }
+}, [card]);
 
   const handleChange = (field: keyof CreditCardInput, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
