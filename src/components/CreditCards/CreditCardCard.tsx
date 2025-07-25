@@ -4,16 +4,30 @@ import { Button } from '@/components/ui/button';
 import { CreditCard as CreditCardType } from '@/hooks/useCreditCardsData';
 
 function formatCardNumber(value: string) {
-return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
+  return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
 }
 
-ffunction formatExpiryToMonthYear(date: string) {
-  // Espera data no formato YYYY-MM ou YYYY-MM-DD
+// Função para formatar validade no padrão MM/AAAA
+function formatExpiryToMonthYear(date: string) {
   if (!date) return '';
+  // Aceita formatos YYYY-MM ou YYYY-MM-DD
   const parts = date.split('-');
   if (parts.length >= 2) {
     return `${parts[1]}/${parts[0]}`;
   }
+  // Se já estiver no formato MM/AAAA
+  if (/^\d{2}\/\d{4}$/.test(date)) return date;
+  return date;
+}
+
+function formatDateBR(date: string | number) {
+  if (!date) return '';
+  if (typeof date === 'number') return String(date).padStart(2, '0');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [y, m, d] = date.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return date;
   return date;
 }
 
@@ -30,11 +44,12 @@ export const CreditCardCard: React.FC<CreditCardCardProps> = ({ card, onEdit, on
         <CreditCardIcon className="h-8 w-8 text-blue-500" />
         <div>
           <div className="font-bold text-lg">{card.card_name}</div>
-       </div>
+          {/* Campo do banco removido */}
+        </div>
       </div>
       <div className="text-slate-700">
         <div><strong>Número:</strong> {formatCardNumber(card.card_number)}</div>
-        <div><strong>Validade:</strong> {formatDateBR(card.expiry_date)}</div>
+        <div><strong>Validade:</strong> {formatExpiryToMonthYear(card.expiry_date)}</div>
         <div><strong>Vencimento:</strong> {formatDateBR(card.due_date)}</div>
         <div><strong>Valor Atual:</strong> R$ {card.current_value.toFixed(2)}</div>
       </div>
