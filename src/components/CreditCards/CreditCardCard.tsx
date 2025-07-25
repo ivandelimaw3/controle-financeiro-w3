@@ -3,9 +3,11 @@ import { CreditCard as CreditCardIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CreditCard as CreditCardType } from '@/hooks/useCreditCardsData';
 
-function formatCardNumber(value: string) {
-  return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
+function maskCardNumber(value: string) {
+  const clean = value.replace(/\D/g, '');
+  return clean.replace(/.(?=.{4})/g, '*').replace(/(.{4})/g, '$1 ').trim();
 }
+
 
 function formatDateBR(date: string | number) {
   if (!date) return '';
