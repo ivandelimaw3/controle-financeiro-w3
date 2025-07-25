@@ -44,7 +44,7 @@ export const CreditCardCard: React.FC<CreditCardCardProps> = ({ card, onEdit, on
         <CreditCardIcon className="h-8 w-8 text-blue-500" />
         <div>
           <div className="font-bold text-lg">{card.card_name}</div>
-          {/* Campo do banco removido */}
+          <div className="text-slate-500 text-sm">{card.bank_name}</div>
         </div>
       </div>
       <div className="text-slate-700">
