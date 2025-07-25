@@ -4,20 +4,16 @@ import { Button } from '@/components/ui/button';
 import { CreditCard as CreditCardType } from '@/hooks/useCreditCardsData';
 
 function formatCardNumber(value: string) {
-  return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
+return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
 }
 
-function formatDateBR(date: string | number) {
+ffunction formatExpiryToMonthYear(date: string) {
+  // Espera data no formato YYYY-MM ou YYYY-MM-DD
   if (!date) return '';
-  // Se for número (dia do mês), retorna só o número
-  if (typeof date === 'number') return String(date).padStart(2, '0');
-  // Se for string no formato YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    const [y, m, d] = date.split('-');
-    return `${d}/${m}/${y}`;
+  const parts = date.split('-');
+  if (parts.length >= 2) {
+    return `${parts[1]}/${parts[0]}`;
   }
-  // Se já estiver no formato DD/MM/AAAA
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return date;
   return date;
 }
 
@@ -34,8 +30,7 @@ export const CreditCardCard: React.FC<CreditCardCardProps> = ({ card, onEdit, on
         <CreditCardIcon className="h-8 w-8 text-blue-500" />
         <div>
           <div className="font-bold text-lg">{card.card_name}</div>
-          <div className="text-slate-500 text-sm">{card.bank_name}</div>
-        </div>
+       </div>
       </div>
       <div className="text-slate-700">
         <div><strong>Número:</strong> {formatCardNumber(card.card_number)}</div>
