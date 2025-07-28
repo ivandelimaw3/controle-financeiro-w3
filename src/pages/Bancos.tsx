@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Building2, AlertCircle } from 'lucide-react';
+import { Plus, Building2, AlertCircle, Search, Edit, Trash2, Wallet, CheckCircle, Users } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BankCard } from '@/components/Banks/BankCard';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { BankForm } from '@/components/Banks/BankForm';
 import { DepositForm } from '@/components/Banks/DepositForm';
 import { useBanksData, Bank, BankInput } from '@/hooks/useBanksData';
@@ -16,6 +18,9 @@ const Bancos = () => {
   const [showDepositForm, setShowDepositForm] = useState(false);
   const [editingBank, setEditingBank] = useState<Bank | undefined>();
   const [selectedBankForDeposit, setSelectedBankForDeposit] = useState<Bank | undefined>();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   const { toast } = useToast();
 
@@ -31,6 +36,62 @@ const Bancos = () => {
   } = useBanksData();
 
   const { createDeposit, isCreating: isCreatingDeposit } = useDepositsData();
+
+  // Funções de formatação
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  };
+
+  const getAccountTypeLabel = (type: string) => {
+    const types: { [key: string]: string } = {
+      'corrente': 'Corrente',
+      'poupanca': 'Poupança',
+      'salario': 'Salário',
+      'investimento': 'Investimento'
+    };
+    return types[type] || type;
+  };
+
+  const getStatusLabel = (balance: number) => {
+    return balance >= 0 ? 'Ativo' : 'Negativo';
+  };
+
+  const getStatusColor = (balance: number) => {
+    return balance >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  };
+
+  // Cálculos para os cards de resumo
+  const totalBanks = banks.length;
+  const activeBanks = banks.filter(bank => bank.balance >= 0).length;
+  const totalBalance = banks.reduce((sum, bank) => sum + bank.balance, 0);
+  const uniqueBanks = new Set(banks.map(bank => bank.name)).size;
+
+  // Filtros
+  const filteredBanks = banks.filter(bank => {
+    const matchesSearch = bank.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         bank.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         bank.account_number.includes(searchTerm);
+    
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && bank.balance >= 0) ||
+                         (statusFilter === 'negative' && bank.balance < 0);
+    
+    const matchesType = typeFilter === 'all' || bank.account_type === typeFilter;
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
 
   const handleCreateBank = (bankData: BankInput) => {
     createBank(bankData);
@@ -122,59 +183,230 @@ const Bancos = () => {
   return (
     <Layout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex flex-col space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex-1 flex justify-start">
-              <Button
-                onClick={() => setShowBankForm(true)}
-                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Banco
-              </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800">Gestão de Bancos</h1>
+              <p className="text-slate-600 mt-1">
+                Gerencie bancos vinculados às suas contas cadastradas
+              </p>
             </div>
-            
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">Meus Bancos</h1>
-              <p className="text-slate-600">Gerencie suas contas bancárias e registre depósitos</p>
-            </div>
-            
-            <div className="flex-1"></div>
+            <Button
+              onClick={() => setShowBankForm(true)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Banco
+            </Button>
           </div>
         </div>
 
-        {banks.length === 0 ? (
-          <div className="text-center py-12">
-            <Building2 className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-slate-600 mb-2">
-              Nenhum banco cadastrado
-            </h3>
-            <p className="text-slate-500 mb-6">
-              Adicione sua primeira conta bancária para começar a gerenciar seus depósitos.
-            </p>
-            <Button
-              onClick={() => setShowBankForm(true)}
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Primeiro Banco
-            </Button>
+        {/* Cards de Resumo */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Total de Bancos</p>
+                <p className="text-2xl font-bold text-slate-800">{totalBanks}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Building2 className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {banks.map((bank) => (
-              <BankCard
-                key={bank.id}
-                bank={bank}
-                onEdit={handleEditBank}
-                onDelete={handleDeleteBank}
-                onAddDeposit={handleAddDeposit}
-              />
-            ))}
-          </div>
-        )}
 
-        {/* Dialog para Formulário de Banco */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Bancos Ativos</p>
+                <p className="text-2xl font-bold text-slate-800">{activeBanks}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Instituições</p>
+                <p className="text-2xl font-bold text-slate-800">{uniqueBanks}</p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Saldo Total</p>
+                <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalBalance)}</p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-lg">
+                <Wallet className="h-6 w-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Barra de Pesquisa e Filtros */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar bancos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Todos os Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="active">Ativos</SelectItem>
+                <SelectItem value="negative">Negativos</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Todos os Tipos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Tipos</SelectItem>
+                <SelectItem value="corrente">Corrente</SelectItem>
+                <SelectItem value="poupanca">Poupança</SelectItem>
+                <SelectItem value="salario">Salário</SelectItem>
+                <SelectItem value="investimento">Investimento</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Tabela de Bancos */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left p-4 font-semibold text-slate-700">Banco</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Conta</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Tipo</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Saldo</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Status</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Criado em</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBanks.map((bank, index) => (
+                  <tr key={bank.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-800">{bank.nickname || bank.name}</p>
+                          <p className="text-sm text-slate-500">{bank.name}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div>
+                        <p className="font-medium text-slate-800">{bank.account_number}</p>
+                        <p className="text-sm text-slate-500">Agência: {bank.agency}</p>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        {getAccountTypeLabel(bank.account_type)}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`font-semibold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(bank.balance)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                        <span className={`text-sm ${getStatusColor(bank.balance)}`}>
+                          {getStatusLabel(bank.balance)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-slate-600">
+                      {formatDate(bank.created_at)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAddDeposit(bank)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditBank(bank)}
+                          className="text-slate-600 hover:text-slate-700"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteBank(bank.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {filteredBanks.length === 0 && (
+            <div className="p-8 text-center text-slate-500">
+              <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-lg font-medium text-slate-600 mb-2">
+                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all' 
+                  ? 'Nenhum banco encontrado' 
+                  : 'Nenhum banco cadastrado'}
+              </p>
+              <p className="text-slate-500 mb-4">
+                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+                  ? 'Tente ajustar os filtros de busca.'
+                  : 'Adicione sua primeira conta bancária para começar.'}
+              </p>
+              {!searchTerm && statusFilter === 'all' && typeFilter === 'all' && (
+                <Button
+                  onClick={() => setShowBankForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Primeiro Banco
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Dialogs */}
         <Dialog open={showBankForm} onOpenChange={closeBankForm}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -191,7 +423,6 @@ const Bancos = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Dialog para Formulário de Depósito */}
         <Dialog open={showDepositForm} onOpenChange={closeDepositForm}>
           <DialogContent className="max-w-md">
             <DialogHeader>
