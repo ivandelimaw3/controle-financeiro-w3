@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -24,11 +23,11 @@ export interface BankInput {
   nickname?: string;
 }
 
-export const useBanksData = () => {
+export function useBanksData() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar bancos do usuário
+  // Buscar bancos
   const {
     data: banks = [],
     isLoading,
@@ -37,9 +36,14 @@ export const useBanksData = () => {
   } = useQuery({
     queryKey: ['banks'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('banks')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -62,7 +66,8 @@ export const useBanksData = () => {
         .from('banks')
         .insert({
           ...bankData,
-          user_id: user.id
+          user_id: user.id,
+          balance: 0 // Saldo inicial
         })
         .select()
         .single();
@@ -77,15 +82,15 @@ export const useBanksData = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['banks'] });
       toast({
-        title: "Banco cadastrado com sucesso!",
+        title: "Banco criado com sucesso!",
         description: "O banco foi adicionado à sua lista.",
       });
     },
     onError: (error) => {
-      console.error('Erro ao cadastrar banco:', error);
+      console.error('Erro ao criar banco:', error);
       toast({
-        title: "Erro ao cadastrar banco",
-        description: "Não foi possível cadastrar o banco. Tente novamente.",
+        title: "Erro ao criar banco",
+        description: "Não foi possível criar o banco. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -93,11 +98,11 @@ export const useBanksData = () => {
 
   // Atualizar banco
   const updateBankMutation = useMutation({
-    mutationFn: async ({ id, ...bankData }: Partial<Bank> & { id: number }) => {
+    mutationFn: async (bankData: BankInput & { id: number }) => {
       const { data, error } = await supabase
         .from('banks')
         .update(bankData)
-        .eq('id', id)
+        .eq('id', bankData.id)
         .select()
         .single();
 
@@ -137,19 +142,21 @@ export const useBanksData = () => {
         console.error('Erro ao deletar banco:', error);
         throw error;
       }
+
+      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['banks'] });
       toast({
-        title: "Banco removido com sucesso!",
+        title: "Banco excluído com sucesso!",
         description: "O banco foi removido da sua lista.",
       });
     },
     onError: (error) => {
       console.error('Erro ao deletar banco:', error);
       toast({
-        title: "Erro ao remover banco",
-        description: "Não foi possível remover o banco. Tente novamente.",
+        title: "Erro ao excluir banco",
+        description: "Não foi possível excluir o banco. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -159,12 +166,12 @@ export const useBanksData = () => {
     banks,
     isLoading,
     error,
-    refetch,
-    createBank: createBankMutation.mutate,
-    updateBank: updateBankMutation.mutate,
-    deleteBank: deleteBankMutation.mutate,
     isCreating: createBankMutation.isPending,
     isUpdating: updateBankMutation.isPending,
     isDeleting: deleteBankMutation.isPending,
+    createBank: createBankMutation.mutate,
+    updateBank: updateBankMutation.mutate,
+    deleteBank: deleteBankMutation.mutate,
+    refetch,
   };
-};
+}
