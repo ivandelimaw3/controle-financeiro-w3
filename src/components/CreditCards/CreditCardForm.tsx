@@ -9,15 +9,6 @@ function formatCardNumber(value: string) {
   return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
 }
 
-function formatDateBR(value: string) {
-  // Remove tudo que não for dígito e formata para DD/MM/AAAA
-  let v = value.replace(/\D/g, '').slice(0, 8);
-  if (v.length >= 5) return v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4, 8);
-  if (v.length >= 3) return v.slice(0, 2) + '/' + v.slice(2, 4);
-  if (v.length >= 1) return v;
-  return '';
-}
-
 interface CreditCardFormProps {
   card?: CreditCard;
   onSubmit: (data: CreditCardInput) => void;
@@ -38,20 +29,22 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
     current_value: 0,
     bank_name: '',
     due_date: '',
+    credit_limit: 0,
   });
 
   useEffect(() => {
-  if (card) {
-    setFormData({
-      card_name: card.card_name,
-      card_number: card.card_number,
-      expiry_date: card.expiry_date,
-      current_value: card.current_value,
-      bank_name: card.bank_name || '',
-      due_date: card.due_date,
-    });
-  }
-}, [card]);
+    if (card) {
+      setFormData({
+        card_name: card.card_name,
+        card_number: card.card_number,
+        expiry_date: card.expiry_date,
+        current_value: card.current_value,
+        bank_name: card.bank_name || '',
+        due_date: card.due_date || '',
+        credit_limit: card.credit_limit || 0,
+      });
+    }
+  }, [card]);
 
   const handleChange = (field: keyof CreditCardInput, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -82,25 +75,23 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
         <span className="text-xs text-muted-foreground">Apenas números, máximo 16 dígitos</span>
       </div>
       <div>
-     
-<Label htmlFor="expiry_date">Validade (MM-AAAA) *</Label>
-<Input
-  id="expiry_date"
-  type="date"
-  value={formData.expiry_date}
-  onChange={e => handleChange('expiry_date', e.target.value)}
-  required
-/>
-  </div>
-<div>
-<Label htmlFor="due_date">Dia de Vencimento *</Label>
-<Input
-id="due_date"
-type="date"
-value={formData.due_date}
-onChange={e => handleChange('due_date', e.target.value)}
-required
-/>
+        <Label htmlFor="expiry_date">Validade (MM-AAAA) *</Label>
+        <Input
+          id="expiry_date"
+          type="date"
+          value={formData.expiry_date}
+          onChange={e => handleChange('expiry_date', e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="due_date">Dia de Vencimento</Label>
+        <Input
+          id="due_date"
+          type="date"
+          value={formData.due_date}
+          onChange={e => handleChange('due_date', e.target.value)}
+        />
       </div>
       <div>
         <Label htmlFor="bank_name">Nome do Banco</Label>
@@ -111,7 +102,7 @@ required
           onChange={e => handleChange('bank_name', e.target.value)}
         />
       </div>
-       <div>
+      <div>
         <Label htmlFor="current_value">Valor Atual *</Label>
         <Input
           id="current_value"
@@ -120,6 +111,16 @@ required
           value={formData.current_value}
           onChange={e => handleChange('current_value', Number(e.target.value))}
           required
+        />
+      </div>
+      <div>
+        <Label htmlFor="credit_limit">Limite de Crédito</Label>
+        <Input
+          id="credit_limit"
+          type="number"
+          step="0.01"
+          value={formData.credit_limit}
+          onChange={e => handleChange('credit_limit', Number(e.target.value))}
         />
       </div>
       <div className="flex gap-3 pt-4">
@@ -132,4 +133,4 @@ required
       </div>
     </form>
   );
-}; 
+};
