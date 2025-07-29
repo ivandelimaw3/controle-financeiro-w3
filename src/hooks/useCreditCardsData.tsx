@@ -6,22 +6,23 @@ export interface CreditCard {
   user_id: string;
   card_name: string;
   card_number: string;
-  expiry_date: string; // date (YYYY-MM-DD)
-  current_value: number;
+  expiry_date: string; // text
+  current_value: number; // numeric
   created_at: string;
   updated_at: string;
-  bank_name: string;
-  due_date: string; // date (YYYY-MM-DD)
+  bank_name: string | null; // character varying, nullable
+  due_date: string | null; // text, nullable
+  credit_limit: number | null; // numeric, nullable
 }
 
 export interface CreditCardInput {
   card_name: string;
   card_number: string;
-  expiry_date: string; // YYYY-MM-DD
-  bank_id: number;
-  current_value: number;
-  bank_name: string;
-  due_date: string; // YYYY-MM-DD
+  expiry_date: string; // text
+  current_value: number; // numeric
+  bank_name?: string; // character varying, optional
+  due_date?: string; // text, optional
+  credit_limit?: number; // numeric, optional
 }
 
 function formatCardNumber(value: string) {
@@ -42,58 +43,126 @@ export function useCreditCardsData() {
 
   async function fetchCreditCards() {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from("cards")
-      .select("id,user_id,card_name,card_number,expiry_date,current_value,created_at,updated_at,bank_name,due_date");
-    if (!error) setCreditCards(data || []);
-    else setError(error);
+    try {
+      const { data, error } = await supabase
+        .from("cards")
+        .select(`
+          id,
+          user_id,
+          card_name,
+          card_number,
+          expiry_date,
+          current_value,
+          created_at,
+          updated_at,
+          bank_name,
+          due_date,
+          credit_limit
+        `);
+      
+      if (error) {
+        console.error('Erro ao buscar cartões:', error);
+        setError(error);
+      } else {
+        setCreditCards(data || []);
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao buscar cartões:', err);
+      setError(err);
+    }
     setIsLoading(false);
   }
 
   async function createCreditCard(card: CreditCardInput) {
     setIsCreating(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setIsCreating(false);
-      setError('Usuário não autenticado');
-      return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('Usuário não autenticado');
+        setIsCreating(false);
+        return;
+      }
+
+      const formattedCard = {
+        ...card,
+        card_number: formatCardNumber(card.card_number),
+        user_id: user.id,
+        // Garantir que os campos obrigatórios estejam presentes
+        current_value: card.current_value || 0,
+        bank_name: card.bank_name || null,
+        due_date: card.due_date || null,
+        expiry_date: card.expiry_date || '',
+        credit_limit: card.credit_limit || null
+      };
+
+      console.log('Enviando cartão para o Supabase:', formattedCard);
+      
+      const { error } = await supabase.from("cards").insert([formattedCard]);
+      
+      if (error) {
+        console.error('Erro ao criar cartão:', error);
+        setError(error);
+      } else {
+        await fetchCreditCards();
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao criar cartão:', err);
+      setError(err);
     }
-    const formattedCard = {
-      ...card,
-      card_number: formatCardNumber(card.card_number),
-      user_id: user.id,
-    };
-    console.log('Enviando cartão para o Supabase:', formattedCard);
-    const { error } = await supabase.from("cards").insert([formattedCard]);
-    if (!error) await fetchCreditCards();
     setIsCreating(false);
-    if (error) setError(error);
   }
 
   async function updateCreditCard(card: CreditCard & { id: string }) {
     setIsUpdating(true);
-    const formattedCard = {
-      ...card,
-      card_number: formatCardNumber(card.card_number),
-    };
-    const { error } = await supabase
-      .from("cards")
-      .update(formattedCard)
-      .eq("id", card.id);
-    if (!error) await fetchCreditCards();
+    try {
+      const formattedCard = {
+        ...card,
+        card_number: formatCardNumber(card.card_number),
+        // Garantir que os campos obrigatórios estejam presentes
+        current_value: card.current_value || 0,
+        bank_name: card.bank_name || null,
+        due_date: card.due_date || null,
+        expiry_date: card.expiry_date || '',
+        credit_limit: card.credit_limit || null
+      };
+
+      const { error } = await supabase
+        .from("cards")
+        .update(formattedCard)
+        .eq("id", card.id);
+      
+      if (error) {
+        console.error('Erro ao atualizar cartão:', error);
+        setError(error);
+      } else {
+        await fetchCreditCards();
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao atualizar cartão:', err);
+      setError(err);
+    }
     setIsUpdating(false);
-    if (error) setError(error);
   }
 
   async function deleteCreditCard(id: string) {
     setIsDeleting(true);
-    const { error } = await supabase
-      .from("cards")
-      .delete()
-      .eq("id", id);
-    if (!error) await fetchCreditCards();
+    try {
+      const { error } = await supabase
+        .from("cards")
+        .delete()
+        .eq("id", id);
+      
+      if (error) {
+        console.error('Erro ao deletar cartão:', error);
+        setError(error);
+      } else {
+        await fetchCreditCards();
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao deletar cartão:', err);
+      setError(err);
+    }
     setIsDeleting(false);
-    if (error) setError(error);
   }
 
   return {
@@ -108,4 +177,4 @@ export function useCreditCardsData() {
     deleteCreditCard,
     fetchCreditCards,
   };
-} 
+}
