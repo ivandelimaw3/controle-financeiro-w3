@@ -61,13 +61,14 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   return (
     <form onSubmit={e => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
       <div>
-        <Label htmlFor="user_name">Nome do Usuário</Label>
+        <Label htmlFor="holder_name">Nome do Usuário *</Label>
         <Input
-          id="user_name"
+          id="holder_name"
           type="text"
-          value="Ivan de lima"
-          disabled
-          className="bg-gray-50"
+          value={formData.holder_name}
+          onChange={e => handleChange('holder_name', e.target.value)}
+          placeholder="Nome do titular do cartão"
+          required
         />
       </div>
 
