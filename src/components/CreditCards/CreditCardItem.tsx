@@ -36,8 +36,8 @@ export const CreditCardItem: React.FC<CreditCardItemProps> = ({
 
   const getStatusLabel = (currentValue: number, creditLimit: number) => {
     const utilization = creditLimit > 0 ? (currentValue / creditLimit) * 100 : 0;
-    if (utilization > 80) return 'Limite Alto';
-    if (utilization > 50) return 'Limite Médio';
+    if (utilization > 80) return 'Limite uso Alto';
+    if (utilization > 50) return 'Limite uso Médio';
     return 'Limite OK';
   };
 
