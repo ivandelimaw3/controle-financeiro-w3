@@ -21,8 +21,8 @@ export function useCardsOptions() {
       setLoading(true)
       console.log('Iniciando busca de cartões...')
       const { data, error } = await supabase
-        .from('cards')
-        .select('id, card_name, current_balance')
+        .from('credit_cards')
+        .select('id, card_name, current_value')
         .eq('is_active', true)
         .order('card_name')
   
@@ -36,7 +36,7 @@ export function useCardsOptions() {
         .map(card => ({
           id: card.id.toString(),
           name: card.card_name,
-          current_balance: card.current_balance || 0
+          current_balance: card.current_value || 0
         }))
       
       setCards(transformedData)
