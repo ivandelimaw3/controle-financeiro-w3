@@ -36,9 +36,7 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         card_name: card.card_name,
         card_number: card.card_number,
         holder_name: card.holder_name,
-        expiry_date: card.expiry_date.includes('/') ? 
-          `20${card.expiry_date.split('/')[1]}-${card.expiry_date.split('/')[0]}` : 
-          card.expiry_date,
+        expiry_date: card.expiry_date,
         due_date: card.due_date || '',
         credit_limit: card.credit_limit,
         current_value: card.current_value,
@@ -53,13 +51,32 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   };
 
   const formatCardNumber = (value: string) => {
+    // Remove tudo que não é número e limita a 16 dígitos
+    const numbers = value.replace(/\D/g, '').slice(0, 16);
+    // Formata com espaços a cada 4 dígitos
+    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ');
+  };
+
+  const formatExpiryDate = (value: string) => {
+    // Remove tudo que não é número
     const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 4) {
-      return numbers;
+    
+    // Limita a 6 dígitos (MM/AAAA)
+    const limited = numbers.slice(0, 6);
+    
+    // Formata como MM/AAAA
+    if (limited.length >= 4) {
+      return `${limited.slice(0, 2)}/${limited.slice(2)}`;
+    } else if (limited.length >= 2) {
+      return `${limited.slice(0, 2)}/${limited.slice(2)}`;
     }
-    const lastFour = numbers.slice(-4);
-    const masked = '*'.repeat(numbers.length - 4);
-    return `${masked} ${lastFour}`;
+    
+    return limited;
+  };
+
+  const handleExpiryDateChange = (value: string) => {
+    const formatted = formatExpiryDate(value);
+    handleChange('expiry_date', formatted);
   };
 
   const availableLimit = (formData.credit_limit || 0) - (formData.current_value || 0);
@@ -97,8 +114,8 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
           type="text"
           maxLength={19}
           value={formatCardNumber(formData.card_number)}
-          onChange={e => handleChange('card_number', formatCardNumber(e.target.value))}
-          placeholder="1234 5678 9990"
+          onChange={e => handleChange('card_number', e.target.value.replace(/\D/g, ''))}
+          placeholder="1234 5678 9012 3456"
           required
         />
       </div>
@@ -108,9 +125,11 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
           <Label htmlFor="expiry_date">Data de Validade *</Label>
           <Input
             id="expiry_date"
-            type="date"
+            type="text"
+            maxLength={7}
             value={formData.expiry_date}
-            onChange={e => handleChange('expiry_date', e.target.value)}
+            onChange={e => handleExpiryDateChange(e.target.value)}
+            placeholder="MM/AAAA"
             required
           />
         </div>
