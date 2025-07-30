@@ -4,6 +4,7 @@ import { supabase } from '../integrations/supabase/client'
 export interface BankOption {
   id: string
   name: string
+  balance: number
 }
 
 export function useBanksOptions() {
@@ -21,7 +22,7 @@ export function useBanksOptions() {
       console.log('Iniciando busca de bancos...')
       const { data, error } = await supabase
         .from('banks')
-        .select('id, name')
+        .select('id, name, balance')
         .order('name')
   
       console.log('Resposta da busca de bancos:', { data, error })
@@ -33,12 +34,12 @@ export function useBanksOptions() {
         .filter(bank => !!bank.id && bank.id !== 'undefined' && bank.id !== 'null' && bank.id !== '')
         .map(bank => ({
           id: bank.id.toString(),
-          name: bank.name
+          name: bank.name,
+          balance: bank.balance || 0
         }))
       
       setBanks(transformedData)
     } catch (err) {
-      
       console.error('Erro ao carregar bancos:', err)
       setError(err instanceof Error ? err.message : 'Erro ao carregar bancos')
     } finally {
