@@ -16,7 +16,6 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
-import CartoesCredito from "./pages/CartoesCredito";
 import CartoesNovo from "./pages/CartoesNovo";
 
 const queryClient = new QueryClient({
@@ -61,11 +60,6 @@ const App = () => {
                   <Route path="/investimentos" element={
                     <ProtectedRoute>
                       <Investimentos />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/cartoes" element={
-                    <ProtectedRoute>
-                      <CartoesCredito />
                     </ProtectedRoute>
                   } />
                   <Route path="/cartoes-novo" element={
