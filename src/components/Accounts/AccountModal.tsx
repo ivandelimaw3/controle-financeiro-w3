@@ -16,6 +16,8 @@ interface Account {
   recorrente_id?: string;
   qtd_parcelas?: number;
   bank_id?: number;
+  payment_source?: 'bank' | 'card';
+  payment_source_id?: number;
 }
 
 interface AccountModalProps {
@@ -41,7 +43,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     type: 'despesa',
     status: 'pendente',
     qtd_parcelas: 1,
-    bank_id: undefined
+    bank_id: undefined,
+    payment_source: undefined,
+    payment_source_id: undefined
   });
   const [isFormReady, setIsFormReady] = useState(false);
 
@@ -91,7 +95,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         type: account.type || 'despesa',
         status: account.status || 'pendente',
         qtd_parcelas: 1, // Para edição, sempre 1 parcela
-        bank_id: account.bank_id
+        bank_id: account.bank_id,
+        payment_source: account.payment_source,
+        payment_source_id: account.payment_source_id
       };
       setFormData(newFormData);
     } else {
@@ -103,7 +109,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         type: 'despesa',
         status: 'pendente',
         qtd_parcelas: 1,
-        bank_id: undefined
+        bank_id: undefined,
+        payment_source: undefined,
+        payment_source_id: undefined
       });
     }
 

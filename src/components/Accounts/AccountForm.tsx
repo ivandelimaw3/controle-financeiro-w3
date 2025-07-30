@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Calendar, DollarSign, Building2 } from 'lucide-react';
+import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CategorySelect } from './CategorySelect';
 import { Category } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
+import { useCardsOptions } from '@/hooks/useCardsOptions';
 
 interface Account {
   id?: number;
@@ -21,6 +21,8 @@ interface Account {
   recorrente_id?: string;
   qtd_parcelas?: number;
   bank_id?: number;
+  payment_source?: 'bank' | 'card';
+  payment_source_id?: number;
 }
 
 interface AccountFormProps {
@@ -45,6 +47,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   isEditing
 }) => {
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
+  const { cardsOptions, isLoading: cardsLoading } = useCardsOptions();
 
   // Verificação de segurança
   if (!formData) {
@@ -118,8 +121,46 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, qtd_parcelas: value });
   };
 
-  const handleBankChange = (value: string) => {
-    setFormData({ ...formData, bank_id: parseInt(value) });
+  const handlePaymentSourceChange = (value: 'bank' | 'card') => {
+    setFormData({ 
+      ...formData, 
+      payment_source: value,
+      payment_source_id: undefined // Reset source ID when changing source type
+    });
+  };
+
+  const handlePaymentSourceIdChange = (value: string) => {
+    setFormData({ ...formData, payment_source_id: parseInt(value) });
+  };
+
+  // Obter o nome da fonte de pagamento selecionada
+  const getSelectedSourceName = () => {
+    if (!formData.payment_source || !formData.payment_source_id) return '';
+    
+    if (formData.payment_source === 'bank') {
+      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
+      return bank?.name || '';
+    } else if (formData.payment_source === 'card') {
+      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
+      return card?.name || '';
+    }
+    
+    return '';
+  };
+
+  // Obter o saldo atual da fonte de pagamento
+  const getSelectedSourceBalance = () => {
+    if (!formData.payment_source || !formData.payment_source_id) return null;
+    
+    if (formData.payment_source === 'bank') {
+      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
+      return bank ? 'Saldo disponível' : null;
+    } else if (formData.payment_source === 'card') {
+      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
+      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_balance)}` : null;
+    }
+    
+    return null;
   };
 
   return (
@@ -171,18 +212,72 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         </div>
       </div>
 
-      {/* Seleção de Banco */}
+      {/* Fonte do Pagamento */}
       <div>
-        <Label htmlFor="bank" className="text-slate-700">Banco</Label>
-        <div className="relative mt-1">
-          <Input
-            id="bank"
-            type="text"
-            value="Seleção de banco temporariamente indisponível"
-            disabled
-            className="pl-10 bg-gray-100 text-gray-500 cursor-not-allowed"
-          />
+        <Label htmlFor="payment_source" className="text-slate-700">Fonte do Pagamento</Label>
+        <div className="grid grid-cols-2 gap-4 mt-1">
+          <Select
+            value={formData.payment_source || ''}
+            onValueChange={handlePaymentSourceChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a fonte" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bank">
+                <div className="flex items-center gap-2">
+                  <Building2 size={16} />
+                  <span>Banco</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="card">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={16} />
+                  <span>Cartão</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          {formData.payment_source && (
+            <Select
+              value={formData.payment_source_id?.toString() || ''}
+              onValueChange={handlePaymentSourceIdChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={`Selecione ${formData.payment_source === 'bank' ? 'o banco' : 'o cartão'}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {formData.payment_source === 'bank' && banksOptions.map((bank) => (
+                  <SelectItem key={bank.id} value={bank.id}>
+                    {bank.name}
+                  </SelectItem>
+                ))}
+                {formData.payment_source === 'card' && cardsOptions.map((card) => (
+                  <SelectItem key={card.id} value={card.id}>
+                    {card.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
+        
+        {/* Exibir informações da fonte selecionada */}
+        {formData.payment_source && formData.payment_source_id && (
+          <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-700">
+                {getSelectedSourceName()}
+              </span>
+              {getSelectedSourceBalance() && (
+                <span className="text-sm text-slate-600">
+                  {getSelectedSourceBalance()}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <CategorySelect
@@ -234,15 +329,15 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         >
           Cancelar
         </Button>
-          <Button
-            type="submit"
-            className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-          >
-            {isEditing ? 'Atualizar' : 
-             (formData.qtd_parcelas && formData.qtd_parcelas > 1) ? 
-             `Criar ${formData.qtd_parcelas} Parcelas` : 
-             'Criar'}
-          </Button>
+        <Button
+          type="submit"
+          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+        >
+          {isEditing ? 'Atualizar' : 
+           (formData.qtd_parcelas && formData.qtd_parcelas > 1) ? 
+           `Criar ${formData.qtd_parcelas} Parcelas` : 
+           'Criar'}
+        </Button>
       </div>
     </form>
   );
