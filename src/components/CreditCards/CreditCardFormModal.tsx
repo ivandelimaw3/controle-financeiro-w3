@@ -53,7 +53,13 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   };
 
   const formatCardNumber = (value: string) => {
-    return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim().slice(0, 19);
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 4) {
+      return numbers;
+    }
+    const lastFour = numbers.slice(-4);
+    const masked = '*'.repeat(numbers.length - 4);
+    return `${masked} ${lastFour}`;
   };
 
   const availableLimit = (formData.credit_limit || 0) - (formData.current_value || 0);
