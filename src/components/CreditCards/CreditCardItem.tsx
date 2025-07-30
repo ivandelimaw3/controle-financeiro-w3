@@ -24,7 +24,14 @@ export const CreditCardItem: React.FC<CreditCardItemProps> = ({
   };
 
   const formatCardNumber = (value: string) => {
-    return value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '**** ').trim().slice(0, 19) + value.slice(-4);
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 4) {
+      return numbers;
+    }
+    // Mostra apenas os 4 últimos números, o resto fica mascarado
+    const lastFour = numbers.slice(-4);
+    const masked = '*'.repeat(numbers.length - 4);
+    return `${masked} ${lastFour}`;
   };
 
   const getStatusLabel = (currentValue: number, creditLimit: number) => {
