@@ -1,9 +1,21 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+
+export interface CreateAccountData {
+  description: string;
+  amount: number;
+  category: string;
+  dueDate: string;
+  type: 'receita' | 'despesa';
+  status: 'pendente' | 'pago' | 'recebido';
+  qtd_parcelas?: number;
+  bank_id?: number;
+  payment_source?: 'bank' | 'card';
+  payment_source_id?: number;
+}
 
 export interface Account {
   id: number;
@@ -16,30 +28,17 @@ export interface Account {
   parcela?: string;
   recorrente_id?: string;
   bank_id?: number;
-}
-
-export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
-  qtd_parcelas?: number;
-}
-
-export interface Transaction {
-  id: number;
-  description: string;
-  amount: number;
-  category: string;
-  date: string;
-  type: 'receita' | 'despesa';
-  status: 'pendente' | 'pago' | 'recebido';
+  payment_source?: 'bank' | 'card';
+  payment_source_id?: number;
 }
 
 export const useAccountsData = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Função para invalidar cache dos bancos
   const invalidateBanksCache = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
@@ -50,7 +49,6 @@ export const useAccountsData = () => {
       setLoading(true);
       
       if (!user) {
-        console.log('Usuário não autenticado - fetchAccounts');
         setAccounts([]);
         return;
       }
@@ -59,10 +57,10 @@ export const useAccountsData = () => {
         .from('accounts')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('due_date', { ascending: true });
 
       if (error) {
-        console.error('Erro ao carregar contas:', error);
+        console.error('Erro ao buscar contas:', error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar as contas.",
@@ -71,7 +69,7 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Transformar dados do Supabase para o formato esperado
+      // Transformar dados do Supabase para o formato da aplicação
       const transformedAccounts: Account[] = data.map(account => ({
         id: account.id,
         description: account.description,
@@ -82,16 +80,17 @@ export const useAccountsData = () => {
         status: account.status as 'pendente' | 'pago' | 'recebido',
         parcela: account.parcela,
         recorrente_id: account.recorrente_id,
-        bank_id: account.bank_id
+        bank_id: account.bank_id,
+        payment_source: account.payment_source,
+        payment_source_id: account.payment_source_id
       }));
 
       setAccounts(transformedAccounts);
-      console.log(`Contas carregadas: ${transformedAccounts.length} contas encontradas`);
     } catch (error) {
-      console.error('Erro ao carregar contas:', error);
+      console.error('Erro inesperado ao buscar contas:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar as contas.",
+        description: "Erro inesperado ao carregar contas.",
         variant: "destructive"
       });
     } finally {
@@ -99,7 +98,7 @@ export const useAccountsData = () => {
     }
   };
 
-  // Adicionar nova conta ou criar parcelas recorrentes
+  // Criar nova conta
   const addAccount = async (accountData: CreateAccountData) => {
     try {
       if (!user) {
@@ -131,7 +130,9 @@ export const useAccountsData = () => {
             user_id: user.id,
             parcela: `${i + 1}/${accountData.qtd_parcelas}`,
             recorrente_id: recorrenteId,
-            bank_id: accountData.bank_id
+            bank_id: accountData.bank_id,
+            payment_source: accountData.payment_source,
+            payment_source_id: accountData.payment_source_id
           });
         }
 
@@ -161,7 +162,9 @@ export const useAccountsData = () => {
           status: account.status as 'pendente' | 'pago' | 'recebido',
           parcela: account.parcela,
           recorrente_id: account.recorrente_id,
-          bank_id: account.bank_id
+          bank_id: account.bank_id,
+          payment_source: account.payment_source,
+          payment_source_id: account.payment_source_id
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
@@ -185,7 +188,9 @@ export const useAccountsData = () => {
             type: accountData.type,
             status: accountData.status,
             user_id: user.id,
-            bank_id: accountData.bank_id
+            bank_id: accountData.bank_id,
+            payment_source: accountData.payment_source,
+            payment_source_id: accountData.payment_source_id
           }])
           .select()
           .single();
@@ -211,7 +216,9 @@ export const useAccountsData = () => {
           status: data.status as 'pendente' | 'pago' | 'recebido',
           parcela: data.parcela,
           recorrente_id: data.recorrente_id,
-          bank_id: data.bank_id
+          bank_id: data.bank_id,
+          payment_source: data.payment_source,
+          payment_source_id: data.payment_source_id
         };
 
         setAccounts(prev => [newAccount, ...prev]);
@@ -237,15 +244,6 @@ export const useAccountsData = () => {
   // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
     try {
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Usuário não autenticado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('accounts')
         .update({
@@ -255,10 +253,11 @@ export const useAccountsData = () => {
           due_date: updatedAccount.dueDate,
           type: updatedAccount.type,
           status: updatedAccount.status,
-          bank_id: updatedAccount.bank_id
+          bank_id: updatedAccount.bank_id,
+          payment_source: updatedAccount.payment_source,
+          payment_source_id: updatedAccount.payment_source_id
         })
-        .eq('id', updatedAccount.id)
-        .eq('user_id', user.id);
+        .eq('id', updatedAccount.id);
 
       if (error) {
         console.error('Erro ao atualizar conta:', error);
@@ -270,9 +269,12 @@ export const useAccountsData = () => {
         return;
       }
 
-      setAccounts(prev => prev.map(acc => 
-        acc.id === updatedAccount.id ? updatedAccount : acc
-      ));
+      // Atualizar na lista local
+      setAccounts(prev => 
+        prev.map(account => 
+          account.id === updatedAccount.id ? updatedAccount : account
+        )
+      );
 
       // Invalidar cache dos bancos para atualizar saldos
       invalidateBanksCache();
@@ -292,96 +294,38 @@ export const useAccountsData = () => {
   };
 
   // Deletar conta
-  const deleteAccount = async (id: number) => {
+  const deleteAccount = async (accountId: number) => {
     try {
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Usuário não autenticado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('accounts')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', accountId);
 
       if (error) {
         console.error('Erro ao deletar conta:', error);
         toast({
           title: "Erro",
-          description: "Não foi possível excluir a conta.",
+          description: "Não foi possível deletar a conta.",
           variant: "destructive"
         });
         return;
       }
 
-      setAccounts(prev => prev.filter(acc => acc.id !== id));
+      // Remover da lista local
+      setAccounts(prev => prev.filter(account => account.id !== accountId));
 
       // Invalidar cache dos bancos para atualizar saldos
       invalidateBanksCache();
 
       toast({
         title: "Sucesso",
-        description: "Conta excluída com sucesso.",
+        description: "Conta deletada com sucesso.",
       });
     } catch (error) {
       console.error('Erro ao deletar conta:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a conta.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Atualizar status da conta
-  const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
-    try {
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Usuário não autenticado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from('accounts')
-        .update({ status })
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Erro ao atualizar status:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível atualizar o status.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setAccounts(prev => prev.map(acc => 
-        acc.id === id ? { ...acc, status } : acc
-      ));
-
-      // Invalidar cache dos bancos para atualizar saldos
-      invalidateBanksCache();
-
-      toast({
-        title: "Sucesso",
-        description: `Status alterado para ${status}.`,
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o status.",
+        description: "Não foi possível deletar a conta.",
         variant: "destructive"
       });
     }
@@ -389,12 +333,7 @@ export const useAccountsData = () => {
 
   // Carregar contas quando o usuário mudar
   useEffect(() => {
-    if (user) {
-      fetchAccounts();
-    } else {
-      setAccounts([]);
-      setLoading(false);
-    }
+    fetchAccounts();
   }, [user]);
 
   return {
@@ -403,7 +342,6 @@ export const useAccountsData = () => {
     addAccount,
     updateAccount,
     deleteAccount,
-    updateAccountStatus,
     refreshAccounts: fetchAccounts
   };
 };
