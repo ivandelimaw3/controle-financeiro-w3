@@ -21,7 +21,6 @@ export const Sidebar: React.FC = () => {
     { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
     { icon: CreditCard, label: 'Contas', path: '/contas' },
     { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
-    { icon: CreditCard, label: 'Cartões', path: '/cartoes' },
     { icon: CreditCard, label: 'Cartões Novo', path: '/cartoes-novo' },
     { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
     { icon: Building2, label: 'Bancos', path: '/bancos' },
