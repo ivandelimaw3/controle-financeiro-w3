@@ -342,6 +342,8 @@ export const useAccountsData = () => {
         .from('accounts')
         .update({ status })
         .eq('id', id);
+        
+        console.log('Supabase update error:', error, 'data:', data);
 
       if (error) {
         toast({
