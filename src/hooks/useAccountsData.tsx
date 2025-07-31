@@ -331,10 +331,47 @@ export const useAccountsData = () => {
     }
   };
 
-  // Carregar contas quando o usuário mudar
   useEffect(() => {
     fetchAccounts();
   }, [user]);
+
+  // NOVA FUNÇÃO: Atualizar status da conta
+  const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
+    try {
+      const { error } = await supabase
+        .from('accounts')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar o status da conta.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setAccounts(prev =>
+        prev.map(account =>
+          account.id === id ? { ...account, status } : account
+        )
+      );
+
+      invalidateBanksCache();
+
+      toast({
+        title: "Sucesso",
+        description: "Status da conta atualizado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar status.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return {
     accounts,
@@ -342,6 +379,7 @@ export const useAccountsData = () => {
     addAccount,
     updateAccount,
     deleteAccount,
+    updateAccountStatus, // <-- adicionado aqui
     refreshAccounts: fetchAccounts
   };
 };
