@@ -133,6 +133,29 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, payment_source_id: parseInt(value) });
   };
 
+  // Função de validação e submit
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validação da fonte de pagamento
+    if (formData.payment_source && !formData.payment_source_id) {
+      alert('Por favor, selecione uma fonte de pagamento específica (banco ou cartão).');
+      return;
+    }
+    
+    // Se não há fonte selecionada, limpar os campos para evitar erro no banco
+    if (!formData.payment_source) {
+      setFormData({
+        ...formData,
+        payment_source: undefined,
+        payment_source_id: undefined
+      });
+    }
+    
+    // Continuar com o submit
+    onSubmit(e);
+  };
+
   // Obter o nome da fonte de pagamento selecionada
   const getSelectedSourceName = () => {
     if (!formData.payment_source || !formData.payment_source_id) return '';
@@ -164,7 +187,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="description" className="text-slate-700">Descrição</Label>
         <Input
@@ -214,11 +237,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
       {/* Fonte do Pagamento */}
       <div>
-        <Label htmlFor="payment_source" className="text-slate-700">Fonte do Pagamento</Label>
+        <Label htmlFor="payment_source" className="text-slate-700">
+          Fonte do Pagamento <span className="text-red-500">*</span>
+        </Label>
         <div className="grid grid-cols-2 gap-4 mt-1">
           <Select
             value={formData.payment_source || ''}
             onValueChange={handlePaymentSourceChange}
+            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione a fonte" />
@@ -243,6 +269,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             <Select
               value={formData.payment_source_id?.toString() || ''}
               onValueChange={handlePaymentSourceIdChange}
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder={`Selecione ${formData.payment_source === 'bank' ? 'o banco' : 'o cartão'}`} />
