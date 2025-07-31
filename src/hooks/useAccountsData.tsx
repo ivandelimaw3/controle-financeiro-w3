@@ -263,8 +263,8 @@ export const useAccountsData = () => {
           payment_source: updatedAccount.payment_source,
           payment_source_id: updatedAccount.payment_source_id
         })
-        .eq('id', updatedAccount.id);
-        .eq('user_id', user.id);
+        .eq('id', updatedAccount.id)   // ← sem ponto e vírgula
+        .eq('user_id', user.id); 
 
       if (error) {
         console.error('Erro ao atualizar conta:', error);
