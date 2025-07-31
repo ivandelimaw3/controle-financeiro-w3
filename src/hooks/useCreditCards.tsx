@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CreditCard {
@@ -44,20 +45,20 @@ function formatExpiryDate(value: string) {
 }
 
 export function useCreditCards() {
-  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
+  const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    fetchCreditCards();
-  }, []);
-
-  async function fetchCreditCards() {
-    setIsLoading(true);
-    try {
+  // Buscar cartões usando React Query
+  const {
+    data: creditCards = [],
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['credit_cards'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("credit_cards")
         .select('*')
@@ -66,20 +67,17 @@ export function useCreditCards() {
       
       if (error) {
         console.error('Erro ao buscar cartões:', error);
-        setError(error);
-      } else {
-        setCreditCards(data || []);
+        throw error;
       }
-    } catch (err) {
-      console.error('Erro inesperado ao buscar cartões:', err);
-      setError(err);
+      
+      return data || [];
     }
-    setIsLoading(false);
-  }
+  });
 
-  async function createCreditCard(card: CreditCardInput) {
-    setIsCreating(true);
-    try {
+  // Criar cartão usando React Query Mutation
+
+  const createCreditCardMutation = useMutation({
+    mutationFn: async (card: CreditCardInput) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('Usuário não autenticado');
@@ -96,27 +94,29 @@ export function useCreditCards() {
         is_active: true,
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("credit_cards")
-        .insert([formattedCard]);
+        .insert([formattedCard])
+        .select()
+        .single();
 
       if (error) {
         throw error;
       }
 
-      await fetchCreditCards();
-    } catch (err) {
-      console.error('Erro ao criar cartão:', err);
-      setError(err);
-      throw err;
-    } finally {
-      setIsCreating(false);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao criar cartão:', error);
     }
-  }
+  });
 
-  async function updateCreditCard(id: number, card: CreditCardInput) {
-    setIsUpdating(true);
-    try {
+  // Atualizar cartão usando React Query Mutation
+  const updateCreditCardMutation = useMutation({
+    mutationFn: async ({ id, card }: { id: number; card: CreditCardInput }) => {
       const formattedCard = {
         ...card,
         card_number: formatCardNumber(card.card_number),
@@ -126,28 +126,30 @@ export function useCreditCards() {
         current_value: card.current_value || 0,
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("credit_cards")
         .update(formattedCard)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) {
         throw error;
       }
 
-      await fetchCreditCards();
-    } catch (err) {
-      console.error('Erro ao atualizar cartão:', err);
-      setError(err);
-      throw err;
-    } finally {
-      setIsUpdating(false);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar cartão:', error);
     }
-  }
+  });
 
-  async function deleteCreditCard(id: number) {
-    setIsDeleting(true);
-    try {
+  // Deletar cartão usando React Query Mutation
+  const deleteCreditCardMutation = useMutation({
+    mutationFn: async (id: number) => {
       const { error } = await supabase
         .from("credit_cards")
         .update({ is_active: false })
@@ -157,15 +159,43 @@ export function useCreditCards() {
         throw error;
       }
 
-      await fetchCreditCards();
-    } catch (err) {
-      console.error('Erro ao excluir cartão:', err);
-      setError(err);
-      throw err;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir cartão:', error);
+    }
+  });
+
+  // Funções wrapper para manter compatibilidade
+  const createCreditCard = async (card: CreditCardInput) => {
+    setIsCreating(true);
+    try {
+      await createCreditCardMutation.mutateAsync(card);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const updateCreditCard = async (id: number, card: CreditCardInput) => {
+    setIsUpdating(true);
+    try {
+      await updateCreditCardMutation.mutateAsync({ id, card });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const deleteCreditCard = async (id: number) => {
+    setIsDeleting(true);
+    try {
+      await deleteCreditCardMutation.mutateAsync(id);
     } finally {
       setIsDeleting(false);
     }
-  }
+  };
 
   return {
     creditCards,
@@ -177,6 +207,6 @@ export function useCreditCards() {
     createCreditCard,
     updateCreditCard,
     deleteCreditCard,
-    refetch: fetchCreditCards,
+    refetch,
   };
 }

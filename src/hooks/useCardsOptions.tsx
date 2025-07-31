@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../integrations/supabase/client'
 
 export interface CardOption {
@@ -8,17 +8,14 @@ export interface CardOption {
 }
 
 export function useCardsOptions() {
-  const [cards, setCards] = useState<CardOption[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchCards()
-  }, [])
-
-  const fetchCards = async () => {
-    try {
-      setLoading(true)
+  const {
+    data: cards = [],
+    isLoading: loading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['credit_cards'],
+    queryFn: async () => {
       console.log('Iniciando busca de cartões...')
       const { data, error } = await supabase
         .from('credit_cards')
@@ -39,20 +36,15 @@ export function useCardsOptions() {
           current_balance: card.current_value || 0
         }))
       
-      setCards(transformedData)
-    } catch (err) {
-      console.error('Erro ao carregar cartões:', err)
-      setError(err instanceof Error ? err.message : 'Erro ao carregar cartões')
-    } finally {
-      setLoading(false)
+      return transformedData
     }
-  }
+  })
 
   return { 
     cards, 
     loading, 
     error, 
-    refetch: fetchCards,
+    refetch,
     // Compatibilidade com hooks que esperam estas propriedades
     cardsOptions: cards,
     isLoading: loading
