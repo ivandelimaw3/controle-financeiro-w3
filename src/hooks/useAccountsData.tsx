@@ -4,20 +4,24 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
-export interface CreateAccountData {
+export interface Account {
+  id: number;
   description: string;
   amount: number;
   category: string;
   dueDate: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
-  qtd_parcelas?: number;
+  parcela?: string;
+  recorrente_id?: string;
   bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
 }
-
-export interface Account {
+export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
+  qtd_parcelas?: number;
+}
+export interface Transaction {
   id: number;
   description: string;
   amount: number;
@@ -49,6 +53,7 @@ export const useAccountsData = () => {
       setLoading(true);
       
       if (!user) {
+        console.log('Usuário não autenticado - fetchAccounts');
         setAccounts([]);
         return;
       }
@@ -57,10 +62,10 @@ export const useAccountsData = () => {
         .from('accounts')
         .select('*')
         .eq('user_id', user.id)
-        .order('due_date', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erro ao buscar contas:', error);
+        console.error('Erro ao carregar contas:', error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar as contas.",
@@ -86,11 +91,12 @@ export const useAccountsData = () => {
       }));
 
       setAccounts(transformedAccounts);
+      console.log(`Contas carregadas: ${transformedAccounts.length} contas encontradas`);
     } catch (error) {
-      console.error('Erro inesperado ao buscar contas:', error);
+      console.error('Erro ao carregar contas:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao carregar contas.",
+        description: "Não foi possível carregar as contas.",
         variant: "destructive"
       });
     } finally {
@@ -258,6 +264,7 @@ export const useAccountsData = () => {
           payment_source_id: updatedAccount.payment_source_id
         })
         .eq('id', updatedAccount.id);
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao atualizar conta:', error);
@@ -331,28 +338,28 @@ export const useAccountsData = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAccounts();
-  }, [user]);
-
-  // NOVA FUNÇÃO: Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
-      console.log('ID:', id, 'Novo status:', status, 'Tipo:', typeof status);
-      console.log('User ID:', user?.id); // <-- adicione este log
-  
-      const { error, data } = await supabase
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase
         .from('accounts')
         .update({ status })
         .eq('id', id)
-        .eq('user_id', user.id); // <-- adicione este filtro
-  
-      console.log('Supabase update error:', error, 'data:', data);
-  
+        .eq('user_id', user.id);
+
       if (error) {
+        console.error('Erro ao atualizar status:', error);
         toast({
           title: "Erro",
-          description: "Não foi possível atualizar o status da conta.",
+          description: "Não foi possível atualizar o status.",
           variant: "destructive"
         });
         return;
@@ -379,13 +386,22 @@ export const useAccountsData = () => {
     }
   };
 
+  useEffect(() => {
+    if (user) {
+      fetchAccounts();
+    } else {
+      setAccounts([]);
+      setLoading(false);
+    }
+  }, [user]);
+
   return {
     accounts,
     loading,
     addAccount,
     updateAccount,
     deleteAccount,
-    updateAccountStatus, // <-- adicionado aqui
+    updateAccountStatus,
     refreshAccounts: fetchAccounts
   };
 };
