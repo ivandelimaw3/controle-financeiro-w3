@@ -338,13 +338,17 @@ export const useAccountsData = () => {
   // NOVA FUNÇÃO: Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
-      const { error } = await supabase
+      console.log('ID:', id, 'Novo status:', status, 'Tipo:', typeof status);
+      console.log('User ID:', user?.id); // <-- adicione este log
+  
+      const { error, data } = await supabase
         .from('accounts')
         .update({ status })
-        .eq('id', id);
-        
-        console.log('Supabase update error:', error, 'data:', data);
-
+        .eq('id', id)
+        .eq('user_id', user.id); // <-- adicione este filtro
+  
+      console.log('Supabase update error:', error, 'data:', data);
+  
       if (error) {
         toast({
           title: "Erro",
@@ -353,15 +357,15 @@ export const useAccountsData = () => {
         });
         return;
       }
-
+  
       setAccounts(prev =>
         prev.map(account =>
           account.id === id ? { ...account, status } : account
         )
       );
-
+  
       invalidateBanksCache();
-
+  
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
