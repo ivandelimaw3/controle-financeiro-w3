@@ -180,7 +180,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
     } else if (formData.payment_source === 'card') {
       const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
-      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_balance)}` : null;
+      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
     }
     
     return null;
