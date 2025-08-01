@@ -59,11 +59,9 @@ export function useCreditCards() {
   } = useQuery({
     queryKey: ['credit_cards'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("credit_cards")
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      .eq('user_id', user.id)  // ← ADICIONAR SE NÃO EXISTIR
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Erro ao buscar cartões:', error);
