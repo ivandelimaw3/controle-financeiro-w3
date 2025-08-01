@@ -47,6 +47,10 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
+  const invalidateCardsCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+  };
+
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
@@ -175,8 +179,9 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [...newAccounts, ...prev]);
         
-        // Invalidar cache dos bancos para atualizar saldos
+        // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
+        invalidateCardsCache();
         
         toast({
           title: "Sucesso",
@@ -229,8 +234,9 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [newAccount, ...prev]);
         
-        // Invalidar cache dos bancos para atualizar saldos
+        // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
+        invalidateCardsCache();
         
         toast({
           title: "Sucesso",
@@ -283,8 +289,9 @@ export const useAccountsData = () => {
         )
       );
 
-      // Invalidar cache dos bancos para atualizar saldos
+      // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
+      invalidateCardsCache();
 
       toast({
         title: "Sucesso",
@@ -321,8 +328,9 @@ export const useAccountsData = () => {
       // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
 
-      // Invalidar cache dos bancos para atualizar saldos
+      // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
+      invalidateCardsCache();
 
       toast({
         title: "Sucesso",
@@ -372,6 +380,7 @@ export const useAccountsData = () => {
       );
   
       invalidateBanksCache();
+      invalidateCardsCache();
   
       toast({
         title: "Sucesso",
