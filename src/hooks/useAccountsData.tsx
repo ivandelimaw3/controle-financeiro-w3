@@ -372,13 +372,11 @@ export const useAccountsData = () => {
         });
         return;
       }
-  
-      setAccounts(prev =>
-        prev.map(account =>
-          account.id === id ? { ...account, status } : account
-        )
-      );
-  
+
+      setAccounts(prev => prev.map(acc => 
+        acc.id === id ? { ...acc, status } : acc
+      ));
+    
       invalidateBanksCache();
       invalidateCardsCache();
   
