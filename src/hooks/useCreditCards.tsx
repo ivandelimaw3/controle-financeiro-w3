@@ -57,11 +57,19 @@ export function useCreditCards() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['credit_cards'],
+    queryKey: ['cards'],
     queryFn: async () => {
-      .eq('user_id', user.id)  // ← ADICIONAR SE NÃO EXISTIR
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const { data, error } = await supabase
+        .from("cards")
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Erro ao buscar cartões:', error);
@@ -93,7 +101,7 @@ export function useCreditCards() {
       };
 
       const { data, error } = await supabase
-        .from("credit_cards")
+        .from("cards")
         .insert([formattedCard])
         .select()
         .single();
@@ -105,7 +113,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      queryClient.invalidateQueries({ queryKey: ['cards'] });
     },
     onError: (error) => {
       console.error('Erro ao criar cartão:', error);
@@ -125,7 +133,7 @@ export function useCreditCards() {
       };
 
       const { data, error } = await supabase
-        .from("credit_cards")
+        .from("cards")
         .update(formattedCard)
         .eq('id', id)
         .select()
@@ -138,7 +146,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      queryClient.invalidateQueries({ queryKey: ['cards'] });
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
@@ -149,7 +157,7 @@ export function useCreditCards() {
   const deleteCreditCardMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from("credit_cards")
+        .from("cards")
         .update({ is_active: false })
         .eq('id', id);
 
@@ -160,7 +168,7 @@ export function useCreditCards() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      queryClient.invalidateQueries({ queryKey: ['cards'] });
     },
     onError: (error) => {
       console.error('Erro ao excluir cartão:', error);

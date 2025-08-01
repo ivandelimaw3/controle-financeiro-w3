@@ -1,4 +1,7 @@
-// src/hooks/useCardsOptions.tsx
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '../integrations/supabase/client'
+
 export function useCardsOptions() {
   const {
     data: cards = [],
@@ -6,16 +9,16 @@ export function useCardsOptions() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['credit_cards'],
+    queryKey: ['cards'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) throw new Error('Usuário não autenticado');
 
       const { data, error } = await supabase
-        .from('credit_cards')
+        .from('cards')
         .select('id, card_name, current_value')
-        .eq('user_id', user.id)  // ← ADICIONAR FILTRO DE USUÁRIO
+        .eq('user_id', user.id)
         .eq('is_active', true)
         .order('card_name')
 
