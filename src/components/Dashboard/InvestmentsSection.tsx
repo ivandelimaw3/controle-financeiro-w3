@@ -3,7 +3,7 @@ import { Plus, TrendingUp, DollarSign, Calendar, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { InvestmentCard } from './InvestmentCard';
 import { InvestmentForm } from './InvestmentForm';
-import { InvestmentFilters from './InvestmentFilters';
+import { InvestmentFilters } from './InvestmentFilters';
 import { useInvestmentsData, Investment } from '@/hooks/useInvestmentsData';
 
 export const InvestmentsSection = () => {
