@@ -349,10 +349,6 @@ export const useAccountsData = () => {
 
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
-      console.log('=== updateAccountStatus chamado ===');
-      console.log('Account ID:', id);
-      console.log('New status:', status);
-      
       if (!user) {
         toast({
           title: "Erro",
@@ -362,20 +358,6 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Buscar dados da conta antes da atualização
-      const accountToUpdate = accounts.find(acc => acc.id === id);
-      console.log('Account found:', accountToUpdate);
-      
-      if (!accountToUpdate) {
-        toast({
-          title: "Erro",
-          description: "Conta não encontrada.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Updating account in database...');
       const { error } = await supabase
         .from('accounts')
         .update({ status })
@@ -383,30 +365,27 @@ export const useAccountsData = () => {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Erro ao atualizar status no banco:', error);
+        console.error('Erro ao atualizar status:', error);
         toast({
           title: "Erro",
-          description: `Não foi possível atualizar o status: ${error.message}`,
+          description: "Não foi possível atualizar o status.",
           variant: "destructive"
         });
         return;
       }
 
-      console.log('Database update successful, updating local state...');
       setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
     
       invalidateBanksCache();
       invalidateCardsCache();
-      
-      console.log('Status updated successfully');
+  
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
       });
     } catch (error) {
-      console.error('Erro inesperado ao atualizar status:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao atualizar status.",
