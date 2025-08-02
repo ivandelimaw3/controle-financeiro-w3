@@ -1,205 +1,176 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Plus, TrendingUp, DollarSign, Calendar, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Plus, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InvestmentCard } from './InvestmentCard';
-import { InvestmentFilters } from './InvestmentFilters';
 import { InvestmentForm } from './InvestmentForm';
-import { InvestmentTable } from './InvestmentTable';
-import { useInvestmentsData } from '@/hooks/useInvestmentsData';
+import { InvestmentFilters from './InvestmentFilters';
+import { useInvestmentsData, Investment } from '@/hooks/useInvestmentsData';
 
 export const InvestmentsSection = () => {
-  const [showForm, setShowForm] = useState(false);
-  const [editingInvestment, setEditingInvestment] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
-
   const {
     investments,
     institutions,
-    types,
+    investmentTypes,
     loading,
-    addInvestment,
+    createInvestment,
     updateInvestment,
     deleteInvestment,
     addInstitution,
-    addType
+    addInvestmentType
   } = useInvestmentsData();
 
-  const handleCreateInvestment = async (investmentData) => {
-    await addInvestment(investmentData);
+  const [showForm, setShowForm] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState<Investment | undefined>();
+  const [filters, setFilters] = useState({
+    institution: '',
+    type: '',
+    dateRange: 'all'
+  });
+
+  const filteredInvestments = investments.filter(investment => {
+    const institutionFilter = filters.institution ? investment.institution === filters.institution : true;
+    const typeFilter = filters.type ? investment.type === filters.type : true;
+
+    let dateFilter = true;
+    if (filters.dateRange !== 'all') {
+      const today = new Date();
+      const investmentDate = new Date(investment.startDate);
+
+      if (filters.dateRange === 'today') {
+        dateFilter = investmentDate.toDateString() === today.toDateString();
+      } else if (filters.dateRange === 'thisWeek') {
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        dateFilter = investmentDate >= startOfWeek && investmentDate <= today;
+      } else if (filters.dateRange === 'thisMonth') {
+        dateFilter = investmentDate.getMonth() === today.getMonth() && investmentDate.getFullYear() === today.getFullYear();
+      }
+    }
+
+    return institutionFilter && typeFilter && dateFilter;
+  });
+
+  const totalInvested = investments.reduce((sum, investment) => sum + investment.amount, 0);
+  const averageReturn = investments.length > 0 ? investments.reduce((sum, investment) => sum + investment.returnRate, 0) / investments.length : 0;
+
+  const handleCreate = async (investmentData: Omit<Investment, 'id'>) => {
+    await createInvestment(investmentData);
     setShowForm(false);
   };
 
-  const handleUpdateInvestment = async (investmentData) => {
-    if (editingInvestment) {
-      await updateInvestment(editingInvestment.id, investmentData);
-      setEditingInvestment(null);
-      setShowForm(false);
-    }
+  const handleUpdate = async (investmentData: Investment) => {
+    await updateInvestment(investmentData);
+    setShowForm(false);
+    setEditingInvestment(undefined);
   };
 
-  const handleDeleteInvestment = async (id) => {
-    if (confirm('Tem certeza que deseja excluir este investimento?')) {
-      await deleteInvestment(id);
-    }
+  const handleDelete = async (id: number) => {
+    await deleteInvestment(id);
   };
 
-  const handleEditInvestment = (investment) => {
+  const handleEdit = (investment: Investment) => {
     setEditingInvestment(investment);
     setShowForm(true);
   };
 
-  const closeForm = () => {
+  const handleCancel = () => {
     setShowForm(false);
-    setEditingInvestment(null);
+    setEditingInvestment(undefined);
   };
 
-  // Filter and sort investments
-  const filteredInvestments = investments
-    .filter(inv => {
-      const matchesSearch = inv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           inv.investor_name?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || 
-                             inv.type?.category === categoryFilter;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'value':
-          return Number(b.current_value) - Number(a.current_value);
-        case 'date':
-          return new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime();
-        default:
-          return 0;
-      }
-    });
-
-  // Calculate totals
-  const totalInvested = investments.reduce((sum, inv) => sum + Number(inv.invested_amount), 0);
-  const totalCurrent = investments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
-  const totalGain = totalCurrent - totalInvested;
-  const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
-
-  // Format currency to Brazilian Real
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+  const handleAddInstitution = async (name: string) => {
+    await addInstitution(name);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto" />
-          <p className="mt-2 text-slate-600">Carregando investimentos...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleAddType = async (name: string) => {
+    await addInvestmentType(name);
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 flex justify-start">
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-            >
-              <Plus size={20} className="mr-2" />
-              Novo Investimento
-            </Button>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <TrendingUp className="h-6 w-6 text-green-600" />
           </div>
-          
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Investimentos</h1>
-            <p className="text-slate-600">Gerencie sua carteira de investimentos</p>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Investimentos</h2>
+            <p className="text-gray-600">Gerencie seus investimentos e acompanhe a rentabilidade</p>
           </div>
-          
-          <div className="flex-1"></div>
+        </div>
+        <Button onClick={() => setShowForm(true)} className="bg-green-600 hover:bg-green-700">
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Investimento
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Investido</p>
+              <p className="text-2xl font-bold text-gray-900">${totalInvested.toFixed(2)}</p>
+            </div>
+            <div className="p-2 bg-green-100 rounded-lg">
+              <DollarSign className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Retorno Médio</p>
+              <p className="text-2xl font-bold text-gray-900">{averageReturn.toFixed(2)}%</p>
+            </div>
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <TrendingUp className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Próximo Vencimento</p>
+              <p className="text-2xl font-bold text-gray-900">Em breve</p>
+            </div>
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Calendar className="h-6 w-6 text-yellow-600" />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <InvestmentCard
-          title="Total Investido"
-          value={formatCurrency(totalInvested)}
-          icon={TrendingUp}
-          bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
-        />
-        <InvestmentCard
-          title="Valor Atual"
-          value={formatCurrency(totalCurrent)}
-          icon={TrendingUp}
-          bgColor="bg-gradient-to-r from-green-500 to-green-600"
-        />
-        <InvestmentCard
-          title="Ganho/Perda"
-          value={formatCurrency(totalGain)}
-          icon={TrendingUp}
-          bgColor={totalGain >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
-        />
-        <InvestmentCard
-          title="Rentabilidade"
-          value={`${gainPercentage.toFixed(2)}%`}
-          icon={TrendingUp}
-          bgColor={gainPercentage >= 0 ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}
-        />
-      </div>
+      <InvestmentFilters
+        institutions={institutions}
+        investmentTypes={investmentTypes}
+        filters={filters}
+        setFilters={setFilters}
+      />
 
-      {/* Filters */}
-      <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-        <InvestmentFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedMonth="all"
-          onMonthChange={() => {}}
-          selectedYear="all"
-          onYearChange={() => {}}
-        />
-
-        <div className="mb-4">
-          <p className="text-sm text-slate-600 text-center">
-            {filteredInvestments.length} {filteredInvestments.length === 1 ? 'investimento encontrado' : 'investimentos encontrados'}
-          </p>
-        </div>
-
-        <InvestmentTable
-          investments={filteredInvestments}
-          onEdit={handleEditInvestment}
-          onDelete={handleDeleteInvestment}
-        />
-      </div>
-
-      {/* Investment Form Dialog */}
-      <Dialog open={showForm} onOpenChange={closeForm}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingInvestment ? 'Editar Investimento' : 'Novo Investimento'}
-            </DialogTitle>
-          </DialogHeader>
-          <InvestmentForm
-            isOpen={showForm}
-            onClose={closeForm}
-            onSubmit={editingInvestment ? handleUpdateInvestment : handleCreateInvestment}
-            onAddInstitution={addInstitution}
-            onAddType={addType}
-            investment={editingInvestment}
-            institutions={institutions}
-            types={types}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredInvestments.map((investment) => (
+          <InvestmentCard
+            key={investment.id}
+            investment={investment}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
-        </DialogContent>
-      </Dialog>
+        ))}
+      </div>
+
+      {showForm && (
+        <InvestmentForm
+          onSubmit={editingInvestment ? handleUpdate : handleCreate}
+          onCancel={handleCancel}
+          onAddInstitution={handleAddInstitution}
+          onAddType={handleAddType}
+          investment={editingInvestment}
+          institutions={institutions}
+          investmentTypes={investmentTypes}
+          isLoading={loading}
+        />
+      )}
     </div>
   );
 };
