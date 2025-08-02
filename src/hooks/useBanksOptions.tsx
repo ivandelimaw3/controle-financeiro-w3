@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { supabase } from '../integrations/supabase/client'
 
@@ -31,7 +32,7 @@ export function useBanksOptions() {
   
       // Filtro para garantir apenas bancos com id válido
       const transformedData = (data || [])
-        .filter(bank => !!bank.id && bank.id !== 'undefined' && bank.id !== 'null' && bank.id !== '')
+        .filter(bank => !!bank.id && typeof bank.id === 'number')
         .map(bank => ({
           id: bank.id.toString(),
           name: bank.name,

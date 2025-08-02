@@ -1,5 +1,17 @@
+
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAccountsData, Account, Transaction, CreateAccountData } from '@/hooks/useAccountsData';
+import { useAccountsData, Account, CreateAccountData } from '@/hooks/useAccountsData';
+
+export interface Transaction {
+  id: number;
+  description: string;
+  amount: number;
+  category: string;
+  dueDate: string;
+  date: string;
+  type: 'receita' | 'despesa';
+  status: 'pendente' | 'pago' | 'recebido';
+}
 
 interface AccountsContextType {
   accounts: Account[];
@@ -64,6 +76,7 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
         description: account.description,
         amount: account.amount,
         category: account.category,
+        dueDate: account.dueDate,
         date: formattedDate,
         type: account.type,
         status: account.status
@@ -112,4 +125,4 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
 };
 
 // Exportar tipos para compatibilidade
-export type { Account, Transaction, CreateAccountData };
+export type { Account, CreateAccountData };

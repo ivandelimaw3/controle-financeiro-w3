@@ -24,6 +24,8 @@ export type Database = {
           due_date: string
           id: number
           parcela: string | null
+          payment_source: string | null
+          payment_source_id: number | null
           recorrente_id: string | null
           status: string
           type: string
@@ -39,6 +41,8 @@ export type Database = {
           due_date: string
           id?: number
           parcela?: string | null
+          payment_source?: string | null
+          payment_source_id?: number | null
           recorrente_id?: string | null
           status: string
           type: string
@@ -54,6 +58,8 @@ export type Database = {
           due_date?: string
           id?: number
           parcela?: string | null
+          payment_source?: string | null
+          payment_source_id?: number | null
           recorrente_id?: string | null
           status?: string
           type?: string
@@ -111,65 +117,54 @@ export type Database = {
       }
       cards: {
         Row: {
-          bank_id: number | null
-          card_brand: string
+          bank_name: string | null
+          card_brand: string | null
           card_name: string
           card_number: string
-          card_type: string
           created_at: string | null
           credit_limit: number | null
-          current_balance: number | null
+          current_value: number | null
+          due_date: string | null
           expiry_date: string
           holder_name: string
           id: number
           is_active: boolean | null
-          nickname: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          bank_id?: number | null
-          card_brand: string
+          bank_name?: string | null
+          card_brand?: string | null
           card_name: string
           card_number: string
-          card_type?: string
           created_at?: string | null
           credit_limit?: number | null
-          current_balance?: number | null
+          current_value?: number | null
+          due_date?: string | null
           expiry_date: string
           holder_name: string
           id?: number
           is_active?: boolean | null
-          nickname?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          bank_id?: number | null
-          card_brand?: string
+          bank_name?: string | null
+          card_brand?: string | null
           card_name?: string
           card_number?: string
-          card_type?: string
           created_at?: string | null
           credit_limit?: number | null
-          current_balance?: number | null
+          current_value?: number | null
+          due_date?: string | null
           expiry_date?: string
           holder_name?: string
           id?: number
           is_active?: boolean | null
-          nickname?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "cards_bank_id_fkey"
-            columns: ["bank_id"]
-            isOneToOne: false
-            referencedRelation: "banks"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       categories: {
         Row: {

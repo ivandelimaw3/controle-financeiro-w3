@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../integrations/supabase/client'
@@ -9,7 +10,7 @@ export function useCardsOptions() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['cards'],
+    queryKey: ['credit_cards'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -25,11 +26,11 @@ export function useCardsOptions() {
       if (error) throw error
 
       const transformedData = (data || [])
-        .filter(card => !!card.id && card.id !== 'undefined' && card.id !== 'null' && card.id !== '')
+        .filter(card => !!card.id && typeof card.id === 'number')
         .map(card => ({
           id: card.id.toString(),
           name: card.card_name,
-          current_balance: card.current_value || 0
+          current_value: card.current_value || 0
         }))
       
       return transformedData
