@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,7 +91,7 @@ export const useAccountsData = () => {
         parcela: account.parcela,
         recorrente_id: account.recorrente_id,
         bank_id: account.bank_id,
-        payment_source: account.payment_source,
+        payment_source: account.payment_source as 'bank' | 'card' | undefined,
         payment_source_id: account.payment_source_id
       }));
 
@@ -173,7 +174,7 @@ export const useAccountsData = () => {
           parcela: account.parcela,
           recorrente_id: account.recorrente_id,
           bank_id: account.bank_id,
-          payment_source: account.payment_source,
+          payment_source: account.payment_source as 'bank' | 'card' | undefined,
           payment_source_id: account.payment_source_id
         }));
 
@@ -228,7 +229,7 @@ export const useAccountsData = () => {
           parcela: data.parcela,
           recorrente_id: data.recorrente_id,
           bank_id: data.bank_id,
-          payment_source: data.payment_source,
+          payment_source: data.payment_source as 'bank' | 'card' | undefined,
           payment_source_id: data.payment_source_id
         };
 
