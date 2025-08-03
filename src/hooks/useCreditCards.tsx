@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,11 +83,10 @@ export function useCreditCards() {
       return data || [];
     },
     refetchOnWindowFocus: true,
-    staleTime: 0 // Sempre considerar os dados como obsoletos para forçar atualização
+    staleTime: 0
   });
 
   // Criar cartão usando React Query Mutation
-
   const createCreditCardMutation = useMutation({
     mutationFn: async (card: CreditCardInput) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -118,7 +118,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
     },
     onError: (error) => {
       console.error('Erro ao criar cartão:', error);
@@ -151,7 +151,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
@@ -173,7 +173,7 @@ export function useCreditCards() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
     },
     onError: (error) => {
       console.error('Erro ao excluir cartão:', error);

@@ -41,7 +41,7 @@ export function useCardsOptions() {
       return transformedData;
     },
     refetchOnWindowFocus: true,
-    staleTime: 0 // Sempre considerar os dados como obsoletos
+    staleTime: 0
   });
 
   return { 

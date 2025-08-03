@@ -51,7 +51,6 @@ export const useAccountsData = () => {
   const invalidateCardsCache = () => {
     console.log('Invalidando cache dos cartões...');
     queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
-    queryClient.invalidateQueries({ queryKey: ['cards'] });
   };
 
   // Carregar contas do Supabase
