@@ -44,10 +44,12 @@ export const useAccountsData = () => {
   const queryClient = useQueryClient();
 
   const invalidateBanksCache = () => {
+    console.log('Invalidando cache dos bancos...');
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
   const invalidateCardsCache = () => {
+    console.log('Invalidando cache dos cartões...');
     queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
     queryClient.invalidateQueries({ queryKey: ['cards'] });
   };
@@ -350,6 +352,7 @@ export const useAccountsData = () => {
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
       if (!user) {
+        console.error('Usuário não autenticado');
         toast({
           title: "Erro",
           description: "Usuário não autenticado.",
@@ -358,11 +361,13 @@ export const useAccountsData = () => {
         return;
       }
 
-      console.log(`Atualizando status da conta ${id} para ${status}`);
+      console.log('=== INÍCIO updateAccountStatus ===');
+      console.log(`Atualizando conta ID ${id} para status "${status}"`);
 
       // Buscar a conta atual para verificar os dados
       const currentAccount = accounts.find(acc => acc.id === id);
       if (!currentAccount) {
+        console.error('Conta não encontrada:', id);
         toast({
           title: "Erro",
           description: "Conta não encontrada.",
@@ -371,8 +376,38 @@ export const useAccountsData = () => {
         return;
       }
 
-      console.log('Dados da conta atual:', currentAccount);
+      console.log('Conta encontrada:', {
+        id: currentAccount.id,
+        description: currentAccount.description,
+        amount: currentAccount.amount,
+        payment_source: currentAccount.payment_source,
+        payment_source_id: currentAccount.payment_source_id,
+        status_atual: currentAccount.status,
+        status_novo: status
+      });
 
+      // Verificar se é um cartão
+      if (currentAccount.payment_source === 'card') {
+        console.log(`Esta é uma conta de cartão. Payment_source_id: ${currentAccount.payment_source_id}`);
+        
+        // Buscar os dados atuais do cartão antes da atualização
+        if (currentAccount.payment_source_id) {
+          const { data: cardData, error: cardError } = await supabase
+            .from('cards')
+            .select('id, card_name, current_value')
+            .eq('id', currentAccount.payment_source_id)
+            .single();
+          
+          if (cardError) {
+            console.error('Erro ao buscar dados do cartão:', cardError);
+          } else {
+            console.log('Dados do cartão antes da atualização:', cardData);
+          }
+        }
+      }
+
+      // Atualizar o status da conta
+      console.log('Executando UPDATE na tabela accounts...');
       const { error } = await supabase
         .from('accounts')
         .update({ status })
@@ -380,13 +415,35 @@ export const useAccountsData = () => {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Erro ao atualizar status:', error);
+        console.error('Erro no UPDATE da conta:', error);
         toast({
           title: "Erro",
-          description: "Não foi possível atualizar o status.",
+          description: `Não foi possível atualizar o status: ${error.message}`,
           variant: "destructive"
         });
         return;
+      }
+
+      console.log('UPDATE da conta executado com sucesso');
+
+      // Verificar se é um cartão e buscar dados após a atualização
+      if (currentAccount.payment_source === 'card' && currentAccount.payment_source_id) {
+        console.log('Verificando dados do cartão após a atualização...');
+        
+        // Aguardar um pouco para o trigger processar
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const { data: cardDataAfter, error: cardErrorAfter } = await supabase
+          .from('cards')
+          .select('id, card_name, current_value')
+          .eq('id', currentAccount.payment_source_id)
+          .single();
+        
+        if (cardErrorAfter) {
+          console.error('Erro ao buscar dados do cartão após atualização:', cardErrorAfter);
+        } else {
+          console.log('Dados do cartão depois da atualização:', cardDataAfter);
+        }
       }
 
       // Atualizar na lista local
@@ -406,15 +463,18 @@ export const useAccountsData = () => {
       // Também invalidar cache geral dos bancos para compatibilidade
       invalidateBanksCache();
 
+      console.log('=== FIM updateAccountStatus ===');
+
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
       });
+
     } catch (error) {
       console.error('Erro inesperado ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar status.",
+        description: `Erro inesperado: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         variant: "destructive"
       });
     }
