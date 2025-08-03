@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,6 +49,7 @@ export const useAccountsData = () => {
 
   const invalidateCardsCache = () => {
     queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+    queryClient.invalidateQueries({ queryKey: ['cards'] });
   };
 
   // Carregar contas do Supabase
@@ -358,6 +358,21 @@ export const useAccountsData = () => {
         return;
       }
 
+      console.log(`Atualizando status da conta ${id} para ${status}`);
+
+      // Buscar a conta atual para verificar os dados
+      const currentAccount = accounts.find(acc => acc.id === id);
+      if (!currentAccount) {
+        toast({
+          title: "Erro",
+          description: "Conta não encontrada.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Dados da conta atual:', currentAccount);
+
       const { error } = await supabase
         .from('accounts')
         .update({ status })
@@ -374,18 +389,29 @@ export const useAccountsData = () => {
         return;
       }
 
+      // Atualizar na lista local
       setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
-    
+
+      // Invalidar cache específico baseado na fonte de pagamento
+      if (currentAccount.payment_source === 'bank') {
+        console.log('Invalidando cache dos bancos');
+        invalidateBanksCache();
+      } else if (currentAccount.payment_source === 'card') {
+        console.log('Invalidando cache dos cartões');
+        invalidateCardsCache();
+      }
+
+      // Também invalidar cache geral dos bancos para compatibilidade
       invalidateBanksCache();
-      invalidateCardsCache();
-  
+
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
       });
     } catch (error) {
+      console.error('Erro inesperado ao atualizar status:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao atualizar status.",

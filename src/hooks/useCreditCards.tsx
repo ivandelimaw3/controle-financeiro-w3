@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,12 +57,14 @@ export function useCreditCards() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['cards'],
+    queryKey: ['credit_cards'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('Usuário não autenticado');
       }
+
+      console.log('Buscando cartões de crédito para usuário:', user.id);
 
       const { data, error } = await supabase
         .from("cards")
@@ -76,8 +78,11 @@ export function useCreditCards() {
         throw error;
       }
       
+      console.log('Cartões encontrados:', data?.length || 0);
       return data || [];
-    }
+    },
+    refetchOnWindowFocus: true,
+    staleTime: 0 // Sempre considerar os dados como obsoletos para forçar atualização
   });
 
   // Criar cartão usando React Query Mutation
