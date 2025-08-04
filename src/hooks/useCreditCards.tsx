@@ -119,6 +119,7 @@ export function useCreditCards() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      await queryClient.refetchQueries({ queryKey: ['credit_cards'] });
     },
     onError: (error) => {
       console.error('Erro ao criar cartão:', error);
@@ -152,6 +153,7 @@ export function useCreditCards() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      await queryClient.refetchQueries({ queryKey: ['credit_cards'] });
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
@@ -174,6 +176,7 @@ export function useCreditCards() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      await queryClient.refetchQueries({ queryKey: ['credit_cards'] });
     },
     onError: (error) => {
       console.error('Erro ao excluir cartão:', error);
