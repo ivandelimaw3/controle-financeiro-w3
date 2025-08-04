@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,11 +18,12 @@ export interface Account {
   bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
-  card_id?: number;
 }
+
 export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
   qtd_parcelas?: number;
 }
+
 export interface Transaction {
   id: number;
   description: string;
@@ -35,7 +37,6 @@ export interface Transaction {
   bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
-  card_id?: number;
 }
 
 export const useAccountsData = () => {
@@ -52,7 +53,7 @@ export const useAccountsData = () => {
 
   const invalidateCardsCache = () => {
     console.log('Invalidando cache dos cartões...');
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+    queryClient.invalidateQueries({ queryKey: ['cards'] });
   };
 
   // Carregar contas do Supabase
@@ -95,8 +96,7 @@ export const useAccountsData = () => {
         recorrente_id: account.recorrente_id,
         bank_id: account.bank_id,
         payment_source: account.payment_source as 'bank' | 'card' | undefined,
-        payment_source_id: account.payment_source_id,
-        card_id: account.card_id
+        payment_source_id: account.payment_source_id
       }));
 
       setAccounts(transformedAccounts);
@@ -147,8 +147,7 @@ export const useAccountsData = () => {
             recorrente_id: recorrenteId,
             bank_id: accountData.bank_id,
             payment_source: accountData.payment_source,
-            payment_source_id: accountData.payment_source_id,
-            card_id: accountData.card_id
+            payment_source_id: accountData.payment_source_id
           });
         }
 
@@ -180,8 +179,7 @@ export const useAccountsData = () => {
           recorrente_id: account.recorrente_id,
           bank_id: account.bank_id,
           payment_source: account.payment_source as 'bank' | 'card' | undefined,
-          payment_source_id: account.payment_source_id,
-          card_id: accountData.card_id
+          payment_source_id: account.payment_source_id
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
@@ -208,8 +206,7 @@ export const useAccountsData = () => {
             user_id: user.id,
             bank_id: accountData.bank_id,
             payment_source: accountData.payment_source,
-            payment_source_id: accountData.payment_source_id,
-            card_id: accountData.card_id
+            payment_source_id: accountData.payment_source_id
           }])
           .select()
           .single();
@@ -237,8 +234,7 @@ export const useAccountsData = () => {
           recorrente_id: data.recorrente_id,
           bank_id: data.bank_id,
           payment_source: data.payment_source as 'bank' | 'card' | undefined,
-          payment_source_id: data.payment_source_id,
-          card_id: data.card_id
+          payment_source_id: data.payment_source_id
         };
 
         setAccounts(prev => [newAccount, ...prev]);
@@ -277,9 +273,8 @@ export const useAccountsData = () => {
           bank_id: updatedAccount.bank_id,
           payment_source: updatedAccount.payment_source,
           payment_source_id: updatedAccount.payment_source_id,
-          card_id: updatedAccount.card_id,
         })
-        .eq('id', updatedAccount.id)   // ← sem ponto e vírgula
+        .eq('id', updatedAccount.id)
         .eq('user_id', user.id); 
 
       if (error) {
