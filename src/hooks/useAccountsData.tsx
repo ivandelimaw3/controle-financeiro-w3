@@ -391,6 +391,7 @@ export const useAccountsData = () => {
     
       invalidateBanksCache();
       invalidateCardsCache();
+      queryClient.refetchQueries({ queryKey: ['credit_cards'] });
   
       toast({
         title: "Sucesso",
