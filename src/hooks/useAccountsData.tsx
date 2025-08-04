@@ -15,14 +15,13 @@ export interface Account {
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
   recorrente_id?: string;
+  bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
 }
-
 export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
   qtd_parcelas?: number;
 }
-
 export interface Transaction {
   id: number;
   description: string;
@@ -33,6 +32,7 @@ export interface Transaction {
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
   recorrente_id?: string;
+  bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
 }
@@ -45,13 +45,11 @@ export const useAccountsData = () => {
   const queryClient = useQueryClient();
 
   const invalidateBanksCache = () => {
-    console.log('Invalidando cache dos bancos...');
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
   const invalidateCardsCache = () => {
-    console.log('Invalidando cache dos cartões...');
-    queryClient.invalidateQueries({ queryKey: ['cards'] });
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
   };
 
   // Carregar contas do Supabase
@@ -92,6 +90,7 @@ export const useAccountsData = () => {
         status: account.status as 'pendente' | 'pago' | 'recebido',
         parcela: account.parcela,
         recorrente_id: account.recorrente_id,
+        bank_id: account.bank_id,
         payment_source: account.payment_source as 'bank' | 'card' | undefined,
         payment_source_id: account.payment_source_id
       }));
@@ -142,6 +141,7 @@ export const useAccountsData = () => {
             user_id: user.id,
             parcela: `${i + 1}/${accountData.qtd_parcelas}`,
             recorrente_id: recorrenteId,
+            bank_id: accountData.bank_id,
             payment_source: accountData.payment_source,
             payment_source_id: accountData.payment_source_id
           });
@@ -173,6 +173,7 @@ export const useAccountsData = () => {
           status: account.status as 'pendente' | 'pago' | 'recebido',
           parcela: account.parcela,
           recorrente_id: account.recorrente_id,
+          bank_id: account.bank_id,
           payment_source: account.payment_source as 'bank' | 'card' | undefined,
           payment_source_id: account.payment_source_id
         }));
@@ -199,6 +200,7 @@ export const useAccountsData = () => {
             type: accountData.type,
             status: accountData.status,
             user_id: user.id,
+            bank_id: accountData.bank_id,
             payment_source: accountData.payment_source,
             payment_source_id: accountData.payment_source_id
           }])
@@ -226,6 +228,7 @@ export const useAccountsData = () => {
           status: data.status as 'pendente' | 'pago' | 'recebido',
           parcela: data.parcela,
           recorrente_id: data.recorrente_id,
+          bank_id: data.bank_id,
           payment_source: data.payment_source as 'bank' | 'card' | undefined,
           payment_source_id: data.payment_source_id
         };
@@ -263,10 +266,11 @@ export const useAccountsData = () => {
           due_date: updatedAccount.dueDate,
           type: updatedAccount.type,
           status: updatedAccount.status,
+          bank_id: updatedAccount.bank_id,
           payment_source: updatedAccount.payment_source,
-          payment_source_id: updatedAccount.payment_source_id,
+          payment_source_id: updatedAccount.payment_source_id
         })
-        .eq('id', updatedAccount.id)
+        .eq('id', updatedAccount.id)   // ← sem ponto e vírgula
         .eq('user_id', user.id); 
 
       if (error) {
@@ -346,7 +350,6 @@ export const useAccountsData = () => {
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
       if (!user) {
-        console.error('Usuário não autenticado');
         toast({
           title: "Erro",
           description: "Usuário não autenticado.",
@@ -355,53 +358,6 @@ export const useAccountsData = () => {
         return;
       }
 
-      console.log('=== INÍCIO updateAccountStatus ===');
-      console.log(`Atualizando conta ID ${id} para status "${status}"`);
-
-      // Buscar a conta atual para verificar os dados
-      const currentAccount = accounts.find(acc => acc.id === id);
-      if (!currentAccount) {
-        console.error('Conta não encontrada:', id);
-        toast({
-          title: "Erro",
-          description: "Conta não encontrada.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Conta encontrada:', {
-        id: currentAccount.id,
-        description: currentAccount.description,
-        amount: currentAccount.amount,
-        payment_source: currentAccount.payment_source,
-        payment_source_id: currentAccount.payment_source_id,
-        status_atual: currentAccount.status,
-        status_novo: status
-      });
-
-      // Verificar se é um cartão
-      if (currentAccount.payment_source === 'card') {
-        console.log(`Esta é uma conta de cartão. Payment_source_id: ${currentAccount.payment_source_id}`);
-        
-        // Buscar os dados atuais do cartão antes da atualização
-        if (currentAccount.payment_source_id) {
-          const { data: cardData, error: cardError } = await supabase
-            .from('cards')
-            .select('id, card_name, current_value')
-            .eq('id', currentAccount.payment_source_id)
-            .single();
-          
-          if (cardError) {
-            console.error('Erro ao buscar dados do cartão:', cardError);
-          } else {
-            console.log('Dados do cartão antes da atualização:', cardData);
-          }
-        }
-      }
-
-      // Atualizar o status da conta
-      console.log('Executando UPDATE na tabela accounts...');
       const { error } = await supabase
         .from('accounts')
         .update({ status })
@@ -409,66 +365,30 @@ export const useAccountsData = () => {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Erro no UPDATE da conta:', error);
+        console.error('Erro ao atualizar status:', error);
         toast({
           title: "Erro",
-          description: `Não foi possível atualizar o status: ${error.message}`,
+          description: "Não foi possível atualizar o status.",
           variant: "destructive"
         });
         return;
       }
 
-      console.log('UPDATE da conta executado com sucesso');
-
-      // Verificar se é um cartão e buscar dados após a atualização
-      if (currentAccount.payment_source === 'card' && currentAccount.payment_source_id) {
-        console.log('Verificando dados do cartão após a atualização...');
-        
-        // Aguardar um pouco para o trigger processar
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const { data: cardDataAfter, error: cardErrorAfter } = await supabase
-          .from('cards')
-          .select('id, card_name, current_value')
-          .eq('id', currentAccount.payment_source_id)
-          .single();
-        
-        if (cardErrorAfter) {
-          console.error('Erro ao buscar dados do cartão após atualização:', cardErrorAfter);
-        } else {
-          console.log('Dados do cartão depois da atualização:', cardDataAfter);
-        }
-      }
-
-      // Atualizar na lista local
       setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
-
-      // Invalidar cache específico baseado na fonte de pagamento
-      if (currentAccount.payment_source === 'bank') {
-        console.log('Invalidando cache dos bancos');
-        invalidateBanksCache();
-      } else if (currentAccount.payment_source === 'card') {
-        console.log('Invalidando cache dos cartões');
-        invalidateCardsCache();
-      }
-
-      // Também invalidar cache geral dos bancos para compatibilidade
+    
       invalidateBanksCache();
-
-      console.log('=== FIM updateAccountStatus ===');
-
+      invalidateCardsCache();
+  
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
       });
-
     } catch (error) {
-      console.error('Erro inesperado ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: `Erro inesperado: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        description: "Erro inesperado ao atualizar status.",
         variant: "destructive"
       });
     }
