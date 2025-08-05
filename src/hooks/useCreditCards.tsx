@@ -56,26 +56,28 @@ export function useCreditCards() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['credit_cards'],
-    queryFn: async () => {
-      const userResponse = await supabase.auth.getUser();
-      const user = userResponse.data.user;
-      if (!user) throw new Error('Usuário não autenticado');
+  queryKey: ['credit_cards'],
+  queryFn: async () => {
+    const userResponse = await supabase.auth.getUser();
+    const user = userResponse.data.user;
+    if (!user) throw new Error('Usuário não autenticado');
 
-      const { data, error } = await supabase
-        .from("cards")
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from("cards")
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
-      if (error) throw new Error(error.message);
+    if (error) throw new Error(error.message);
 
-      return data || [];
-    },
-    refetchOnWindowFocus: true,
-    staleTime: 0,
-  });
+    return data || [];
+  },
+  refetchOnWindowFocus: true,
+  refetchOnMount: true, // ✅ ESTA LINHA É A CHAVE!
+  staleTime: 0,
+});
+
 
   // Criar cartão
   const createCreditCardMutation = useMutation({
