@@ -48,11 +48,11 @@ export const useAccountsData = () => {
   const invalidateBanksCache = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
-  
+
   const invalidateCardsCache = () => {
     queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
   };
-  
+
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
@@ -187,7 +187,8 @@ export const useAccountsData = () => {
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
         invalidateCardsCache();
-             
+        
+        
         toast({
           title: "Sucesso",
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
@@ -206,7 +207,7 @@ export const useAccountsData = () => {
             user_id: user.id,
             bank_id: accountData.bank_id,
             card_id: accountData.card_id,
-            payment_source: accountData.payment_source as 'bank' | 'card' | undefined,
+            payment_source: accountData.payment_source,
             payment_source_id: accountData.payment_source_id
           }])
           .select()
@@ -244,7 +245,7 @@ export const useAccountsData = () => {
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
         invalidateCardsCache();
-       
+        
         
         toast({
           title: "Sucesso",
@@ -301,9 +302,8 @@ export const useAccountsData = () => {
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
       invalidateCardsCache();
-  };
+      
 
-     
       toast({
         title: "Sucesso",
         description: "Conta atualizada com sucesso.",
@@ -342,9 +342,7 @@ export const useAccountsData = () => {
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
       invalidateCardsCache();
-  };
-
-      
+     
       toast({
         title: "Sucesso",
         description: "Conta deletada com sucesso.",
@@ -389,9 +387,10 @@ export const useAccountsData = () => {
       setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
+    
       invalidateBanksCache();
       invalidateCardsCache();
-  };
+        
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
