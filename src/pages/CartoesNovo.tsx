@@ -68,7 +68,7 @@ const CartoesNovo = () => {
   const handleUpdateCard = async (cardData: CreditCardInput) => {
     if (editingCard) {
       try {
-        await updateCreditCard(editingCard.id, cardData);
+        await updateCreditCard({ id: editingCard.id, card: cardData });
         setShowCardForm(false);
         setEditingCard(undefined);
         toast({
