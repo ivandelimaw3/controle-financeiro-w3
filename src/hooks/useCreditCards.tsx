@@ -56,48 +56,35 @@ export function useCreditCards() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['credit_cards'],
-    queryFn: async () => {
-      console.log('Carregando cartões...');
-      const userResponse = await supabase.auth.getUser();
-      const user = userResponse.data.user;
-      if (!user) {
-        console.log('Usuário não autenticado');
-        throw new Error('Usuário não autenticado');
-      }
+  queryKey: ['credit_cards'],
+  queryFn: async () => {
+    const userResponse = await supabase.auth.getUser();
+    const user = userResponse.data.user;
+    if (!user) throw new Error('Usuário não autenticado');
 
-      console.log('Usuário autenticado:', user.id);
-      const { data, error } = await supabase
-        .from("cards")
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from("cards")
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Erro ao carregar cartões:', error);
-        throw new Error(error.message);
-      }
+    if (error) throw new Error(error.message);
 
-      console.log('Cartões carregados:', data);
-      return data || [];
-    },
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    staleTime: 0,
-  });
+    return data || [];
+  },
+  refetchOnWindowFocus: true,
+  refetchOnMount: true, // ✅ ESTA LINHA É A CHAVE!
+  staleTime: 0,
+});
 
 
   // Criar cartão
   const createCreditCardMutation = useMutation({
     mutationFn: async (card: CreditCardInput) => {
-      console.log('Criando cartão:', card);
       const userResponse = await supabase.auth.getUser();
       const user = userResponse.data.user;
-      if (!user) {
-        console.log('Usuário não autenticado');
-        throw new Error('Usuário não autenticado');
-      }
+      if (!user) throw new Error('Usuário não autenticado');
 
       const formattedCard = {
         ...card,
@@ -110,24 +97,17 @@ export function useCreditCards() {
         is_active: true,
       };
 
-      console.log('Cartão formatado para criação:', formattedCard);
-
       const { data, error } = await supabase
         .from("cards")
         .insert([formattedCard])
         .select()
         .single();
 
-      if (error) {
-        console.error('Erro ao criar cartão:', error);
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
 
-      console.log('Cartão criado com sucesso:', data);
       return data;
     },
     onSuccess: () => {
-      console.log('Create mutation onSuccess - invalidando queries');
       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
       toast({
         title: "Cartão criado!",
@@ -135,7 +115,6 @@ export function useCreditCards() {
       });
     },
     onError: (error) => {
-      console.error('Create mutation onError:', error);
       toast({
         title: "Erro ao criar cartão",
         description: String(error),
@@ -147,8 +126,6 @@ export function useCreditCards() {
   // Atualizar cartão
   const updateCreditCardMutation = useMutation({
     mutationFn: async ({ id, card }: { id: number; card: CreditCardInput }) => {
-      console.log('Atualizando cartão:', { id, card });
-      
       const formattedCard = {
         ...card,
         card_number: formatCardNumber(card.card_number),
@@ -158,8 +135,6 @@ export function useCreditCards() {
         current_value: card.current_value || 0,
       };
 
-      console.log('Cartão formatado:', formattedCard);
-
       const { data, error } = await supabase
         .from("cards")
         .update(formattedCard)
@@ -167,16 +142,11 @@ export function useCreditCards() {
         .select()
         .single();
 
-      if (error) {
-        console.error('Erro ao atualizar cartão:', error);
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
 
-      console.log('Cartão atualizado com sucesso:', data);
       return data;
     },
     onSuccess: () => {
-      console.log('Mutation onSuccess - invalidando queries');
       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
       toast({
         title: "Cartão atualizado!",
@@ -184,7 +154,6 @@ export function useCreditCards() {
       });
     },
     onError: (error) => {
-      console.error('Mutation onError:', error);
       toast({
         title: "Erro ao atualizar cartão",
         description: String(error),
@@ -196,22 +165,16 @@ export function useCreditCards() {
   // Deletar cartão (desativar)
   const deleteCreditCardMutation = useMutation({
     mutationFn: async (id: number) => {
-      console.log('Deletando cartão:', id);
       const { error } = await supabase
         .from("cards")
         .update({ is_active: false })
         .eq('id', id);
 
-      if (error) {
-        console.error('Erro ao deletar cartão:', error);
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
 
-      console.log('Cartão deletado com sucesso:', id);
       return id;
     },
     onSuccess: () => {
-      console.log('Delete mutation onSuccess - invalidando queries');
       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
       toast({
         title: "Cartão excluído!",
@@ -219,7 +182,6 @@ export function useCreditCards() {
       });
     },
     onError: (error) => {
-      console.error('Delete mutation onError:', error);
       toast({
         title: "Erro ao excluir cartão",
         description: String(error),
