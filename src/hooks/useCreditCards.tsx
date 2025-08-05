@@ -57,7 +57,7 @@ export function useCreditCards() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['cards'],
+    queryKey: ['credit_cards'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -146,7 +146,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cards'] });
+     
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
@@ -168,7 +168,7 @@ export function useCreditCards() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cards'] });
+     
     },
     onError: (error) => {
       console.error('Erro ao excluir cartão:', error);
