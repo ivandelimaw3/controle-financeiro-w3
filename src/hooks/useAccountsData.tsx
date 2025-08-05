@@ -187,7 +187,6 @@ export const useAccountsData = () => {
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
         invalidateCardsCache();
-        queryClient.refetchQueries({ queryKey: ['credit_cards'] });
         
         toast({
           title: "Sucesso",
@@ -245,7 +244,6 @@ export const useAccountsData = () => {
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
         invalidateCardsCache();
-        queryClient.refetchQueries({ queryKey: ['credit_cards'] });
         
         toast({
           title: "Sucesso",
@@ -302,7 +300,6 @@ export const useAccountsData = () => {
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
       invalidateCardsCache();
-      queryClient.refetchQueries({ queryKey: ['credit_cards'] });
 
       toast({
         title: "Sucesso",
@@ -342,7 +339,6 @@ export const useAccountsData = () => {
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
       invalidateCardsCache();
-      queryClient.refetchQueries({ queryKey: ['credit_cards'] });
 
       toast({
         title: "Sucesso",
@@ -391,7 +387,6 @@ export const useAccountsData = () => {
     
       invalidateBanksCache();
       invalidateCardsCache();
-      queryClient.refetchQueries({ queryKey: ['credit_cards'] });
   
       toast({
         title: "Sucesso",
