@@ -48,7 +48,10 @@ export const useAccountsData = () => {
   const invalidateBanksCache = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
-
+  
+  const invalidateCardsCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+  };
   
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
@@ -183,7 +186,8 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-        invalidateCardsCache();
+       const invalidateCardsCache = () => {
+       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
              
         toast({
           title: "Sucesso",
@@ -240,7 +244,8 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-        invalidateCardsCache();
+       const invalidateCardsCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
        
         
         toast({
@@ -297,7 +302,10 @@ export const useAccountsData = () => {
 
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
-      invalidateCardsCache();
+      const invalidateCardsCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+  };
+
      
       toast({
         title: "Sucesso",
@@ -336,7 +344,10 @@ export const useAccountsData = () => {
 
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
-      invalidateCardsCache();
+      const invalidateCardsCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+  };
+
       
       toast({
         title: "Sucesso",
@@ -384,7 +395,10 @@ export const useAccountsData = () => {
       ));
     
       invalidateBanksCache();
-      invalidateCardsCache();
+     const invalidateCardsCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+  };
+
        
       toast({
         title: "Sucesso",
