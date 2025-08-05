@@ -186,8 +186,7 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-       const invalidateCardsCache = () => {
-       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+        invalidateCardsCache();
              
         toast({
           title: "Sucesso",
@@ -244,8 +243,7 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-       const invalidateCardsCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+        invalidateCardsCache();
        
         
         toast({
@@ -302,8 +300,7 @@ export const useAccountsData = () => {
 
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
-      const invalidateCardsCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      invalidateCardsCache();
   };
 
      
@@ -344,8 +341,7 @@ export const useAccountsData = () => {
 
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
-      const invalidateCardsCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      invalidateCardsCache();
   };
 
       
@@ -393,13 +389,9 @@ export const useAccountsData = () => {
       setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
-    
       invalidateBanksCache();
-     const invalidateCardsCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      invalidateCardsCache();
   };
-
-       
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
