@@ -73,23 +73,27 @@ export const CreditCardItem: React.FC<CreditCardItemProps> = ({
 
       {/* Informações do cartão */}
       <div className="space-y-3">
-        <div>
-          <p className="text-sm text-gray-600">Número do Cartão</p>
-          <p className="font-mono text-gray-900">{formatCardNumber(card.card_number)}</p>
-        </div>
+  <div>
+    <p className="text-sm text-gray-600">Número do Cartão</p>
+    <p className="font-mono text-gray-900">{formatCardNumber(card.card_number)}</p>
+  </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-600">Validade</p>
-            <p className="text-gray-900">{card.expiry_date}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Vencimento</p>
-            <p className="text-gray-900">
-              {card.due_date || 'Não informado'}
-            </p>
-          </div>
-        </div>
+  <div className="grid grid-cols-2 gap-4">
+    <div>
+      <p className="text-sm text-gray-600">Validade</p>
+      <p className="text-gray-900">{card.expiry_date}</p>
+    </div>
+    <div>
+      <p className="text-sm text-gray-600">Vencimento</p>
+      <p className="text-gray-900">{card.due_date || 'Não informado'}</p>
+    </div>
+  </div>
+
+  <div>
+    <p className="text-sm text-gray-600">Bandeira</p>
+    <p className="text-gray-900 capitalize">{card.card_brand}</p>
+  </div>
+</div>
 
         {/* Barra de progresso */}
         <div>
