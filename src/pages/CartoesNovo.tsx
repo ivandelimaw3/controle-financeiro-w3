@@ -24,8 +24,8 @@ const CartoesNovo = () => {
     updateCreditCard,
     deleteCreditCard,
     isCreating,
-    isUpdating
-  } = useCreditCards();
+    isUpdating,
+   } = useCreditCards();
 
   // Funções de formatação
   const formatCurrency = (value: number) => {
@@ -66,25 +66,28 @@ const CartoesNovo = () => {
   };
 
   const handleUpdateCard = async (cardData: CreditCardInput) => {
-    if (editingCard) {
-      try {
-        await updateCreditCard({ id: editingCard.id, card: cardData });
-        setShowCardForm(false);
-        setEditingCard(undefined);
-        toast({
-          title: "Cartão atualizado com sucesso!",
-          duration: 2000,
-        });
-      } catch (error) {
-        toast({
-          title: "Erro ao atualizar cartão",
-          description: "Tente novamente",
-          variant: "destructive",
-          duration: 3000,
-        });
-      }
+  if (editingCard) {
+    try {
+      await updateCreditCard({ id: editingCard.id, card: cardData });
+
+      await refetch(); // 🔥 GARANTE que a tela se atualize imediatamente
+
+      setShowCardForm(false);
+      setEditingCard(undefined);
+      toast({
+        title: "Cartão atualizado com sucesso!",
+        duration: 2000,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar cartão",
+        description: "Tente novamente",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
-  };
+  }
+};
 
   const handleDeleteCard = async (id: number) => {
     if (confirm('Tem certeza que deseja excluir este cartão?')) {
