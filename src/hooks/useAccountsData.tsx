@@ -49,10 +49,7 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
-  const invalidateCardsCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
-  };
-
+  
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
