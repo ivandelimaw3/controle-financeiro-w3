@@ -1,6 +1,6 @@
-
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../integrations/supabase/client';
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '../integrations/supabase/client'
 
 export function useCardsOptions() {
   const {
@@ -9,40 +9,32 @@ export function useCardsOptions() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['credit_cards'], // Usando a mesma queryKey para sincronizar
+    queryKey: ['cards'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) throw new Error('Usuário não autenticado');
-
-      console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
 
       const { data, error } = await supabase
         .from('cards')
         .select('id, card_name, current_value')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .order('card_name');
+        .order('card_name')
 
-      if (error) {
-        console.error('useCardsOptions: Erro ao carregar cartões:', error);
-        throw error;
-      }
+      if (error) throw error
 
       const transformedData = (data || [])
-        .filter(card => !!card.id && typeof card.id === 'number')
+        .filter(card => !!card.id && card.id !== 'undefined' && card.id !== 'null' && card.id !== '')
         .map(card => ({
           id: card.id.toString(),
           name: card.card_name,
-          current_value: card.current_value || 0
-        }));
+          current_balance: card.current_value || 0
+        }))
       
-      console.log('useCardsOptions: Cartões transformados:', transformedData);
-      return transformedData;
-    },
-    refetchOnWindowFocus: true,
-    staleTime: 0
-  });
+      return transformedData
+    }
+  })
 
   return { 
     cards, 
@@ -51,5 +43,5 @@ export function useCardsOptions() {
     refetch,
     cardsOptions: cards,
     isLoading: loading
-  };
+  }
 }
