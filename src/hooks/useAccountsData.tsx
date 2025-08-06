@@ -393,7 +393,7 @@ export const useAccountsData = () => {
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
-        queryClient.invalidateQueries(['credit_cards']);
+       
       });
     } catch (error) {
       toast({
