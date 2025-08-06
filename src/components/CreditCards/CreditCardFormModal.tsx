@@ -1,155 +1,206 @@
-import React from 'react';
-import { CreditCard, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { CreditCard as CreditCardType } from '@/hooks/useCreditCards';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CreditCard, CreditCardInput } from '@/hooks/useCreditCards';
 
-interface CreditCardItemProps {
-  card: CreditCardType;
-  onEdit: (card: CreditCardType) => void;
-  onDelete: (id: number) => void;
+interface CreditCardFormModalProps {
+  card?: CreditCard;
+  onSubmit: (data: CreditCardInput) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
 }
 
-export const CreditCardItem: React.FC<CreditCardItemProps> = ({
+export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   card,
-  onEdit,
-  onDelete,
+  onSubmit,
+  onCancel,
+  isLoading = false
 }) => {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
+  const [formData, setFormData] = useState<CreditCardInput>({
+    card_name: '',
+    card_number: '',
+    holder_name: '',
+    expiry_date: '',
+    due_date: '',
+    credit_limit: 0,
+    current_value: 0,
+    bank_name: '',
+    card_brand: 'visa',
+  });
+
+  useEffect(() => {
+    if (card) {
+      setFormData({
+        card_name: card.card_name,
+        card_number: card.card_number,
+        holder_name: card.holder_name,
+        expiry_date: card.expiry_date,
+        due_date: card.due_date || '',
+        credit_limit: card.credit_limit,
+        current_value: card.current_value,
+        bank_name: card.bank_name || '',
+        card_brand: card.card_brand,
+      });
+    }
+  }, [card]);
+
+  const handleChange = (field: keyof CreditCardInput, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const formatCardNumber = (value: string) => {
+    // Remove tudo que não é número e limita a 16 dígitos
+    const numbers = value.replace(/\D/g, '').slice(0, 16);
+    // Formata com espaços a cada 4 dígitos
+    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ');
+  };
+
+  const formatExpiryDate = (value: string) => {
+    // Remove tudo que não é número
     const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 4) return numbers;
-    const lastFour = numbers.slice(-4);
-    const masked = '*'.repeat(numbers.length - 4);
-    return `${masked} ${lastFour}`;
+    
+    // Limita a 6 dígitos (MM/AAAA)
+    const limited = numbers.slice(0, 6);
+    
+    // Formata como MM/AAAA
+    if (limited.length >= 4) {
+      return `${limited.slice(0, 2)}/${limited.slice(2)}`;
+    } else if (limited.length >= 2) {
+      return `${limited.slice(0, 2)}/${limited.slice(2)}`;
+    }
+    
+    return limited;
   };
 
-  const getStatusLabel = (currentValue: number, creditLimit: number) => {
-    const utilization = creditLimit > 0 ? (currentValue / creditLimit) * 100 : 0;
-    if (utilization > 80) return 'Limite uso Alto';
-    if (utilization > 50) return 'Limite uso Médio';
-    return 'Limite OK';
+  const handleExpiryDateChange = (value: string) => {
+    const formatted = formatExpiryDate(value);
+    handleChange('expiry_date', formatted);
   };
 
-  const getStatusColor = (currentValue: number, creditLimit: number) => {
-    const utilization = creditLimit > 0 ? (currentValue / creditLimit) * 100 : 0;
-    if (utilization > 80) return 'bg-red-100 text-red-800';
-    if (utilization > 50) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
-  };
-
-  const utilization =
-    card.credit_limit && card.credit_limit > 0
-      ? (card.current_value / card.credit_limit) * 100
-      : 0;
-
-  const available = (card.credit_limit || 0) - card.current_value;
+  const availableLimit = (formData.credit_limit || 0) - (formData.current_value || 0);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <CreditCard className="h-5 w-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{card.card_name}</h3>
-            <p className="text-sm text-gray-600">{card.holder_name}</p>
-          </div>
-        </div>
-        <Badge className={getStatusColor(card.current_value, card.credit_limit)}>
-          {getStatusLabel(card.current_value, card.credit_limit)}
-        </Badge>
+    <form onSubmit={e => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
+      <div>
+        <Label htmlFor="holder_name">Nome do Usuário *</Label>
+        <Input
+          id="holder_name"
+          type="text"
+          value={formData.holder_name}
+          onChange={e => handleChange('holder_name', e.target.value)}
+          placeholder="Nome do titular do cartão"
+          required
+        />
       </div>
 
-      {/* Informações do cartão */}
-      <div className="space-y-3">
+      <div>
+        <Label htmlFor="card_name">Nome do Cartão *</Label>
+        <Input
+          id="card_name"
+          type="text"
+          value={formData.card_name}
+          onChange={e => handleChange('card_name', e.target.value)}
+          placeholder="Ex: Nubank Roxinho"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="card_number">Número do Cartão *</Label>
+        <Input
+          id="card_number"
+          type="text"
+          maxLength={19}
+          value={formatCardNumber(formData.card_number)}
+          onChange={e => handleChange('card_number', e.target.value.replace(/\D/g, ''))}
+          placeholder="1234 5678 9012 3456"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-sm text-gray-600">Número do Cartão</p>
-          <p className="font-mono text-gray-900">
-            {formatCardNumber(card.card_number)}
-          </p>
+          <Label htmlFor="expiry_date">Data de Validade *</Label>
+          <Input
+            id="expiry_date"
+            type="text"
+            maxLength={7}
+            value={formData.expiry_date}
+            onChange={e => handleExpiryDateChange(e.target.value)}
+            placeholder="MM/AAAA"
+            required
+          />
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-600">Validade</p>
-            <p className="text-gray-900">{card.expiry_date}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Vencimento</p>
-            <p className="text-gray-900">{card.due_date || 'Não informado'}</p>
-          </div>
-        </div>
-
         <div>
-          <p className="text-sm text-gray-600">Bandeira</p>
-          <p className="text-gray-900 capitalize">{card.card_brand}</p>
+          <Label htmlFor="due_date">Dia do Vencimento</Label>
+          <Input
+            id="due_date"
+            type="text"
+            value={formData.due_date}
+            onChange={e => handleChange('due_date', e.target.value)}
+            placeholder="Dia 20"
+          />
         </div>
       </div>
 
-      {/* Barra de progresso */}
-      <div className="mt-4">
-        <div className="flex justify-between items-center mb-2">
-          <p className="text-sm text-gray-600">Utilização</p>
-          <p className="text-sm font-medium text-gray-900">
-            {utilization.toFixed(0)}%
-          </p>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="credit_limit">Limite de Crédito *</Label>
+          <Input
+            id="credit_limit"
+            type="number"
+            step="0.01"
+            value={formData.credit_limit}
+            onChange={e => handleChange('credit_limit', parseFloat(e.target.value) || 0)}
+            placeholder="5000.00"
+            required
+          />
         </div>
-        <Progress value={utilization} className="h-2" />
-      </div>
-
-      {/* Valores financeiros */}
-      <div className="space-y-2 mt-4">
-        <div className="flex justify-between">
-          <span className="text-sm text-gray-600">Limite Total:</span>
-          <span className="text-sm font-medium text-gray-900">
-            {formatCurrency(card.credit_limit)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-sm text-gray-600">Valor Atual:</span>
-          <span className="text-sm font-medium text-gray-900">
-            {formatCurrency(card.current_value)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-sm text-gray-600">Disponível:</span>
-          <span className="text-sm font-medium text-green-600">
-            {formatCurrency(available)}
-          </span>
+        <div>
+          <Label htmlFor="current_value">Valor Atual</Label>
+          <Input
+            id="current_value"
+            type="number"
+            step="0.01"
+            value={formData.current_value}
+            onChange={e => handleChange('current_value', parseFloat(e.target.value) || 0)}
+            placeholder="1200.00"
+          />
         </div>
       </div>
 
-      {/* Botões */}
+      {/* Limite disponível calculado */}
+      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+        <span className="text-sm font-medium text-gray-700">Limite Disponível:</span>
+        <span className="text-sm font-bold text-green-600">
+          {new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(availableLimit)}
+        </span>
+      </div>
+
+      {/* Botões de ação */}
       <div className="flex space-x-3 pt-4">
         <Button
+          type="button"
           variant="outline"
-          size="sm"
-          onClick={() => onEdit(card)}
+          onClick={onCancel}
           className="flex-1"
         >
-          <Edit className="h-4 w-4 mr-2" />
-          Editar
+          Cancelar
         </Button>
         <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDelete(card.id)}
-          className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+          type="submit"
+          disabled={isLoading}
+          className="flex-1 bg-blue-600 hover:bg-blue-700"
         >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Excluir
+          <Save className="h-4 w-4 mr-2" />
+          {isLoading ? 'Salvando...' : 'Salvar Cartão'}
         </Button>
       </div>
-    </div>
+    </form>
   );
 };
