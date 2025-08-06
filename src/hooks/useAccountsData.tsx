@@ -186,9 +186,8 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-        invalidateCardsCache();
         
-        
+               
         toast({
           title: "Sucesso",
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
@@ -244,7 +243,7 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-        invalidateCardsCache();
+        
         
         
         toast({
@@ -301,7 +300,7 @@ export const useAccountsData = () => {
 
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
-      invalidateCardsCache();
+     
       
 
       toast({
@@ -341,7 +340,7 @@ export const useAccountsData = () => {
 
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
-      invalidateCardsCache();
+      
      
       toast({
         title: "Sucesso",
@@ -394,6 +393,7 @@ export const useAccountsData = () => {
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
+        queryClient.invalidateQueries(['credit_cards']);
       });
     } catch (error) {
       toast({
