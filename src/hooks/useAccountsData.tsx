@@ -93,7 +93,7 @@ export const useAccountsData = () => {
         recorrente_id: account.recorrente_id,
         bank_id: account.bank_id,
         card_id: account.card_id,
-        payment_source: account.payment_source as 'bank' | 'card' | undefined,
+       payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
         payment_source_id: account.payment_source_id
       }));
 
@@ -178,7 +178,7 @@ export const useAccountsData = () => {
           recorrente_id: account.recorrente_id,
           bank_id: account.bank_id,
           card_id: account.card_id,
-          payment_source: account.payment_source as 'bank' | 'card' | undefined,
+          payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
           payment_source_id: account.payment_source_id
         }));
 
@@ -235,7 +235,7 @@ export const useAccountsData = () => {
           recorrente_id: data.recorrente_id,
           bank_id: data.bank_id,
           card_id: data.card_id,
-          payment_source: data.payment_source as 'bank' | 'card' | undefined,
+          payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
           payment_source_id: data.payment_source_id
         };
 
