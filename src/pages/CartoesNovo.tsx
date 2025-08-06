@@ -39,11 +39,11 @@ const CartoesNovo = () => {
   const totalUsed = creditCards.reduce((sum, card) => sum + card.current_value, 0);
 
   const filteredCards = creditCards.filter(card => {
-    const term = searchTerm.toLowerCase();
+    const search = searchTerm.toLowerCase();
     return (
-      card.card_name.toLowerCase().includes(term) ||
-      (card.bank_name && card.bank_name.toLowerCase().includes(term)) ||
-      card.card_number.includes(term)
+      (card.card_name && card.card_name.toLowerCase().includes(search)) ||
+      (card.bank_name && card.bank_name.toLowerCase().includes(search)) ||
+      (card.card_number && card.card_number.includes(search))
     );
   });
 
