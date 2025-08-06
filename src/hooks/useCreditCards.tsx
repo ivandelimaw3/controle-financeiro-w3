@@ -113,7 +113,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
     },
     onError: (error) => {
       console.error('Erro ao criar cartão:', error);
