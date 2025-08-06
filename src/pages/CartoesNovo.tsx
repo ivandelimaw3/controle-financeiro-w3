@@ -41,15 +41,20 @@ const CartoesNovo = () => {
   const filteredCards = creditCards.filter(card => {
     const search = searchTerm.toLowerCase();
     return (
-      (card.card_name && card.card_name.toLowerCase().includes(search)) ||
-      (card.bank_name && card.bank_name.toLowerCase().includes(search)) ||
-      (card.card_number && card.card_number.includes(search))
+      (card.card_name?.toLowerCase().includes(search)) ||
+      (card.bank_name?.toLowerCase().includes(search)) ||
+      (card.card_number?.includes(search))
     );
   });
 
   const handleCreateCard = async (cardData: CreditCardInput) => {
     try {
-      await createCreditCard(cardData);
+      const parsedData = {
+        ...cardData,
+        credit_limit: Number(cardData.credit_limit),
+        current_value: Number(cardData.current_value),
+      };
+      await createCreditCard(parsedData);
       setShowCardForm(false);
       toast({ title: "Cartão criado com sucesso!", duration: 2000 });
     } catch {
@@ -60,7 +65,12 @@ const CartoesNovo = () => {
   const handleUpdateCard = async (cardData: CreditCardInput) => {
     if (editingCard) {
       try {
-        await updateCreditCard(editingCard.id, cardData);
+        const parsedData = {
+          ...cardData,
+          credit_limit: Number(cardData.credit_limit),
+          current_value: Number(cardData.current_value),
+        };
+        await updateCreditCard(editingCard.id, parsedData);
         setShowCardForm(false);
         setEditingCard(undefined);
         toast({ title: "Cartão atualizado com sucesso!", duration: 2000 });
