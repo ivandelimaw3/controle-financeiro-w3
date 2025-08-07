@@ -1,12 +1,18 @@
-
-import React from 'react';
-import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CategorySelect } from './CategorySelect';
-import { Category } from '@/hooks/useCategoriesData';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { PlusCircle, Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
 import { useCardsOptions } from '@/hooks/useCardsOptions';
 
@@ -22,6 +28,7 @@ interface Account {
   recorrente_id?: string;
   qtd_parcelas?: number;
   bank_id?: number;
+  card_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
 }
@@ -29,9 +36,8 @@ interface Account {
 interface AccountFormProps {
   formData: Account;
   setFormData: React.Dispatch<React.SetStateAction<Account>>;
-  categories: Category[];
-  onRefreshCategories: () => void;
-  onAddCategory?: (categoryData: { name: string; type: 'receita' | 'despesa'; color: string }) => void;
+  categories: string[];
+  onAddCategory: (categoryData: { name: string; type: 'receita' | 'despesa'; color: string }) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   isEditing: boolean;
@@ -41,330 +47,263 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   formData,
   setFormData,
   categories,
-  onRefreshCategories,
   onAddCategory,
   onSubmit,
   onCancel,
-  isEditing
+  isEditing,
 }) => {
+  const { categories: categoriesFromDB, loading: categoriesLoading, addCategory } = useCategoriesData();
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryType, setNewCategoryType] = useState<'receita' | 'despesa'>('despesa');
+  const [newCategoryColor, setNewCategoryColor] = useState('#000000');
+  const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
+  
+  // --- CORREÇÃO APLICADA AQUI ---
+  // O componente agora aguarda os dados dos bancos e cartões.
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
   const { cardsOptions, isLoading: cardsLoading } = useCardsOptions();
 
-  // Verificação de segurança
-  if (!formData) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-600">Erro: Dados do formulário não encontrados</p>
-        <Button onClick={onCancel} className="mt-4">
-          Fechar
-        </Button>
-      </div>
-    );
-  }
-
-  const formatCurrencyInput = (value: number): string => {
-    if (isNaN(value) || value === null || value === undefined || value === 0) {
-      return '';
-    }
-    return new Intl.NumberFormat('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'amount' ? parseFloat(value) || 0 : value,
+    }));
   };
 
-  const parseCurrencyInput = (inputValue: string): number => {
-    if (!inputValue) return 0;
-    
-    // Remove todos os caracteres que não são dígitos
-    const digitsOnly = inputValue.replace(/\D/g, '');
-    
-    // Se não há dígitos, retorna 0
-    if (!digitsOnly) return 0;
-    
-    // Converte para número dividindo por 100 (para considerar os centavos)
-    const numericValue = parseInt(digitsOnly) / 100;
-    
-    return numericValue;
+  const handleSelectChange = (name: string, value: string | number) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    
-    // Parse do valor digitado
-    const numericValue = parseCurrencyInput(inputValue);
-    
-    // Atualiza o estado com o valor numérico
-    setFormData({ ...formData, amount: numericValue });
+  const handlePaymentSourceChange = (value: 'bank' | 'card' | '') => {
+    setFormData(prev => ({
+      ...prev,
+      payment_source: value || undefined,
+      payment_source_id: undefined,
+      bank_id: undefined,
+      card_id: undefined,
+    }));
   };
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, description: e.target.value });
-  };
-
-  const handleTypeChange = (value: 'receita' | 'despesa') => {
-    setFormData({ 
-      ...formData, 
-      type: value,
-      category: '' // Reset category when changing type
-    });
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setFormData({ ...formData, category: value });
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, dueDate: e.target.value });
-  };
-
-  const handleParcellasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 1;
-    setFormData({ ...formData, qtd_parcelas: value });
-  };
-
-  const handlePaymentSourceChange = (value: 'bank' | 'card') => {
-    setFormData({ 
-      ...formData, 
-      payment_source: value,
-      payment_source_id: undefined // Reset source ID when changing source type
-    });
-  };
-
-  const handlePaymentSourceIdChange = (value: string) => {
-    setFormData({ ...formData, payment_source_id: parseInt(value) });
-  };
-
-  // Função de validação e submit
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleNewCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validação da fonte de pagamento
-    if (formData.payment_source && !formData.payment_source_id) {
-      alert('Por favor, selecione uma fonte de pagamento específica (banco ou cartão).');
-      return;
-    }
-    
-    // Se não há fonte selecionada, limpar os campos para evitar erro no banco
-    if (!formData.payment_source) {
-      setFormData({
-        ...formData,
-        payment_source: undefined,
-        payment_source_id: undefined
-      });
-    }
-    
-    // Continuar com o submit
-    onSubmit(e);
+    if (newCategoryName.trim() === '') return;
+    await addCategory({ name: newCategoryName, type: newCategoryType, color: newCategoryColor });
+    setNewCategoryName('');
+    setNewCategoryType('despesa');
+    setNewCategoryColor('#000000');
+    setIsNewCategoryModalOpen(false);
   };
 
-  // Obter o nome da fonte de pagamento selecionada
-  const getSelectedSourceName = () => {
-    if (!formData.payment_source || !formData.payment_source_id) return '';
-    
-    if (formData.payment_source === 'bank') {
-      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-      return bank?.name || '';
-    } else if (formData.payment_source === 'card') {
-      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
-      return card?.name || '';
-    }
-    
-    return '';
-  };
+  const isFormValid = formData.description && formData.amount > 0 && formData.dueDate;
 
-  // Obter o saldo atual da fonte de pagamento
-  const getSelectedSourceBalance = () => {
-    if (!formData.payment_source || !formData.payment_source_id) return null;
-    
-    if (formData.payment_source === 'bank') {
-      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-      return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
-    } else if (formData.payment_source === 'card') {
-      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
-      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
-    }
-    
-    return null;
-  };
+  const categoriesFilteredByType = categoriesFromDB?.filter(cat => cat.type === formData.type);
+  
+  const isLoadingOptions = banksLoading || cardsLoading;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="description" className="text-slate-700">Descrição</Label>
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="flex items-center gap-4">
+        <Switch
+          id="account-type-switch"
+          checked={formData.type === 'receita'}
+          onCheckedChange={(checked) => handleSelectChange('type', checked ? 'receita' : 'despesa')}
+        />
+        <Label htmlFor="account-type-switch" className="text-slate-700 font-semibold">
+          {formData.type === 'receita' ? 'Receita' : 'Despesa'}
+        </Label>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Descrição</Label>
         <Input
           id="description"
-          type="text"
-          value={formData.description || ''}
-          onChange={handleDescriptionChange}
-          placeholder="Ex: Aluguel, Salário..."
-          className="mt-1"
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          placeholder="Ex: Aluguel"
           required
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="amount" className="text-slate-700">Valor Total</Label>
-          <div className="relative mt-1">
-            <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
-            <Input
-              id="amount"
-              type="text"
-              value={formatCurrencyInput(formData.amount || 0)}
-              onChange={handleAmountChange}
-              className="pl-10"
-              placeholder="0,00"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="type" className="text-slate-700">Tipo</Label>
-          <Select
-            value={formData.type || 'despesa'}
-            onValueChange={handleTypeChange}
-          >
-            <SelectTrigger className="mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="receita">Receita</SelectItem>
-              <SelectItem value="despesa">Despesa</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Fonte do Pagamento */}
-      <div>
-        <Label htmlFor="payment_source" className="text-slate-700">
-          Fonte do Pagamento <span className="text-red-500">*</span>
-        </Label>
-        <div className="grid grid-cols-2 gap-4 mt-1">
-          <Select
-            value={formData.payment_source || ''}
-            onValueChange={handlePaymentSourceChange}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a fonte" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="bank">
-                <div className="flex items-center gap-2">
-                  <Building2 size={16} />
-                  <span>Banco</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="card">
-                <div className="flex items-center gap-2">
-                  <CreditCard size={16} />
-                  <span>Cartão</span>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          {formData.payment_source && (
-            <Select
-              value={formData.payment_source_id?.toString() || ''}
-              onValueChange={handlePaymentSourceIdChange}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={`Selecione ${formData.payment_source === 'bank' ? 'o banco' : 'o cartão'}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {formData.payment_source === 'bank' && banksOptions.map((bank) => (
-                  <SelectItem key={bank.id} value={bank.id}>
-                    {bank.name}
-                  </SelectItem>
-                ))}
-                {formData.payment_source === 'card' && cardsOptions.map((card) => (
-                  <SelectItem key={card.id} value={card.id}>
-                    {card.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-        
-        {/* Exibir informações da fonte selecionada */}
-        {formData.payment_source && formData.payment_source_id && (
-          <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700">
-                {getSelectedSourceName()}
-              </span>
-              {getSelectedSourceBalance() && (
-                <span className="text-sm text-slate-600">
-                  {getSelectedSourceBalance()}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <CategorySelect
-        value={formData.category || ''}
-        onValueChange={handleCategoryChange}
-        categories={categories || []}
-        accountType={formData.type || 'despesa'}
-        onRefresh={onRefreshCategories}
-        onAddCategory={onAddCategory}
-      />
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="dueDate" className="text-slate-700">Data de Início</Label>
-          <div className="relative mt-1">
-            <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
-            <Input
-              id="dueDate"
-              type="date"
-              value={formData.dueDate || ''}
-              onChange={handleDateChange}
-              className="pl-10"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="qtd_parcelas" className="text-slate-700">Parcelas</Label>
+        <div className="space-y-2">
+          <Label htmlFor="amount">Valor</Label>
           <Input
-            id="qtd_parcelas"
+            id="amount"
+            name="amount"
             type="number"
-            min="1"
-            max="60"
-            value={formData.qtd_parcelas || 1}
-            onChange={handleParcellasChange}
-            className="mt-1"
-            placeholder="1"
+            value={formData.amount}
+            onChange={handleInputChange}
+            placeholder="0,00"
+            required
+            step="0.01"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="dueDate">Vencimento</Label>
+          <Input
+            id="dueDate"
+            name="dueDate"
+            type="date"
+            value={formData.dueDate}
+            onChange={handleInputChange}
+            required
           />
         </div>
       </div>
 
-      <div className="flex gap-3 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1"
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="category">Categoria</Label>
+          <Select
+            onValueChange={(value) => handleSelectChange('category', value)}
+            value={formData.category}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoriesFilteredByType?.map((category) => (
+                <SelectItem key={category.id} value={category.name}>
+                  {category.name}
+                </SelectItem>
+              ))}
+              <Dialog open={isNewCategoryModalOpen} onOpenChange={setIsNewCategoryModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className="w-full text-left justify-start text-blue-600">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Categoria
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Adicionar Nova Categoria</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleNewCategorySubmit} className="space-y-4">
+                    <Input
+                      placeholder="Nome da Categoria"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      required
+                    />
+                    <Select onValueChange={(value) => setNewCategoryType(value as 'receita' | 'despesa')} value={newCategoryType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="receita">Receita</SelectItem>
+                        <SelectItem value="despesa">Despesa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="color"
+                      value={newCategoryColor}
+                      onChange={(e) => setNewCategoryColor(e.target.value)}
+                    />
+                    <Button type="submit">Salvar</Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            onValueChange={(value) => handleSelectChange('status', value)}
+            value={formData.status}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="pago">Pago</SelectItem>
+              <SelectItem value="recebido">Recebido</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      {!isEditing && (
+        <div className="space-y-2">
+          <Label htmlFor="qtd_parcelas">Quantidade de Parcelas</Label>
+          <Input
+            id="qtd_parcelas"
+            name="qtd_parcelas"
+            type="number"
+            value={formData.qtd_parcelas}
+            onChange={handleInputChange}
+            min="1"
+          />
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="payment_source">Fonte de Pagamento</Label>
+        <Select
+          onValueChange={handlePaymentSourceChange}
+          value={formData.payment_source || ''}
+          disabled={isLoadingOptions}
         >
+          <SelectTrigger>
+            <SelectValue placeholder={isLoadingOptions ? 'Carregando...' : 'Selecione a fonte'} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="bank">Conta Bancária</SelectItem>
+            <SelectItem value="card">Cartão de Crédito</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {formData.payment_source === 'bank' && (
+        <div className="space-y-2">
+          <Label htmlFor="payment_source_id">Conta Bancária</Label>
+          <Select
+            onValueChange={(value) => handleSelectChange('payment_source_id', parseInt(value))}
+            value={formData.payment_source_id?.toString() || ''}
+            disabled={banksLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={banksLoading ? 'Carregando...' : 'Selecione a conta'} />
+            </SelectTrigger>
+            <SelectContent>
+              {banksOptions.map(bank => (
+                <SelectItem key={bank.id} value={bank.id}>{bank.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {formData.payment_source === 'card' && (
+        <div className="space-y-2">
+          <Label htmlFor="payment_source_id">Cartão de Crédito</Label>
+          <Select
+            onValueChange={(value) => handleSelectChange('payment_source_id', parseInt(value))}
+            value={formData.payment_source_id?.toString() || ''}
+            disabled={cardsLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={cardsLoading ? 'Carregando...' : 'Selecione o cartão'} />
+            </SelectTrigger>
+            <SelectContent>
+              {cardsOptions.map(card => (
+                <SelectItem key={card.id} value={card.id}>{card.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" onClick={onCancel} variant="outline">
           Cancelar
         </Button>
-        <Button
-          type="submit"
-          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-        >
-          {isEditing ? 'Atualizar' : 
-           (formData.qtd_parcelas && formData.qtd_parcelas > 1) ? 
-           `Criar ${formData.qtd_parcelas} Parcelas` : 
-           'Criar'}
+        <Button type="submit" disabled={!isFormValid || isLoadingOptions}>
+          {isEditing ? 'Salvar Alterações' : 'Adicionar Conta'}
+          {(banksLoading || cardsLoading) && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
         </Button>
       </div>
     </form>
