@@ -1,3 +1,4 @@
+// src/hooks/useAccountOperations.tsx
 
 import { useState } from 'react';
 import { Account, CreateAccountData, useAccounts } from '@/contexts/AccountsContext';
@@ -13,7 +14,6 @@ export const useAccountOperations = () => {
       
       if (editingAccount?.id) {
         console.log('Contas: Atualizando conta existente');
-        // Para edição, converter para Account
         const accountToUpdate: Account = {
           ...accountData,
           id: editingAccount.id
@@ -21,7 +21,6 @@ export const useAccountOperations = () => {
         await updateAccount(accountToUpdate);
       } else {
         console.log('Contas: Criando nova conta');
-        // Para criação, usar como CreateAccountData
         const { id, ...accountWithoutId } = accountData as any;
         await addAccount(accountWithoutId as CreateAccountData);
       }
@@ -33,19 +32,16 @@ export const useAccountOperations = () => {
     }
   };
 
+  // --- FUNÇÃO CORRIGIDA ---
   const handleEdit = (account: Account) => {
     console.log('=== handleEdit chamado ===');
     console.log('Conta original:', account);
     
+    // AQUI ESTÁ A CORREÇÃO:
+    // Copiar todas as propriedades da conta original para o estado de edição.
+    // Isso inclui `payment_source` e `payment_source_id`, que estavam faltando antes.
     const accountToEdit: Account = {
-      id: account.id,
-      description: account.description,
-      amount: account.amount,
-      category: account.category,
-      dueDate: account.dueDate,
-      type: account.type,
-      status: account.status,
-      bank_id: account.bank_id
+      ...account
     };
     
     console.log('Conta preparada para edição:', accountToEdit);
