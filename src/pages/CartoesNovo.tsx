@@ -24,14 +24,14 @@ const CartoesNovo = () => {
     updateCreditCard,
     deleteCreditCard,
     isCreating,
-    isUpdating,
+    isUpdating
   } = useCreditCards();
 
   // Funções de formatação
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'BRL'
     }).format(value);
   };
 
@@ -42,11 +42,9 @@ const CartoesNovo = () => {
 
   // Filtros
   const filteredCards = creditCards.filter(card => {
-    return (
-      card.card_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (card.bank_name && card.bank_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      card.card_number.includes(searchTerm)
-    );
+    return card.card_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (card.bank_name && card.bank_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+           card.card_number.includes(searchTerm);
   });
 
   const handleCreateCard = async (cardData: CreditCardInput) => {
@@ -54,14 +52,14 @@ const CartoesNovo = () => {
       await createCreditCard(cardData);
       setShowCardForm(false);
       toast({
-        title: 'Cartão criado com sucesso!',
+        title: "Cartão criado com sucesso!",
         duration: 2000,
       });
     } catch (error) {
       toast({
-        title: 'Erro ao criar cartão',
-        description: 'Tente novamente',
-        variant: 'destructive',
+        title: "Erro ao criar cartão",
+        description: "Tente novamente",
+        variant: "destructive",
         duration: 3000,
       });
     }
@@ -74,14 +72,14 @@ const CartoesNovo = () => {
         setShowCardForm(false);
         setEditingCard(undefined);
         toast({
-          title: 'Cartão atualizado com sucesso!',
+          title: "Cartão atualizado com sucesso!",
           duration: 2000,
         });
       } catch (error) {
         toast({
-          title: 'Erro ao atualizar cartão',
-          description: 'Tente novamente',
-          variant: 'destructive',
+          title: "Erro ao atualizar cartão",
+          description: "Tente novamente",
+          variant: "destructive",
           duration: 3000,
         });
       }
@@ -93,14 +91,14 @@ const CartoesNovo = () => {
       try {
         await deleteCreditCard(id);
         toast({
-          title: 'Cartão excluído com sucesso!',
+          title: "Cartão excluído com sucesso!",
           duration: 2000,
         });
       } catch (error) {
         toast({
-          title: 'Erro ao excluir cartão',
-          description: 'Tente novamente',
-          variant: 'destructive',
+          title: "Erro ao excluir cartão",
+          description: "Tente novamente",
+          variant: "destructive",
           duration: 3000,
         });
       }
@@ -158,7 +156,7 @@ const CartoesNovo = () => {
               <Input
                 placeholder="Buscar cartões..."
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-64"
               />
             </div>
@@ -210,7 +208,7 @@ const CartoesNovo = () => {
 
         {/* Lista de cartões */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredCards.map(card => (
+          {filteredCards.map((card) => (
             <CreditCardItem
               key={card.id}
               card={card}
@@ -245,7 +243,7 @@ const CartoesNovo = () => {
               </Button>
             </DialogTitle>
           </DialogHeader>
-
+          
           <CreditCardFormModal
             card={editingCard}
             onSubmit={editingCard ? handleUpdateCard : handleCreateCard}
