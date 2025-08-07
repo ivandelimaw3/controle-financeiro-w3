@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabaseClient';
+import React, { useState } from 'react';
+import { Plus, CreditCard, Search, User, X } from 'lucide-react';
+import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { CreditCardFormModal } from './CreditCardFormModal';
-import { CreditCardType } from '@/types';
-import { CreditCardFormModal } from '@/components/CreditCardFormModal';
+import { CreditCardItem } from '@/components/CreditCards/CreditCardItem';
+import { CreditCardFormModal } from '@/components/CreditCards/CreditCardFormModal';
+import { useCreditCards, CreditCard as CreditCardType, CreditCardInput } from '@/hooks/useCreditCards';
+import { useToast } from '@/hooks/use-toast';;
+
 
 export default function CartoesNovo() {
   const [showCardForm, setShowCardForm] = useState(false);
