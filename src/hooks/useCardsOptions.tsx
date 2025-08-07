@@ -18,6 +18,8 @@ export function useCardsOptions() {
     } = useQuery({
         queryKey: ['credit_cards'],
         queryFn: async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+
             if (!user) {
                 throw new Error('Usuário não autenticado');
             }
@@ -44,7 +46,9 @@ export function useCardsOptions() {
 
             return transformedData;
         },
-        enabled: !!user,
+        // --- LINHA REMOVIDA PARA RESOLVER O PROBLEMA ---
+        // enabled: !!user,
+        
         refetchOnWindowFocus: true,
     });
 
