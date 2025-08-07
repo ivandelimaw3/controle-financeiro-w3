@@ -146,7 +146,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-     
+    queryClient.invalidateQueries({ queryKey: ['credit_cards'] }); 
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
