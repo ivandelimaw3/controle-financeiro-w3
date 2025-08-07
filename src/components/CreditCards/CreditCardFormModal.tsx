@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from 'react';
+import { X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CreditCardType } from '@/types';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CreditCard, CreditCardInput } from '@/hooks/useCreditCards
 
 interface Props {
   show: boolean;
