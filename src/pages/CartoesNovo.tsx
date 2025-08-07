@@ -1,65 +1,230 @@
-import { useState } from 'react';
-import { CreditCardFormModal } from '@/components/CreditCardFormModal';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabaseClient';
-import { CreditCardType } from '@/types';
+import React, { useState } from 'react';
+import { Plus, CreditCard, Search, User, X } from 'lucide-react';
+import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import CreditCardFormModal from '@/components/CreditCards/CreditCardFormModal';  // Import default corrigido
+import { useCreditCards, CreditCard as CreditCardType, CreditCardInput } from '@/hooks/useCreditCards';
+import { useToast } from '@/hooks/use-toast';
 
 const CartoesNovo = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [editingCard, setEditingCard] = useState<CreditCardType | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
-  const { data: cards, isLoading } = useQuery({
-    queryKey: ['credit_cards'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('cards').select('*').order('id', { ascending: false });
-      if (error) throw error;
-      return data as CreditCardType[];
-    },
-  });
+  const {
+    creditCards,
+    isLoading,
+    error,
+    createCreditCard,
+    updateCreditCard,
+    deleteCreditCard,
+    isCreating,
+    isUpdating,
+    refetch // importante garantir que seu hook expose isso para recarregar os dados após mudanças
+  } = useCreditCards();
 
-  const filteredCards = cards?.filter((card) =>
-    card.card_name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Formatação de moeda
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  // Cálculos
+  const totalCards = creditCards.length;
+  const totalLimit = creditCards.reduce((sum, card) => sum + card.credit_limit, 0);
+  const totalUsed = creditCards.reduce((sum, card) => sum + card.current_value, 0);
+
+  // Filtra cartões
+  const filteredCards = creditCards.filter(card =>
+    card.card_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (card.bank_name && card.bank_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    card.card_number.includes(searchTerm)
   );
 
-  return (
-    <div className="p-4 space-y-4">
-      <div className="flex justify-between items-center">
-        <Input
-          placeholder="Buscar cartão..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-        <Button onClick={() => { setEditingCard(undefined); setShowCardForm(true); }}>Novo Cartão</Button>
-      </div>
+  // Handlers
+  const handleCreateCard = async (cardData: CreditCardInput) => {
+    try {
+      await createCreditCard(cardData);
+      await refetch();
+      setShowCardForm(false);
+      toast({ title: "Cartão criado com sucesso!", duration: 2000 });
+    } catch {
+      toast({ title: "Erro ao criar cartão", description: "Tente novamente", variant: "destructive", duration: 3000 });
+    }
+  };
 
-      {isLoading ? (
-        <p>Carregando...</p>
-      ) : filteredCards && filteredCards.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredCards.map((card) => (
-            <div key={card.id} className="border rounded p-4 shadow">
-              <h2 className="text-lg font-bold">{card.card_name}</h2>
-              <p><strong>Limite:</strong> R$ {card.limit.toFixed(2)}</p>
-              <p><strong>Valor Atual:</strong> R$ {card.current_value.toFixed(2)}</p>
-              <p><strong>Vencimento:</strong> Dia {card.due_day}</p>
-              <Button variant="outline" onClick={() => { setEditingCard(card); setShowCardForm(true); }}>Editar</Button>
+  const handleUpdateCard = async (cardData: CreditCardInput) => {
+    if (!editingCard) return;
+    try {
+      await updateCreditCard(editingCard.id, cardData);
+      await refetch();
+      setShowCardForm(false);
+      setEditingCard(undefined);
+      toast({ title: "Cartão atualizado com sucesso!", duration: 2000 });
+    } catch {
+      toast({ title: "Erro ao atualizar cartão", description: "Tente novamente", variant: "destructive", duration: 3000 });
+    }
+  };
+
+  const handleDeleteCard = async (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir este cartão?')) return;
+    try {
+      await deleteCreditCard(id);
+      await refetch();
+      toast({ title: "Cartão excluído com sucesso!", duration: 2000 });
+    } catch {
+      toast({ title: "Erro ao excluir cartão", description: "Tente novamente", variant: "destructive", duration: 3000 });
+    }
+  };
+
+  const handleEditCard = (card: CreditCardType) => {
+    setEditingCard(card);
+    setShowCardForm(true);
+  };
+
+  const closeCardForm = () => {
+    setShowCardForm(false);
+    setEditingCard(undefined);
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Carregando cartões...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <CreditCard className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Controle de Cartões</h1>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <User className="h-5 w-5 text-gray-500" />
+            <span className="text-sm text-gray-600">João Silva</span>
+          </div>
+        </div>
+
+        {/* Título principal e ações */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">Meus Cartões de Crédito</h2>
+            <p className="text-gray-600 mt-1">Gerencie seus cartões e acompanhe seus gastos</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar cartões..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-64"
+              />
+            </div>
+            <Button onClick={() => setShowCardForm(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Cartão
+            </Button>
+          </div>
+        </div>
+
+        {/* Cards resumo */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total de Cartões</p>
+                <p className="text-2xl font-bold text-gray-900">{totalCards}</p>
+              </div>
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <CreditCard className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Limite Total</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalLimit)}</p>
+              </div>
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CreditCard className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Valor Utilizado</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalUsed)}</p>
+              </div>
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <CreditCard className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Lista cartões */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredCards.map(card => (
+            <div key={card.id} className="border p-4 rounded shadow hover:bg-gray-50 flex justify-between items-center">
+              <div>
+                <div className="font-bold">{card.card_name}</div>
+                <div className="text-sm">{card.card_number}</div>
+              </div>
+              <div className="space-x-2">
+                <Button size="sm" variant="outline" onClick={() => handleEditCard(card)}>Editar</Button>
+                <Button size="sm" variant="destructive" onClick={() => handleDeleteCard(card.id)}>Excluir</Button>
+              </div>
             </div>
           ))}
         </div>
-      ) : (
-        <p>Nenhum cartão encontrado.</p>
-      )}
 
-      <CreditCardFormModal
-        open={showCardForm}
-        onOpenChange={setShowCardForm}
-        editingCard={editingCard}
-      />
-    </div>
+        {filteredCards.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum cartão encontrado</h3>
+            <p className="text-gray-600">Comece adicionando seu primeiro cartão de crédito.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal de formulário */}
+      <Dialog open={showCardForm} onOpenChange={setShowCardForm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{editingCard ? 'Editar Cartão' : 'Adicionar Novo Cartão'}</span>
+              <Button variant="ghost" size="sm" onClick={closeCardForm} className="h-6 w-6 p-0">
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+
+          <CreditCardFormModal
+            card={editingCard}
+            onSubmit={editingCard ? handleUpdateCard : handleCreateCard}
+            onCancel={closeCardForm}
+            isLoading={isCreating || isUpdating}
+          />
+        </DialogContent>
+      </Dialog>
+    </Layout>
   );
 };
 
