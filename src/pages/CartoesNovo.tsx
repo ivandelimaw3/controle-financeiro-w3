@@ -4,7 +4,8 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import CreditCardFormModal from '@/components/CreditCards/CreditCardFormModal';  // Import default corrigido
+import { CreditCardItem } from '@/components/CreditCards/CreditCardItem';
+import { CreditCardFormModal } from '@/components/CreditCards/CreditCardFormModal';
 import { useCreditCards, CreditCard as CreditCardType, CreditCardInput } from '@/hooks/useCreditCards';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,6 +13,7 @@ const CartoesNovo = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [editingCard, setEditingCard] = useState<CreditCardType | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
+
   const { toast } = useToast();
 
   const {
@@ -23,58 +25,85 @@ const CartoesNovo = () => {
     deleteCreditCard,
     isCreating,
     isUpdating,
-    refetch // importante garantir que seu hook expose isso para recarregar os dados após mudanças
   } = useCreditCards();
 
-  // Formatação de moeda
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  // Funções de formatação
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
 
-  // Cálculos
+  // Cálculos para os cards de resumo
   const totalCards = creditCards.length;
   const totalLimit = creditCards.reduce((sum, card) => sum + card.credit_limit, 0);
   const totalUsed = creditCards.reduce((sum, card) => sum + card.current_value, 0);
 
-  // Filtra cartões
-  const filteredCards = creditCards.filter(card =>
-    card.card_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (card.bank_name && card.bank_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    card.card_number.includes(searchTerm)
-  );
+  // Filtros
+  const filteredCards = creditCards.filter(card => {
+    return (
+      card.card_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (card.bank_name && card.bank_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      card.card_number.includes(searchTerm)
+    );
+  });
 
-  // Handlers
   const handleCreateCard = async (cardData: CreditCardInput) => {
     try {
       await createCreditCard(cardData);
-      await refetch();
       setShowCardForm(false);
-      toast({ title: "Cartão criado com sucesso!", duration: 2000 });
-    } catch {
-      toast({ title: "Erro ao criar cartão", description: "Tente novamente", variant: "destructive", duration: 3000 });
+      toast({
+        title: 'Cartão criado com sucesso!',
+        duration: 2000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao criar cartão',
+        description: 'Tente novamente',
+        variant: 'destructive',
+        duration: 3000,
+      });
     }
   };
 
   const handleUpdateCard = async (cardData: CreditCardInput) => {
-    if (!editingCard) return;
-    try {
-      await updateCreditCard(editingCard.id, cardData);
-      await refetch();
-      setShowCardForm(false);
-      setEditingCard(undefined);
-      toast({ title: "Cartão atualizado com sucesso!", duration: 2000 });
-    } catch {
-      toast({ title: "Erro ao atualizar cartão", description: "Tente novamente", variant: "destructive", duration: 3000 });
+    if (editingCard) {
+      try {
+        await updateCreditCard(editingCard.id, cardData);
+        setShowCardForm(false);
+        setEditingCard(undefined);
+        toast({
+          title: 'Cartão atualizado com sucesso!',
+          duration: 2000,
+        });
+      } catch (error) {
+        toast({
+          title: 'Erro ao atualizar cartão',
+          description: 'Tente novamente',
+          variant: 'destructive',
+          duration: 3000,
+        });
+      }
     }
   };
 
   const handleDeleteCard = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este cartão?')) return;
-    try {
-      await deleteCreditCard(id);
-      await refetch();
-      toast({ title: "Cartão excluído com sucesso!", duration: 2000 });
-    } catch {
-      toast({ title: "Erro ao excluir cartão", description: "Tente novamente", variant: "destructive", duration: 3000 });
+    if (confirm('Tem certeza que deseja excluir este cartão?')) {
+      try {
+        await deleteCreditCard(id);
+        toast({
+          title: 'Cartão excluído com sucesso!',
+          duration: 2000,
+        });
+      } catch (error) {
+        toast({
+          title: 'Erro ao excluir cartão',
+          description: 'Tente novamente',
+          variant: 'destructive',
+          duration: 3000,
+        });
+      }
     }
   };
 
@@ -129,7 +158,7 @@ const CartoesNovo = () => {
               <Input
                 placeholder="Buscar cartões..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-10 w-64"
               />
             </div>
@@ -140,7 +169,7 @@ const CartoesNovo = () => {
           </div>
         </div>
 
-        {/* Cards resumo */}
+        {/* Cards de resumo */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center justify-between">
@@ -179,19 +208,15 @@ const CartoesNovo = () => {
           </div>
         </div>
 
-        {/* Lista cartões */}
+        {/* Lista de cartões */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredCards.map(card => (
-            <div key={card.id} className="border p-4 rounded shadow hover:bg-gray-50 flex justify-between items-center">
-              <div>
-                <div className="font-bold">{card.card_name}</div>
-                <div className="text-sm">{card.card_number}</div>
-              </div>
-              <div className="space-x-2">
-                <Button size="sm" variant="outline" onClick={() => handleEditCard(card)}>Editar</Button>
-                <Button size="sm" variant="destructive" onClick={() => handleDeleteCard(card.id)}>Excluir</Button>
-              </div>
-            </div>
+            <CreditCardItem
+              key={card.id}
+              card={card}
+              onEdit={handleEditCard}
+              onDelete={handleDeleteCard}
+            />
           ))}
         </div>
 
@@ -210,7 +235,12 @@ const CartoesNovo = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>{editingCard ? 'Editar Cartão' : 'Adicionar Novo Cartão'}</span>
-              <Button variant="ghost" size="sm" onClick={closeCardForm} className="h-6 w-6 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeCardForm}
+                className="h-6 w-6 p-0"
+              >
                 <X className="h-4 w-4" />
               </Button>
             </DialogTitle>
