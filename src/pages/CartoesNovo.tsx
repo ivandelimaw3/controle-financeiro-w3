@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CreditCardFormModal } from './CreditCardFormModal';
 import { CreditCardType } from '@/types';
+import { CreditCardFormModal } from '@/components/CreditCardFormModal';
 
 export default function CartoesNovo() {
   const [showCardForm, setShowCardForm] = useState(false);
