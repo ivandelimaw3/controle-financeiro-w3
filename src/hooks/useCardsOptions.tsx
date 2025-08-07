@@ -41,7 +41,7 @@ export function useCardsOptions() {
       return transformedData;
     },
     refetchOnWindowFocus: true,
-    staleTime: 0
+    
   });
 
   return { 
