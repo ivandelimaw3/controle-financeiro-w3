@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 
 export interface CardOption {
@@ -8,7 +9,16 @@ export interface CardOption {
 }
 
 export function useCardsOptions() {
-    const { data: user } = supabase.auth.getUser();
+    const [user, setUser] = useState<any>(null);
+
+    // Buscar usuário atual
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        getUser();
+    }, []);
 
     const {
         data: cards = [],
@@ -24,6 +34,8 @@ export function useCardsOptions() {
                 throw new Error('Usuário não autenticado');
             }
 
+            console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
+            
             const { data, error } = await supabase
                 .from('cards')
                 .select('id, card_name, current_value')
@@ -36,6 +48,8 @@ export function useCardsOptions() {
                 throw error;
             }
 
+            console.log('useCardsOptions: Dados brutos recebidos:', data);
+
             const transformedData = (data || [])
                 .filter(card => !!card.id && typeof card.id === 'number')
                 .map(card => ({
@@ -44,10 +58,11 @@ export function useCardsOptions() {
                     current_value: card.current_value || 0
                 }));
 
+            console.log('useCardsOptions: Dados transformados:', transformedData);
+
             return transformedData;
         },
-        // --- LINHA REMOVIDA PARA RESOLVER O PROBLEMA ---
-        // enabled: !!user,
+        enabled: !!user,
         
         refetchOnWindowFocus: true,
     });
