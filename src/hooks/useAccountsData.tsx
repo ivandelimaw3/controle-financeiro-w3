@@ -19,9 +19,11 @@ export interface Account {
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
 }
+
 export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
   qtd_parcelas?: number;
 }
+
 export interface Transaction {
   id: number;
   description: string;
@@ -93,7 +95,7 @@ export const useAccountsData = () => {
         recorrente_id: account.recorrente_id,
         bank_id: account.bank_id,
         card_id: account.card_id,
-       payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
+        payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
         payment_source_id: account.payment_source_id
       }));
 
@@ -235,7 +237,7 @@ export const useAccountsData = () => {
           recorrente_id: data.recorrente_id,
           bank_id: data.bank_id,
           card_id: data.card_id,
-          payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
+          payment_source: (data.payment_source ?? undefined) as 'bank' | 'card' | undefined,
           payment_source_id: data.payment_source_id
         };
 
@@ -338,10 +340,6 @@ export const useAccountsData = () => {
       // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
 
-      // Invalidar cache dos bancos e cartões para atualizar saldos
-      invalidateBanksCache();
-      
-     
       toast({
         title: "Sucesso",
         description: "Conta deletada com sucesso.",
@@ -356,17 +354,9 @@ export const useAccountsData = () => {
     }
   };
 
+  // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Usuário não autenticado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('accounts')
         .update({ status })
@@ -383,43 +373,39 @@ export const useAccountsData = () => {
         return;
       }
 
-      setAccounts(prev => prev.map(acc => 
-        acc.id === id ? { ...acc, status } : acc
-      ));
-    
-      invalidateBanksCache();
-      invalidateCardsCache();
-        
+      // Atualizar na lista local
+      setAccounts(prev => 
+        prev.map(account => 
+          account.id === id ? { ...account, status } : account
+        )
+      );
+
       toast({
         title: "Sucesso",
-        description: "Status da conta atualizado com sucesso.",
-       
+        description: "Status atualizado com sucesso.",
       });
     } catch (error) {
+      console.error('Erro ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar status.",
+        description: "Não foi possível atualizar o status.",
         variant: "destructive"
       });
     }
   };
 
+  // Carregar contas quando o usuário mudar
   useEffect(() => {
-    if (user) {
-      fetchAccounts();
-    } else {
-      setAccounts([]);
-      setLoading(false);
-    }
+    fetchAccounts();
   }, [user]);
 
   return {
     accounts,
     loading,
+    fetchAccounts,
     addAccount,
     updateAccount,
     deleteAccount,
-    updateAccountStatus,
-    refreshAccounts: fetchAccounts
+    updateAccountStatus
   };
 };
