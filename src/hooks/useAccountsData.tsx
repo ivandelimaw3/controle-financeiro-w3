@@ -188,7 +188,7 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-        
+        invalidateCardsCache();        
                
         toast({
           title: "Sucesso",
@@ -245,7 +245,7 @@ export const useAccountsData = () => {
         
         // Invalidar cache dos bancos e cartões para atualizar saldos
         invalidateBanksCache();
-        
+        invalidateCardsCache();
         
         
         toast({
@@ -302,7 +302,7 @@ export const useAccountsData = () => {
 
       // Invalidar cache dos bancos e cartões para atualizar saldos
       invalidateBanksCache();
-     
+      invalidateCardsCache();
       
 
       toast({
@@ -357,6 +357,14 @@ export const useAccountsData = () => {
   // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
       const { error } = await supabase
         .from('accounts')
         .update({ status })
@@ -374,38 +382,41 @@ export const useAccountsData = () => {
       }
 
       // Atualizar na lista local
-      setAccounts(prev => 
-        prev.map(account => 
-          account.id === id ? { ...account, status } : account
-        )
-      );
-
+     setAccounts(prev => prev.map(acc => 
+        acc.id === id ? { ...acc, status } : acc
+      ));
+      invalidateBanksCache();
+      invalidateCardsCache();
+        
       toast({
         title: "Sucesso",
-        description: "Status atualizado com sucesso.",
+        description: "Status da conta atualizado com sucesso.",
       });
     } catch (error) {
-      console.error('Erro ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o status.",
+        description: "Erro inesperado ao atualizar status.",
         variant: "destructive"
       });
     }
   };
 
-  // Carregar contas quando o usuário mudar
   useEffect(() => {
-    fetchAccounts();
+    if (user) {
+      fetchAccounts();
+    } else {
+      setAccounts([]);
+      setLoading(false);
+    }
   }, [user]);
 
   return {
     accounts,
     loading,
-    fetchAccounts,
     addAccount,
     updateAccount,
     deleteAccount,
-    updateAccountStatus
+    updateAccountStatus,
+    refreshAccounts: fetchAccounts
   };
 };
