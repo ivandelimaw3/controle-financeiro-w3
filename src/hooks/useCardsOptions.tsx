@@ -17,18 +17,9 @@ export function useCardsOptions() {
     } = useQuery<CardOption[]>({
         queryKey: ['credit_cards'],
         queryFn: async () => {
-            console.log('useCardsOptions: Iniciando busca de cartões...');
-            
             const { data: { user }, error: userError } = await supabase.auth.getUser();
-            if (userError) {
-                console.error('useCardsOptions: Erro de autenticação:', userError);
-                throw userError;
-            }
-            
-            if (!user) {
-                console.log('useCardsOptions: Usuário não autenticado');
-                return [];
-            }
+            if (userError) throw userError;
+            if (!user) throw new Error('Usuário não autenticado');
 
             console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
 
@@ -46,23 +37,20 @@ export function useCardsOptions() {
 
             console.log('useCardsOptions: Dados brutos do banco:', data);
 
-            // CORREÇÃO: Garantir que o ID seja sempre string
             const transformedData = (data || []).map(card => ({
-                id: String(card.id), // Forçar conversão para string
+                id: String(card.id), // força para string
                 name: card.card_name,
                 current_value: card.current_value ?? 0
             }));
 
             console.log('useCardsOptions: Dados transformados:', transformedData);
-            console.log('useCardsOptions: IDs após transformação:', transformedData.map(c => `${c.id} (${typeof c.id})`));
-            
+
             return transformedData;
         },
-        enabled: true,
-        refetchOnWindowFocus: false,
-        staleTime: 30000, // 30 segundos
-        gcTime: 300000, // 5 minutos
-        retry: 2
+        refetchOnWindowFocus: false, // Evita recarregamento desnecessário
+        staleTime: 60000, // 1 minuto
+        gcTime: 300000, // 5 minutos (gcTime substitui cacheTime)
+        retry: 1
     });
 
     return {
