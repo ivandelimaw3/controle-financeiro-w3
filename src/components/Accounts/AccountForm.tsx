@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ interface Account {
   qtd_parcelas?: number;
   bank_id?: number;
   payment_source?: 'bank' | 'card';
-  payment_source_id?: number;
+  payment_source_id?: string | number; // Pode ser string ou number para compatibilidade
 }
 
 interface AccountFormProps {
@@ -49,13 +50,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
   const { cardsOptions, loading: cardsLoading } = useCardsOptions();
 
-  // DEBUG: Log detalhado dos cartões
-  console.log('AccountForm: Estado dos cartões:');
+  // DEBUG: Log detalhado
+  console.log('AccountForm: Estado completo:');
+  console.log('- banksOptions:', banksOptions);
   console.log('- cardsOptions:', cardsOptions);
+  console.log('- banksLoading:', banksLoading);
   console.log('- cardsLoading:', cardsLoading);
-  console.log('- Quantidade de cartões:', cardsOptions?.length || 0);
-  console.log('- formData.payment_source:', formData.payment_source);
-  console.log('- formData.payment_source_id:', formData.payment_source_id);
+  console.log('- formData:', formData);
+  console.log('- Tipos de ID dos bancos:', banksOptions?.map(b => `${b.id} (${typeof b.id})`));
   console.log('- Tipos de ID dos cartões:', cardsOptions?.map(c => `${c.id} (${typeof c.id})`));
 
   // Verificação de segurança
@@ -83,25 +85,16 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const parseCurrencyInput = (inputValue: string): number => {
     if (!inputValue) return 0;
     
-    // Remove todos os caracteres que não são dígitos
     const digitsOnly = inputValue.replace(/\D/g, '');
-    
-    // Se não há dígitos, retorna 0
     if (!digitsOnly) return 0;
     
-    // Converte para número dividindo por 100 (para considerar os centavos)
     const numericValue = parseInt(digitsOnly) / 100;
-    
     return numericValue;
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
-    // Parse do valor digitado
     const numericValue = parseCurrencyInput(inputValue);
-    
-    // Atualiza o estado com o valor numérico
     setFormData({ ...formData, amount: numericValue });
   };
 
@@ -113,7 +106,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ 
       ...formData, 
       type: value,
-      category: '' // Reset category when changing type
+      category: ''
     });
   };
 
@@ -134,30 +127,23 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ 
       ...formData, 
       payment_source: value,
-      payment_source_id: undefined // Reset source ID when changing source type
+      payment_source_id: undefined
     });
   };
 
   const handlePaymentSourceIdChange = (value: string) => {
-    // CORREÇÃO: Manter como string se for cartão, número se for banco
-    if (formData.payment_source === 'card') {
-      setFormData({ ...formData, payment_source_id: value as any }); // Manter como string para cartões
-    } else {
-      setFormData({ ...formData, payment_source_id: parseInt(value) }); // Converter para número para bancos
-    }
+    // Agora mantemos sempre como string para consistência
+    setFormData({ ...formData, payment_source_id: value });
   };
 
-  // Função de validação e submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação da fonte de pagamento
     if (formData.payment_source && !formData.payment_source_id) {
       alert('Por favor, selecione uma fonte de pagamento específica (banco ou cartão).');
       return;
     }
     
-    // Se não há fonte selecionada, limpar os campos para evitar erro no banco
     if (!formData.payment_source) {
       setFormData({
         ...formData,
@@ -166,7 +152,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       });
     }
     
-    // Continuar com o submit
     onSubmit(e);
   };
 
@@ -174,14 +159,16 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const getSelectedSourceName = () => {
     if (!formData.payment_source || !formData.payment_source_id) return '';
     
+    const sourceId = String(formData.payment_source_id);
+    
     if (formData.payment_source === 'bank') {
-      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
+      const bank = banksOptions.find(b => b.id === sourceId);
+      console.log('getSelectedSourceName: Procurando banco com ID:', sourceId);
+      console.log('getSelectedSourceName: Banco encontrado:', bank);
       return bank?.name || '';
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      // CORREÇÃO: Comparar diretamente com string
-      const card = cardsOptions.find(c => c.id === String(formData.payment_source_id));
-      console.log('getSelectedSourceName: Procurando cartão com ID:', String(formData.payment_source_id));
-      console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
+      const card = cardsOptions.find(c => c.id === sourceId);
+      console.log('getSelectedSourceName: Procurando cartão com ID:', sourceId);
       console.log('getSelectedSourceName: Cartão encontrado:', card);
       return card?.name || '';
     }
@@ -193,12 +180,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const getSelectedSourceBalance = () => {
     if (!formData.payment_source || !formData.payment_source_id) return null;
     
+    const sourceId = String(formData.payment_source_id);
+    
     if (formData.payment_source === 'bank') {
-      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
+      const bank = banksOptions.find(b => b.id === sourceId);
       return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      // CORREÇÃO: Comparar diretamente com string
-      const card = cardsOptions.find(c => c.id === String(formData.payment_source_id));
+      const card = cardsOptions.find(c => c.id === sourceId);
       return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
     }
     
@@ -294,11 +282,25 @@ export const AccountForm: React.FC<AccountFormProps> = ({
                 <SelectValue placeholder={`Selecione ${formData.payment_source === 'bank' ? 'o banco' : 'o cartão'}`} />
               </SelectTrigger>
               <SelectContent>
-                {formData.payment_source === 'bank' && banksOptions.map((bank) => (
-                  <SelectItem key={bank.id} value={bank.id}>
-                    {bank.name}
-                  </SelectItem>
-                ))}
+                {formData.payment_source === 'bank' && (
+                  <>
+                    {banksLoading && (
+                      <SelectItem value="" disabled>
+                        Carregando bancos...
+                      </SelectItem>
+                    )}
+                    {!banksLoading && (!banksOptions || banksOptions.length === 0) && (
+                      <SelectItem value="" disabled>
+                        Nenhum banco encontrado
+                      </SelectItem>
+                    )}
+                    {!banksLoading && banksOptions && banksOptions.length > 0 && banksOptions.map((bank) => (
+                      <SelectItem key={bank.id} value={bank.id}>
+                        {bank.name}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
                 {formData.payment_source === 'card' && (
                   <>
                     {cardsLoading && (
@@ -324,13 +326,16 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         </div>
         
         {/* Debug info - remover em produção */}
-        {process.env.NODE_ENV === 'development' && formData.payment_source === 'card' && (
+        {process.env.NODE_ENV === 'development' && formData.payment_source && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
-            <p>Debug - Cartões: {cardsOptions?.length || 0} encontrados</p>
-            <p>Loading: {cardsLoading ? 'sim' : 'não'}</p>
+            <p>Debug - {formData.payment_source === 'bank' ? 'Bancos' : 'Cartões'}: {formData.payment_source === 'bank' ? banksOptions?.length || 0 : cardsOptions?.length || 0} encontrados</p>
+            <p>Loading: {formData.payment_source === 'bank' ? (banksLoading ? 'sim' : 'não') : (cardsLoading ? 'sim' : 'não')}</p>
             <p>Selected ID: {formData.payment_source_id} (tipo: {typeof formData.payment_source_id})</p>
-            <p>IDs disponíveis: {cardsOptions?.map(c => `${c.id} (${typeof c.id})`).join(', ')}</p>
-            <p>Comparação: {cardsOptions?.map(c => `${c.id} === ${String(formData.payment_source_id)} ? ${c.id === String(formData.payment_source_id)}`).join(', ')}</p>
+            <p>IDs disponíveis: {formData.payment_source === 'bank' 
+              ? banksOptions?.map(b => `${b.id} (${typeof b.id})`).join(', ')
+              : cardsOptions?.map(c => `${c.id} (${typeof c.id})`).join(', ')
+            }</p>
+            <p>Nome encontrado: {getSelectedSourceName()}</p>
           </div>
         )}
         
