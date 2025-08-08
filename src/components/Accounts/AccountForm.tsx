@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,10 +49,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
   const { cardsOptions, loading: cardsLoading } = useCardsOptions();
 
-  // DEBUG: Log dos dados dos cartões
-  console.log('AccountForm: cardsOptions:', cardsOptions);
-  console.log('AccountForm: formData.payment_source:', formData.payment_source);
-  console.log('AccountForm: formData.payment_source_id:', formData.payment_source_id);
+  // DEBUG: Log detalhado dos cartões
+  console.log('AccountForm: Estado dos cartões:');
+  console.log('- cardsOptions:', cardsOptions);
+  console.log('- cardsLoading:', cardsLoading);
+  console.log('- Quantidade de cartões:', cardsOptions?.length || 0);
+  console.log('- formData.payment_source:', formData.payment_source);
+  console.log('- formData.payment_source_id:', formData.payment_source_id);
 
   // Verificação de segurança
   if (!formData) {
@@ -289,15 +291,37 @@ export const AccountForm: React.FC<AccountFormProps> = ({
                     {bank.name}
                   </SelectItem>
                 ))}
-                {formData.payment_source === 'card' && Array.isArray(cardsOptions) && cardsOptions.map((card) => (
-                  <SelectItem key={card.id} value={card.id}>
-                    {card.name}
-                  </SelectItem>
-                ))}
+                {formData.payment_source === 'card' && (
+                  <>
+                    {cardsLoading && (
+                      <SelectItem value="" disabled>
+                        Carregando cartões...
+                      </SelectItem>
+                    )}
+                    {!cardsLoading && (!cardsOptions || cardsOptions.length === 0) && (
+                      <SelectItem value="" disabled>
+                        Nenhum cartão encontrado
+                      </SelectItem>
+                    )}
+                    {!cardsLoading && cardsOptions && cardsOptions.length > 0 && cardsOptions.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
               </SelectContent>
             </Select>
           )}
         </div>
+        
+        {/* Debug info - remover em produção */}
+        {process.env.NODE_ENV === 'development' && formData.payment_source === 'card' && (
+          <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+            <p>Debug - Cartões: {cardsOptions?.length || 0} encontrados</p>
+            <p>Loading: {cardsLoading ? 'sim' : 'não'}</p>
+          </div>
+        )}
         
         {/* Exibir informações da fonte selecionada */}
         {formData.payment_source && formData.payment_source_id && (
