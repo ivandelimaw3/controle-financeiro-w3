@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CategorySelect } from './CategorySelect';
 import { Category } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
-import { useCardsOptions } from '@/hooks/useCardsOptions';
+import { useCreditCards } from '@/hooks/useCreditCards';
 
 interface Account {
   id?: number;
@@ -48,7 +47,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   isEditing
 }) => {
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
-  const { cardsOptions, isLoading: cardsLoading } = useCardsOptions();
+  const { creditCards, isLoading: cardsLoading } = useCreditCards();
+
+  // Transformar creditCards para o formato esperado pelo Select
+  const cardsOptions = creditCards.map(card => ({
+    id: card.id.toString(),
+    name: card.card_name,
+    current_value: card.current_value
+  }));
 
   // Verificação de segurança
   if (!formData) {
@@ -350,21 +356,19 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
       <div className="flex gap-3 pt-4">
         <Button
+          type="submit"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+          disabled={banksLoading || cardsLoading}
+        >
+          {isEditing ? 'Atualizar' : 'Criar'} Conta
+        </Button>
+        <Button
           type="button"
           variant="outline"
           onClick={onCancel}
           className="flex-1"
         >
           Cancelar
-        </Button>
-        <Button
-          type="submit"
-          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-        >
-          {isEditing ? 'Atualizar' : 
-           (formData.qtd_parcelas && formData.qtd_parcelas > 1) ? 
-           `Criar ${formData.qtd_parcelas} Parcelas` : 
-           'Criar'}
         </Button>
       </div>
     </form>
