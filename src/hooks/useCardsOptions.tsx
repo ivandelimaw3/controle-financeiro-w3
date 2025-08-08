@@ -24,7 +24,7 @@ export function useCardsOptions() {
             console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
 
             const { data, error } = await supabase
-                .from('cards')
+                .from('creditcards')
                 .select('id, card_name, current_value')
                 .eq('user_id', user.id)
                 .eq('is_active', true)
@@ -47,9 +47,9 @@ export function useCardsOptions() {
 
             return transformedData;
         },
-        refetchOnWindowFocus: false, // Evita recarregamento desnecessário
+        refetchOnWindowFocus: false,
         staleTime: 60000, // 1 minuto
-        gcTime: 300000, // 5 minutos (gcTime substitui cacheTime)
+        gcTime: 300000, // 5 minutos
         retry: 1
     });
 
