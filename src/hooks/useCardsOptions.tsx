@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 
@@ -48,7 +49,7 @@ export function useCardsOptions() {
         },
         refetchOnWindowFocus: false, // Evita recarregamento desnecessário
         staleTime: 60000, // 1 minuto
-        cacheTime: 300000, // 5 minutos
+        gcTime: 300000, // 5 minutos (gcTime substitui cacheTime)
         retry: 1
     });
 

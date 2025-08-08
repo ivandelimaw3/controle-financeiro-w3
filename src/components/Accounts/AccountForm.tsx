@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   isEditing
 }) => {
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
-  const { cardsOptions, isLoading: cardsLoading } = useCardsOptions();
+  const { cardsOptions, loading: cardsLoading } = useCardsOptions();
 
   // DEBUG: Log dos dados dos cartões
   console.log('AccountForm: cardsOptions:', cardsOptions);
@@ -168,7 +169,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
       return bank?.name || '';
-    } else if (formData.payment_source === 'card') {
+    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
       const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
       console.log('getSelectedSourceName: Procurando cartão com ID:', formData.payment_source_id?.toString());
       console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
@@ -186,7 +187,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
       return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
-    } else if (formData.payment_source === 'card') {
+    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
       const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
       return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
     }
@@ -288,7 +289,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
                     {bank.name}
                   </SelectItem>
                 ))}
-                {formData.payment_source === 'card' && cardsOptions.map((card) => (
+                {formData.payment_source === 'card' && Array.isArray(cardsOptions) && cardsOptions.map((card) => (
                   <SelectItem key={card.id} value={card.id}>
                     {card.name}
                   </SelectItem>
