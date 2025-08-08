@@ -186,9 +186,11 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [...newAccounts, ...prev]);
         
-        // Invalidar cache dos bancos e cartões para atualizar saldos
-        invalidateBanksCache();
-        invalidateCardsCache();        
+        // SÓ invalidar cache se a conta for paga/recebida
+        if (accountData.status === 'pago' || accountData.status === 'recebido') {
+          invalidateBanksCache();
+          invalidateCardsCache();
+        }
                
         toast({
           title: "Sucesso",
@@ -243,10 +245,11 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [newAccount, ...prev]);
         
-        // Invalidar cache dos bancos e cartões para atualizar saldos
-        invalidateBanksCache();
-        invalidateCardsCache();
-        
+        // SÓ invalidar cache se a conta for paga/recebida
+        if (accountData.status === 'pago' || accountData.status === 'recebido') {
+          invalidateBanksCache();
+          invalidateCardsCache();
+        }
         
         toast({
           title: "Sucesso",
@@ -280,7 +283,7 @@ export const useAccountsData = () => {
           payment_source: updatedAccount.payment_source,
           payment_source_id: updatedAccount.payment_source_id
         })
-        .eq('id', updatedAccount.id)   // ← sem ponto e vírgula
+        .eq('id', updatedAccount.id)
         .eq('user_id', user.id); 
 
       if (error) {
@@ -300,10 +303,11 @@ export const useAccountsData = () => {
         )
       );
 
-      // Invalidar cache dos bancos e cartões para atualizar saldos
-      invalidateBanksCache();
-      invalidateCardsCache();
-      
+      // SÓ invalidar cache se a conta for paga/recebida
+      if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
+        invalidateBanksCache();
+        invalidateCardsCache();
+      }
 
       toast({
         title: "Sucesso",
@@ -322,6 +326,9 @@ export const useAccountsData = () => {
   // Deletar conta
   const deleteAccount = async (accountId: number) => {
     try {
+      // Buscar a conta antes de deletar para verificar se precisa reverter saldo
+      const accountToDelete = accounts.find(acc => acc.id === accountId);
+      
       const { error } = await supabase
         .from('accounts')
         .delete()
@@ -339,6 +346,12 @@ export const useAccountsData = () => {
 
       // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
+
+      // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
+      if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) {
+        invalidateBanksCache();
+        invalidateCardsCache();
+      }
 
       toast({
         title: "Sucesso",
@@ -385,6 +398,8 @@ export const useAccountsData = () => {
      setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
+      
+      // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();
       invalidateCardsCache();
         
