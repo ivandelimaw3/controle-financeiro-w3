@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CategorySelect } from './CategorySelect';
 import { Category } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
-import { useCreditCards } from '@/hooks/useCreditCards';
+import { useCardsOptions } from '@/hooks/useCardsOptions';
 
 interface Account {
   id?: number;
@@ -47,14 +47,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   isEditing
 }) => {
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
-  const { creditCards, isLoading: cardsLoading } = useCreditCards();
+  const { cardsOptions, isLoading: cardsLoading } = useCardsOptions();
 
-  // Transformar creditCards para o formato esperado pelo Select
-  const cardsOptions = creditCards.map(card => ({
-    id: card.id.toString(),
-    name: card.card_name,
-    current_value: card.current_value
-  }));
+  // DEBUG: Log dos dados dos cartões
+  console.log('AccountForm: cardsOptions:', cardsOptions);
+  console.log('AccountForm: formData.payment_source:', formData.payment_source);
+  console.log('AccountForm: formData.payment_source_id:', formData.payment_source_id);
 
   // Verificação de segurança
   if (!formData) {
@@ -172,6 +170,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       return bank?.name || '';
     } else if (formData.payment_source === 'card') {
       const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
+      console.log('getSelectedSourceName: Procurando cartão com ID:', formData.payment_source_id?.toString());
+      console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
+      console.log('getSelectedSourceName: Cartão encontrado:', card);
       return card?.name || '';
     }
     
@@ -356,19 +357,21 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
       <div className="flex gap-3 pt-4">
         <Button
-          type="submit"
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-          disabled={banksLoading || cardsLoading}
-        >
-          {isEditing ? 'Atualizar' : 'Criar'} Conta
-        </Button>
-        <Button
           type="button"
           variant="outline"
           onClick={onCancel}
           className="flex-1"
         >
           Cancelar
+        </Button>
+        <Button
+          type="submit"
+          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+        >
+          {isEditing ? 'Atualizar' : 
+           (formData.qtd_parcelas && formData.qtd_parcelas > 1) ? 
+           `Criar ${formData.qtd_parcelas} Parcelas` : 
+           'Criar'}
         </Button>
       </div>
     </form>
