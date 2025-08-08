@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,7 +58,7 @@ export function useCreditCards() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['credit_cards'],
+    queryKey: ['creditcards'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -65,7 +66,7 @@ export function useCreditCards() {
       }
 
       const { data, error } = await supabase
-        .from("cards")
+        .from("creditcards")
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true)
@@ -101,7 +102,7 @@ export function useCreditCards() {
       };
 
       const { data, error } = await supabase
-        .from("cards")
+        .from("creditcards")
         .insert([formattedCard])
         .select()
         .single();
@@ -113,7 +114,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      queryClient.invalidateQueries({ queryKey: ['creditcards'] });
     },
     onError: (error) => {
       console.error('Erro ao criar cartão:', error);
@@ -133,7 +134,7 @@ export function useCreditCards() {
       };
 
       const { data, error } = await supabase
-        .from("cards")
+        .from("creditcards")
         .update(formattedCard)
         .eq('id', id)
         .select()
@@ -146,7 +147,7 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] }); 
+    queryClient.invalidateQueries({ queryKey: ['creditcards'] }); 
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
@@ -157,7 +158,7 @@ export function useCreditCards() {
   const deleteCreditCardMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from("cards")
+        .from("creditcards")
         .update({ is_active: false })
         .eq('id', id);
 

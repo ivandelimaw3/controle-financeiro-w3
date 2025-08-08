@@ -15,7 +15,7 @@ export function useCardsOptions() {
         error,
         refetch
     } = useQuery<CardOption[]>({
-        queryKey: ['credit_cards'],
+        queryKey: ['creditcards-options'],
         queryFn: async () => {
             const { data: { user }, error: userError } = await supabase.auth.getUser();
             if (userError) throw userError;
@@ -24,7 +24,7 @@ export function useCardsOptions() {
             console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
 
             const { data, error } = await supabase
-                .from('cards')
+                .from('creditcards')
                 .select('id, card_name, current_value')
                 .eq('user_id', user.id)
                 .eq('is_active', true)
@@ -38,7 +38,7 @@ export function useCardsOptions() {
             console.log('useCardsOptions: Dados brutos do banco:', data);
 
             const transformedData = (data || []).map(card => ({
-                id: String(card.id), // força para string
+                id: String(card.id),
                 name: card.card_name,
                 current_value: card.current_value ?? 0
             }));
@@ -48,8 +48,8 @@ export function useCardsOptions() {
             return transformedData;
         },
         refetchOnWindowFocus: false,
-        staleTime: 60000, // 1 minuto
-        gcTime: 300000, // 5 minutos
+        staleTime: 60000,
+        gcTime: 300000,
         retry: 1
     });
 
