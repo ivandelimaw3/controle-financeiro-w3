@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 
 export interface CardOption {
@@ -9,33 +8,20 @@ export interface CardOption {
 }
 
 export function useCardsOptions() {
-    const [user, setUser] = useState<any>(null);
-
-    // Buscar usuário atual
-    useEffect(() => {
-        const getUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
-        };
-        getUser();
-    }, []);
-
     const {
         data: cards = [],
-        isLoading: loading,
+        isLoading,
         error,
         refetch
-    } = useQuery({
+    } = useQuery<CardOption[]>({
         queryKey: ['credit_cards'],
         queryFn: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                throw new Error('Usuário não autenticado');
-            }
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError) throw userError;
+            if (!user) throw new Error('Usuário não autenticado');
 
             console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
-            
+
             const { data, error } = await supabase
                 .from('cards')
                 .select('id, card_name, current_value')
@@ -48,30 +34,24 @@ export function useCardsOptions() {
                 throw error;
             }
 
-            console.log('useCardsOptions: Dados brutos recebidos:', data);
-
-            const transformedData = (data || [])
-                .filter(card => !!card.id && typeof card.id === 'number')
-                .map(card => ({
-                    id: card.id.toString(),
-                    name: card.card_name,
-                    current_value: card.current_value || 0
-                }));
+            const transformedData = (data || []).map(card => ({
+                id: String(card.id), // força para string
+                name: card.card_name,
+                current_value: card.current_value ?? 0
+            }));
 
             console.log('useCardsOptions: Dados transformados:', transformedData);
 
             return transformedData;
         },
-       
-          refetchOnWindowFocus: true,
+        refetchOnWindowFocus: true
     });
 
     return {
         cards,
-        loading,
+        loading: isLoading,
         error,
         refetch,
-        cardsOptions: cards,
-        isLoading: loading
+        cardsOptions: cards
     };
 }
