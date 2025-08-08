@@ -46,16 +46,19 @@ export function useCardsOptions() {
 
             console.log('useCardsOptions: Dados brutos do banco:', data);
 
+            // CORREÇÃO: Garantir que o ID seja sempre string
             const transformedData = (data || []).map(card => ({
-                id: String(card.id),
+                id: String(card.id), // Forçar conversão para string
                 name: card.card_name,
                 current_value: card.current_value ?? 0
             }));
 
             console.log('useCardsOptions: Dados transformados:', transformedData);
+            console.log('useCardsOptions: IDs após transformação:', transformedData.map(c => `${c.id} (${typeof c.id})`));
+            
             return transformedData;
         },
-        enabled: true, // Sempre habilitado
+        enabled: true,
         refetchOnWindowFocus: false,
         staleTime: 30000, // 30 segundos
         gcTime: 300000, // 5 minutos

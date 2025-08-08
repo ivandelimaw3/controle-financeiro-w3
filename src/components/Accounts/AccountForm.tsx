@@ -56,6 +56,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   console.log('- Quantidade de cartões:', cardsOptions?.length || 0);
   console.log('- formData.payment_source:', formData.payment_source);
   console.log('- formData.payment_source_id:', formData.payment_source_id);
+  console.log('- Tipos de ID dos cartões:', cardsOptions?.map(c => `${c.id} (${typeof c.id})`));
 
   // Verificação de segurança
   if (!formData) {
@@ -138,9 +139,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   };
 
   const handlePaymentSourceIdChange = (value: string) => {
-    // Converter para número se for necessário
-    const numericValue = parseInt(value);
-    setFormData({ ...formData, payment_source_id: numericValue });
+    // CORREÇÃO: Manter como string se for cartão, número se for banco
+    if (formData.payment_source === 'card') {
+      setFormData({ ...formData, payment_source_id: value as any }); // Manter como string para cartões
+    } else {
+      setFormData({ ...formData, payment_source_id: parseInt(value) }); // Converter para número para bancos
+    }
   };
 
   // Função de validação e submit
@@ -174,12 +178,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
       return bank?.name || '';
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      // Comparar tanto com string quanto com number para garantir compatibilidade
-      const card = cardsOptions.find(c => 
-        c.id === formData.payment_source_id?.toString() || 
-        c.id === String(formData.payment_source_id)
-      );
-      console.log('getSelectedSourceName: Procurando cartão com ID:', formData.payment_source_id?.toString());
+      // CORREÇÃO: Comparar diretamente com string
+      const card = cardsOptions.find(c => c.id === String(formData.payment_source_id));
+      console.log('getSelectedSourceName: Procurando cartão com ID:', String(formData.payment_source_id));
       console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
       console.log('getSelectedSourceName: Cartão encontrado:', card);
       return card?.name || '';
@@ -196,11 +197,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
       return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      // Comparar tanto com string quanto com number para garantir compatibilidade
-      const card = cardsOptions.find(c => 
-        c.id === formData.payment_source_id?.toString() || 
-        c.id === String(formData.payment_source_id)
-      );
+      // CORREÇÃO: Comparar diretamente com string
+      const card = cardsOptions.find(c => c.id === String(formData.payment_source_id));
       return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
     }
     
@@ -288,7 +286,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
           {formData.payment_source && (
             <Select
-              value={formData.payment_source_id?.toString() || ''}
+              value={String(formData.payment_source_id || '')}
               onValueChange={handlePaymentSourceIdChange}
               required
             >
@@ -332,6 +330,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             <p>Loading: {cardsLoading ? 'sim' : 'não'}</p>
             <p>Selected ID: {formData.payment_source_id} (tipo: {typeof formData.payment_source_id})</p>
             <p>IDs disponíveis: {cardsOptions?.map(c => `${c.id} (${typeof c.id})`).join(', ')}</p>
+            <p>Comparação: {cardsOptions?.map(c => `${c.id} === ${String(formData.payment_source_id)} ? ${c.id === String(formData.payment_source_id)}`).join(', ')}</p>
           </div>
         )}
         
