@@ -34,6 +34,8 @@ export function useCardsOptions() {
                 throw error;
             }
 
+            console.log('useCardsOptions: Dados brutos do banco:', data);
+
             const transformedData = (data || []).map(card => ({
                 id: String(card.id), // força para string
                 name: card.card_name,
@@ -44,7 +46,9 @@ export function useCardsOptions() {
 
             return transformedData;
         },
-        refetchOnWindowFocus: true
+        refetchOnWindowFocus: true,
+        staleTime: 30000, // 30 segundos
+        cacheTime: 60000  // 1 minuto
     });
 
     return {
