@@ -24,7 +24,7 @@ export function useCardsOptions() {
             console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
 
             const { data, error } = await supabase
-                .from('creditcards')
+                .from('cards')
                 .select('id, card_name, current_value')
                 .eq('user_id', user.id)
                 .eq('is_active', true)

@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           amount: number
           bank_id: number | null
+          card_id: number | null
           category: string
           created_at: string | null
           description: string
@@ -35,6 +36,7 @@ export type Database = {
         Insert: {
           amount: number
           bank_id?: number | null
+          card_id?: number | null
           category: string
           created_at?: string | null
           description: string
@@ -52,6 +54,7 @@ export type Database = {
         Update: {
           amount?: number
           bank_id?: number | null
+          card_id?: number | null
           category?: string
           created_at?: string | null
           description?: string
@@ -68,10 +71,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "accounts_bank_id_fkey"
+            foreignKeyName: "fk_bank"
             columns: ["bank_id"]
             isOneToOne: false
             referencedRelation: "banks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_card"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
             referencedColumns: ["id"]
           },
         ]
@@ -193,6 +203,57 @@ export type Database = {
           type?: string
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      creditcards: {
+        Row: {
+          bank_name: string | null
+          card_brand: string | null
+          card_name: string
+          card_number: string
+          created_at: string | null
+          credit_limit: number | null
+          current_value: number | null
+          due_date: string | null
+          expiry_date: string
+          holder_name: string
+          id: number
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bank_name?: string | null
+          card_brand?: string | null
+          card_name: string
+          card_number: string
+          created_at?: string | null
+          credit_limit?: number | null
+          current_value?: number | null
+          due_date?: string | null
+          expiry_date: string
+          holder_name: string
+          id?: number
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bank_name?: string | null
+          card_brand?: string | null
+          card_name?: string
+          card_number?: string
+          created_at?: string | null
+          credit_limit?: number | null
+          current_value?: number | null
+          due_date?: string | null
+          expiry_date?: string
+          holder_name?: string
+          id?: number
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

@@ -50,7 +50,7 @@ export function useCreditCardsData() {
       }
 
       const { data, error } = await supabase
-        .from('creditcards')
+        .from('cards')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true)
@@ -73,7 +73,7 @@ export function useCreditCardsData() {
       }
 
       const { data, error } = await supabase
-        .from('creditcards')
+        .from('cards')
         .insert({
           ...cardData,
           user_id: user.id,
@@ -112,7 +112,7 @@ export function useCreditCardsData() {
   const updateCardMutation = useMutation({
     mutationFn: async ({ id, cardData }: { id: number; cardData: CreditCardFormData }) => {
       const { data, error } = await supabase
-        .from('creditcards')
+        .from('cards')
         .update({
           ...cardData,
           card_brand: cardData.card_brand || 'visa',
@@ -150,7 +150,7 @@ export function useCreditCardsData() {
   const deleteCardMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from('creditcards')
+        .from('cards')
         .update({ is_active: false })
         .eq('id', id);
 
