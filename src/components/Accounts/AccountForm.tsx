@@ -138,7 +138,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   };
 
   const handlePaymentSourceIdChange = (value: string) => {
-    setFormData({ ...formData, payment_source_id: parseInt(value) });
+    // Converter para número se for necessário
+    const numericValue = parseInt(value);
+    setFormData({ ...formData, payment_source_id: numericValue });
   };
 
   // Função de validação e submit
@@ -172,7 +174,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
       return bank?.name || '';
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
+      // Comparar tanto com string quanto com number para garantir compatibilidade
+      const card = cardsOptions.find(c => 
+        c.id === formData.payment_source_id?.toString() || 
+        c.id === String(formData.payment_source_id)
+      );
       console.log('getSelectedSourceName: Procurando cartão com ID:', formData.payment_source_id?.toString());
       console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
       console.log('getSelectedSourceName: Cartão encontrado:', card);
@@ -190,7 +196,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
       return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
+      // Comparar tanto com string quanto com number para garantir compatibilidade
+      const card = cardsOptions.find(c => 
+        c.id === formData.payment_source_id?.toString() || 
+        c.id === String(formData.payment_source_id)
+      );
       return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
     }
     
@@ -320,6 +330,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
           <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
             <p>Debug - Cartões: {cardsOptions?.length || 0} encontrados</p>
             <p>Loading: {cardsLoading ? 'sim' : 'não'}</p>
+            <p>Selected ID: {formData.payment_source_id} (tipo: {typeof formData.payment_source_id})</p>
+            <p>IDs disponíveis: {cardsOptions?.map(c => `${c.id} (${typeof c.id})`).join(', ')}</p>
           </div>
         )}
         
