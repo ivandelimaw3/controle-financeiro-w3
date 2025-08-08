@@ -46,9 +46,10 @@ export function useCardsOptions() {
 
             return transformedData;
         },
-        refetchOnWindowFocus: true,
-        staleTime: 30000, // 30 segundos
-        cacheTime: 60000  // 1 minuto
+        refetchOnWindowFocus: false, // Evita recarregamento desnecessário
+        staleTime: 60000, // 1 minuto
+        cacheTime: 300000, // 5 minutos
+        retry: 1
     });
 
     return {
