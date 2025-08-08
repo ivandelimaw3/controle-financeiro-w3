@@ -36,7 +36,6 @@ export function useCreditCardsData() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar cartões de crédito
   const {
     data: creditCards = [],
     isLoading,
@@ -66,7 +65,6 @@ export function useCreditCardsData() {
     }
   });
 
-  // Criar cartão de crédito
   const createCardMutation = useMutation({
     mutationFn: async (cardData: CreditCardFormData) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -111,7 +109,6 @@ export function useCreditCardsData() {
     }
   });
 
-  // Atualizar cartão de crédito
   const updateCardMutation = useMutation({
     mutationFn: async ({ id, cardData }: { id: number; cardData: CreditCardFormData }) => {
       const { data, error } = await supabase
@@ -150,7 +147,6 @@ export function useCreditCardsData() {
     }
   });
 
-  // Deletar cartão de crédito
   const deleteCardMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase

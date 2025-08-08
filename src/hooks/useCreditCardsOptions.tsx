@@ -48,8 +48,8 @@ export function useCreditCardsOptions() {
       return transformedData;
     },
     refetchOnWindowFocus: false,
-    staleTime: 60000, // 1 minuto
-    gcTime: 300000, // 5 minutos
+    staleTime: 60000,
+    gcTime: 300000,
     retry: 1
   });
 

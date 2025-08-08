@@ -1,59 +1,64 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  CreditCard, 
-  FolderOpen, 
-  TrendingUp,
-  Building2,
-  PieChart,
-  Shield,
-  BarChart3
-} from 'lucide-react';
-import { useUserRoles } from '@/hooks/useUserRoles';
 
-export const Sidebar: React.FC = () => {
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  Home, 
+  FileText, 
+  Tags, 
+  BarChart3, 
+  Building, 
+  TrendingUp, 
+  CreditCard,
+  Settings,
+  ChevronDown
+} from 'lucide-react';
+
+const Sidebar = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAdmin } = useUserRoles();
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Painel de Negócios', path: '/' },
-    { icon: CreditCard, label: 'Contas', path: '/contas' },
-    { icon: FolderOpen, label: 'Categorias', path: '/categorias' },
-    { icon: Building2, label: 'Bancos', path: '/bancos' },
-    { icon: CreditCard, label: 'Cartões', path: '/cartoes-novo' },
-    { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
-    { icon: PieChart, label: 'Investimentos', path: '/investimentos' },
-    { icon: BarChart3, label: 'Análise Gráfica', path: '/analise' },
+    { icon: Home, label: 'Dashboard', path: '/' },
+    { icon: FileText, label: 'Contas', path: '/contas' },
+    { icon: Tags, label: 'Categorias', path: '/categorias' },
+    { icon: Building, label: 'Bancos', path: '/bancos' },
+    { icon: TrendingUp, label: 'Investimentos', path: '/investimentos' },
+    { icon: CreditCard, label: 'Cartões', path: '/cartoes-credito' },
+    { icon: BarChart3, label: 'Análise', path: '/analise' },
+    { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
+    { icon: Settings, label: 'Admin', path: '/admin' },
   ];
 
-  // Adicionar item de admin apenas se o usuário for admin
-  if (isAdmin) {
-    menuItems.push({ icon: Shield, label: 'Administração', path: '/admin' });
-  }
-
   return (
-    <div className="w-64 bg-white shadow-xl border-r border-slate-200">
-      <nav className="p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => (
-            <li key={item.path}>
-              <button
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
-                  location.pathname === item.path
-                    ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+    <div className="w-64 bg-white shadow-sm border-r h-screen">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-gray-900">FinanceApp</h2>
+      </div>
+      
+      <nav className="mt-6">
+        <div className="px-3">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center px-3 py-2 mb-1 text-sm font-medium rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <item.icon size={20} />
+                <Icon className="h-5 w-5 mr-3" />
                 {item.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
     </div>
   );
 };
+
+export { Sidebar };

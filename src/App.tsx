@@ -1,3 +1,4 @@
+
 import { Toaster } from "sonner";
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,7 +17,7 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
-import CartoesNovo from "./pages/CartoesNovo";
+import CartoesCredito from "./pages/CartoesCredito";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,9 +63,9 @@ const App = () => {
                       <Investimentos />
                     </ProtectedRoute>
                   } />
-                  <Route path="/cartoes-novo" element={
+                  <Route path="/cartoes-credito" element={
                     <ProtectedRoute>
-                      <CartoesNovo />
+                      <CartoesCredito />
                     </ProtectedRoute>
                   } />
                   <Route path="/analise" element={
