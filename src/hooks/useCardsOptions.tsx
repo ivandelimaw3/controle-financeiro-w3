@@ -62,9 +62,8 @@ export function useCardsOptions() {
 
             return transformedData;
         },
-        enabled: !!user,
-        
-        refetchOnWindowFocus: true,
+       
+          refetchOnWindowFocus: true,
     });
 
     return {
