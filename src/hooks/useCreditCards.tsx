@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,9 +47,6 @@ function formatExpiryDate(value: string) {
 
 export function useCreditCards() {
   const queryClient = useQueryClient();
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Buscar cartões usando React Query
   const {
@@ -81,7 +79,6 @@ export function useCreditCards() {
   });
 
   // Criar cartão usando React Query Mutation
-
   const createCreditCardMutation = useMutation({
     mutationFn: async (card: CreditCardInput) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -114,6 +111,7 @@ export function useCreditCards() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_cards', queryClient.getQueryData(['auth', 'user'])?.id] });
     },
     onError: (error) => {
       console.error('Erro ao criar cartão:', error);
@@ -122,20 +120,23 @@ export function useCreditCards() {
 
   // Atualizar cartão usando React Query Mutation
   const updateCreditCardMutation = useMutation({
-    mutationFn: async ({ id, card }: { id: number; card: CreditCardInput }) => {
+    mutationFn: async (card: CreditCard) => {
       const formattedCard = {
-        ...card,
+        card_name: card.card_name,
         card_number: formatCardNumber(card.card_number),
+        holder_name: card.holder_name,
         expiry_date: formatExpiryDate(card.expiry_date),
-        card_brand: card.card_brand || 'visa',
+        due_date: card.due_date,
         credit_limit: card.credit_limit || 0,
         current_value: card.current_value || 0,
+        bank_name: card.bank_name,
+        card_brand: card.card_brand || 'visa',
       };
 
       const { data, error } = await supabase
         .from("cards")
         .update(formattedCard)
-        .eq('id', id)
+        .eq('id', card.id)
         .select()
         .single();
 
@@ -146,7 +147,8 @@ export function useCreditCards() {
       return data;
     },
     onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['credit_cards'] }); 
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_cards', queryClient.getQueryData(['auth', 'user'])?.id] });
     },
     onError: (error) => {
       console.error('Erro ao atualizar cartão:', error);
@@ -168,7 +170,8 @@ export function useCreditCards() {
       return id;
     },
     onSuccess: () => {
-     
+      queryClient.invalidateQueries({ queryKey: ['credit_cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_cards', queryClient.getQueryData(['auth', 'user'])?.id] });
     },
     onError: (error) => {
       console.error('Erro ao excluir cartão:', error);
@@ -176,43 +179,34 @@ export function useCreditCards() {
   });
 
   // Funções wrapper para manter compatibilidade
-  const createCreditCard = async (card: CreditCardInput) => {
-    setIsCreating(true);
-    try {
-      await createCreditCardMutation.mutateAsync(card);
-    } finally {
-      setIsCreating(false);
-    }
+  const addCard = async (card: CreditCardInput) => {
+    return createCreditCardMutation.mutateAsync(card);
   };
 
-  const updateCreditCard = async (id: number, card: CreditCardInput) => {
-    setIsUpdating(true);
-    try {
-      await updateCreditCardMutation.mutateAsync({ id, card });
-    } finally {
-      setIsUpdating(false);
-    }
+  const updateCard = async (card: CreditCard) => {
+    return updateCreditCardMutation.mutateAsync(card);
   };
 
-  const deleteCreditCard = async (id: number) => {
-    setIsDeleting(true);
-    try {
-      await deleteCreditCardMutation.mutateAsync(id);
-    } finally {
-      setIsDeleting(false);
-    }
+  const deleteCard = async (id: number) => {
+    return deleteCreditCardMutation.mutateAsync(id);
   };
 
   return {
+    cards: creditCards,
+    loading: isLoading,
+    error,
+    addCard,
+    updateCard,
+    deleteCard,
+    refetch,
+    // Manter compatibilidade com nomes antigos
     creditCards,
     isLoading,
-    error,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    createCreditCard,
-    updateCreditCard,
-    deleteCreditCard,
-    refetch,
+    createCreditCard: addCard,
+    updateCreditCard: updateCard,
+    deleteCreditCard: deleteCard,
+    isCreating: createCreditCardMutation.isPending,
+    isUpdating: updateCreditCardMutation.isPending,
+    isDeleting: deleteCreditCardMutation.isPending,
   };
 }
