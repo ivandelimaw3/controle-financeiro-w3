@@ -146,7 +146,7 @@ export const useAccountsData = () => {
             parcela: `${i + 1}/${accountData.qtd_parcelas}`,
             recorrente_id: recorrenteId,
             bank_id: accountData.bank_id,
-            card_id: accountData.card_id,
+            card_id: account.card_id,
             payment_source: accountData.payment_source,
             payment_source_id: accountData.payment_source_id
           });
