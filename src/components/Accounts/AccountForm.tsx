@@ -50,12 +50,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
   const { cardsOptions, loading: cardsLoading } = useCardsOptions();
 
-  // DEBUG: Log dos dados dos cartões
+  console.log('AccountForm: Renderizando formulário');
   console.log('AccountForm: cardsOptions:', cardsOptions);
+  console.log('AccountForm: cardsLoading:', cardsLoading);
   console.log('AccountForm: formData.payment_source:', formData.payment_source);
   console.log('AccountForm: formData.payment_source_id:', formData.payment_source_id);
 
-  // Verificação de segurança
   if (!formData) {
     return (
       <div className="text-center py-8">
@@ -80,13 +80,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const parseCurrencyInput = (inputValue: string): number => {
     if (!inputValue) return 0;
     
-    // Remove todos os caracteres que não são dígitos
     const digitsOnly = inputValue.replace(/\D/g, '');
     
-    // Se não há dígitos, retorna 0
     if (!digitsOnly) return 0;
     
-    // Converte para número dividindo por 100 (para considerar os centavos)
     const numericValue = parseInt(digitsOnly) / 100;
     
     return numericValue;
@@ -94,11 +91,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
-    // Parse do valor digitado
     const numericValue = parseCurrencyInput(inputValue);
-    
-    // Atualiza o estado com o valor numérico
     setFormData({ ...formData, amount: numericValue });
   };
 
@@ -110,7 +103,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ 
       ...formData, 
       type: value,
-      category: '' // Reset category when changing type
+      category: ''
     });
   };
 
@@ -131,7 +124,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ 
       ...formData, 
       payment_source: value,
-      payment_source_id: undefined // Reset source ID when changing source type
+      payment_source_id: undefined
     });
   };
 
@@ -139,17 +132,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, payment_source_id: parseInt(value) });
   };
 
-  // Função de validação e submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação da fonte de pagamento
     if (formData.payment_source && !formData.payment_source_id) {
       alert('Por favor, selecione uma fonte de pagamento específica (banco ou cartão).');
       return;
     }
     
-    // Se não há fonte selecionada, limpar os campos para evitar erro no banco
     if (!formData.payment_source) {
       setFormData({
         ...formData,
@@ -158,11 +148,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       });
     }
     
-    // Continuar com o submit
     onSubmit(e);
   };
 
-  // Obter o nome da fonte de pagamento selecionada
   const getSelectedSourceName = () => {
     if (!formData.payment_source || !formData.payment_source_id) return '';
     
@@ -171,16 +159,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       return bank?.name || '';
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
       const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
-      console.log('getSelectedSourceName: Procurando cartão com ID:', formData.payment_source_id?.toString());
-      console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
-      console.log('getSelectedSourceName: Cartão encontrado:', card);
       return card?.name || '';
     }
     
     return '';
   };
 
-  // Obter o saldo atual da fonte de pagamento
   const getSelectedSourceBalance = () => {
     if (!formData.payment_source || !formData.payment_source_id) return null;
     
@@ -244,7 +228,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         </div>
       </div>
 
-      {/* Fonte do Pagamento */}
       <div>
         <Label htmlFor="payment_source" className="text-slate-700">
           Fonte do Pagamento <span className="text-red-500">*</span>
@@ -281,7 +264,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder={`Selecione ${formData.payment_source === 'bank' ? 'o banco' : 'o cartão'}`} />
+                <SelectValue 
+                  placeholder={
+                    formData.payment_source === 'bank' ? 'Selecione o banco' : 
+                    cardsLoading ? 'Carregando cartões...' : 'Selecione o cartão'
+                  } 
+                />
               </SelectTrigger>
               <SelectContent>
                 {formData.payment_source === 'bank' && banksOptions.map((bank) => (
@@ -289,17 +277,21 @@ export const AccountForm: React.FC<AccountFormProps> = ({
                     {bank.name}
                   </SelectItem>
                 ))}
-                {formData.payment_source === 'card' && Array.isArray(cardsOptions) && cardsOptions.map((card) => (
+                {formData.payment_source === 'card' && !cardsLoading && Array.isArray(cardsOptions) && cardsOptions.length > 0 && cardsOptions.map((card) => (
                   <SelectItem key={card.id} value={card.id}>
                     {card.name}
                   </SelectItem>
                 ))}
+                {formData.payment_source === 'card' && !cardsLoading && (!cardsOptions || cardsOptions.length === 0) && (
+                  <SelectItem value="" disabled>
+                    Nenhum cartão encontrado
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           )}
         </div>
         
-        {/* Exibir informações da fonte selecionada */}
         {formData.payment_source && formData.payment_source_id && (
           <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
             <div className="flex items-center justify-between">

@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface CardOption {
     id: string;
@@ -9,17 +10,22 @@ export interface CardOption {
 }
 
 export function useCardsOptions() {
+    const { user, loading: authLoading } = useAuth();
+
     const {
         data: cards = [],
         isLoading,
         error,
         refetch
     } = useQuery<CardOption[]>({
-        queryKey: ['credit_cards'],
+        queryKey: ['credit_cards', user?.id],
         queryFn: async () => {
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
-            if (userError) throw userError;
-            if (!user) throw new Error('Usuário não autenticado');
+            console.log('useCardsOptions: Iniciando busca de cartões...');
+            
+            if (!user) {
+                console.log('useCardsOptions: Usuário não autenticado');
+                return [];
+            }
 
             console.log('useCardsOptions: Buscando cartões para usuário:', user.id);
 
@@ -38,7 +44,7 @@ export function useCardsOptions() {
             console.log('useCardsOptions: Dados brutos do banco:', data);
 
             const transformedData = (data || []).map(card => ({
-                id: String(card.id), // força para string
+                id: String(card.id),
                 name: card.card_name,
                 current_value: card.current_value ?? 0
             }));
@@ -47,15 +53,16 @@ export function useCardsOptions() {
 
             return transformedData;
         },
-        refetchOnWindowFocus: false, // Evita recarregamento desnecessário
-        staleTime: 60000, // 1 minuto
-        gcTime: 300000, // 5 minutos (gcTime substitui cacheTime)
+        enabled: !!user && !authLoading, // Só executa quando o usuário estiver autenticado
+        refetchOnWindowFocus: false,
+        staleTime: 30000, // 30 segundos
+        gcTime: 60000, // 1 minuto
         retry: 1
     });
 
     return {
         cards,
-        loading: isLoading,
+        loading: isLoading || authLoading,
         error,
         refetch,
         cardsOptions: cards
