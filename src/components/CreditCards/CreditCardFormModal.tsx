@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CreditCard, CreditCardInput } from '@/hooks/useCreditCards';
+import { CreditCardData, CreditCardFormData } from '@/hooks/useCreditCardsData';
 
 interface CreditCardFormModalProps {
-  card?: CreditCard;
-  onSubmit: (data: CreditCardInput) => void;
+  card?: CreditCardData;
+  onSubmit: (data: CreditCardFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -18,7 +19,7 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const [formData, setFormData] = useState<CreditCardInput>({
+  const [formData, setFormData] = useState<CreditCardFormData>({
     card_name: '',
     card_number: '',
     holder_name: '',
@@ -46,7 +47,7 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
     }
   }, [card]);
 
-  const handleChange = (field: keyof CreditCardInput, value: string | number) => {
+  const handleChange = (field: keyof CreditCardFormData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

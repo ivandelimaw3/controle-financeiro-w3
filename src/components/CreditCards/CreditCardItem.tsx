@@ -3,11 +3,11 @@ import { CreditCard, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CreditCard as CreditCardType } from '@/hooks/useCreditCards';
+import { CreditCardData } from '@/hooks/useCreditCardsData';
 
 interface CreditCardItemProps {
-  card: CreditCardType;
-  onEdit: (card: CreditCardType) => void;
+  card: CreditCardData;
+  onEdit: (card: CreditCardData) => void;
   onDelete: (id: number) => void;
 }
 
