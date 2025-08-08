@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,7 +16,6 @@ export interface Account {
   parcela?: string;
   recorrente_id?: string;
   bank_id?: number;
-  creditcards_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
 }
@@ -37,7 +35,6 @@ export interface Transaction {
   parcela?: string;
   recorrente_id?: string;
   bank_id?: number;
-  creditcards_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
 }
@@ -96,7 +93,6 @@ export const useAccountsData = () => {
         parcela: account.parcela,
         recorrente_id: account.recorrente_id,
         bank_id: account.bank_id,
-        creditcards_id: account.creditcards_id,
         payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
         payment_source_id: account.payment_source_id
       }));
@@ -148,7 +144,6 @@ export const useAccountsData = () => {
             parcela: `${i + 1}/${accountData.qtd_parcelas}`,
             recorrente_id: recorrenteId,
             bank_id: accountData.bank_id,
-            creditcards_id: accountData.creditcards_id,
             payment_source: accountData.payment_source,
             payment_source_id: accountData.payment_source_id
           });
@@ -181,7 +176,6 @@ export const useAccountsData = () => {
           parcela: account.parcela,
           recorrente_id: account.recorrente_id,
           bank_id: account.bank_id,
-          creditcards_id: account.creditcards_id,
           payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
           payment_source_id: account.payment_source_id
         }));
@@ -211,7 +205,6 @@ export const useAccountsData = () => {
             status: accountData.status,
             user_id: user.id,
             bank_id: accountData.bank_id,
-            creditcards_id: accountData.creditcards_id,
             payment_source: accountData.payment_source,
             payment_source_id: accountData.payment_source_id
           }])
@@ -240,7 +233,6 @@ export const useAccountsData = () => {
           parcela: data.parcela,
           recorrente_id: data.recorrente_id,
           bank_id: data.bank_id,
-          creditcards_id: data.creditcards_id,
           payment_source: (data.payment_source ?? undefined) as 'bank' | 'card' | undefined,
           payment_source_id: data.payment_source_id
         };
@@ -281,7 +273,6 @@ export const useAccountsData = () => {
           type: updatedAccount.type,
           status: updatedAccount.status,
           bank_id: updatedAccount.bank_id,
-          creditcards_id: updatedAccount.creditcards_id,
           payment_source: updatedAccount.payment_source,
           payment_source_id: updatedAccount.payment_source_id
         })
@@ -437,4 +428,3 @@ export const useAccountsData = () => {
     refreshAccounts: fetchAccounts
   };
 };
-

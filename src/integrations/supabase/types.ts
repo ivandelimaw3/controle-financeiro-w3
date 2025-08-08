@@ -18,9 +18,9 @@ export type Database = {
         Row: {
           amount: number
           bank_id: number | null
-          card_id: number | null
           category: string
           created_at: string | null
+          creditcards_id: number | null
           description: string
           due_date: string
           id: number
@@ -36,9 +36,9 @@ export type Database = {
         Insert: {
           amount: number
           bank_id?: number | null
-          card_id?: number | null
           category: string
           created_at?: string | null
+          creditcards_id?: number | null
           description: string
           due_date: string
           id?: number
@@ -54,9 +54,9 @@ export type Database = {
         Update: {
           amount?: number
           bank_id?: number | null
-          card_id?: number | null
           category?: string
           created_at?: string | null
+          creditcards_id?: number | null
           description?: string
           due_date?: string
           id?: number
@@ -71,17 +71,17 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "accounts_creditcards_id_fkey"
+            columns: ["creditcards_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_bank"
             columns: ["bank_id"]
             isOneToOne: false
             referencedRelation: "banks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_card"
-            columns: ["card_id"]
-            isOneToOne: false
-            referencedRelation: "cards"
             referencedColumns: ["id"]
           },
         ]
