@@ -151,88 +151,39 @@ export const useUserRoles = () => {
 
   const deleteUser = async (userId: string) => {
     try {
-      console.log('=== INICIANDO PROCESSO DE DELEÇÃO ===');
-      console.log('ID do usuário a ser deletado:', userId);
-      console.log('ID do usuário logado:', user?.id);
+      console.log('Iniciando processo de deletar usuário:', userId);
       
       // Verificar se não está tentando deletar um admin
-      const isTargetAdmin = isUserAdminRole(userId);
-      console.log('Usuário alvo é admin?', isTargetAdmin);
-      
-      if (isTargetAdmin) {
-        console.error('ERRO: Tentativa de deletar usuário administrador bloqueada');
+      if (isUserAdminRole(userId)) {
         throw new Error('Não é possível deletar um usuário administrador');
       }
       
       // Verificar se não está tentando deletar a si mesmo
       if (userId === user?.id) {
-        console.error('ERRO: Tentativa de auto-deletar bloqueada');
         throw new Error('Não é possível deletar sua própria conta');
       }
-      
-      console.log('=== CHAMANDO FUNÇÃO RPC ===');
-      console.log('Chamando delete_user_account com parâmetro:', userId);
       
       const { data, error } = await supabase.rpc('delete_user_account', {
         target_user_id: userId
       });
 
-      console.log('=== RESPOSTA DA FUNÇÃO RPC ===');
-      console.log('Data retornada:', data);
-      console.log('Error retornado:', error);
-      console.log('Tipo de data:', typeof data);
-      console.log('Valor exato de data:', JSON.stringify(data));
-
       if (error) {
-        console.error('=== ERRO NA FUNÇÃO RPC ===');
-        console.error('Erro completo:', JSON.stringify(error, null, 2));
-        console.error('Mensagem do erro:', error.message);
-        console.error('Código do erro:', error.code);
-        throw new Error(`Erro ao executar função de exclusão: ${error.message || 'Erro desconhecido'}`);
+        console.error('Erro na função delete_user_account:', error);
+        throw new Error(`Erro ao deletar usuário: ${error.message}`);
       }
 
-      // Log mais detalhado sobre o retorno
-      console.log('=== ANÁLISE DO RETORNO ===');
-      if (data === null) {
-        console.log('Data é null');
-      } else if (data === undefined) {
-        console.log('Data é undefined');
-      } else if (data === true) {
-        console.log('Data é true (sucesso)');
-      } else if (data === false) {
-        console.log('Data é false (falha)');
-      } else {
-        console.log('Data tem valor inesperado:', data);
+      if (!data) {
+        throw new Error('A operação de exclusão falhou');
       }
 
-      // Aceitar tanto true quanto null como sucesso (dependendo de como a função RPC retorna)
-      if (data !== true && data !== null) {
-        console.error('=== FUNÇÃO RPC NÃO RETORNOU SUCESSO ===');
-        console.error('Valor retornado:', data);
-        throw new Error(`A operação de exclusão falhou. Retorno: ${JSON.stringify(data)}`);
-      }
-
-      console.log('=== EXCLUSÃO APARENTEMENTE BEM-SUCEDIDA ===');
-      console.log('Atualizando listas de usuários...');
+      console.log('Usuário deletado com sucesso');
       
       // Atualizar as listas após deletar
       await fetchAllUsers();
       await fetchUserRoles();
       
-      console.log('=== PROCESSO CONCLUÍDO COM SUCESSO ===');
-      
     } catch (error) {
-      console.error('=== ERRO COMPLETO NO PROCESSO DE DELEÇÃO ===');
-      console.error('Tipo do erro:', typeof error);
-      console.error('Erro completo:', error);
-      
-      if (error instanceof Error) {
-        console.error('Mensagem do erro:', error.message);
-        console.error('Stack trace:', error.stack);
-      } else {
-        console.error('Erro não é uma instância de Error:', JSON.stringify(error));
-      }
-      
+      console.error('Erro ao deletar usuário:', error);
       throw error;
     }
   };
