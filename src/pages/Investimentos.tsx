@@ -243,6 +243,79 @@ const Investimentos = () => {
           </div>
         </div>
 
+        {/* Destaque das Aplicações Vencidas */}
+        {expiredInvestments.length > 0 && (
+          <div className="bg-orange-50 border-l-4 border-orange-400 p-6 rounded-lg">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-orange-100 rounded-full">
+                <Archive className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-orange-800">
+                  {expiredInvestments.length} Aplicação{expiredInvestments.length > 1 ? 'ões' : ''} Vencida{expiredInvestments.length > 1 ? 's' : ''} Encontrada{expiredInvestments.length > 1 ? 's' : ''}
+                </h3>
+                <p className="text-orange-700">
+                  As aplicações abaixo estão vencidas e podem ser removidas da lista principal
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid gap-3">
+              {expiredInvestments.map((investment) => {
+                const investedAmount = Number(investment.invested_amount);
+                const currentValue = Number(investment.current_value);
+                const gain = currentValue - investedAmount;
+                const gainPercentage = investedAmount > 0 ? (gain / investedAmount) * 100 : 0;
+                
+                return (
+                  <div key={investment.id} className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                          <h4 className="font-semibold text-slate-800">{investment.name}</h4>
+                          <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+                            Vencida
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-slate-600">Instituição:</span>
+                            <p className="font-medium">{investment.institution?.name}</p>
+                          </div>
+                          <div>
+                            <span className="text-slate-600">Tipo:</span>
+                            <p className="font-medium">{investment.type?.name}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-2 text-sm">
+                          <span className="text-slate-600">Vencimento:</span>
+                          <span className="font-medium text-orange-600 ml-1">
+                            {formatDate(investment.maturity_date!)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right ml-4">
+                        <div className="mb-1">
+                          <span className="text-xs text-slate-600">Valor Atual</span>
+                          <p className="font-bold text-lg">{formatCurrency(currentValue)}</p>
+                        </div>
+                        <div className={`text-sm ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span>{formatCurrency(Math.abs(gain))}</span>
+                          <span className="ml-1">({gainPercentage.toFixed(2)}%)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Barra de Pesquisa e Filtros */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex flex-col sm:flex-row gap-4">

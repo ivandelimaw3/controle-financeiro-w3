@@ -154,6 +154,45 @@ export const InvestmentsSection = () => {
         />
       </div>
 
+      {expiredInvestments.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Archive className="h-5 w-5 text-orange-600" />
+            <h3 className="font-semibold text-orange-800">
+              Aplicações Vencidas ({expiredInvestments.length})
+            </h3>
+          </div>
+          <p className="text-orange-700 text-sm mb-3">
+            As seguintes aplicações estão vencidas e serão removidas quando você clicar em "Remover Aplicações Vencidas":
+          </p>
+          <div className="space-y-2">
+            {expiredInvestments.map((investment) => (
+              <div key={investment.id} className="bg-white border border-orange-200 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium text-slate-800">{investment.name}</span>
+                    <span className="text-sm text-slate-600 ml-2">
+                      ({investment.institution?.name})
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-slate-800">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(Number(investment.current_value))}
+                    </div>
+                    <div className="text-xs text-orange-600">
+                      Vencida em {new Date(investment.maturity_date!).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <InvestmentFilters
         institutions={institutions}
         investmentTypes={investmentTypes}
@@ -168,15 +207,17 @@ export const InvestmentsSection = () => {
         onDelete={handleDelete}
       />
 
-      <InvestmentForm
-        onClose={handleCloseForm}
-        onSubmit={handleSubmit}
-        onAddInstitution={addInstitution}
-        onAddType={addInvestmentType}
-        investment={editingInvestment}
-        institutions={institutions}
-        investmentTypes={investmentTypes}
-      />
+      {isFormOpen && (
+        <InvestmentForm
+          onClose={handleCloseForm}
+          onSubmit={handleSubmit}
+          onAddInstitution={addInstitution}
+          onAddType={addInvestmentType}
+          investment={editingInvestment}
+          institutions={institutions}
+          investmentTypes={investmentTypes}
+        />
+      )}
     </div>
   );
 };
