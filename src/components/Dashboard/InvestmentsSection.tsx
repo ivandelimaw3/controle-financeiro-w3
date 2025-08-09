@@ -1,14 +1,17 @@
 
 import React, { useState } from 'react';
-import { Plus, Archive } from 'lucide-react';
+import { Plus, TrendingUp, AlertTriangle, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { InvestmentCard } from './InvestmentCard';
-import { InvestmentTable } from './InvestmentTable';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InvestmentForm } from './InvestmentForm';
-import { InvestmentFilters } from './InvestmentFilters';
-import { useInvestmentsData } from '@/hooks/useInvestmentsData';
+import { InvestmentTable } from './InvestmentTable';
+import { useInvestmentsData, Investment } from '@/hooks/useInvestmentsData';
+import { Badge } from '@/components/ui/badge';
 
 export const InvestmentsSection = () => {
+  const [showForm, setShowForm] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState<Investment | undefined>();
+  
   const {
     investments,
     institutions,
@@ -22,194 +25,199 @@ export const InvestmentsSection = () => {
     moveExpiredInvestments
   } = useInvestmentsData();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingInvestment, setEditingInvestment] = useState(null);
-  const [filters, setFilters] = useState({
-    institution: '',
-    type: '',
-    dateRange: { from: null, to: null }
-  });
-
   const handleSubmit = async (investmentData: any) => {
-    try {
-      if (editingInvestment) {
-        await updateInvestment({ ...investmentData, id: editingInvestment.id });
-      } else {
-        await addInvestment(investmentData);
-      }
-      setIsFormOpen(false);
-      setEditingInvestment(null);
-    } catch (error) {
-      console.error('Erro ao salvar investimento:', error);
+    if (editingInvestment) {
+      await updateInvestment({ ...investmentData, id: editingInvestment.id });
+    } else {
+      await addInvestment(investmentData);
     }
+    setShowForm(false);
+    setEditingInvestment(undefined);
   };
 
-  const handleEdit = (investment: any) => {
+  const handleEdit = (investment: Investment) => {
     setEditingInvestment(investment);
-    setIsFormOpen(true);
+    setShowForm(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este investimento?')) {
-      await deleteInvestment(id);
-    }
+  const handleRemoveExpired = async () => {
+    const count = await moveExpiredInvestments();
+    console.log(`${count} investimentos vencidos foram removidos`);
   };
 
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-    setEditingInvestment(null);
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
-  const handleMoveExpiredInvestments = async () => {
-    if (window.confirm('Tem certeza que deseja remover todas as aplicações vencidas? Esta ação não pode ser desfeita.')) {
-      await moveExpiredInvestments();
-    }
-  };
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+            <p className="mt-2 text-slate-600">Carregando investimentos...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const filteredInvestments = investments.filter(investment => {
-    const institutionMatch = !filters.institution || investment.institution_id?.toString() === filters.institution;
-    const typeMatch = !filters.type || investment.type_id?.toString() === filters.type;
-    
-    let dateMatch = true;
-    if (filters.dateRange.from || filters.dateRange.to) {
-      const investmentDate = new Date(investment.purchase_date);
-      if (filters.dateRange.from) {
-        dateMatch = dateMatch && investmentDate >= new Date(filters.dateRange.from);
-      }
-      if (filters.dateRange.to) {
-        dateMatch = dateMatch && investmentDate <= new Date(filters.dateRange.to);
-      }
-    }
-    
-    return institutionMatch && typeMatch && dateMatch;
-  });
+  // Calculate summary data
+  const totalInvested = investments.reduce((sum, inv) => sum + Number(inv.invested_amount), 0);
+  const totalCurrent = investments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
+  const totalGain = totalCurrent - totalInvested;
+  const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-  const totalInvested = filteredInvestments.reduce((sum, inv) => sum + parseFloat(inv.invested_amount.toString()), 0);
-  const totalCurrent = filteredInvestments.reduce((sum, inv) => sum + parseFloat(inv.current_value.toString()), 0);
-  const totalReturn = totalCurrent - totalInvested;
-  const returnPercentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
-
-  // Contar aplicações vencidas
+  // Check for expired investments
   const expiredInvestments = investments.filter(inv => 
     inv.maturity_date && new Date(inv.maturity_date) <= new Date()
   );
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-lg text-slate-600">Carregando investimentos...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">Investimentos</h2>
-          <p className="text-slate-600 mt-1">Gerencie seus investimentos e acompanhe o desempenho</p>
-        </div>
-        <div className="flex gap-2">
-          {expiredInvestments.length > 0 && (
-            <Button 
-              onClick={handleMoveExpiredInvestments}
-              variant="outline"
-              className="border-orange-300 text-orange-600 hover:bg-orange-50"
-            >
-              <Archive size={20} className="mr-2" />
-              Remover Aplicações Vencidas ({expiredInvestments.length})
-            </Button>
-          )}
-          <Button 
-            onClick={() => setIsFormOpen(true)} 
-            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-          >
-            <Plus size={20} className="mr-2" />
-            Novo Investimento
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <InvestmentCard
-          title="Total Investido"
-          value={totalInvested}
-          type="invested"
-        />
-        <InvestmentCard
-          title="Valor Atual"
-          value={totalCurrent}
-          type="current"
-        />
-        <InvestmentCard
-          title="Rendimento"
-          value={totalReturn}
-          type={totalReturn >= 0 ? 'gain' : 'loss'}
-        />
-        <InvestmentCard
-          title="Rentabilidade"
-          value={returnPercentage}
-          type={returnPercentage >= 0 ? 'gain' : 'loss'}
-          isPercentage
-        />
-      </div>
-
-      {expiredInvestments.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Archive className="h-5 w-5 text-orange-600" />
-            <h3 className="font-semibold text-orange-800">
-              Aplicações Vencidas ({expiredInvestments.length})
-            </h3>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <CardTitle>Investimentos</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Gerencie sua carteira de investimentos
+              </p>
+            </div>
           </div>
-          <p className="text-orange-700 text-sm mb-3">
-            As seguintes aplicações estão vencidas e serão removidas quando você clicar em "Remover Aplicações Vencidas":
-          </p>
-          <div className="space-y-2">
-            {expiredInvestments.map((investment) => (
-              <div key={investment.id} className="bg-white border border-orange-200 rounded-lg p-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-medium text-slate-800">{investment.name}</span>
-                    <span className="text-sm text-slate-600 ml-2">
-                      ({investment.institution?.name})
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-slate-800">
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                      }).format(Number(investment.current_value))}
+          <div className="flex items-center gap-2">
+            {expiredInvestments.length > 0 && (
+              <Button
+                onClick={handleRemoveExpired}
+                variant="outline"
+                size="sm"
+                className="text-orange-600 border-orange-600 hover:bg-orange-50"
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Remover Vencidas ({expiredInvestments.length})
+              </Button>
+            )}
+            <Button onClick={() => setShowForm(true)} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Investimento
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Total Investido</p>
+                <p className="text-xl font-bold text-slate-800">{formatCurrency(totalInvested)}</p>
+              </div>
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Valor Atual</p>
+                <p className="text-xl font-bold text-slate-800">{formatCurrency(totalCurrent)}</p>
+              </div>
+              <div className="p-2 bg-green-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Rendimento</p>
+                <p className={`text-xl font-bold ${gainPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {gainPercentage.toFixed(2)}%
+                </p>
+              </div>
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Total de Aplicações</p>
+                <p className="text-xl font-bold text-slate-800">{investments.length}</p>
+              </div>
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-purple-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Expired Investments Alert */}
+        {expiredInvestments.length > 0 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-medium text-orange-900">
+                  Aplicações Vencidas ({expiredInvestments.length})
+                </h3>
+                <p className="text-sm text-orange-700 mt-1">
+                  As seguintes aplicações atingiram o vencimento e podem ser removidas da carteira ativa:
+                </p>
+                <div className="mt-3 space-y-2">
+                  {expiredInvestments.map((inv) => (
+                    <div key={inv.id} className="bg-white border border-orange-200 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-slate-800">{inv.name}</p>
+                          <p className="text-sm text-slate-600">
+                            {inv.institution?.name} • Venceu em {new Date(inv.maturity_date!).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-slate-800">{formatCurrency(Number(inv.current_value))}</p>
+                          <Badge variant="destructive" className="text-xs">
+                            Vencida
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-orange-600">
-                      Vencida em {new Date(investment.maturity_date!).toLocaleDateString('pt-BR')}
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <InvestmentFilters
-        institutions={institutions}
-        investmentTypes={investmentTypes}
-        onFiltersChange={setFilters}
-      />
+        {/* Investments Table */}
+        <InvestmentTable
+          investments={investments}
+          institutions={institutions}
+          investmentTypes={investmentTypes}
+          onEdit={handleEdit}
+          onDelete={deleteInvestment}
+        />
+      </CardContent>
 
-      <InvestmentTable
-        investments={filteredInvestments}
-        institutions={institutions}
-        investmentTypes={investmentTypes}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-
-      {isFormOpen && (
+      {showForm && (
         <InvestmentForm
-          onClose={handleCloseForm}
+          onClose={() => {
+            setShowForm(false);
+            setEditingInvestment(undefined);
+          }}
           onSubmit={handleSubmit}
           onAddInstitution={addInstitution}
           onAddType={addInvestmentType}
@@ -218,6 +226,6 @@ export const InvestmentsSection = () => {
           investmentTypes={investmentTypes}
         />
       )}
-    </div>
+    </Card>
   );
 };

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Archive, TrendingUp, Building2, Eye, Trash2, ArrowLeft } from 'lucide-react';
+import { Archive, TrendingUp, Building2, Trash2, ArrowLeft } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +65,18 @@ const InvestimentosVencidos = () => {
         return;
       }
       
-      setExpiredInvestments(data || []);
+      // Type assertion para corrigir o problema de tipos
+      const typedData = (data || []).map(item => ({
+        ...item,
+        institution: item.institution && typeof item.institution === 'object' && 'id' in item.institution 
+          ? item.institution as { id: number; name: string }
+          : undefined,
+        type: item.type && typeof item.type === 'object' && 'id' in item.type
+          ? item.type as { id: number; name: string; category: string }
+          : undefined
+      })) as ExpiredInvestment[];
+      
+      setExpiredInvestments(typedData);
     } catch (error) {
       console.error('Erro ao buscar investimentos vencidos:', error);
       toast({
