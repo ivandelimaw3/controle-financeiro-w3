@@ -1,37 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Edit, Trash2, Archive, TrendingUp, Calendar } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useInvestmentsData } from '@/hooks/useInvestmentsData';
+import { useExpiredInvestments } from '@/hooks/useExpiredInvestments';
 import { useToast } from '@/hooks/use-toast';
-
-interface ExpiredInvestment {
-  id: number;
-  name: string;
-  invested_amount: number;
-  current_value: number;
-  yield_percentage: number | null;
-  purchase_date: string;
-  maturity_date: string | null;
-  investor_name?: string | null;
-  institution?: {
-    id: number;
-    name: string;
-  };
-  type?: {
-    id: number;
-    name: string;
-    category: string;
-  };
-  moved_at: string;
-}
 
 const InvestimentosVencidos = () => {
   const { toast } = useToast();
-  const [expiredInvestments, setExpiredInvestments] = useState<ExpiredInvestment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { expiredInvestments, loading, deleteExpiredInvestment } = useExpiredInvestments();
 
   // Funções de formatação
   const formatCurrency = (value: number) => {
@@ -42,6 +20,7 @@ const InvestimentosVencidos = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -50,26 +29,7 @@ const InvestimentosVencidos = () => {
     }).format(date);
   };
 
-  const getCategoryLabel = (category: string) => {
-    const categories: { [key: string]: string } = {
-      'renda_fixa': 'Renda Fixa',
-      'renda_variavel': 'Renda Variável',
-      'fundos': 'Fundos'
-    };
-    return categories[category] || category;
-  };
-
-  React.useEffect(() => {
-    // Simular carregamento dos investimentos vencidos
-    // Em um caso real, você faria uma consulta à tabela investimentos_vencidos
-    setTimeout(() => {
-      setExpiredInvestments([]);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  const handleEdit = (investment: ExpiredInvestment) => {
-    // Implementar lógica de edição
+  const handleEdit = (investment: any) => {
     console.log('Editando investimento:', investment);
     toast({
       title: "Funcionalidade em desenvolvimento",
@@ -79,12 +39,7 @@ const InvestimentosVencidos = () => {
 
   const handleDelete = (id: number) => {
     if (confirm('Tem certeza que deseja excluir este investimento vencido permanentemente?')) {
-      // Implementar lógica de exclusão
-      setExpiredInvestments(prev => prev.filter(inv => inv.id !== id));
-      toast({
-        title: "Investimento excluído",
-        description: "O investimento vencido foi removido permanentemente.",
-      });
+      deleteExpiredInvestment(id);
     }
   };
 
@@ -141,7 +96,7 @@ const InvestimentosVencidos = () => {
               <div>
                 <p className="text-sm font-medium text-slate-600">Valor Total Resgatado</p>
                 <p className="text-2xl font-bold text-slate-800">
-                  {formatCurrency(expiredInvestments.reduce((sum, inv) => sum + inv.current_value, 0))}
+                  {formatCurrency(expiredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0))}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -179,12 +134,12 @@ const InvestimentosVencidos = () => {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="text-left p-4 font-semibold text-slate-700">Investimento</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Instituição</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Tipo</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Investido</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Valor Final</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Rendimento</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Data Compra</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Data Vencimento</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Movido em</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
                 </tr>
               </thead>
@@ -209,17 +164,6 @@ const InvestimentosVencidos = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="font-medium text-slate-800">{investment.institution?.name || '-'}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                          {investment.type?.name || '-'}
-                        </Badge>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {getCategoryLabel(investment.type?.category || '')}
-                        </p>
-                      </td>
-                      <td className="py-3 px-4">
                         <span className="font-semibold text-slate-800">
                           {formatCurrency(investedAmount)}
                         </span>
@@ -232,7 +176,7 @@ const InvestimentosVencidos = () => {
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className={`font-semibold ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatCurrency(Math.abs(gain))}
+                            {gain >= 0 ? '+' : ''}{formatCurrency(gain)}
                           </span>
                           <span className={`text-sm ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {gainPercentage.toFixed(2)}%
@@ -240,7 +184,13 @@ const InvestimentosVencidos = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-sm text-slate-600">
-                        {investment.maturity_date ? formatDate(investment.maturity_date) : '-'}
+                        {formatDate(investment.purchase_date)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-slate-600">
+                        {formatDate(investment.maturity_date)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-slate-600">
+                        {formatDate(investment.moved_at)}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
