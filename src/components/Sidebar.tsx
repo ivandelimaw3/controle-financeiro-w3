@@ -2,40 +2,106 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  Home, 
-  FileText, 
-  Tags, 
   BarChart3, 
-  Building, 
-  TrendingUp, 
+  Receipt, 
+  FileText, 
+  Tag, 
+  Building2, 
   CreditCard,
-  Settings,
-  ChevronDown
+  TrendingUp, 
+  PieChart,
+  Settings
 } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
 
   const menuItems = [
-    { icon: Home, label: 'Dashboard', path: '/' },
-    { icon: FileText, label: 'Contas', path: '/contas' },
-    { icon: Tags, label: 'Categorias', path: '/categorias' },
-    { icon: Building, label: 'Bancos', path: '/bancos' },
-    { icon: TrendingUp, label: 'Investimentos', path: '/investimentos' },
-    { icon: CreditCard, label: 'Cartões', path: '/cartoes-credito' },
-    { icon: BarChart3, label: 'Análise', path: '/analise' },
-    { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
-    { icon: Settings, label: 'Admin', path: '/admin' },
+    { 
+      icon: BarChart3, 
+      label: 'Painel de Contas', 
+      path: '/', 
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      hoverBg: 'hover:bg-blue-100'
+    },
+    { 
+      icon: Receipt, 
+      label: 'Contas', 
+      path: '/contas', 
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      hoverBg: 'hover:bg-green-100'
+    },
+    { 
+      icon: FileText, 
+      label: 'Relatórios', 
+      path: '/relatorios', 
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      hoverBg: 'hover:bg-purple-100'
+    },
+    { 
+      icon: Tag, 
+      label: 'Categorias', 
+      path: '/categorias', 
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      hoverBg: 'hover:bg-orange-100'
+    },
+    { 
+      icon: Building2, 
+      label: 'Bancos', 
+      path: '/bancos', 
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      hoverBg: 'hover:bg-indigo-100'
+    },
+    { 
+      icon: CreditCard, 
+      label: 'Cartões', 
+      path: '/cartoes-credito', 
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      hoverBg: 'hover:bg-pink-100'
+    },
+    { 
+      icon: TrendingUp, 
+      label: 'Investimentos', 
+      path: '/investimentos', 
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50',
+      hoverBg: 'hover:bg-teal-100'
+    },
+    { 
+      icon: PieChart, 
+      label: 'Análise Gráfica', 
+      path: '/analise', 
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
+      hoverBg: 'hover:bg-cyan-100'
+    },
+    { 
+      icon: Settings, 
+      label: 'Admin', 
+      path: '/admin', 
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
+      hoverBg: 'hover:bg-gray-100'
+    },
   ];
 
   return (
-    <div className="w-64 bg-white shadow-sm border-r h-screen">
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-900">FinanceApp</h2>
+    <div className="w-64 bg-white shadow-lg border-r h-screen">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold text-gray-900 flex items-center">
+          <BarChart3 className="h-6 w-6 mr-2 text-blue-600" />
+          FinanceApp
+        </h2>
       </div>
       
-      <nav className="mt-6">
-        <div className="px-3">
+      <nav className="mt-6 px-4">
+        <div className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -44,13 +110,13 @@ const Sidebar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center px-3 py-2 mb-1 text-sm font-medium rounded-lg transition-colors ${
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? `${item.bgColor} ${item.color} shadow-sm border-l-4 border-current`
+                    : `text-gray-600 ${item.hoverBg} hover:text-gray-900 hover:shadow-sm`
                 }`}
               >
-                <Icon className="h-5 w-5 mr-3" />
+                <Icon className={`h-5 w-5 mr-3 ${isActive ? item.color : 'text-gray-500'}`} />
                 {item.label}
               </Link>
             );
