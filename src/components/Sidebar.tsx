@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   BarChart4, 
@@ -10,17 +10,11 @@ import {
   CreditCard,
   TrendingUp, 
   PieChart,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  Archive
+  Settings
 } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
-  const [investmentMenuOpen, setInvestmentMenuOpen] = useState(
-    location.pathname === '/investimentos' || location.pathname === '/investimentos-vencidos'
-  );
 
   const menuItems = [
     { 
@@ -72,6 +66,14 @@ const Sidebar = () => {
       hoverBg: 'hover:bg-pink-100'
     },
     { 
+      icon: TrendingUp, 
+      label: 'Investimentos', 
+      path: '/investimentos', 
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50',
+      hoverBg: 'hover:bg-teal-100'
+    },
+    { 
       icon: PieChart, 
       label: 'Análise Gráfica', 
       path: '/analise', 
@@ -87,25 +89,6 @@ const Sidebar = () => {
       bgColor: 'bg-gray-50',
       hoverBg: 'hover:bg-gray-100'
     },
-  ];
-
-  const investmentItems = [
-    {
-      icon: TrendingUp,
-      label: 'Investimentos',
-      path: '/investimentos',
-      color: 'text-teal-600',
-      bgColor: 'bg-teal-50',
-      hoverBg: 'hover:bg-teal-100'
-    },
-    {
-      icon: Archive,
-      label: 'Investimentos Vencidos',
-      path: '/investimentos-vencidos',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      hoverBg: 'hover:bg-orange-100'
-    }
   ];
 
   return (
@@ -131,56 +114,6 @@ const Sidebar = () => {
               </Link>
             );
           })}
-
-          {/* Menu de Investimentos com submenu */}
-          <div>
-            <button
-              onClick={() => setInvestmentMenuOpen(!investmentMenuOpen)}
-              className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                location.pathname === '/investimentos' || location.pathname === '/investimentos-vencidos'
-                  ? 'bg-teal-50 text-teal-600 shadow-sm border-l-4 border-current'
-                  : 'text-gray-600 hover:bg-teal-100 hover:text-gray-900 hover:shadow-sm'
-              }`}
-            >
-              <div className="flex items-center">
-                <TrendingUp className={`h-5 w-5 mr-3 ${
-                  location.pathname === '/investimentos' || location.pathname === '/investimentos-vencidos' 
-                    ? 'text-teal-600' 
-                    : 'text-gray-500'
-                }`} />
-                Investimentos
-              </div>
-              {investmentMenuOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-
-            {investmentMenuOpen && (
-              <div className="ml-6 mt-2 space-y-1">
-                {investmentItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
-                  
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                        isActive
-                          ? `${item.bgColor} ${item.color} shadow-sm`
-                          : `text-gray-600 ${item.hoverBg} hover:text-gray-900`
-                      }`}
-                    >
-                      <Icon className={`h-4 w-4 mr-3 ${isActive ? item.color : 'text-gray-500'}`} />
-                      {item.label === 'Investimentos' ? 'Ativos' : item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </div>
       </nav>
     </div>
