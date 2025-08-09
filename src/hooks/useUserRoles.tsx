@@ -19,12 +19,14 @@ export interface AdminUser {
   is_trial_active: boolean;
   is_premium: boolean;
   days_remaining: number;
+  is_admin?: boolean;
 }
 
 export const useUserRoles = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -54,6 +56,7 @@ export const useUserRoles = () => {
         
         if (adminStatus) {
           await fetchAllUsers();
+          await fetchUserRoles();
         }
       }
     } catch (error) {
@@ -82,6 +85,30 @@ export const useUserRoles = () => {
     }
   };
 
+  const fetchUserRoles = async () => {
+    try {
+      console.log('Buscando roles dos usuários...');
+      
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*');
+
+      if (error) {
+        console.error('Erro ao buscar roles:', error);
+        return;
+      }
+
+      console.log('Roles encontradas:', data);
+      setUserRoles(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar roles:', error);
+    }
+  };
+
+  const isUserAdminRole = (userId: string) => {
+    return userRoles.some(role => role.user_id === userId && role.role === 'admin');
+  };
+
   const makeUserAdmin = async (userId: string) => {
     try {
       const { error } = await supabase
@@ -94,6 +121,7 @@ export const useUserRoles = () => {
       }
 
       await fetchAllUsers();
+      await fetchUserRoles();
     } catch (error) {
       console.error('Erro ao tornar usuário admin:', error);
       throw error;
@@ -114,6 +142,7 @@ export const useUserRoles = () => {
       }
 
       await fetchAllUsers();
+      await fetchUserRoles();
     } catch (error) {
       console.error('Erro ao remover role de admin:', error);
       throw error;
@@ -123,6 +152,11 @@ export const useUserRoles = () => {
   const deleteUser = async (userId: string) => {
     try {
       console.log('Deletando usuário:', userId);
+      
+      // Verificar se não está tentando deletar um admin
+      if (isUserAdminRole(userId)) {
+        throw new Error('Não é possível deletar um usuário administrador');
+      }
       
       const { data, error } = await supabase.rpc('delete_user_account', {
         target_user_id: userId
@@ -138,6 +172,7 @@ export const useUserRoles = () => {
       }
 
       await fetchAllUsers();
+      await fetchUserRoles();
     } catch (error) {
       console.error('Erro ao deletar usuário:', error);
       throw error;
@@ -180,6 +215,8 @@ export const useUserRoles = () => {
     loading,
     isAdmin,
     users,
+    userRoles,
+    isUserAdminRole,
     makeUserAdmin,
     removeAdminRole,
     deleteUser,

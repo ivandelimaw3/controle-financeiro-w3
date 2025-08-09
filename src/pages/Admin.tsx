@@ -34,7 +34,16 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Admin: React.FC = () => {
-  const { loading, isAdmin, users, makeUserAdmin, removeAdminRole, deleteUser, updateUserStatus } = useUserRoles();
+  const { 
+    loading, 
+    isAdmin, 
+    users, 
+    isUserAdminRole, 
+    makeUserAdmin, 
+    removeAdminRole, 
+    deleteUser, 
+    updateUserStatus 
+  } = useUserRoles();
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -79,9 +88,10 @@ const Admin: React.FC = () => {
         description: `Usuário ${userEmail} foi deletado.`
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro ao deletar usuário.";
       toast({
         title: "Erro",
-        description: "Erro ao deletar usuário.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -122,12 +132,6 @@ const Admin: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const isUserAdmin = (userId: string) => {
-    // Esta função deveria verificar se o usuário tem role de admin
-    // Por simplicidade, vamos assumir que não temos essa informação na interface atual
-    return false;
   };
 
   if (loading) {
@@ -229,7 +233,16 @@ const Admin: React.FC = () => {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.user_id}>
-                    <TableCell className="font-medium">{user.email}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {user.email}
+                        {isUserAdminRole(user.user_id) && (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                            Admin
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -265,7 +278,7 @@ const Admin: React.FC = () => {
                           Editar
                         </Button>
                         
-                        {!isUserAdmin(user.user_id) ? (
+                        {!isUserAdminRole(user.user_id) ? (
                           <Button
                             size="sm"
                             variant="outline"
@@ -293,6 +306,7 @@ const Admin: React.FC = () => {
                               size="sm"
                               variant="destructive"
                               className="flex items-center gap-1"
+                              disabled={isUserAdminRole(user.user_id)}
                             >
                               <Trash2 className="h-3 w-3" />
                               Deletar
