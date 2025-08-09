@@ -137,8 +137,8 @@ const InvestimentosVencidos = () => {
                   <th className="text-left p-4 font-semibold text-slate-700">Investido</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Valor Final</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Rendimento</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Data Compra</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Data Vencimento</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Compra</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Movido em</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
                 </tr>

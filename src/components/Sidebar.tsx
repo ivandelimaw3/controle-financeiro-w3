@@ -76,7 +76,7 @@ const Sidebar = () => {
     },
     { 
       icon: Archive, 
-      label: 'Investimentos Vencidos', 
+      label: 'Invest.Vencidos', 
       path: '/investimentos-vencidos', 
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
