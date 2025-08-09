@@ -13,6 +13,7 @@ import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
 import Bancos from "./pages/Bancos";
 import Investimentos from "./pages/Investimentos";
+import InvestimentosVencidos from "./pages/InvestimentosVencidos";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Analise from "./pages/Analise";
@@ -61,6 +62,11 @@ const App = () => {
                   <Route path="/investimentos" element={
                     <ProtectedRoute>
                       <Investimentos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/investimentos-vencidos" element={
+                    <ProtectedRoute>
+                      <InvestimentosVencidos />
                     </ProtectedRoute>
                   } />
                   <Route path="/cartoes-credito" element={

@@ -10,7 +10,8 @@ import {
   CreditCard,
   TrendingUp, 
   PieChart,
-  Settings
+  Settings,
+  Archive
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -72,6 +73,14 @@ const Sidebar = () => {
       color: 'text-teal-600',
       bgColor: 'bg-teal-50',
       hoverBg: 'hover:bg-teal-100'
+    },
+    { 
+      icon: Archive, 
+      label: 'Investimentos Vencidos', 
+      path: '/investimentos-vencidos', 
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      hoverBg: 'hover:bg-orange-100'
     },
     { 
       icon: PieChart, 

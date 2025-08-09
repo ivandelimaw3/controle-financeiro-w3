@@ -7,6 +7,7 @@ import { InvestmentTable } from './InvestmentTable';
 import { InvestmentForm } from './InvestmentForm';
 import { InvestmentFilters } from './InvestmentFilters';
 import { useInvestmentsData } from '@/hooks/useInvestmentsData';
+import { DollarSign, TrendingUp, Target, BarChart3 } from 'lucide-react';
 
 export const InvestmentsSection = () => {
   const {
@@ -94,6 +95,13 @@ export const InvestmentsSection = () => {
     inv.maturity_date && new Date(inv.maturity_date) <= new Date()
   );
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -133,24 +141,30 @@ export const InvestmentsSection = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <InvestmentCard
           title="Total Investido"
-          value={totalInvested}
-          type="invested"
+          value={formatCurrency(totalInvested)}
+          icon={DollarSign}
+          bgColor="bg-blue-500"
         />
         <InvestmentCard
           title="Valor Atual"
-          value={totalCurrent}
-          type="current"
+          value={formatCurrency(totalCurrent)}
+          icon={TrendingUp}
+          bgColor="bg-green-500"
         />
         <InvestmentCard
           title="Rendimento"
-          value={totalReturn}
-          type={totalReturn >= 0 ? 'gain' : 'loss'}
+          value={formatCurrency(Math.abs(totalReturn))}
+          icon={Target}
+          trend={`${Math.abs(returnPercentage).toFixed(2)}%`}
+          trendUp={totalReturn >= 0}
+          bgColor={totalReturn >= 0 ? "bg-green-500" : "bg-red-500"}
         />
         <InvestmentCard
           title="Rentabilidade"
-          value={returnPercentage}
-          type={returnPercentage >= 0 ? 'gain' : 'loss'}
-          isPercentage
+          value={`${returnPercentage.toFixed(2)}%`}
+          icon={BarChart3}
+          trendUp={returnPercentage >= 0}
+          bgColor={returnPercentage >= 0 ? "bg-green-500" : "bg-red-500"}
         />
       </div>
 
@@ -177,10 +191,7 @@ export const InvestmentsSection = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium text-slate-800">
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                      }).format(Number(investment.current_value))}
+                      {formatCurrency(Number(investment.current_value))}
                     </div>
                     <div className="text-xs text-orange-600">
                       Vencida em {new Date(investment.maturity_date!).toLocaleDateString('pt-BR')}
