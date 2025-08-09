@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -41,6 +42,7 @@ const Investimentos = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -366,6 +368,7 @@ const Investimentos = () => {
                   <th className="text-left p-4 font-semibold text-slate-700">Rendimento</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Status</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Compra</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
                 </tr>
               </thead>
@@ -430,6 +433,9 @@ const Investimentos = () => {
                       </td>
                       <td className="py-3 px-4 text-sm text-slate-600">
                         {formatDate(investment.purchase_date)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-slate-600">
+                        {formatDate(investment.maturity_date || '')}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">

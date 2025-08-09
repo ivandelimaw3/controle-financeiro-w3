@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Edit, Trash2, Archive, TrendingUp, Calendar } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -139,7 +138,7 @@ const InvestimentosVencidos = () => {
                   <th className="text-left p-4 font-semibold text-slate-700">Rendimento</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Compra</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Movido em</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Movido</th>
                   <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
                 </tr>
               </thead>
