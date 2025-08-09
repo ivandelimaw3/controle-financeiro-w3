@@ -93,13 +93,7 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-gradient-to-b from-slate-50 to-white shadow-lg border-r h-screen">
-      <div className="h-16 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
-        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
-          <BarChart4 className="h-5 w-5 text-blue-600" />
-        </div>
-      </div>
-      
-      <nav className="mt-8 px-4">
+      <nav className="mt-6 px-4">
         <div className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
