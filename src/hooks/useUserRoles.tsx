@@ -151,30 +151,49 @@ export const useUserRoles = () => {
 
   const deleteUser = async (userId: string) => {
     try {
-      console.log('Deletando usuário:', userId);
+      console.log('Iniciando processo de deletar usuário:', userId);
       
       // Verificar se não está tentando deletar um admin
       if (isUserAdminRole(userId)) {
+        console.error('Tentativa de deletar usuário administrador bloqueada');
         throw new Error('Não é possível deletar um usuário administrador');
       }
+      
+      // Verificar se não está tentando deletar a si mesmo
+      if (userId === user?.id) {
+        console.error('Tentativa de auto-deletar bloqueada');
+        throw new Error('Não é possível deletar sua própria conta');
+      }
+      
+      console.log('Chamando função delete_user_account para usuário:', userId);
       
       const { data, error } = await supabase.rpc('delete_user_account', {
         target_user_id: userId
       });
 
+      console.log('Resposta da função delete_user_account:', { data, error });
+
       if (error) {
-        console.error('Erro ao deletar usuário:', error);
-        throw error;
+        console.error('Erro na função delete_user_account:', error);
+        throw new Error(`Erro ao deletar usuário: ${error.message}`);
       }
 
-      if (!data) {
-        throw new Error('Falha ao deletar usuário');
+      // Verificar se a função retornou sucesso
+      if (data !== true) {
+        console.error('Função delete_user_account não retornou true:', data);
+        throw new Error('A operação de exclusão não foi concluída com sucesso');
       }
 
+      console.log('Usuário deletado com sucesso, atualizando listas...');
+      
+      // Atualizar as listas após deletar
       await fetchAllUsers();
       await fetchUserRoles();
+      
+      console.log('Listas atualizadas após exclusão');
+      
     } catch (error) {
-      console.error('Erro ao deletar usuário:', error);
+      console.error('Erro completo ao deletar usuário:', error);
       throw error;
     }
   };
