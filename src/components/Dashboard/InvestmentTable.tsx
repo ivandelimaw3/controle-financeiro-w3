@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Edit, Trash2, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Investment, InvestmentInstitution, InvestmentType } from '@/hooks/useInvestmentsData';
-import { Edit, Trash2, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 
 interface InvestmentTableProps {
   investments: Investment[];
@@ -18,16 +18,8 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
   institutions,
   investmentTypes,
   onEdit,
-  onDelete
+  onDelete,
 }) => {
-  const calculateReturn = (invested: number, current: number) => {
-    return ((current - invested) / invested) * 100;
-  };
-
-  const calculateReturnValue = (invested: number, current: number) => {
-    return current - invested;
-  };
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -35,125 +27,157 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
     }).format(value);
   };
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return '-';
-    
-    try {
-      // Trata a data como local para evitar problemas de timezone
-      const date = new Date(dateString + 'T00:00:00');
-      if (isNaN(date.getTime())) return '-';
-      
-      return date.toLocaleDateString('pt-BR');
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return '-';
-    }
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
   };
 
-  const isExpired = (maturityDate: string | null | undefined) => {
-    if (!maturityDate) return false;
-    return new Date(maturityDate) <= new Date();
+  const getCategoryLabel = (category: string) => {
+    const categories: { [key: string]: string } = {
+      'renda_fixa': 'Renda Fixa',
+      'renda_variavel': 'Renda Variável', 
+      'fundos': 'Fundos'
+    };
+    return categories[category] || category;
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-      <div className="p-6 border-b border-slate-200">
-        <h3 className="text-lg font-semibold text-slate-800">Meus Investimentos</h3>
-      </div>
-      
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Investidor</TableHead>
-              <TableHead>Investimento</TableHead>
-              <TableHead>Instituição</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead className="text-right">Investido</TableHead>
-              <TableHead className="text-right">Valor Atual</TableHead>
-              <TableHead className="text-right">Rendimento</TableHead>
-              <TableHead className="text-right">Rentabilidade</TableHead>
-              <TableHead className="text-right">Compra</TableHead>
-              <TableHead className="text-right">Vencimento</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {investments.map((investment) => {
+        <table className="w-full">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="text-left p-4 font-semibold text-slate-700">Investimento</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Instituição</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Tipo</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Investido</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Valor Atual</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Rendimento</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Compra</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {investments.map((investment, index) => {
               const investedAmount = Number(investment.invested_amount);
               const currentValue = Number(investment.current_value);
-              const returnPercentage = calculateReturn(investedAmount, currentValue);
-              const returnValue = calculateReturnValue(investedAmount, currentValue);
-              const isPositive = returnPercentage >= 0;
-              const expired = isExpired(investment.maturity_date);
+              const gain = currentValue - investedAmount;
+              const gainPercentage = investedAmount > 0 ? (gain / investedAmount) * 100 : 0;
+              const isExpired = investment.maturity_date && new Date(investment.maturity_date) <= new Date();
               
               return (
-                <TableRow key={investment.id} className={expired ? 'bg-orange-50' : ''}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {expired && <AlertTriangle size={16} className="text-orange-500" />}
-                      {investment.investor_name || '-'}
+                <tr 
+                  key={investment.id} 
+                  className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
+                  } ${isExpired ? 'bg-orange-50 border-orange-200' : ''}`}
+                >
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        isExpired ? 'bg-orange-100' : 'bg-blue-100'
+                      }`}>
+                        <TrendingUp className={`h-5 w-5 ${
+                          isExpired ? 'text-orange-600' : 'text-blue-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800">{investment.name}</p>
+                        <p className="text-sm text-slate-500">{investment.investor_name || 'Sem investidor'}</p>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{investment.name}</TableCell>
-                  <TableCell>{investment.institution?.name}</TableCell>
-                  <TableCell>
-                    <span className="text-sm text-slate-600">
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="font-medium text-slate-800">{investment.institution?.name}</span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                       {investment.type?.name}
+                    </Badge>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {getCategoryLabel(investment.type?.category || '')}
+                    </p>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="font-semibold text-slate-800">
+                      {formatCurrency(investedAmount)}
                     </span>
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(investedAmount)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(currentValue)}</TableCell>
-                  <TableCell className="text-right">
-                    <span className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(Math.abs(returnValue))}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="font-semibold text-slate-800">
+                      {formatCurrency(currentValue)}
                     </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className={`flex items-center justify-end gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                      <span className="font-medium">
-                        {returnPercentage.toFixed(2)}%
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex flex-col">
+                      <span className={`font-semibold ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(Math.abs(gain))}
+                      </span>
+                      <span className={`text-sm ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {gainPercentage.toFixed(2)}%
                       </span>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right text-sm text-slate-600">
+                  </td>
+                  <td className="py-3 px-4 text-sm text-slate-600">
                     {formatDate(investment.purchase_date)}
-                  </TableCell>
-                  <TableCell className="text-right text-sm text-slate-600">
-                    <div className="flex items-center justify-end gap-1">
-                      {expired && <AlertTriangle size={14} className="text-orange-500" />}
-                      {formatDate(investment.maturity_date)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="text-sm">
+                      {investment.maturity_date ? (
+                        <span className={isExpired ? 'text-orange-600 font-medium' : 'text-slate-600'}>
+                          {formatDate(investment.maturity_date)}
+                          {isExpired && (
+                            <Badge variant="destructive" className="ml-2 text-xs">
+                              Vencida
+                            </Badge>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">Sem vencimento</span>
+                      )}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onEdit(investment)}
+                        className="text-slate-600 hover:text-slate-700"
                       >
-                        <Edit size={16} />
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(investment.id)}
+                        className="text-red-600 hover:text-red-700"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               );
             })}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
       
       {investments.length === 0 && (
         <div className="p-8 text-center text-slate-500">
-          Nenhum investimento cadastrado ainda.
+          <TrendingUp className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+          <p className="text-lg font-medium text-slate-600 mb-2">
+            Nenhum investimento encontrado
+          </p>
+          <p className="text-slate-500">
+            Os investimentos aparecerão aqui quando adicionados.
+          </p>
         </div>
       )}
     </div>
