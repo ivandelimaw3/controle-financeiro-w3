@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvestmentCard } from './InvestmentCard';
 import { InvestmentTable } from './InvestmentTable';
@@ -17,7 +18,8 @@ export const InvestmentsSection = () => {
     updateInvestment,
     deleteInvestment,
     addInstitution,
-    addInvestmentType
+    addInvestmentType,
+    moveExpiredInvestments
   } = useInvestmentsData();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -58,6 +60,12 @@ export const InvestmentsSection = () => {
     setEditingInvestment(null);
   };
 
+  const handleMoveExpiredInvestments = async () => {
+    if (window.confirm('Tem certeza que deseja remover todas as aplicações vencidas? Esta ação não pode ser desfeita.')) {
+      await moveExpiredInvestments();
+    }
+  };
+
   const filteredInvestments = investments.filter(investment => {
     const institutionMatch = !filters.institution || investment.institution_id?.toString() === filters.institution;
     const typeMatch = !filters.type || investment.type_id?.toString() === filters.type;
@@ -81,6 +89,11 @@ export const InvestmentsSection = () => {
   const totalReturn = totalCurrent - totalInvested;
   const returnPercentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
 
+  // Contar aplicações vencidas
+  const expiredInvestments = investments.filter(inv => 
+    inv.maturity_date && new Date(inv.maturity_date) <= new Date()
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -96,13 +109,25 @@ export const InvestmentsSection = () => {
           <h2 className="text-2xl font-bold text-slate-800">Investimentos</h2>
           <p className="text-slate-600 mt-1">Gerencie seus investimentos e acompanhe o desempenho</p>
         </div>
-        <Button 
-          onClick={() => setIsFormOpen(true)} 
-          className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-        >
-          <Plus size={20} className="mr-2" />
-          Novo Investimento
-        </Button>
+        <div className="flex gap-2">
+          {expiredInvestments.length > 0 && (
+            <Button 
+              onClick={handleMoveExpiredInvestments}
+              variant="outline"
+              className="border-orange-300 text-orange-600 hover:bg-orange-50"
+            >
+              <Archive size={20} className="mr-2" />
+              Remover Aplicações Vencidas ({expiredInvestments.length})
+            </Button>
+          )}
+          <Button 
+            onClick={() => setIsFormOpen(true)} 
+            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+          >
+            <Plus size={20} className="mr-2" />
+            Novo Investimento
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,10 +155,9 @@ export const InvestmentsSection = () => {
       </div>
 
       <InvestmentFilters
-        filters={filters}
-        onFiltersChange={setFilters}
         institutions={institutions}
         investmentTypes={investmentTypes}
+        onFiltersChange={setFilters}
       />
 
       <InvestmentTable
@@ -145,7 +169,6 @@ export const InvestmentsSection = () => {
       />
 
       <InvestmentForm
-        isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleSubmit}
         onAddInstitution={addInstitution}

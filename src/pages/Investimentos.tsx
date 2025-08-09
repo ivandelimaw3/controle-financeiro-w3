@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2 } from 'lucide-react';
+import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,13 +22,14 @@ const Investimentos = () => {
   const {
     investments,
     institutions,
-    types,
+    investmentTypes,
     loading,
     addInvestment,
     updateInvestment,
     deleteInvestment,
     addInstitution,
-    addType
+    addInvestmentType,
+    moveExpiredInvestments
   } = useInvestmentsData();
 
   // Funções de formatação
@@ -76,6 +76,11 @@ const Investimentos = () => {
   const totalGain = totalCurrent - totalInvested;
   const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
+  // Contar aplicações vencidas
+  const expiredInvestments = investments.filter(inv => 
+    inv.maturity_date && new Date(inv.maturity_date) <= new Date()
+  );
+
   // Filtros
   const filteredInvestments = investments.filter(investment => {
     const matchesSearch = investment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,7 +107,7 @@ const Investimentos = () => {
 
   const handleUpdateInvestment = async (investmentData: any) => {
     if (editingInvestment) {
-      await updateInvestment(editingInvestment.id, investmentData);
+      await updateInvestment({ ...investmentData, id: editingInvestment.id });
       setEditingInvestment(undefined);
       setShowInvestmentForm(false);
       toast({
@@ -125,6 +130,12 @@ const Investimentos = () => {
   const handleEditInvestment = (investment: Investment) => {
     setEditingInvestment(investment);
     setShowInvestmentForm(true);
+  };
+
+  const handleMoveExpiredInvestments = async () => {
+    if (confirm('Tem certeza que deseja remover todas as aplicações vencidas? Esta ação não pode ser desfeita.')) {
+      await moveExpiredInvestments();
+    }
   };
 
   const closeInvestmentForm = () => {
@@ -157,13 +168,25 @@ const Investimentos = () => {
                 Gerencie sua carteira de investimentos e acompanhe a performance
               </p>
             </div>
-            <Button
-              onClick={() => setShowInvestmentForm(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Investimento
-            </Button>
+            <div className="flex gap-2">
+              {expiredInvestments.length > 0 && (
+                <Button 
+                  onClick={handleMoveExpiredInvestments}
+                  variant="outline"
+                  className="border-orange-300 text-orange-600 hover:bg-orange-50"
+                >
+                  <Archive size={20} className="mr-2" />
+                  Remover Aplicações Vencidas ({expiredInvestments.length})
+                </Button>
+              )}
+              <Button
+                onClick={() => setShowInvestmentForm(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Investimento
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -388,26 +411,17 @@ const Investimentos = () => {
           )}
         </div>
 
-        {/* Dialog do Formulário */}
-        <Dialog open={showInvestmentForm} onOpenChange={closeInvestmentForm}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingInvestment ? 'Editar Investimento' : 'Adicionar Novo Investimento'}
-              </DialogTitle>
-            </DialogHeader>
-            <InvestmentForm
-              isOpen={showInvestmentForm}
-              onClose={closeInvestmentForm}
-              onSubmit={editingInvestment ? handleUpdateInvestment : handleCreateInvestment}
-              onAddInstitution={addInstitution}
-              onAddType={addType}
-              investment={editingInvestment}
-              institutions={institutions}
-              types={types}
-            />
-          </DialogContent>
-        </Dialog>
+        {showInvestmentForm && (
+          <InvestmentForm
+            onClose={closeInvestmentForm}
+            onSubmit={editingInvestment ? handleUpdateInvestment : handleCreateInvestment}
+            onAddInstitution={addInstitution}
+            onAddType={addInvestmentType}
+            investment={editingInvestment}
+            institutions={institutions}
+            investmentTypes={investmentTypes}
+          />
+        )}
       </div>
     </Layout>
   );

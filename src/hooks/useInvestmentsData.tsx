@@ -45,7 +45,7 @@ export interface InvestmentType {
 export const useInvestmentsData = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [institutions, setInstitutions] = useState<InvestmentInstitution[]>([]);
-  const [types, setTypes] = useState<InvestmentType[]>([]);
+  const [investmentTypes, setInvestmentTypes] = useState<InvestmentType[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -111,7 +111,7 @@ export const useInvestmentsData = () => {
     }
   };
 
-  const fetchTypes = async () => {
+  const fetchInvestmentTypes = async () => {
     if (!user) {
       return;
     }
@@ -124,11 +124,11 @@ export const useInvestmentsData = () => {
         .order('name');
 
       if (error) {
-        console.error('fetchTypes error:', error);
+        console.error('fetchInvestmentTypes error:', error);
         return;
       }
       
-      setTypes(data || []);
+      setInvestmentTypes(data || []);
     } catch (error) {
       console.error('Erro ao buscar tipos:', error);
     }
@@ -178,7 +178,7 @@ export const useInvestmentsData = () => {
     }
   };
 
-  const updateInvestment = async (id: number, updates: Partial<Investment>) => {
+  const updateInvestment = async (updates: Partial<Investment> & { id: number }) => {
     if (!user) {
       toast({
         title: "Erro",
@@ -192,7 +192,7 @@ export const useInvestmentsData = () => {
       const { error } = await supabase
         .from('investments')
         .update(updates)
-        .eq('id', id)
+        .eq('id', updates.id)
         .eq('user_id', user.id);
 
       if (error) {
@@ -308,7 +308,7 @@ export const useInvestmentsData = () => {
     }
   };
 
-  const addType = async (name: string, category: string) => {
+  const addInvestmentType = async (name: string, category: string) => {
     if (!user) {
       toast({
         title: "Erro",
@@ -326,7 +326,7 @@ export const useInvestmentsData = () => {
         .single();
 
       if (error) {
-        console.error('addType error:', error);
+        console.error('addInvestmentType error:', error);
         toast({
           title: "Erro",
           description: "Não foi possível adicionar o tipo.",
@@ -335,7 +335,7 @@ export const useInvestmentsData = () => {
         return;
       }
       
-      await fetchTypes();
+      await fetchInvestmentTypes();
       toast({
         title: "Sucesso",
         description: "Tipo de investimento adicionado com sucesso!",
@@ -352,6 +352,49 @@ export const useInvestmentsData = () => {
     }
   };
 
+  const moveExpiredInvestments = async () => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return 0;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('move_expired_investments', {
+        target_user_id: user.id
+      });
+
+      if (error) {
+        console.error('moveExpiredInvestments error:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível remover as aplicações vencidas.",
+          variant: "destructive"
+        });
+        return 0;
+      }
+
+      await fetchInvestments();
+      toast({
+        title: "Sucesso",
+        description: `${data || 0} aplicações vencidas foram removidas com sucesso!`,
+      });
+      
+      return data || 0;
+    } catch (error) {
+      console.error('Erro ao mover investimentos vencidos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover aplicações vencidas",
+        variant: "destructive"
+      });
+      return 0;
+    }
+  };
+
   useEffect(() => {
     if (user) {
       const loadData = async () => {
@@ -359,7 +402,7 @@ export const useInvestmentsData = () => {
         await Promise.all([
           fetchInvestments(),
           fetchInstitutions(),
-          fetchTypes()
+          fetchInvestmentTypes()
         ]);
         setLoading(false);
       };
@@ -373,13 +416,14 @@ export const useInvestmentsData = () => {
   return {
     investments,
     institutions,
-    types,
+    investmentTypes,
     loading,
     addInvestment,
     updateInvestment,
     deleteInvestment,
     addInstitution,
-    addType,
-    refetch: () => Promise.all([fetchInvestments(), fetchInstitutions(), fetchTypes()])
+    addInvestmentType,
+    moveExpiredInvestments,
+    refetch: () => Promise.all([fetchInvestments(), fetchInstitutions(), fetchInvestmentTypes()])
   };
 };

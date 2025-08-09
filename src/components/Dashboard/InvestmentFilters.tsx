@@ -1,96 +1,142 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Calendar } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { InvestmentInstitution, InvestmentType } from '@/hooks/useInvestmentsData';
 
 interface InvestmentFiltersProps {
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
-  selectedMonth: string;
-  onMonthChange: (value: string) => void;
-  selectedYear: string;
-  onYearChange: (value: string) => void;
+  institutions: InvestmentInstitution[];
+  investmentTypes: InvestmentType[];
+  onFiltersChange: (filters: any) => void;
 }
 
 export const InvestmentFilters: React.FC<InvestmentFiltersProps> = ({
-  searchTerm,
-  onSearchChange,
-  selectedMonth,
-  onMonthChange,
-  selectedYear,
-  onYearChange
+  institutions,
+  investmentTypes,
+  onFiltersChange
 }) => {
-  const months = [
-    { value: 'all', label: 'Todos os meses' },
-    { value: '01', label: 'Janeiro' },
-    { value: '02', label: 'Fevereiro' },
-    { value: '03', label: 'Março' },
-    { value: '04', label: 'Abril' },
-    { value: '05', label: 'Maio' },
-    { value: '06', label: 'Junho' },
-    { value: '07', label: 'Julho' },
-    { value: '08', label: 'Agosto' },
-    { value: '09', label: 'Setembro' },
-    { value: '10', label: 'Outubro' },
-    { value: '11', label: 'Novembro' },
-    { value: '12', label: 'Dezembro' }
-  ];
+  const [filters, setFilters] = React.useState({
+    institution: '',
+    type: '',
+    dateRange: { from: null, to: null }
+  });
 
-  const currentYear = new Date().getFullYear();
-  const years = [
-    { value: 'all', label: 'Todos os anos' },
-    ...Array.from({ length: 10 }, (_, i) => ({
-      value: (currentYear - i).toString(),
-      label: (currentYear - i).toString()
-    }))
-  ];
+  const handleFilterChange = (key: string, value: any) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-none md:w-80">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
-            <Input
-              placeholder="Pesquisar por nome, instituição ou tipo..."
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+      <h3 className="text-lg font-semibold text-slate-800 mb-4">Filtros</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Instituição
+          </label>
+          <Select
+            value={filters.institution}
+            onValueChange={(value) => handleFilterChange('institution', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Todas as instituições" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todas as instituições</SelectItem>
+              {institutions.map((institution) => (
+                <SelectItem key={institution.id} value={institution.id.toString()}>
+                  {institution.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        
-        <div className="flex gap-4">
-          <div className="min-w-[160px]">
-            <Select value={selectedMonth} onValueChange={onMonthChange}>
-              <SelectTrigger>
-                <Calendar size={16} className="mr-2" />
-                <SelectValue placeholder="Mês" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="min-w-[120px]">
-            <Select value={selectedYear} onValueChange={onYearChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Ano" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year.value} value={year.value}>
-                    {year.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Tipo de Investimento
+          </label>
+          <Select
+            value={filters.type}
+            onValueChange={(value) => handleFilterChange('type', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Todos os tipos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos os tipos</SelectItem>
+              {investmentTypes.map((type) => (
+                <SelectItem key={type.id} value={type.id.toString()}>
+                  {type.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Data de Compra
+          </label>
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filters.dateRange.from ? (
+                    format(filters.dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+                  ) : (
+                    <span>De</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={filters.dateRange.from}
+                  onSelect={(date) => 
+                    handleFilterChange('dateRange', { ...filters.dateRange, from: date })
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filters.dateRange.to ? (
+                    format(filters.dateRange.to, "dd/MM/yyyy", { locale: ptBR })
+                  ) : (
+                    <span>Até</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={filters.dateRange.to}
+                  onSelect={(date) => 
+                    handleFilterChange('dateRange', { ...filters.dateRange, to: date })
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>

@@ -2,17 +2,21 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Investment } from '@/hooks/useInvestmentsData';
-import { Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Investment, InvestmentInstitution, InvestmentType } from '@/hooks/useInvestmentsData';
+import { Edit, Trash2, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 
 interface InvestmentTableProps {
   investments: Investment[];
+  institutions: InvestmentInstitution[];
+  investmentTypes: InvestmentType[];
   onEdit: (investment: Investment) => void;
   onDelete: (id: number) => void;
 }
 
 export const InvestmentTable: React.FC<InvestmentTableProps> = ({
   investments,
+  institutions,
+  investmentTypes,
   onEdit,
   onDelete
 }) => {
@@ -46,6 +50,11 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
     }
   };
 
+  const isExpired = (maturityDate: string | null | undefined) => {
+    if (!maturityDate) return false;
+    return new Date(maturityDate) <= new Date();
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
       <div className="p-6 border-b border-slate-200">
@@ -76,11 +85,15 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
               const returnPercentage = calculateReturn(investedAmount, currentValue);
               const returnValue = calculateReturnValue(investedAmount, currentValue);
               const isPositive = returnPercentage >= 0;
+              const expired = isExpired(investment.maturity_date);
               
               return (
-                <TableRow key={investment.id}>
+                <TableRow key={investment.id} className={expired ? 'bg-orange-50' : ''}>
                   <TableCell className="font-medium">
-                    {investment.investor_name || '-'}
+                    <div className="flex items-center gap-2">
+                      {expired && <AlertTriangle size={16} className="text-orange-500" />}
+                      {investment.investor_name || '-'}
+                    </div>
                   </TableCell>
                   <TableCell className="font-medium">{investment.name}</TableCell>
                   <TableCell>{investment.institution?.name}</TableCell>
@@ -92,7 +105,7 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
                   <TableCell className="text-right">{formatCurrency(investedAmount)}</TableCell>
                   <TableCell className="text-right font-medium">{formatCurrency(currentValue)}</TableCell>
                   <TableCell className="text-right">
-                    <span className="font-medium text-green-600">
+                    <span className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(Math.abs(returnValue))}
                     </span>
                   </TableCell>
@@ -108,7 +121,10 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
                     {formatDate(investment.purchase_date)}
                   </TableCell>
                   <TableCell className="text-right text-sm text-slate-600">
-                    {formatDate(investment.maturity_date)}
+                    <div className="flex items-center justify-end gap-1">
+                      {expired && <AlertTriangle size={14} className="text-orange-500" />}
+                      {formatDate(investment.maturity_date)}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">

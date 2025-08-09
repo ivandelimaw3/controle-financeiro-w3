@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Investment, InvestmentInstitution, InvestmentType } from '@/hooks/useInvestmentsData';
 import { X, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface InvestmentFormProps {
   onClose: () => void;
@@ -13,7 +14,7 @@ interface InvestmentFormProps {
   onAddType: (name: string, category: string) => Promise<any>;
   investment?: Investment;
   institutions: InvestmentInstitution[];
-  types: InvestmentType[];
+  investmentTypes: InvestmentType[];
   isLoading?: boolean;
 }
 
@@ -61,7 +62,7 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   onAddType,
   investment,
   institutions,
-  types,
+  investmentTypes,
   isLoading = false
 }) => {
   const [formData, setFormData] = useState(initialFormData);
@@ -69,6 +70,12 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   const [showNewInstitution, setShowNewInstitution] = useState(false);
   const [newType, setNewType] = useState({ name: '', category: '' });
   const [showNewType, setShowNewType] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Abrir modal automaticamente quando há investment ou quando o formulário é usado
+  useEffect(() => {
+    setIsOpen(true);
+  }, []);
 
   const formatCurrencyInput = (value: number): string => {
     if (isNaN(value) || value === null || value === undefined || value === 0) {
@@ -147,10 +154,15 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
       
       console.log('InvestmentForm: submitting data', submitData);
       await onSubmit(submitData);
-      onClose();
+      handleClose();
     } catch (error) {
       console.error('Erro ao salvar investimento:', error);
     }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setTimeout(onClose, 300); // Aguarda animação do modal
   };
 
   const handleAmountChange = (field: 'invested_amount' | 'current_value') => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,237 +198,247 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="investor_name">Nome do Investidor</Label>
-          <Input
-            id="investor_name"
-            value={formData.investor_name}
-            onChange={(e) => setFormData({ ...formData, investor_name: e.target.value })}
-            placeholder="Nome do investidor"
-          />
-        </div>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            {investment ? 'Editar Investimento' : 'Novo Investimento'}
+          </DialogTitle>
+        </DialogHeader>
 
-        <div>
-          <Label htmlFor="name">Nome do Investimento</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Ex: CDB Banco XYZ"
-            required
-          />
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <Label>Instituição</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowNewInstitution(!showNewInstitution)}
-          >
-            <Plus size={16} />
-            Nova
-          </Button>
-        </div>
-        
-        {showNewInstitution ? (
-          <div className="flex gap-2">
-            <Input
-              value={newInstitution}
-              onChange={(e) => setNewInstitution(e.target.value)}
-              placeholder="Nome da instituição"
-            />
-            <Button type="button" onClick={handleAddInstitution} size="sm">
-              Adicionar
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowNewInstitution(false)}
-            >
-              <X size={16} />
-            </Button>
-          </div>
-        ) : (
-          <Select
-            value={formData.institution_id}
-            onValueChange={(value) => setFormData({ ...formData, institution_id: value })}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a instituição" />
-            </SelectTrigger>
-            <SelectContent>
-              {institutions.map((institution) => (
-                <SelectItem key={institution.id} value={institution.id.toString()}>
-                  {institution.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <Label>Tipo de Investimento</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowNewType(!showNewType)}
-          >
-            <Plus size={16} />
-            Novo
-          </Button>
-        </div>
-        
-        {showNewType ? (
-          <div className="space-y-2">
-            <div className="flex gap-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="investor_name">Nome do Investidor</Label>
               <Input
-                value={newType.name}
-                onChange={(e) => setNewType({ ...newType, name: e.target.value })}
-                placeholder="Nome do tipo"
+                id="investor_name"
+                value={formData.investor_name}
+                onChange={(e) => setFormData({ ...formData, investor_name: e.target.value })}
+                placeholder="Nome do investidor"
               />
-              <Select
-                value={newType.category}
-                onValueChange={(value) => setNewType({ ...newType, category: value })}
+            </div>
+
+            <div>
+              <Label htmlFor="name">Nome do Investimento</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ex: CDB Banco XYZ"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Instituição</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowNewInstitution(!showNewInstitution)}
               >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Categoria" />
+                <Plus size={16} />
+                Nova
+              </Button>
+            </div>
+            
+            {showNewInstitution ? (
+              <div className="flex gap-2">
+                <Input
+                  value={newInstitution}
+                  onChange={(e) => setNewInstitution(e.target.value)}
+                  placeholder="Nome da instituição"
+                />
+                <Button type="button" onClick={handleAddInstitution} size="sm">
+                  Adicionar
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowNewInstitution(false)}
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+            ) : (
+              <Select
+                value={formData.institution_id}
+                onValueChange={(value) => setFormData({ ...formData, institution_id: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a instituição" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="renda_fixa">Renda Fixa</SelectItem>
-                  <SelectItem value="renda_variavel">Renda Variável</SelectItem>
-                  <SelectItem value="fundos">Fundos</SelectItem>
+                  {institutions.map((institution) => (
+                    <SelectItem key={institution.id} value={institution.id.toString()}>
+                      {institution.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button type="button" onClick={handleAddType} size="sm" className="flex-1">
-                Adicionar Tipo
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Tipo de Investimento</Label>
+              <Button
+                type="button"
+                variant="outline"
                 size="sm"
-                onClick={() => setShowNewType(false)}
+                onClick={() => setShowNewType(!showNewType)}
               >
-                <X size={16} />
+                <Plus size={16} />
+                Novo
               </Button>
             </div>
+            
+            {showNewType ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={newType.name}
+                    onChange={(e) => setNewType({ ...newType, name: e.target.value })}
+                    placeholder="Nome do tipo"
+                  />
+                  <Select
+                    value={newType.category}
+                    onValueChange={(value) => setNewType({ ...newType, category: value })}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="renda_fixa">Renda Fixa</SelectItem>
+                      <SelectItem value="renda_variavel">Renda Variável</SelectItem>
+                      <SelectItem value="fundos">Fundos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={handleAddType} size="sm" className="flex-1">
+                    Adicionar Tipo
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowNewType(false)}
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Select
+                value={formData.type_id}
+                onValueChange={(value) => setFormData({ ...formData, type_id: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {investmentTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.name} ({type.category})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
-        ) : (
-          <Select
-            value={formData.type_id}
-            onValueChange={(value) => setFormData({ ...formData, type_id: value })}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              {types.map((type) => (
-                <SelectItem key={type.id} value={type.id.toString()}>
-                  {type.name} ({type.category})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="invested_amount">Valor Investido</Label>
-          <div className="relative mt-1">
-            <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
-            <Input
-              id="invested_amount"
-              type="text"
-              value={formatCurrencyInput(formData.invested_amount)}
-              onChange={handleAmountChange('invested_amount')}
-              className="pl-10"
-              placeholder="0,00"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="invested_amount">Valor Investido</Label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
+                <Input
+                  id="invested_amount"
+                  type="text"
+                  value={formatCurrencyInput(formData.invested_amount)}
+                  onChange={handleAmountChange('invested_amount')}
+                  className="pl-10"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="current_value">Valor Atual</Label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
+                <Input
+                  id="current_value"
+                  type="text"
+                  value={formatCurrencyInput(formData.current_value)}
+                  onChange={handleAmountChange('current_value')}
+                  className="pl-10"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div>
-          <Label htmlFor="current_value">Valor Atual</Label>
-          <div className="relative mt-1">
-            <span className="absolute left-3 top-3 text-slate-400 text-sm font-medium">R$</span>
-            <Input
-              id="current_value"
-              type="text"
-              value={formatCurrencyInput(formData.current_value)}
-              onChange={handleAmountChange('current_value')}
-              className="pl-10"
-              placeholder="0,00"
-              required
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="yield_percentage">Rentabilidade (%)</Label>
+              <Input
+                id="yield_percentage"
+                type="number"
+                step="0.01"
+                value={formData.yield_percentage}
+                onChange={(e) => setFormData({ ...formData, yield_percentage: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="purchase_date">Data da Compra</Label>
+              <Input
+                id="purchase_date"
+                type="date"
+                value={formData.purchase_date}
+                onChange={(e) => {
+                  console.log('InvestmentForm: purchase_date changed to', e.target.value);
+                  setFormData({ ...formData, purchase_date: e.target.value });
+                }}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="maturity_date">Vencimento</Label>
+              <Input
+                id="maturity_date"
+                type="date"
+                value={formData.maturity_date}
+                onChange={(e) => {
+                  console.log('InvestmentForm: maturity_date changed to', e.target.value);
+                  setFormData({ ...formData, maturity_date: e.target.value });
+                }}
+                placeholder="Data de vencimento"
+              />
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="yield_percentage">Rentabilidade (%)</Label>
-          <Input
-            id="yield_percentage"
-            type="number"
-            step="0.01"
-            value={formData.yield_percentage}
-            onChange={(e) => setFormData({ ...formData, yield_percentage: e.target.value })}
-            placeholder="0.00"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="purchase_date">Data da Compra</Label>
-          <Input
-            id="purchase_date"
-            type="date"
-            value={formData.purchase_date}
-            onChange={(e) => {
-              console.log('InvestmentForm: purchase_date changed to', e.target.value);
-              setFormData({ ...formData, purchase_date: e.target.value });
-            }}
-            required
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="maturity_date">Vencimento</Label>
-          <Input
-            id="maturity_date"
-            type="date"
-            value={formData.maturity_date}
-            onChange={(e) => {
-              console.log('InvestmentForm: maturity_date changed to', e.target.value);
-              setFormData({ ...formData, maturity_date: e.target.value });
-            }}
-            placeholder="Data de vencimento"
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isLoading} className="flex-1">
-          {isLoading ? 'Salvando...' : investment ? 'Atualizar' : 'Criar'}
-        </Button>
-      </div>
-    </form>
+          <div className="flex gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
+              {isLoading ? 'Salvando...' : investment ? 'Atualizar' : 'Criar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };

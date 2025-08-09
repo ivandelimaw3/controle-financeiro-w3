@@ -304,6 +304,57 @@ export type Database = {
           },
         ]
       }
+      investimentos_vencidos: {
+        Row: {
+          created_at: string | null
+          current_value: number
+          id: number
+          institution_id: number
+          invested_amount: number
+          investor_name: string | null
+          maturity_date: string | null
+          moved_at: string | null
+          name: string
+          purchase_date: string
+          type_id: number
+          updated_at: string | null
+          user_id: string
+          yield_percentage: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_value?: number
+          id?: number
+          institution_id: number
+          invested_amount?: number
+          investor_name?: string | null
+          maturity_date?: string | null
+          moved_at?: string | null
+          name: string
+          purchase_date: string
+          type_id: number
+          updated_at?: string | null
+          user_id: string
+          yield_percentage?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          current_value?: number
+          id?: number
+          institution_id?: number
+          invested_amount?: number
+          investor_name?: string | null
+          maturity_date?: string | null
+          moved_at?: string | null
+          name?: string
+          purchase_date?: string
+          type_id?: number
+          updated_at?: string | null
+          user_id?: string
+          yield_percentage?: number | null
+        }
+        Relationships: []
+      }
       investment_institutions: {
         Row: {
           created_at: string | null
@@ -581,6 +632,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      move_expired_investments: {
+        Args: { target_user_id: string }
+        Returns: number
       }
       process_upgrade_request: {
         Args: { request_id: string; new_status: string; admin_notes?: string }
