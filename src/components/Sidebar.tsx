@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  BarChart3, 
+  BarChart4, 
   Receipt, 
   FileText, 
   Tag, 
@@ -18,7 +18,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { 
-      icon: BarChart3, 
+      icon: BarChart4, 
       label: 'Painel de Contas', 
       path: '/', 
       color: 'text-blue-600',
@@ -92,15 +92,14 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r h-screen">
-      <div className="p-6 border-b">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center">
-          <BarChart3 className="h-6 w-6 mr-2 text-blue-600" />
-          FinanceApp
-        </h2>
+    <div className="w-64 bg-gradient-to-b from-slate-50 to-white shadow-lg border-r h-screen">
+      <div className="h-16 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
+        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+          <BarChart4 className="h-5 w-5 text-blue-600" />
+        </div>
       </div>
       
-      <nav className="mt-6 px-4">
+      <nav className="mt-8 px-4">
         <div className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
