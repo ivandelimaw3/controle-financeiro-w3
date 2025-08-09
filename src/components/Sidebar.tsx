@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  BarChart3, 
+  BarChart4, 
   Receipt, 
   FileText, 
   Tag, 
@@ -18,7 +18,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { 
-      icon: BarChart3, 
+      icon: BarChart4, 
       label: 'Painel de Contas', 
       path: '/', 
       color: 'text-blue-600',
@@ -93,17 +93,6 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-gradient-to-b from-slate-50 to-white shadow-lg border-r h-screen">
-      {/* Header with the new icon */}
-      <div className="flex items-center justify-center py-6 bg-gradient-to-r from-blue-50 to-blue-100 border-b">
-        <div className="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center">
-          <img 
-            src="/lovable-uploads/b2c15f3c-8f84-42df-a48d-ccd30376e3b3.png" 
-            alt="Logo" 
-            className="w-8 h-8"
-          />
-        </div>
-      </div>
-      
       <nav className="mt-6 px-4">
         <div className="space-y-2">
           {menuItems.map((item) => {
