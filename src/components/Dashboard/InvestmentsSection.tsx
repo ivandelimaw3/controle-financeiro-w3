@@ -84,8 +84,8 @@ export const InvestmentsSection = () => {
     return institutionMatch && typeMatch && dateMatch;
   });
 
-  const totalInvested = filteredInvestments.reduce((sum, inv) => sum + parseFloat(inv.invested_amount.toString()), 0);
-  const totalCurrent = filteredInvestments.reduce((sum, inv) => sum + parseFloat(inv.current_value.toString()), 0);
+  const totalInvested = filteredInvestments.reduce((sum, inv) => sum + Number(inv.invested_amount), 0);
+  const totalCurrent = filteredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
   const totalReturn = totalCurrent - totalInvested;
   const returnPercentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
 
@@ -133,22 +133,22 @@ export const InvestmentsSection = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <InvestmentCard
           title="Total Investido"
-          value={totalInvested}
+          value={totalInvested.toString()}
           type="invested"
         />
         <InvestmentCard
           title="Valor Atual"
-          value={totalCurrent}
+          value={totalCurrent.toString()}
           type="current"
         />
         <InvestmentCard
           title="Rendimento"
-          value={totalReturn}
+          value={totalReturn.toString()}
           type={totalReturn >= 0 ? 'gain' : 'loss'}
         />
         <InvestmentCard
           title="Rentabilidade"
-          value={returnPercentage}
+          value={returnPercentage.toString()}
           type={returnPercentage >= 0 ? 'gain' : 'loss'}
           isPercentage
         />
