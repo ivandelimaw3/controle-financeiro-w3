@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -33,7 +32,6 @@ const Investimentos = () => {
     moveExpiredInvestments
   } = useInvestmentsData();
 
-  // Funções de formatação
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -68,7 +66,6 @@ const Investimentos = () => {
     return current >= invested ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
-  // Cálculos para os cards de resumo
   const totalInvestments = investments.length;
   const profitableInvestments = investments.filter(inv => 
     Number(inv.current_value) >= Number(inv.invested_amount)
@@ -78,12 +75,10 @@ const Investimentos = () => {
   const totalGain = totalCurrent - totalInvested;
   const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-  // Contar aplicações vencidas
   const expiredInvestments = investments.filter(inv => 
     inv.maturity_date && new Date(inv.maturity_date) <= new Date()
   );
 
-  // Filtros
   const filteredInvestments = investments.filter(investment => {
     const matchesSearch = investment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          investment.investor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -161,38 +156,34 @@ const Investimentos = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800">Gestão de Investimentos</h1>
-              <p className="text-slate-600 mt-1">
-                Gerencie sua carteira de investimentos e acompanhe a performance
-              </p>
-            </div>
-            <div className="flex gap-2">
-              {expiredInvestments.length > 0 && (
-                <Button 
-                  onClick={handleMoveExpiredInvestments}
-                  variant="outline"
-                  className="border-orange-300 text-orange-600 hover:bg-orange-50"
-                >
-                  <Archive size={20} className="mr-2" />
-                  Remover Aplicações Vencidas ({expiredInvestments.length})
-                </Button>
-              )}
-              <Button
-                onClick={() => setShowInvestmentForm(true)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Investimento
-              </Button>
-            </div>
-          </div>
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-slate-800">Gestão de Investimentos</h1>
+          <p className="text-slate-600 mt-1">
+            Gerencie sua carteira de investimentos e acompanhe a performance
+          </p>
         </div>
 
-        {/* Cards de Resumo */}
+        <div className="flex justify-between items-center">
+          <Button
+            onClick={() => setShowInvestmentForm(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Investimento
+          </Button>
+          
+          {expiredInvestments.length > 0 && (
+            <Button 
+              onClick={handleMoveExpiredInvestments}
+              variant="outline"
+              className="border-orange-300 text-orange-600 hover:bg-orange-50"
+            >
+              <Archive size={20} className="mr-2" />
+              Remover Aplicações Vencidas ({expiredInvestments.length})
+            </Button>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center justify-between">
@@ -245,7 +236,6 @@ const Investimentos = () => {
           </div>
         </div>
 
-        {/* Destaque das Aplicações Vencidas */}
         {expiredInvestments.length > 0 && (
           <div className="bg-orange-50 border-l-4 border-orange-400 p-6 rounded-lg">
             <div className="flex items-center gap-3 mb-4">
@@ -318,7 +308,6 @@ const Investimentos = () => {
           </div>
         )}
 
-        {/* Barra de Pesquisa e Filtros */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
@@ -354,7 +343,6 @@ const Investimentos = () => {
           </div>
         </div>
 
-        {/* Tabela de Investimentos */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
