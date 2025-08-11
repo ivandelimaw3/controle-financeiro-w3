@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -6,6 +5,7 @@ import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal } from '@/components/Accounts/AccountModal';
+import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
@@ -47,6 +47,17 @@ const Contas: React.FC = () => {
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
 
+  // Handler para mudança de mês no navegador
+  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
+    console.log('Mudança de mês:', { startDate, endDate, month, year });
+    setMonthFilter(month.toString());
+    setYearFilter(year.toString());
+  };
+
+  // Obter mês e ano atual dos filtros
+  const currentMonth = monthFilter === 'todos' ? new Date().getMonth() : parseInt(monthFilter);
+  const currentYear = parseInt(yearFilter);
+
   if (loading) {
     return (
       <Layout>
@@ -64,6 +75,13 @@ const Contas: React.FC = () => {
     <Layout>
       <div className="space-y-6">
         <AccountsHeader onNewAccount={handleNewAccount} />
+
+        {/* Navegador de mês */}
+        <MonthNavigator
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+          onMonthChange={handleMonthChange}
+        />
 
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
           <AccountsFilters
