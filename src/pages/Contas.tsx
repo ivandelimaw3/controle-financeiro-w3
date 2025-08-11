@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -54,8 +55,9 @@ const Contas: React.FC = () => {
     setYearFilter(year.toString());
   };
 
-  // Obter mês e ano atual dos filtros
-  const currentMonth = monthFilter === 'todos' ? new Date().getMonth() : parseInt(monthFilter);
+  // Obter mês e ano atual - sempre inicializar no mês atual
+  const today = new Date();
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
   const currentYear = parseInt(yearFilter);
 
   if (loading) {
@@ -75,13 +77,6 @@ const Contas: React.FC = () => {
     <Layout>
       <div className="space-y-6">
         <AccountsHeader onNewAccount={handleNewAccount} />
-
-        {/* Navegador de mês */}
-        <MonthNavigator
-          currentMonth={currentMonth}
-          currentYear={currentYear}
-          onMonthChange={handleMonthChange}
-        />
 
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
           <AccountsFilters
@@ -105,6 +100,13 @@ const Contas: React.FC = () => {
               {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
             </p>
           </div>
+
+          {/* Navegador de mês - logo acima da tabela */}
+          <MonthNavigator
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onMonthChange={handleMonthChange}
+          />
 
           <AccountsTable
             accounts={filteredAccounts}

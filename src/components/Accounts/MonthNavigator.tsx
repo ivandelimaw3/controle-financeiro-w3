@@ -59,31 +59,9 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
     handleMonthChange(todayMonth, todayYear);
   };
 
-  // Gerar meses para paginação (2 antes e 2 depois)
-  const generatePaginationMonths = () => {
-    const months = [];
-    for (let i = -2; i <= 2; i++) {
-      let month = currentMonth + i;
-      let year = currentYear;
-
-      if (month < 0) {
-        month = 12 + month;
-        year = currentYear - 1;
-      } else if (month > 11) {
-        month = month - 12;
-        year = currentYear + 1;
-      }
-
-      months.push({ month, year, offset: i });
-    }
-    return months;
-  };
-
-  const paginationMonths = generatePaginationMonths();
-
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
-      {/* Navegação principal com setas */}
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
+      {/* Navegação principal com setas e botão Hoje */}
       <div className="flex items-center gap-4">
         <Button
           variant="outline"
@@ -94,10 +72,6 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           <ChevronLeft size={16} />
         </Button>
 
-        <div className="text-lg font-semibold text-slate-800 min-w-[140px] text-center">
-          {monthNames[currentMonth]} {currentYear}
-        </div>
-
         <Button
           variant="outline"
           size="sm"
@@ -106,20 +80,35 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
         >
           <ChevronRight size={16} />
         </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goToToday}
+          className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+          disabled={currentMonth === todayMonth && currentYear === todayYear}
+        >
+          <Calendar size={14} />
+          <span className="hidden sm:inline">Hoje</span>
+        </Button>
+
+        <div className="text-lg font-semibold text-slate-800 ml-4">
+          {currentYear}
+        </div>
       </div>
 
-      {/* Paginação numérica */}
-      <div className="flex items-center gap-2">
-        {paginationMonths.map(({ month, year, offset }) => {
-          const isActive = offset === 0;
-          const monthShort = monthNames[month].substring(0, 3);
+      {/* Botões dos meses (Janeiro a Dezembro) */}
+      <div className="flex flex-wrap items-center gap-2">
+        {monthNames.map((monthName, index) => {
+          const isActive = index === currentMonth;
+          const monthShort = monthName.substring(0, 3);
           
           return (
             <Button
-              key={`${month}-${year}`}
+              key={index}
               variant={isActive ? "default" : "outline"}
               size="sm"
-              onClick={() => handleMonthChange(month, year)}
+              onClick={() => handleMonthChange(index, currentYear)}
               className={`h-8 px-3 text-xs rounded-full transition-colors ${
                 isActive 
                   ? 'bg-blue-600 text-white hover:bg-blue-700' 
@@ -127,27 +116,10 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
               }`}
             >
               {monthShort}
-              {year !== currentYear && (
-                <span className="ml-1 text-xs opacity-70">
-                  '{year.toString().slice(-2)}
-                </span>
-              )}
             </Button>
           );
         })}
       </div>
-
-      {/* Botão Hoje */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={goToToday}
-        className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-green-50 hover:border-green-300 hover:text-green-700"
-        disabled={currentMonth === todayMonth && currentYear === todayYear}
-      >
-        <Calendar size={14} />
-        <span className="hidden sm:inline">Hoje</span>
-      </Button>
     </div>
   );
 };

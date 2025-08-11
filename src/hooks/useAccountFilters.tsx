@@ -8,9 +8,11 @@ export const useAccountFilters = (accounts: Account[]) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
-  // Definir o filtro de mês padrão como "todos" para mostrar todas as contas
-  const [monthFilter, setMonthFilter] = useState('todos');
-  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
+  
+  // Inicializar sempre no mês atual
+  const today = new Date();
+  const [monthFilter, setMonthFilter] = useState(today.getMonth().toString());
+  const [yearFilter, setYearFilter] = useState(today.getFullYear().toString());
 
   // Aplicar filtros da URL ao carregar a página
   useEffect(() => {
