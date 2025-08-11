@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +17,7 @@ export interface Account {
   bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
+  payment_source_name?: string;
 }
 
 export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
@@ -37,6 +37,7 @@ export interface Transaction {
   bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
+  payment_source_name?: string;
 }
 
 export const useAccountsData = () => {
@@ -94,7 +95,8 @@ export const useAccountsData = () => {
         recorrente_id: account.recorrente_id,
         bank_id: account.bank_id,
         payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
-        payment_source_id: account.payment_source_id
+        payment_source_id: account.payment_source_id,
+        payment_source_name: account.payment_source_name
       }));
 
       setAccounts(transformedAccounts);
@@ -145,7 +147,8 @@ export const useAccountsData = () => {
             recorrente_id: recorrenteId,
             bank_id: accountData.bank_id,
             payment_source: accountData.payment_source,
-            payment_source_id: accountData.payment_source_id
+            payment_source_id: accountData.payment_source_id,
+            payment_source_name: accountData.payment_source_name
           });
         }
 
@@ -177,7 +180,8 @@ export const useAccountsData = () => {
           recorrente_id: account.recorrente_id,
           bank_id: account.bank_id,
           payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
-          payment_source_id: account.payment_source_id
+          payment_source_id: account.payment_source_id,
+          payment_source_name: account.payment_source_name
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
@@ -206,7 +210,8 @@ export const useAccountsData = () => {
             user_id: user.id,
             bank_id: accountData.bank_id,
             payment_source: accountData.payment_source,
-            payment_source_id: accountData.payment_source_id
+            payment_source_id: accountData.payment_source_id,
+            payment_source_name: accountData.payment_source_name
           }])
           .select()
           .single();
@@ -234,7 +239,8 @@ export const useAccountsData = () => {
           recorrente_id: data.recorrente_id,
           bank_id: data.bank_id,
           payment_source: (data.payment_source ?? undefined) as 'bank' | 'card' | undefined,
-          payment_source_id: data.payment_source_id
+          payment_source_id: data.payment_source_id,
+          payment_source_name: data.payment_source_name
         };
 
         setAccounts(prev => [newAccount, ...prev]);
@@ -274,7 +280,8 @@ export const useAccountsData = () => {
           status: updatedAccount.status,
           bank_id: updatedAccount.bank_id,
           payment_source: updatedAccount.payment_source,
-          payment_source_id: updatedAccount.payment_source_id
+          payment_source_id: updatedAccount.payment_source_id,
+          payment_source_name: updatedAccount.payment_source_name
         })
         .eq('id', updatedAccount.id)
         .eq('user_id', user.id); 

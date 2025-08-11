@@ -27,6 +27,7 @@ export type Database = {
           parcela: string | null
           payment_source: string | null
           payment_source_id: number | null
+          payment_source_name: string | null
           recorrente_id: string | null
           status: string
           type: string
@@ -45,6 +46,7 @@ export type Database = {
           parcela?: string | null
           payment_source?: string | null
           payment_source_id?: number | null
+          payment_source_name?: string | null
           recorrente_id?: string | null
           status: string
           type: string
@@ -63,6 +65,7 @@ export type Database = {
           parcela?: string | null
           payment_source?: string | null
           payment_source_id?: number | null
+          payment_source_name?: string | null
           recorrente_id?: string | null
           status?: string
           type?: string

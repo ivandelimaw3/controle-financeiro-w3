@@ -4,7 +4,6 @@ import { Edit, Trash2, Calendar, DollarSign, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Account } from '@/contexts/AccountsContext';
-import { useBanksData } from '@/hooks/useBanksData';
 
 interface AccountsTableProps {
   accounts: Account[];
@@ -19,17 +18,9 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   onDelete,
   onStatusChange
 }) => {
-  const { banks } = useBanksData();
-  
   // Função para formatar valores com vírgula
   const formatCurrency = (value: number): string => {
     return Math.abs(value).toFixed(2).replace('.', ',');
-  };
-  
-  const getBankName = (bankId?: number) => {
-    if (!bankId) return '-';
-    const bank = banks.find(b => b.id === bankId);
-    return bank ? (bank.nickname || bank.name) : '-';
   };
 
   const getStatusColor = (status: string) => {
@@ -68,7 +59,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
               <th className="text-left p-4 font-semibold text-slate-700 w-1/4 min-w-[200px]">Descrição</th>
               <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
               <th className="text-left p-4 font-semibold text-slate-700">Valor (R$)</th>
-              <th className="text-left p-4 font-semibold text-slate-700">Banco_Card</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Banco/Cartão</th>
               <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
               <th className="text-left p-4 font-semibold text-slate-700">Parcela</th>
               <th className="text-left p-4 font-semibold text-slate-700">Status</th>
@@ -98,7 +89,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 <td className="py-2 px-4">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Building2 size={14} />
-                    <span className="text-xs">{getBankName(account.bank_id)}</span>
+                    <span className="text-xs">{account.payment_source_name || '-'}</span>
                   </div>
                 </td>
                 <td className="py-2 px-4">

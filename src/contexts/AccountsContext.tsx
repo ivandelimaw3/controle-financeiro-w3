@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useAccountsData, Account, CreateAccountData } from '@/hooks/useAccountsData';
 
@@ -11,6 +10,7 @@ export interface Transaction {
   date: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
+  payment_source_name?: string;
 }
 
 interface AccountsContextType {
@@ -79,7 +79,8 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
         dueDate: account.dueDate,
         date: formattedDate,
         type: account.type,
-        status: account.status
+        status: account.status,
+        payment_source_name: account.payment_source_name
       };
     });
   };

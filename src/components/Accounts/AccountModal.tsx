@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { AccountForm } from './AccountForm';
@@ -18,6 +19,7 @@ interface Account {
   bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
+  payment_source_name?: string;
 }
 
 interface AccountModalProps {
@@ -45,7 +47,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     qtd_parcelas: 1,
     bank_id: undefined,
     payment_source: undefined,
-    payment_source_id: undefined
+    payment_source_id: undefined,
+    payment_source_name: undefined
   });
   const [isFormReady, setIsFormReady] = useState(false);
 
@@ -97,7 +100,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         qtd_parcelas: 1, // Para edição, sempre 1 parcela
         bank_id: account.bank_id,
         payment_source: account.payment_source,
-        payment_source_id: account.payment_source_id
+        payment_source_id: account.payment_source_id,
+        payment_source_name: account.payment_source_name
       };
       setFormData(newFormData);
     } else {
@@ -111,7 +115,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         qtd_parcelas: 1,
         bank_id: undefined,
         payment_source: undefined,
-        payment_source_id: undefined
+        payment_source_id: undefined,
+        payment_source_name: undefined
       });
     }
 
