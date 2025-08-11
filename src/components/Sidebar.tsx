@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  BarChart4, 
+  file-chart-column-increasing, 
   Receipt, 
   FileText, 
   Tag, 
