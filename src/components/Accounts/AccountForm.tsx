@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +23,7 @@ interface Account {
   bank_id?: number;
   payment_source?: 'bank' | 'card';
   payment_source_id?: number;
+  payment_source_name?: string;
 }
 
 interface AccountFormProps {
@@ -131,12 +131,31 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ 
       ...formData, 
       payment_source: value,
-      payment_source_id: undefined // Reset source ID when changing source type
+      payment_source_id: undefined, // Reset source ID when changing source type
+      payment_source_name: undefined // Reset source name when changing source type
     });
   };
 
   const handlePaymentSourceIdChange = (value: string) => {
-    setFormData({ ...formData, payment_source_id: parseInt(value) });
+    const sourceId = parseInt(value);
+    let sourceName = '';
+
+    // Obter o nome da fonte selecionada
+    if (formData.payment_source === 'bank') {
+      const bank = banksOptions.find(b => b.id === value);
+      sourceName = bank?.name || '';
+    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
+      const card = cardsOptions.find(c => c.id === value);
+      sourceName = card?.name || '';
+    }
+
+    console.log('Selecionada fonte:', formData.payment_source, 'ID:', sourceId, 'Nome:', sourceName);
+
+    setFormData({ 
+      ...formData, 
+      payment_source_id: sourceId,
+      payment_source_name: sourceName // Adicionar o nome da fonte
+    });
   };
 
   // Função de validação e submit
@@ -154,9 +173,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       setFormData({
         ...formData,
         payment_source: undefined,
-        payment_source_id: undefined
+        payment_source_id: undefined,
+        payment_source_name: undefined
       });
     }
+    
+    console.log('Dados enviados:', formData);
     
     // Continuar com o submit
     onSubmit(e);
