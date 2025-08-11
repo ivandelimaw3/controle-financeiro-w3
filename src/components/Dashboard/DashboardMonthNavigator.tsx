@@ -41,17 +41,17 @@ export const DashboardMonthNavigator: React.FC<DashboardMonthNavigatorProps> = (
   };
 
   return (
-    <div className="flex items-center justify-center gap-4 mb-6 p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
+    <div className="flex items-center justify-center gap-4 mb-6 p-2 bg-white rounded-xl shadow-sm border border-slate-200">
       <Button
         variant="outline"
         size="sm"
         onClick={() => navigateMonth('prev')}
-        className="h-10 w-10 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+        className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
       >
-        <ChevronLeft size={18} />
+        <ChevronLeft size={16} />
       </Button>
 
-      <div className="text-2xl font-bold text-slate-800 min-w-[200px] text-center">
+      <div className="text-xl font-bold text-slate-800 min-w-[180px] text-center">
         {monthNames[currentMonth]} {currentYear}
       </div>
 
@@ -59,9 +59,9 @@ export const DashboardMonthNavigator: React.FC<DashboardMonthNavigatorProps> = (
         variant="outline"
         size="sm"
         onClick={() => navigateMonth('next')}
-        className="h-10 w-10 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+        className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
       >
-        <ChevronRight size={18} />
+        <ChevronRight size={16} />
       </Button>
     </div>
   );
