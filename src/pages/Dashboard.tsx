@@ -133,7 +133,7 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col space-y-4">
             <div className="flex items-center justify-center">
               <div className="text-center">
-                <h1 className="text-3xl font-bold text-slate-800 mb-2">Painel de Finanças</h1>
+                <h1 className="text-3xl font-bold text-slate-800 mb-2">Resumo Financeiro</h1>
                 <p className="text-slate-600">Resumo da sua situação financeira</p>
               </div>
             </div>
