@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -139,15 +138,6 @@ const Dashboard: React.FC = () => {
     <AccessControlWrapper>
       <Layout>
         <div className="space-y-6">
-          <div className="flex flex-col space-y-4">
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold text-slate-800 mb-2">Resumo Financeiro</h1>
-                <p className="text-slate-600">Resumo da sua situação financeira</p>
-              </div>
-            </div>
-          </div>
-
           <DashboardMonthNavigator
             currentMonth={selectedMonth}
             currentYear={selectedYear}
