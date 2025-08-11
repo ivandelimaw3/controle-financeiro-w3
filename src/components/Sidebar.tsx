@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  file-chart-column-increasing, 
+  BarChart4,
   Receipt, 
   FileText, 
   Tag, 
@@ -19,7 +19,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { 
-      icon: file-chart-column-increasing, 
+      icon: BarChart4, 
       label: 'Painel Visão Geral', 
       path: '/', 
       color: 'text-blue-600',
