@@ -39,20 +39,32 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
     if (!dateString) return '-';
     
     try {
-      // Trata a data como local para evitar problemas de timezone
+      // Cria a data como local para evitar problemas de timezone
       const date = new Date(dateString + 'T00:00:00');
-      if (isNaN(date.getTime())) return '-';
-      
-      return date.toLocaleDateString('pt-BR');
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('pt-BR');
+      }
     } catch (error) {
       console.error('Error formatting date:', error);
-      return '-';
     }
+    
+    return '-';
   };
 
   const isExpired = (maturityDate: string | null | undefined) => {
     if (!maturityDate) return false;
-    return new Date(maturityDate) <= new Date();
+    
+    try {
+      // Cria a data como local para evitar problemas de timezone
+      const date = new Date(maturityDate + 'T00:00:00');
+      if (!isNaN(date.getTime())) {
+        return date <= new Date();
+      }
+    } catch (error) {
+      console.error('Error checking expiry date:', error);
+    }
+    
+    return false;
   };
 
   return (

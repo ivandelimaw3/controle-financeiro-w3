@@ -41,12 +41,22 @@ const Investimentos = () => {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).format(date);
+    
+    try {
+      // Cria a data como local para evitar problemas de timezone
+      const date = new Date(dateString + 'T00:00:00');
+      if (!isNaN(date.getTime())) {
+        return new Intl.DateTimeFormat('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }).format(date);
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+    }
+    
+    return '-';
   };
 
   const getCategoryLabel = (category: string) => {
@@ -75,9 +85,21 @@ const Investimentos = () => {
   const totalGain = totalCurrent - totalInvested;
   const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-  const expiredInvestments = investments.filter(inv => 
-    inv.maturity_date && new Date(inv.maturity_date) <= new Date()
-  );
+  const expiredInvestments = investments.filter(inv => {
+    if (!inv.maturity_date) return false;
+    
+    try {
+      // Cria a data como local para evitar problemas de timezone
+      const date = new Date(inv.maturity_date + 'T00:00:00');
+      if (!isNaN(date.getTime())) {
+        return date <= new Date();
+      }
+    } catch (error) {
+      console.error('Error checking expiry date:', error);
+    }
+    
+    return false;
+  });
 
   const filteredInvestments = investments.filter(investment => {
     const matchesSearch = investment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
