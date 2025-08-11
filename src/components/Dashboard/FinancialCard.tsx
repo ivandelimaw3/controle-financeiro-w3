@@ -10,6 +10,8 @@ interface FinancialCardProps {
   trendUp?: boolean;
   bgColor: string;
   onClick?: () => void;
+  monthText?: string;
+  monthColor?: string;
 }
 
 export const FinancialCard: React.FC<FinancialCardProps> = ({
@@ -19,7 +21,9 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
   trend,
   trendUp,
   bgColor,
-  onClick
+  onClick,
+  monthText,
+  monthColor
 }) => {
   return (
     <div 
@@ -40,6 +44,11 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
       </div>
       <h3 className="text-slate-600 text-sm font-medium mb-1">{title}</h3>
       <p className="text-2xl font-bold text-slate-800">{value}</p>
+      {monthText && (
+        <p className={`text-sm font-medium mt-2 ${monthColor || 'text-slate-600'}`}>
+          {monthText}
+        </p>
+      )}
     </div>
   );
 };

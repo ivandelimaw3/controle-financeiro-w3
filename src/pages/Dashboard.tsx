@@ -27,6 +27,18 @@ const Dashboard: React.FC = () => {
   const saldo = getSaldo();
   const contasPendentes = getContasPendentes();
 
+  // Obter o nome do mês atual
+  const getCurrentMonthName = () => {
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const currentMonth = new Date().getMonth();
+    return monthNames[currentMonth];
+  };
+
+  const currentMonthName = getCurrentMonthName();
+
   // Calcular receitas e despesas do mês corrente
   const getCurrentMonthReceitas = () => {
     const currentMonth = new Date().getMonth();
@@ -135,6 +147,8 @@ const Dashboard: React.FC = () => {
               trend="12%"
               trendUp={saldo > 0}
               bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
+              monthText={currentMonthName}
+              monthColor="text-blue-600"
             />
             <FinancialCard
               title="Receitas"
@@ -144,6 +158,8 @@ const Dashboard: React.FC = () => {
               trendUp={true}
               bgColor="bg-gradient-to-r from-green-500 to-green-600"
               onClick={handleReceitasClick}
+              monthText={currentMonthName}
+              monthColor="text-green-600"
             />
             <FinancialCard
               title="Despesas"
@@ -153,6 +169,8 @@ const Dashboard: React.FC = () => {
               trendUp={false}
               bgColor="bg-gradient-to-r from-red-500 to-red-600"
               onClick={handleDespesasClick}
+              monthText={currentMonthName}
+              monthColor="text-red-600"
             />
             <FinancialCard
               title="Contas Pendentes"
@@ -160,6 +178,8 @@ const Dashboard: React.FC = () => {
               icon={CreditCard}
               bgColor="bg-gradient-to-r from-orange-500 to-orange-600"
               onClick={handleContasPendentesClick}
+              monthText="Todas"
+              monthColor="text-orange-600"
             />
           </div>
 
