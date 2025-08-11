@@ -61,7 +61,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
-      {/* Navegação principal com setas e botão Hoje */}
+      {/* Navegação principal com setas, ano e botão Hoje */}
       <div className="flex items-center gap-4">
         <Button
           variant="outline"
@@ -71,6 +71,10 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
         >
           <ChevronLeft size={16} />
         </Button>
+
+        <div className="text-lg font-semibold text-slate-800">
+          2025
+        </div>
 
         <Button
           variant="outline"
@@ -91,10 +95,6 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           <Calendar size={14} />
           <span className="hidden sm:inline">Hoje</span>
         </Button>
-
-        <div className="text-lg font-semibold text-slate-800 ml-4">
-          {currentYear}
-        </div>
       </div>
 
       {/* Botões dos meses (Janeiro a Dezembro) */}
