@@ -41,8 +41,8 @@ export const DashboardMonthNavigator: React.FC<DashboardMonthNavigatorProps> = (
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-3 mb-6 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
-      <div className="text-center">
+    <div className="flex items-center justify-between mb-6 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="text-left">
         <h1 className="text-2xl font-bold text-slate-800 mb-1">Resumo Financeiro</h1>
         <p className="text-sm text-slate-600">Resumo da sua situação financeira</p>
       </div>
