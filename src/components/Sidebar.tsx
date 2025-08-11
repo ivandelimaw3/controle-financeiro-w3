@@ -19,7 +19,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { 
-      icon: LayoutDashboard, 
+      icon: BarChart4, 
       label: 'Painel Visão Geral', 
       path: '/', 
       color: 'text-blue-600',
