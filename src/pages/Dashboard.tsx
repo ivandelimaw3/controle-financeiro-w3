@@ -1,11 +1,14 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
+import { DashboardMonthNavigator } from '@/components/Dashboard/DashboardMonthNavigator';
 import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
+import { formatCurrency } from '@/utils/formatters';
 
 const Dashboard: React.FC = () => {
   console.log('Dashboard: component rendering');
@@ -21,47 +24,45 @@ const Dashboard: React.FC = () => {
     accounts
   } = useAccounts();
 
+  // Estado para controlar o mês/ano selecionado
+  const today = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+
   const transactions = getTransactions();
   const totalReceitas = getTotalReceitas();
   const totalDespesas = getTotalDespesas();
   const saldo = getSaldo();
   const contasPendentes = getContasPendentes();
 
-  // Obter o nome do mês atual
-  const getCurrentMonthName = () => {
+  // Obter o nome do mês selecionado
+  const getMonthName = (month: number) => {
     const monthNames = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
-    const currentMonth = new Date().getMonth();
-    return monthNames[currentMonth];
+    return monthNames[month];
   };
 
-  const currentMonthName = getCurrentMonthName();
+  const selectedMonthName = getMonthName(selectedMonth);
 
-  // Calcular receitas e despesas do mês corrente
-  const getCurrentMonthReceitas = () => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
+  // Calcular receitas e despesas do mês selecionado
+  const getSelectedMonthReceitas = () => {
     return accounts
       .filter(account => {
         if (account.type !== 'receita' || account.status !== 'recebido') return false;
         const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
       })
       .reduce((sum, account) => sum + account.amount, 0);
   };
 
-  const getCurrentMonthDespesas = () => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
+  const getSelectedMonthDespesas = () => {
     return accounts
       .filter(account => {
         if (account.type !== 'despesa' || account.status !== 'pago') return false;
         const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
       })
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
@@ -79,8 +80,9 @@ const Dashboard: React.FC = () => {
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
-  const receitasDoMes = getCurrentMonthReceitas();
-  const despesasDoMes = getCurrentMonthDespesas();
+  const receitasDoMes = getSelectedMonthReceitas();
+  const despesasDoMes = getSelectedMonthDespesas();
+  const saldoDoMes = receitasDoMes - despesasDoMes;
   const receitasPrevistas = getReceitasPrevistas();
   const despesasPrevistas = getDespesasPrevistas();
   const saldoPrevisto = receitasPrevistas - despesasPrevistas;
@@ -95,7 +97,9 @@ const Dashboard: React.FC = () => {
     receitasDoMes,
     despesasDoMes,
     receitasPrevistas,
-    despesasPrevistas
+    despesasPrevistas,
+    selectedMonth,
+    selectedYear
   });
 
   const handleReceitasClick = () => {
@@ -108,6 +112,11 @@ const Dashboard: React.FC = () => {
 
   const handleContasPendentesClick = () => {
     navigate('/contas?status=pendente');
+  };
+
+  const handleMonthChange = (month: number, year: number) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
   };
 
   if (loading) {
@@ -139,37 +148,43 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
+          <DashboardMonthNavigator
+            currentMonth={selectedMonth}
+            currentYear={selectedYear}
+            onMonthChange={handleMonthChange}
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FinancialCard
-              title="Saldo Total"
-              value={`R$ ${saldo.toFixed(2)}`}
+              title="Saldo do Mês"
+              value={formatCurrency(saldoDoMes)}
               icon={DollarSign}
               trend="12%"
-              trendUp={saldo > 0}
+              trendUp={saldoDoMes > 0}
               bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
-              monthText={currentMonthName}
+              monthText={selectedMonthName}
               monthColor="text-blue-600"
             />
             <FinancialCard
               title="Receitas"
-              value={`R$ ${receitasDoMes.toFixed(2)}`}
+              value={formatCurrency(receitasDoMes)}
               icon={TrendingUp}
               trend="8%"
               trendUp={true}
               bgColor="bg-gradient-to-r from-green-500 to-green-600"
               onClick={handleReceitasClick}
-              monthText={currentMonthName}
+              monthText={selectedMonthName}
               monthColor="text-green-600"
             />
             <FinancialCard
               title="Despesas"
-              value={`R$ ${despesasDoMes.toFixed(2)}`}
+              value={formatCurrency(despesasDoMes)}
               icon={TrendingDown}
               trend="3%"
               trendUp={false}
               bgColor="bg-gradient-to-r from-red-500 to-red-600"
               onClick={handleDespesasClick}
-              monthText={currentMonthName}
+              monthText={selectedMonthName}
               monthColor="text-red-600"
             />
             <FinancialCard
@@ -191,16 +206,16 @@ const Dashboard: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
                   <span className="text-green-700 font-medium">Receitas Previstas</span>
-                  <span className="text-green-700 font-bold">R$ {receitasPrevistas.toFixed(2)}</span>
+                  <span className="text-green-700 font-bold">{formatCurrency(receitasPrevistas)}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
                   <span className="text-red-700 font-medium">Despesas Previstas</span>
-                  <span className="text-red-700 font-bold">R$ {despesasPrevistas.toFixed(2)}</span>
+                  <span className="text-red-700 font-bold">{formatCurrency(despesasPrevistas)}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
                   <span className="text-blue-700 font-medium">Saldo Previsto</span>
                   <span className={`font-bold ${saldoPrevisto >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
-                    R$ {saldoPrevisto.toFixed(2)}
+                    {formatCurrency(saldoPrevisto)}
                   </span>
                 </div>
               </div>
