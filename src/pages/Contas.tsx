@@ -55,10 +55,18 @@ const Contas: React.FC = () => {
     setYearFilter(year.toString());
   };
 
+  // Handler para mostrar todos os meses
+  const handleShowAll = () => {
+    console.log('Mostrando todos os meses');
+    setMonthFilter('todos');
+    setYearFilter('todos');
+  };
+
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
   const currentYear = parseInt(yearFilter);
+  const isShowingAll = monthFilter === 'todos';
 
   if (loading) {
     return (
@@ -106,6 +114,8 @@ const Contas: React.FC = () => {
             currentMonth={currentMonth}
             currentYear={currentYear}
             onMonthChange={handleMonthChange}
+            onShowAll={handleShowAll}
+            isShowingAll={isShowingAll}
           />
 
           <AccountsTable
