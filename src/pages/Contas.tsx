@@ -7,6 +7,7 @@ import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
+import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
@@ -68,21 +69,19 @@ const Contas: React.FC = () => {
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
-  if (loading) {
-    return (
-      <Layout>
+  const renderContent = () => {
+    if (loading) {
+      return (
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-3">
             <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
             <span className="text-lg text-slate-600">Carregando contas...</span>
           </div>
         </div>
-      </Layout>
-    );
-  }
+      );
+    }
 
-  return (
-    <Layout>
+    return (
       <div className="space-y-6">
         <AccountsHeader onNewAccount={handleNewAccount} />
 
@@ -135,7 +134,15 @@ const Contas: React.FC = () => {
           categories={categories}
         />
       </div>
-    </Layout>
+    );
+  };
+
+  return (
+    <AccessControlWrapper>
+      <Layout>
+        {renderContent()}
+      </Layout>
+    </AccessControlWrapper>
   );
 };
 

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AccountsProvider } from "./contexts/AccountsContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AccessControlWrapper } from "./components/AccessControlWrapper";
 import Dashboard from "./pages/Dashboard";
 import Contas from "./pages/Contas";
 import Categorias from "./pages/Categorias";
@@ -41,7 +42,9 @@ const App = () => {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/" element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <AccessControlWrapper requiresAccess={false}>
+                        <Dashboard />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/contas" element={
@@ -51,37 +54,51 @@ const App = () => {
                   } />
                   <Route path="/categorias" element={
                     <ProtectedRoute>
-                      <Categorias />
+                      <AccessControlWrapper>
+                        <Categorias />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/bancos" element={
                     <ProtectedRoute>
-                      <Bancos />
+                      <AccessControlWrapper>
+                        <Bancos />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/investimentos" element={
                     <ProtectedRoute>
-                      <Investimentos />
+                      <AccessControlWrapper>
+                        <Investimentos />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/investimentos-vencidos" element={
                     <ProtectedRoute>
-                      <InvestimentosVencidos />
+                      <AccessControlWrapper>
+                        <InvestimentosVencidos />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/cartoes-credito" element={
                     <ProtectedRoute>
-                      <CartoesCredito />
+                      <AccessControlWrapper>
+                        <CartoesCredito />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/analise" element={
                     <ProtectedRoute>
-                      <Analise />
+                      <AccessControlWrapper>
+                        <Analise />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/relatorios" element={
                     <ProtectedRoute>
-                      <Relatorios />
+                      <AccessControlWrapper>
+                        <Relatorios />
+                      </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/admin" element={
