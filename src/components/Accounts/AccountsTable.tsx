@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit, Trash2, Calendar, DollarSign, Building2 } from 'lucide-react';
+import { Edit, Trash2, Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Account } from '@/contexts/AccountsContext';
@@ -50,6 +50,16 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
     }
   };
 
+  // Função para obter o ícone correto baseado na fonte de pagamento
+  const getPaymentSourceIcon = (paymentSource?: string) => {
+    if (paymentSource === 'bank') {
+      return <Building2 size={14} />;
+    } else if (paymentSource === 'card') {
+      return <CreditCard size={14} />;
+    }
+    return <Building2 size={14} />; // Default para banco se não especificado
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
@@ -88,7 +98,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 </td>
                 <td className="py-2 px-4">
                   <div className="flex items-center gap-2 text-slate-600">
-                    <Building2 size={14} />
+                    {getPaymentSourceIcon(account.payment_source)}
                     <span className="text-xs">{account.payment_source_name || '-'}</span>
                   </div>
                 </td>
