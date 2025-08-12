@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  BarChart4,
+  FileSearch,
   Receipt, 
   FileText, 
   Tag, 
@@ -19,8 +18,8 @@ const Sidebar = () => {
 
   const menuItems = [
     { 
-      icon: BarChart4, 
-      label: 'Painel Visão Geral', 
+      icon: FileSearch, 
+      label: 'Visão Geral', 
       path: '/', 
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
