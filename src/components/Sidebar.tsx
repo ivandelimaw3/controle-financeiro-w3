@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -11,7 +10,8 @@ import {
   TrendingUp, 
   PieChart,
   Settings,
-  Archive
+  Archive,
+  FileSearch
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -19,8 +19,8 @@ const Sidebar = () => {
 
   const menuItems = [
     { 
-      icon: BarChart4, 
-      label: 'Painel Visão Geral', 
+      icon: FileSearch, 
+      label: 'Visão Geral', 
       path: '/', 
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',

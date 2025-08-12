@@ -47,7 +47,7 @@ export const DashboardMonthNavigator: React.FC<DashboardMonthNavigatorProps> = (
           <FileSearch className="h-6 w-6 text-blue-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-1">Visão Geral</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mb-1">Resumo Financeiro</h1>
           <p className="text-sm text-slate-600">Resumo da sua situação financeira</p>
         </div>
       </div>
