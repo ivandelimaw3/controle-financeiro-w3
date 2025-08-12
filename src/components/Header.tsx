@@ -1,12 +1,21 @@
 
 import React from 'react';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
@@ -22,6 +31,10 @@ export const Header: React.FC = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleChangePassword = () => {
+    navigate('/change-password');
   };
 
   return (
@@ -42,13 +55,25 @@ export const Header: React.FC = () => {
             <p className="text-sm font-medium text-slate-700">Usuário</p>
             <p className="text-xs text-slate-500">{user?.email || 'user@example.com'}</p>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="text-slate-400 hover:text-red-500 transition-colors"
-            title="Sair"
-          >
-            <LogOut size={16} />
-          </button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-md hover:bg-slate-100">
+                <Settings size={16} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleChangePassword} className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                Alterar Senha
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 hover:text-red-700">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
