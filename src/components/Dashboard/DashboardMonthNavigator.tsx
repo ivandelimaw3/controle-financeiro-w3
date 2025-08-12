@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DashboardMonthNavigatorProps {
@@ -42,9 +42,14 @@ export const DashboardMonthNavigator: React.FC<DashboardMonthNavigatorProps> = (
 
   return (
     <div className="flex items-center justify-between mb-6 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
-      <div className="text-left">
-        <h1 className="text-2xl font-bold text-slate-800 mb-1">Resumo Financeiro</h1>
-        <p className="text-sm text-slate-600">Resumo da sua situação financeira</p>
+      <div className="text-left flex items-center gap-3">
+        <div className="p-2 bg-blue-50 rounded-lg">
+          <FileSearch className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-1">Visão Geral</h1>
+          <p className="text-sm text-slate-600">Resumo da sua situação financeira</p>
+        </div>
       </div>
       
       <div className="flex items-center gap-4">
