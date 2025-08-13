@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, Crown, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useTrialStatus } from '@/hooks/useTrialStatus';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ export const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { trialStatus, loading } = useTrialStatus();
 
   const handleLogout = async () => {
     try {
@@ -37,6 +39,42 @@ export const Header: React.FC = () => {
     navigate('/change-password');
   };
 
+  const renderUserStatus = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center gap-1 text-xs text-slate-400">
+          <Clock size={12} />
+          <span>Carregando...</span>
+        </div>
+      );
+    }
+
+    if (trialStatus?.is_premium) {
+      return (
+        <div className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+          <Crown size={12} />
+          <span>Premium</span>
+        </div>
+      );
+    }
+
+    if (trialStatus?.is_trial_active) {
+      return (
+        <div className="flex items-center gap-1 text-xs text-blue-600">
+          <Clock size={12} />
+          <span>Trial - {trialStatus.days_remaining} dias restantes</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-1 text-xs text-red-600">
+        <Clock size={12} />
+        <span>Trial expirado</span>
+      </div>
+    );
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-slate-200 px-6 py-4">
       <div className="flex justify-between items-center">
@@ -54,6 +92,7 @@ export const Header: React.FC = () => {
           <div className="flex-1">
             <p className="text-sm font-medium text-slate-700">Usuário</p>
             <p className="text-xs text-slate-500">{user?.email || 'user@example.com'}</p>
+            {renderUserStatus()}
           </div>
           
           <DropdownMenu>
