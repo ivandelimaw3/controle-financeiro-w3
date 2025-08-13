@@ -24,39 +24,90 @@ const Auth: React.FC = () => {
     }
   }, [user, navigate]);
 
+  const getCustomErrorMessage = (error: any) => {
+    const errorMessage = error?.message?.toLowerCase() || '';
+    
+    if (errorMessage.includes('invalid login credentials') || errorMessage.includes('invalid credentials')) {
+      return 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.';
+    }
+    
+    if (errorMessage.includes('email not confirmed')) {
+      return 'Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.';
+    }
+    
+    if (errorMessage.includes('user already registered') || errorMessage.includes('already registered')) {
+      return 'Este email já está cadastrado. Tente fazer login ou use a opção "Esqueci minha senha".';
+    }
+    
+    if (errorMessage.includes('password') && errorMessage.includes('weak')) {
+      return 'Senha muito fraca. Use pelo menos 6 caracteres com letras e números.';
+    }
+    
+    if (errorMessage.includes('invalid email')) {
+      return 'Email inválido. Verifique o formato do email e tente novamente.';
+    }
+    
+    if (errorMessage.includes('signup disabled')) {
+      return 'Cadastro temporariamente desabilitado. Tente novamente mais tarde.';
+    }
+    
+    if (errorMessage.includes('too many requests')) {
+      return 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.';
+    }
+
+    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      return 'Erro de conexão. Verifique sua internet e tente novamente.';
+    }
+    
+    // Mensagem genérica para outros erros
+    return error?.message || 'Ocorreu um erro inesperado. Tente novamente.';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = isLogin 
-        ? await signIn(email, password)
-        : await signUp(email, password);
+      if (isLogin) {
+        const { error } = await signIn(email, password);
 
-      if (error) {
-        toast({
-          title: "Erro",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        if (isLogin) {
+        if (error) {
           toast({
-            title: "Sucesso",
-            description: "Login realizado com sucesso!"
+            title: "Erro no Login",
+            description: getCustomErrorMessage(error),
+            variant: "destructive"
           });
-          navigate('/');
         } else {
           toast({
-            title: "Cadastro realizado",
-            description: "Verifique seu email para confirmar a conta."
+            title: "Login realizado com sucesso! 🎉",
+            description: `Bem-vindo de volta! Redirecionando para o dashboard...`
           });
+          // Pequeno delay para mostrar a mensagem de sucesso
+          setTimeout(() => navigate('/'), 1000);
+        }
+      } else {
+        const { error } = await signUp(email, password);
+
+        if (error) {
+          toast({
+            title: "Erro no Cadastro",
+            description: getCustomErrorMessage(error),
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Cadastro realizado com sucesso! 📧",
+            description: "Enviamos um email de confirmação. Verifique sua caixa de entrada e clique no link para ativar sua conta."
+          });
+          // Limpar formulário após cadastro bem-sucedido
+          setEmail('');
+          setPassword('');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: "Erro",
-        description: "Ocorreu um erro inesperado.",
+        title: "Erro Inesperado",
+        description: "Algo deu errado. Verifique sua conexão e tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -72,7 +123,7 @@ const Auth: React.FC = () => {
             Controle Financeiro W3
           </CardTitle>
           <CardDescription>
-            {isLogin ? 'Faça login em sua conta' : 'Crie sua nova conta'}
+            {isLogin ? 'Acesse sua conta para continuar' : 'Crie sua conta e comece a organizar suas finanças'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -86,6 +137,7 @@ const Auth: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -93,11 +145,12 @@ const Auth: React.FC = () => {
               <Input
                 id="password"
                 type="password"
-                placeholder="Sua senha"
+                placeholder={isLogin ? "Sua senha" : "Mínimo 6 caracteres"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                disabled={loading}
               />
             </div>
             <Button 
@@ -106,7 +159,10 @@ const Auth: React.FC = () => {
               disabled={loading}
             >
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  {isLogin ? 'Entrando...' : 'Cadastrando...'}
+                </>
               ) : (
                 <>
                   {isLogin ? (
@@ -117,7 +173,7 @@ const Auth: React.FC = () => {
                   ) : (
                     <>
                       <UserPlus className="h-4 w-4 mr-2" />
-                      Cadastrar
+                      Criar Conta
                     </>
                   )}
                 </>
@@ -128,15 +184,38 @@ const Auth: React.FC = () => {
           <div className="mt-4 text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setEmail('');
+                setPassword('');
+              }}
               className="text-sm text-blue-600 hover:text-blue-800 underline"
+              disabled={loading}
             >
               {isLogin 
-                ? 'Não tem uma conta? Cadastre-se' 
-                : 'Já tem uma conta? Faça login'
+                ? 'Não tem uma conta? Criar conta gratuita' 
+                : 'Já tem uma conta? Fazer login'
               }
             </button>
           </div>
+
+          {isLogin && (
+            <div className="mt-2 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  toast({
+                    title: "Recuperação de Senha",
+                    description: "Digite seu email acima e clique em 'Esqueci minha senha' para receber as instruções."
+                  });
+                }}
+                className="text-xs text-gray-500 hover:text-gray-700 underline"
+                disabled={loading}
+              >
+                Esqueceu sua senha?
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
