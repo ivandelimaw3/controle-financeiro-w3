@@ -1,3 +1,4 @@
+
 import { Toaster } from "sonner";
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +21,7 @@ import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
 import CartoesCredito from "./pages/CartoesCredito";
 import ChangePassword from "./pages/ChangePassword";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +42,7 @@ const App = () => {
               <div className="min-h-screen">
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/change-password" element={
                     <ProtectedRoute>
                       <ChangePassword />

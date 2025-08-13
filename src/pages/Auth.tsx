@@ -1,19 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, UserPlus } from 'lucide-react';
+import { Loader2, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -24,8 +26,41 @@ const Auth: React.FC = () => {
     }
   }, [user, navigate]);
 
+  useEffect(() => {
+    // Recupera tentativas do localStorage
+    const attempts = localStorage.getItem('loginAttempts');
+    const lastAttempt = localStorage.getItem('lastLoginAttempt');
+    
+    if (attempts && lastAttempt) {
+      const attemptsCount = parseInt(attempts);
+      const lastAttemptTime = new Date(lastAttempt);
+      const now = new Date();
+      const timeDiff = now.getTime() - lastAttemptTime.getTime();
+      const hoursDiff = timeDiff / (1000 * 60 * 60);
+      
+      // Reset tentativas após 1 hora
+      if (hoursDiff >= 1) {
+        localStorage.removeItem('loginAttempts');
+        localStorage.removeItem('lastLoginAttempt');
+        setLoginAttempts(0);
+        setIsBlocked(false);
+      } else if (attemptsCount >= 3) {
+        setLoginAttempts(attemptsCount);
+        setIsBlocked(true);
+      } else {
+        setLoginAttempts(attemptsCount);
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isBlocked) {
+      navigate('/forgot-password');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -34,12 +69,44 @@ const Auth: React.FC = () => {
         : await signUp(email, password);
 
       if (error) {
-        toast({
-          title: "Erro",
-          description: error.message,
-          variant: "destructive"
-        });
+        if (isLogin) {
+          const newAttempts = loginAttempts + 1;
+          setLoginAttempts(newAttempts);
+          localStorage.setItem('loginAttempts', newAttempts.toString());
+          localStorage.setItem('lastLoginAttempt', new Date().toISOString());
+          
+          if (newAttempts >= 3) {
+            setIsBlocked(true);
+            toast({
+              title: "Muitas tentativas",
+              description: "Você será redirecionado para redefinir sua senha.",
+              variant: "destructive"
+            });
+            setTimeout(() => {
+              navigate('/forgot-password');
+            }, 2000);
+            return;
+          } else {
+            toast({
+              title: "Erro",
+              description: `${error.message}. Tentativa ${newAttempts} de 3.`,
+              variant: "destructive"
+            });
+          }
+        } else {
+          toast({
+            title: "Erro",
+            description: error.message,
+            variant: "destructive"
+          });
+        }
       } else {
+        // Reset tentativas em caso de sucesso
+        localStorage.removeItem('loginAttempts');
+        localStorage.removeItem('lastLoginAttempt');
+        setLoginAttempts(0);
+        setIsBlocked(false);
+        
         if (isLogin) {
           toast({
             title: "Sucesso",
@@ -64,6 +131,17 @@ const Auth: React.FC = () => {
     }
   };
 
+  const resetMode = () => {
+    setIsLogin(!isLogin);
+    // Reset tentativas ao mudar para cadastro
+    if (!isLogin) {
+      localStorage.removeItem('loginAttempts');
+      localStorage.removeItem('lastLoginAttempt');
+      setLoginAttempts(0);
+      setIsBlocked(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -76,6 +154,27 @@ const Auth: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {isBlocked && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <div className="flex items-center gap-2 text-red-700">
+                <AlertTriangle size={16} />
+                <span className="text-sm font-medium">Conta temporariamente bloqueada</span>
+              </div>
+              <p className="text-xs text-red-600 mt-1">
+                Muitas tentativas de login. Você será redirecionado para redefinir sua senha.
+              </p>
+            </div>
+          )}
+          
+          {isLogin && loginAttempts > 0 && loginAttempts < 3 && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <div className="flex items-center gap-2 text-yellow-700">
+                <AlertTriangle size={16} />
+                <span className="text-sm">Tentativa {loginAttempts} de 3</span>
+              </div>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -86,6 +185,7 @@ const Auth: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isBlocked}
               />
             </div>
             <div className="space-y-2">
@@ -98,18 +198,21 @@ const Auth: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                disabled={isBlocked}
               />
             </div>
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-              disabled={loading}
+              disabled={loading || isBlocked}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  {isLogin ? (
+                  {isBlocked ? (
+                    "Redirecionando..."
+                  ) : isLogin ? (
                     <>
                       <LogIn className="h-4 w-4 mr-2" />
                       Entrar
@@ -125,11 +228,21 @@ const Auth: React.FC = () => {
             </Button>
           </form>
           
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center space-y-2">
+            {isLogin && !isBlocked && (
+              <Link
+                to="/forgot-password"
+                className="text-sm text-blue-600 hover:text-blue-800 underline block"
+              >
+                Esqueceu sua senha?
+              </Link>
+            )}
+            
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={resetMode}
               className="text-sm text-blue-600 hover:text-blue-800 underline"
+              disabled={isBlocked}
             >
               {isLogin 
                 ? 'Não tem uma conta? Cadastre-se' 
