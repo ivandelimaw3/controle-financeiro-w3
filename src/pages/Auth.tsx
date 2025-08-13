@@ -47,11 +47,20 @@ const Auth: React.FC = () => {
       } else if (attemptsCount >= 3) {
         setLoginAttempts(attemptsCount);
         setIsBlocked(true);
+        // Redireciona automaticamente se estiver bloqueado
+        toast({
+          title: "Usuário bloqueado",
+          description: "Redirecionando para redefinir senha...",
+          variant: "destructive"
+        });
+        setTimeout(() => {
+          navigate('/forgot-password');
+        }, 2000);
       } else {
         setLoginAttempts(attemptsCount);
       }
     }
-  }, []);
+  }, [navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,8 +87,8 @@ const Auth: React.FC = () => {
           if (newAttempts >= 3) {
             setIsBlocked(true);
             toast({
-              title: "Muitas tentativas",
-              description: "Você será redirecionado para redefinir sua senha.",
+              title: "Usuário bloqueado",
+              description: "Muitas tentativas. Redirecionando para redefinir senha...",
               variant: "destructive"
             });
             setTimeout(() => {
@@ -142,6 +151,36 @@ const Auth: React.FC = () => {
     }
   };
 
+  // Se o usuário está bloqueado, mostra tela de bloqueio por alguns segundos antes do redirect
+  if (isBlocked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6 text-red-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-red-600">
+              Usuário Bloqueado
+            </CardTitle>
+            <CardDescription>
+              Muitas tentativas de login falharam
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-sm text-slate-600 mb-4">
+              Você será redirecionado para redefinir sua senha...
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+              <span className="text-sm text-red-600">Redirecionando...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -154,18 +193,6 @@ const Auth: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isBlocked && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <div className="flex items-center gap-2 text-red-700">
-                <AlertTriangle size={16} />
-                <span className="text-sm font-medium">Conta temporariamente bloqueada</span>
-              </div>
-              <p className="text-xs text-red-600 mt-1">
-                Muitas tentativas de login. Você será redirecionado para redefinir sua senha.
-              </p>
-            </div>
-          )}
-          
           {isLogin && loginAttempts > 0 && loginAttempts < 3 && (
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
               <div className="flex items-center gap-2 text-yellow-700">
@@ -185,7 +212,6 @@ const Auth: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isBlocked}
               />
             </div>
             <div className="space-y-2">
@@ -198,21 +224,18 @@ const Auth: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                disabled={isBlocked}
               />
             </div>
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-              disabled={loading || isBlocked}
+              disabled={loading}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  {isBlocked ? (
-                    "Redirecionando..."
-                  ) : isLogin ? (
+                  {isLogin ? (
                     <>
                       <LogIn className="h-4 w-4 mr-2" />
                       Entrar
@@ -229,7 +252,7 @@ const Auth: React.FC = () => {
           </form>
           
           <div className="mt-4 text-center space-y-2">
-            {isLogin && !isBlocked && (
+            {isLogin && (
               <Link
                 to="/forgot-password"
                 className="text-sm text-blue-600 hover:text-blue-800 underline block"
@@ -242,7 +265,6 @@ const Auth: React.FC = () => {
               type="button"
               onClick={resetMode}
               className="text-sm text-blue-600 hover:text-blue-800 underline"
-              disabled={isBlocked}
             >
               {isLogin 
                 ? 'Não tem uma conta? Cadastre-se' 
