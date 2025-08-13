@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, UserPlus } from 'lucide-react';
+import { Loader2, LogIn, UserPlus, AlertCircle, CheckCircle, Mail, Shield } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,39 +28,74 @@ const Auth: React.FC = () => {
     const errorMessage = error?.message?.toLowerCase() || '';
     
     if (errorMessage.includes('invalid login credentials') || errorMessage.includes('invalid credentials')) {
-      return 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.';
+      return {
+        title: "🔐 Credenciais Inválidas",
+        message: "Email ou senha incorretos. Verifique suas informações e tente novamente.",
+        icon: AlertCircle
+      };
     }
     
     if (errorMessage.includes('email not confirmed')) {
-      return 'Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.';
+      return {
+        title: "📧 Email Não Confirmado",
+        message: "Verificação necessária: Acesse sua caixa de entrada e clique no link de confirmação para ativar sua conta.",
+        icon: Mail
+      };
     }
     
     if (errorMessage.includes('user already registered') || errorMessage.includes('already registered')) {
-      return 'Este email já está cadastrado. Tente fazer login ou use a opção "Esqueci minha senha".';
+      return {
+        title: "👤 Email Já Cadastrado",
+        message: "Este email já possui uma conta ativa. Faça login ou solicite recuperação de senha se necessário.",
+        icon: AlertCircle
+      };
     }
     
     if (errorMessage.includes('password') && errorMessage.includes('weak')) {
-      return 'Senha muito fraca. Use pelo menos 6 caracteres com letras e números.';
+      return {
+        title: "🔒 Senha Insegura",
+        message: "A senha deve ter pelo menos 6 caracteres. Recomendamos usar letras, números e símbolos para maior segurança.",
+        icon: Shield
+      };
     }
     
     if (errorMessage.includes('invalid email')) {
-      return 'Email inválido. Verifique o formato do email e tente novamente.';
+      return {
+        title: "📮 Email Inválido",
+        message: "Por favor, verifique o formato do email digitado (exemplo: usuario@email.com).",
+        icon: AlertCircle
+      };
     }
     
     if (errorMessage.includes('signup disabled')) {
-      return 'Cadastro temporariamente desabilitado. Tente novamente mais tarde.';
+      return {
+        title: "🚫 Cadastro Temporariamente Indisponível",
+        message: "O sistema está em manutenção. Tente novamente em alguns minutos.",
+        icon: AlertCircle
+      };
     }
     
     if (errorMessage.includes('too many requests')) {
-      return 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.';
+      return {
+        title: "⏱️ Muitas Tentativas",
+        message: "Por segurança, aguarde alguns minutos antes de tentar novamente.",
+        icon: AlertCircle
+      };
     }
 
     if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-      return 'Erro de conexão. Verifique sua internet e tente novamente.';
+      return {
+        title: "🌐 Erro de Conexão",
+        message: "Verifique sua conexão com a internet e tente novamente.",
+        icon: AlertCircle
+      };
     }
     
-    // Mensagem genérica para outros erros
-    return error?.message || 'Ocorreu um erro inesperado. Tente novamente.';
+    return {
+      title: "⚠️ Erro Inesperado",
+      message: "Algo deu errado. Nossa equipe foi notificada. Tente novamente em alguns minutos.",
+      icon: AlertCircle
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,42 +107,44 @@ const Auth: React.FC = () => {
         const { error } = await signIn(email, password);
 
         if (error) {
+          const errorInfo = getCustomErrorMessage(error);
           toast({
-            title: "Erro no Login",
-            description: getCustomErrorMessage(error),
+            title: errorInfo.title,
+            description: errorInfo.message,
             variant: "destructive"
           });
         } else {
           toast({
-            title: "Login realizado com sucesso! 🎉",
-            description: `Bem-vindo de volta! Redirecionando para o dashboard...`
+            title: "🎉 Login Realizado com Sucesso!",
+            description: "Bem-vindo de volta! Redirecionando para seu painel de controle...",
+            className: "bg-green-50 border-green-200"
           });
-          // Pequeno delay para mostrar a mensagem de sucesso
-          setTimeout(() => navigate('/'), 1000);
+          setTimeout(() => navigate('/'), 1200);
         }
       } else {
         const { error } = await signUp(email, password);
 
         if (error) {
+          const errorInfo = getCustomErrorMessage(error);
           toast({
-            title: "Erro no Cadastro",
-            description: getCustomErrorMessage(error),
+            title: errorInfo.title,
+            description: errorInfo.message,
             variant: "destructive"
           });
         } else {
           toast({
-            title: "Cadastro realizado com sucesso! 📧",
-            description: "Enviamos um email de confirmação. Verifique sua caixa de entrada e clique no link para ativar sua conta."
+            title: "✅ Cadastro Realizado com Sucesso!",
+            description: "Enviamos um email de confirmação para " + email + ". Verifique sua caixa de entrada e spam para ativar sua conta.",
+            className: "bg-blue-50 border-blue-200"
           });
-          // Limpar formulário após cadastro bem-sucedido
           setEmail('');
           setPassword('');
         }
       }
     } catch (error: any) {
       toast({
-        title: "Erro Inesperado",
-        description: "Algo deu errado. Verifique sua conexão e tente novamente.",
+        title: "💥 Sistema Temporariamente Indisponível",
+        description: "Nossos servidores estão enfrentando dificuldades. Tente novamente em alguns minutos.",
         variant: "destructive"
       });
     } finally {
@@ -117,19 +154,22 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-md shadow-xl border-slate-200">
+        <CardHeader className="text-center space-y-3">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center mx-auto">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
             Controle Financeiro W3
           </CardTitle>
-          <CardDescription>
-            {isLogin ? 'Acesse sua conta para continuar' : 'Crie sua conta e comece a organizar suas finanças'}
+          <CardDescription className="text-slate-600">
+            {isLogin ? '🔐 Acesse sua conta para continuar' : '✨ Crie sua conta e organize suas finanças'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-700 font-medium">📧 Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -138,10 +178,11 @@ const Auth: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="h-11 border-slate-300 focus:border-blue-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-slate-700 font-medium">🔒 Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -151,29 +192,30 @@ const Auth: React.FC = () => {
                 required
                 minLength={6}
                 disabled={loading}
+                className="h-11 border-slate-300 focus:border-blue-500"
               />
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              className="w-full h-12 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-200"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  {isLogin ? 'Entrando...' : 'Cadastrando...'}
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  {isLogin ? 'Validando credenciais...' : 'Criando sua conta...'}
                 </>
               ) : (
                 <>
                   {isLogin ? (
                     <>
-                      <LogIn className="h-4 w-4 mr-2" />
-                      Entrar
+                      <LogIn className="h-5 w-5 mr-2" />
+                      Entrar na Plataforma
                     </>
                   ) : (
                     <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Criar Conta
+                      <UserPlus className="h-5 w-5 mr-2" />
+                      Criar Conta Gratuita
                     </>
                   )}
                 </>
@@ -181,7 +223,7 @@ const Auth: React.FC = () => {
             </Button>
           </form>
           
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <button
               type="button"
               onClick={() => {
@@ -189,30 +231,31 @@ const Auth: React.FC = () => {
                 setEmail('');
                 setPassword('');
               }}
-              className="text-sm text-blue-600 hover:text-blue-800 underline"
+              className="text-sm text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
               disabled={loading}
             >
               {isLogin 
-                ? 'Não tem uma conta? Criar conta gratuita' 
-                : 'Já tem uma conta? Fazer login'
+                ? '🆕 Não tem uma conta? Criar conta gratuita' 
+                : '👋 Já tem uma conta? Fazer login'
               }
             </button>
           </div>
 
           {isLogin && (
-            <div className="mt-2 text-center">
+            <div className="mt-3 text-center">
               <button
                 type="button"
                 onClick={() => {
                   toast({
-                    title: "Recuperação de Senha",
-                    description: "Digite seu email acima e clique em 'Esqueci minha senha' para receber as instruções."
+                    title: "🔄 Recuperação de Senha",
+                    description: "Digite seu email acima e entre em contato conosco para receber instruções de recuperação.",
+                    className: "bg-amber-50 border-amber-200"
                   });
                 }}
-                className="text-xs text-gray-500 hover:text-gray-700 underline"
+                className="text-xs text-slate-500 hover:text-slate-700 underline transition-colors"
                 disabled={loading}
               >
-                Esqueceu sua senha?
+                🔑 Esqueceu sua senha?
               </button>
             </div>
           )}
