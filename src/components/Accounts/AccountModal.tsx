@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { AccountForm } from './AccountForm';
@@ -185,36 +184,40 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const isEditing = !!(account?.id);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
+        <div className="flex justify-between items-center p-6 border-b border-slate-200 flex-shrink-0">
           <h2 className="text-xl font-semibold text-slate-800">
             {isEditing ? 'Editar Conta' : 'Nova Conta'}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-100"
           >
             <X size={24} />
           </button>
         </div>
 
-        {!isFormReady ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-slate-600">Carregando...</div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {!isFormReady ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-slate-600">Carregando...</div>
+              </div>
+            ) : (
+              <AccountForm
+                formData={formData}
+                setFormData={setFormData}
+                categories={categoriesFromDB || []}
+                onRefreshCategories={handleRefreshCategories}
+                onAddCategory={handleAddCategory}
+                onSubmit={handleSubmit}
+                onCancel={onClose}
+                isEditing={isEditing}
+              />
+            )}
           </div>
-        ) : (
-          <AccountForm
-            formData={formData}
-            setFormData={setFormData}
-            categories={categoriesFromDB || []}
-            onRefreshCategories={handleRefreshCategories}
-            onAddCategory={handleAddCategory}
-            onSubmit={handleSubmit}
-            onCancel={onClose}
-            isEditing={isEditing}
-          />
-        )}
+        </div>
       </div>
     </div>
   );
