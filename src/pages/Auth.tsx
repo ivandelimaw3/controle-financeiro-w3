@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, UserPlus, CheckCircle, Mail, Shield } from 'lucide-react';
+import { Loader2, LogIn, UserPlus, CheckCircle, Mail, Shield, AlertCircle } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -154,7 +154,7 @@ const Auth: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-slate-200">
         <CardHeader className="text-center space-y-3">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center mx-auto p-2">
+          <div className="w-16 h-16 flex items-center justify-center mx-auto">
             <img 
               src="/lovable-uploads/99771e97-fa49-4958-8701-cb3dd88dad1a.png" 
               alt="Controle Financeiro W3" 
@@ -165,7 +165,7 @@ const Auth: React.FC = () => {
             Controle Financeiro W3
           </CardTitle>
           <CardDescription className="text-slate-600">
-            {isLogin ? '🔐 Acesse sua conta para continuar' : '✨ Crie sua conta e organize suas finanças'}
+            {isLogin ? 'Acesse sua conta para continuar' : '✨ Crie sua conta e organize suas finanças'}
           </CardDescription>
         </CardHeader>
         <CardContent>
