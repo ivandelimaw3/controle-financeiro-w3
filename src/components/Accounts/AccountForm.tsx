@@ -15,6 +15,7 @@ interface Account {
   amount: number;
   category: string;
   dueDate: string;
+  dataConta?: string; // Novo campo para data da compra
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
@@ -120,6 +121,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, dueDate: e.target.value });
+  };
+
+  const handleDataContaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, dataConta: e.target.value });
   };
 
   const handleParcellasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -349,7 +354,22 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="dueDate" className="text-slate-700">Data de Início</Label>
+          <Label htmlFor="dataConta" className="text-slate-700">Data da Conta</Label>
+          <div className="relative mt-1">
+            <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
+            <Input
+              id="dataConta"
+              type="date"
+              value={formData.dataConta || ''}
+              onChange={handleDataContaChange}
+              className="pl-10"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="dueDate" className="text-slate-700">Vencimento</Label>
           <div className="relative mt-1">
             <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
             <Input
@@ -362,20 +382,20 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             />
           </div>
         </div>
+      </div>
 
-        <div>
-          <Label htmlFor="qtd_parcelas" className="text-slate-700">Parcelas</Label>
-          <Input
-            id="qtd_parcelas"
-            type="number"
-            min="1"
-            max="60"
-            value={formData.qtd_parcelas || 1}
-            onChange={handleParcellasChange}
-            className="mt-1"
-            placeholder="1"
-          />
-        </div>
+      <div>
+        <Label htmlFor="qtd_parcelas" className="text-slate-700">Parcelas</Label>
+        <Input
+          id="qtd_parcelas"
+          type="number"
+          min="1"
+          max="60"
+          value={formData.qtd_parcelas || 1}
+          onChange={handleParcellasChange}
+          className="mt-1"
+          placeholder="1"
+        />
       </div>
 
       <div className="flex gap-3 pt-4">
