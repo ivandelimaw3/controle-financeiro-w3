@@ -14,6 +14,11 @@ export const useAccountFilters = (accounts: Account[]) => {
   const [monthFilter, setMonthFilter] = useState(today.getMonth().toString());
   const [yearFilter, setYearFilter] = useState(today.getFullYear().toString());
 
+  // Log quando searchTerm muda
+  useEffect(() => {
+    console.log('SearchTerm mudou para:', searchTerm);
+  }, [searchTerm]);
+
   // Aplicar filtros da URL ao carregar a página
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -34,12 +39,27 @@ export const useAccountFilters = (accounts: Account[]) => {
   const filteredAccounts = useMemo(() => {
     console.log('=== INÍCIO DO FILTRO ===');
     console.log('Total de contas:', accounts.length);
+    console.log('Termo de pesquisa:', `"${searchTerm}"`);
     console.log('Filtros ativos:', { searchTerm, statusFilter, typeFilter, monthFilter, yearFilter });
 
     const filtered = accounts
       .filter(account => {
-        const matchesSearch = account.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             account.category.toLowerCase().includes(searchTerm.toLowerCase());
+        // Log detalhado da pesquisa
+        const searchLower = searchTerm.toLowerCase().trim();
+        const descriptionLower = account.description.toLowerCase();
+        const categoryLower = account.category.toLowerCase();
+        
+        const matchesSearch = searchTerm === '' || 
+                             descriptionLower.includes(searchLower) ||
+                             categoryLower.includes(searchLower);
+        
+        if (searchTerm && searchTerm.length > 0) {
+          console.log(`Testando conta: "${account.description}"`);
+          console.log(`- Descrição: "${descriptionLower}" inclui "${searchLower}"? ${descriptionLower.includes(searchLower)}`);
+          console.log(`- Categoria: "${categoryLower}" inclui "${searchLower}"? ${categoryLower.includes(searchLower)}`);
+          console.log(`- Match pesquisa: ${matchesSearch}`);
+        }
+        
         const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
         const matchesType = typeFilter === 'todos' || account.type === typeFilter;
         
@@ -52,21 +72,14 @@ export const useAccountFilters = (accounts: Account[]) => {
         const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
         const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
         
-        // Log detalhado para cada conta quando o filtro de mês não for 'todos'
-        if (monthFilter !== 'todos') {
-          console.log(`Conta: ${account.description}`);
-          console.log(`- Data: ${account.dueDate}`);
-          console.log(`- Mês da conta: ${accountMonth} (${accountDate.toLocaleDateString('pt-BR', { month: 'long' })})`);
-          console.log(`- Filtro de mês: ${monthFilter} (convertido: ${parseInt(monthFilter)})`);
-          console.log(`- Match mês: ${matchesMonth}`);
-          console.log(`- Ano da conta: ${accountYear}`);
-          console.log(`- Filtro de ano: ${yearFilter}`);
-          console.log(`- Match ano: ${matchesYear}`);
-          console.log(`- Resultado final: ${matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear}`);
+        const finalMatch = matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
+        
+        if (searchTerm && searchTerm.length > 0) {
+          console.log(`- Resultado final para "${account.description}": ${finalMatch}`);
           console.log('---');
         }
         
-        return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
+        return finalMatch;
       })
       .sort((a, b) => {
         // Ordenar por data de vencimento de forma decrescente (mais recentes primeiro)
@@ -74,6 +87,9 @@ export const useAccountFilters = (accounts: Account[]) => {
       });
 
     console.log('Contas filtradas:', filtered.length);
+    if (searchTerm) {
+      console.log('Contas que passaram no filtro de pesquisa:', filtered.map(a => a.description));
+    }
     console.log('=== FIM DO FILTRO ===');
     
     return filtered;
