@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, UserPlus, AlertCircle, CheckCircle, Mail, Shield } from 'lucide-react';
+import { Loader2, LogIn, UserPlus, CheckCircle, Mail, Shield } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -30,8 +30,7 @@ const Auth: React.FC = () => {
       return {
         title: "🔐 Credenciais Inválidas",
         message: "Email ou senha incorretos. Verifique suas informações e tente novamente.",
-        icon: AlertCircle
-      };
+       };
     }
     
     if (errorMessage.includes('email not confirmed')) {
