@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
@@ -130,7 +131,8 @@ const Relatorios: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+    if (!dateString) return '-';
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
   };
 
   return (
@@ -363,6 +365,7 @@ const Relatorios: React.FC = () => {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead>Data da Conta</TableHead>
                   <TableHead>Data de Vencimento</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -388,6 +391,7 @@ const Relatorios: React.FC = () => {
                         {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                       </span>
                     </TableCell>
+                    <TableCell>{formatDate(account.dataConta || '')}</TableCell>
                     <TableCell>{formatDate(account.dueDate)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(account.status)}`}>

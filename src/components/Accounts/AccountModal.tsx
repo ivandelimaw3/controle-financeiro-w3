@@ -11,6 +11,7 @@ interface Account {
   amount: number;
   category: string;
   dueDate: string;
+  dataConta?: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
@@ -42,6 +43,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     amount: 0,
     category: '',
     dueDate: '',
+    dataConta: '',
     type: 'despesa',
     status: 'pendente',
     qtd_parcelas: 1,
@@ -85,9 +87,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
     if (account?.id) {
       const formattedDueDate = formatDateForInput(account.dueDate);
+      const formattedDataConta = formatDateForInput(account.dataConta);
       
-      console.log('AccountModal: original date', account.dueDate);
-      console.log('AccountModal: formatted date', formattedDueDate);
+      console.log('AccountModal: original due date', account.dueDate);
+      console.log('AccountModal: formatted due date', formattedDueDate);
+      console.log('AccountModal: original data conta', account.dataConta);
+      console.log('AccountModal: formatted data conta', formattedDataConta);
       
       const newFormData = {
         id: account.id,
@@ -95,6 +100,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         amount: Math.abs(account.amount) || 0,
         category: account.category || '',
         dueDate: formattedDueDate,
+        dataConta: formattedDataConta,
         type: account.type || 'despesa',
         status: account.status || 'pendente',
         qtd_parcelas: 1, // Para edição, sempre 1 parcela
@@ -110,6 +116,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         amount: 0,
         category: '',
         dueDate: '',
+        dataConta: '',
         type: 'despesa',
         status: 'pendente',
         qtd_parcelas: 1,

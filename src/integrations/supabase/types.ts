@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -21,6 +21,7 @@ export type Database = {
           category: string
           created_at: string | null
           creditcards_id: number | null
+          data_conta: string | null
           description: string
           due_date: string
           id: number
@@ -40,6 +41,7 @@ export type Database = {
           category: string
           created_at?: string | null
           creditcards_id?: number | null
+          data_conta?: string | null
           description: string
           due_date: string
           id?: number
@@ -59,6 +61,7 @@ export type Database = {
           category?: string
           created_at?: string | null
           creditcards_id?: number | null
+          data_conta?: string | null
           description?: string
           due_date?: string
           id?: number
@@ -579,9 +582,9 @@ export type Database = {
       check_user_trial_status: {
         Args: { user_uuid: string }
         Returns: {
-          is_trial_active: boolean
-          is_premium: boolean
           days_remaining: number
+          is_premium: boolean
+          is_trial_active: boolean
           trial_end_date: string
         }[]
       }
@@ -592,47 +595,47 @@ export type Database = {
       get_all_users_with_trial_info: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_id: string
-          email: string
           created_at: string
-          trial_start_date: string
-          trial_end_date: string
-          is_trial_active: boolean
-          is_premium: boolean
           days_remaining: number
+          email: string
+          is_premium: boolean
+          is_trial_active: boolean
+          trial_end_date: string
+          trial_start_date: string
+          user_id: string
         }[]
       }
       get_pending_upgrade_requests: {
         Args: Record<PropertyKey, never>
         Returns: {
           id: string
-          user_id: string
-          user_email: string
+          notes: string
           requested_at: string
           status: string
-          notes: string
+          user_email: string
+          user_id: string
         }[]
       }
       get_users_for_admin_review: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_id: string
-          email: string
           created_at: string
-          trial_start_date: string
-          trial_end_date: string
-          is_trial_active: boolean
-          is_premium: boolean
           days_remaining: number
+          email: string
+          is_premium: boolean
+          is_trial_active: boolean
+          needs_attention: boolean
+          trial_end_date: string
+          trial_start_date: string
           upgrade_request_date: string
           upgrade_status: string
-          needs_attention: boolean
+          user_id: string
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -641,14 +644,14 @@ export type Database = {
         Returns: number
       }
       process_upgrade_request: {
-        Args: { request_id: string; new_status: string; admin_notes?: string }
+        Args: { admin_notes?: string; new_status: string; request_id: string }
         Returns: boolean
       }
       process_user_upgrade: {
         Args: {
-          target_user_id: string
-          new_status: string
           make_premium?: boolean
+          new_status: string
+          target_user_id: string
         }
         Returns: boolean
       }
@@ -658,10 +661,10 @@ export type Database = {
       }
       update_user_status: {
         Args: {
-          target_user_id: string
+          extend_trial_days?: number
           is_premium: boolean
           is_trial_active: boolean
-          extend_trial_days?: number
+          target_user_id: string
         }
         Returns: boolean
       }

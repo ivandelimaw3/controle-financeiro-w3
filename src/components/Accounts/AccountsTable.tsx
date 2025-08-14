@@ -70,6 +70,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
               <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
               <th className="text-left p-4 font-semibold text-slate-700">Valor (R$)</th>
               <th className="text-left p-4 font-semibold text-slate-700">Banco/Cartão</th>
+              <th className="text-left p-4 font-semibold text-slate-700">Data da Conta</th>
               <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
               <th className="text-left p-4 font-semibold text-slate-700">Parcela</th>
               <th className="text-left p-4 font-semibold text-slate-700">Status</th>
@@ -100,6 +101,12 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                   <div className="flex items-center gap-2 text-slate-600">
                     {getPaymentSourceIcon(account.payment_source)}
                     <span className="text-xs">{account.payment_source_name || '-'}</span>
+                  </div>
+                </td>
+                <td className="py-2 px-4">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Calendar size={14} />
+                    {formatDate(account.dataConta || '')}
                   </div>
                 </td>
                 <td className="py-2 px-4">
