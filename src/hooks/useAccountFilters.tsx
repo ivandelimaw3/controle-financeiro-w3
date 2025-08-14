@@ -48,15 +48,18 @@ export const useAccountFilters = (accounts: Account[]) => {
         const searchLower = searchTerm.toLowerCase().trim();
         const descriptionLower = account.description.toLowerCase();
         const categoryLower = account.category.toLowerCase();
+        const paymentSourceLower = account.payment_source_name?.toLowerCase() || '';
         
         const matchesSearch = searchTerm === '' || 
                              descriptionLower.includes(searchLower) ||
-                             categoryLower.includes(searchLower);
+                             categoryLower.includes(searchLower) ||
+                             paymentSourceLower.includes(searchLower);
         
         if (searchTerm && searchTerm.length > 0) {
           console.log(`Testando conta: "${account.description}"`);
           console.log(`- Descrição: "${descriptionLower}" inclui "${searchLower}"? ${descriptionLower.includes(searchLower)}`);
           console.log(`- Categoria: "${categoryLower}" inclui "${searchLower}"? ${categoryLower.includes(searchLower)}`);
+          console.log(`- Fonte Pagamento: "${paymentSourceLower}" inclui "${searchLower}"? ${paymentSourceLower.includes(searchLower)}`);
           console.log(`- Match pesquisa: ${matchesSearch}`);
         }
         
