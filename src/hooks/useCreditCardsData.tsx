@@ -65,12 +65,19 @@ export function useCreditCardsData() {
       
       console.log('useCreditCardsData: Dados dos cartões:', data);
       return data as CreditCardData[];
-    }
+    },
+    staleTime: 0, // Dados sempre considerados desatualizados
+    gcTime: 0, // Não manter em cache
+    refetchOnMount: 'always', // Sempre refetch ao montar
+    refetchOnWindowFocus: true, // Refetch ao focar na janela
+    refetchOnReconnect: true // Refetch ao reconectar
   });
 
   // Função para forçar refresh dos dados
   const forceRefresh = async () => {
     console.log('useCreditCardsData: Forçando refresh dos cartões...');
+    // Invalida o cache e força nova busca
+    queryClient.invalidateQueries({ queryKey: ['creditcards'] });
     await refetch();
   };
 

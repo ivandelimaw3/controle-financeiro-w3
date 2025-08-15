@@ -74,10 +74,14 @@ const CartoesCredito = () => {
   const handleEditCard = (card: CreditCardData) => {
     setEditingCard(card);
     setShowCardForm(true);
+    // Refresh dos dados ao abrir modal de edição
+    forceRefresh();
   };
 
   const handleNewCard = () => {
     setShowCardForm(true);
+    // Refresh dos dados ao abrir modal de novo cartão
+    forceRefresh();
   };
 
   const closeCardForm = () => {
