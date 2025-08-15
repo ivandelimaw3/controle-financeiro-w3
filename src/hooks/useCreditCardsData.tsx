@@ -49,6 +49,8 @@ export function useCreditCardsData() {
         throw new Error('Usuário não autenticado');
       }
 
+      console.log('useCreditCardsData: Buscando cartões para usuário:', user.id);
+
       const { data, error } = await supabase
         .from('creditcards')
         .select('*')
@@ -61,9 +63,16 @@ export function useCreditCardsData() {
         throw error;
       }
       
+      console.log('useCreditCardsData: Dados dos cartões:', data);
       return data as CreditCardData[];
     }
   });
+
+  // Função para forçar refresh dos dados
+  const forceRefresh = async () => {
+    console.log('useCreditCardsData: Forçando refresh dos cartões...');
+    await refetch();
+  };
 
   const createCardMutation = useMutation({
     mutationFn: async (cardData: CreditCardFormData) => {
@@ -189,5 +198,6 @@ export function useCreditCardsData() {
     updateCard: updateCardMutation.mutate,
     deleteCard: deleteCardMutation.mutate,
     refetch,
+    forceRefresh,
   };
 }

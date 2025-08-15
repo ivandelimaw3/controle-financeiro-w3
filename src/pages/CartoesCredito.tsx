@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,15 @@ const CartoesCredito = () => {
     updateCard,
     deleteCard,
     isCreating,
-    isUpdating
+    isUpdating,
+    forceRefresh
   } = useCreditCardsData();
+
+  // Fazer refresh dos dados quando a página é carregada
+  useEffect(() => {
+    console.log('CartoesCredito: Componente montado, fazendo refresh dos dados...');
+    forceRefresh();
+  }, [forceRefresh]);
 
   // Filtros
   const filteredCards = creditCards.filter(card => {
