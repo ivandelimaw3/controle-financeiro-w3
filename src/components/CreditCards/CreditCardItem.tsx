@@ -24,10 +24,12 @@ export const CreditCardItem: React.FC<CreditCardItemProps> = ({
   };
 
   const formatCardNumber = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 4) {
-      return numbers;
-    }
+  const numbers = value.replace(/\D/g, '');
+  const lastFour = numbers.slice(-4) || '0000';
+  // Sempre exibe no padrão seguro
+  return `**** **** **** ${lastFour}`;
+};
+
     // Mostra apenas os 4 últimos números, o resto fica mascarado
     const lastFour = numbers.slice(-4);
     const masked = '*'.repeat(numbers.length - 4);
