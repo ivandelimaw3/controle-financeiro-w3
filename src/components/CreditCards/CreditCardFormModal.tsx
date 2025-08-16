@@ -18,9 +18,9 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  // Estado do formulário
   const [formData, setFormData] = useState<CreditCardFormData>({
     card_name: '',
+    card_number: '',
     holder_name: '',
     expiry_date: '',
     due_date: '',
@@ -28,16 +28,13 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
     current_value: 0,
     bank_name: '',
     card_brand: 'visa',
-    last_digits: '', // somente os últimos 4 dígitos
   });
-
-  // Estado temporário para o input do número completo
-  const [cardNumberInput, setCardNumberInput] = useState('');
 
   useEffect(() => {
     if (card) {
       setFormData({
         card_name: card.card_name,
+        card_number: card.card_number,
         holder_name: card.holder_name,
         expiry_date: card.expiry_date,
         due_date: card.due_date || '',
@@ -45,9 +42,7 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         current_value: card.current_value,
         bank_name: card.bank_name || '',
         card_brand: card.card_brand,
-        last_digits: card.last_digits || '',
       });
-      setCardNumberInput(''); // não preencher o número completo
     }
   }, [card]);
 
@@ -55,43 +50,39 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Trata o input do número do cartão
-  const handleCardNumberChange = (value: string) => {
+  const formatCardNumber = (value: string) => {
     // Remove tudo que não é número e limita a 16 dígitos
     const numbers = value.replace(/\D/g, '').slice(0, 16);
-    setCardNumberInput(numbers);
-
-    // Armazena apenas os últimos 4 dígitos no formData
-    const lastFour = numbers.slice(-4);
-    handleChange('last_digits', lastFour);
-  };
-
-  const formatCardNumberInput = (value: string) => {
-    // Formata o input temporário apenas visualmente
-    return value.replace(/(\d{4})(?=\d)/g, '$1 ');
+    // Formata com espaços a cada 4 dígitos
+    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ');
   };
 
   const formatExpiryDate = (value: string) => {
+    // Remove tudo que não é número
     const numbers = value.replace(/\D/g, '');
-    const limited = numbers.slice(0, 6); // MMYYYY
-    if (limited.length >= 4) return `${limited.slice(0,2)}/${limited.slice(2)}`;
-    if (limited.length >= 2) return `${limited.slice(0,2)}/${limited.slice(2)}`;
+    
+    // Limita a 6 dígitos (MM/AAAA)
+    const limited = numbers.slice(0, 6);
+    
+    // Formata como MM/AAAA
+    if (limited.length >= 4) {
+      return ${limited.slice(0, 2)}/${limited.slice(2)};
+    } else if (limited.length >= 2) {
+      return ${limited.slice(0, 2)}/${limited.slice(2)};
+    }
+    
     return limited;
   };
 
   const handleExpiryDateChange = (value: string) => {
-    handleChange('expiry_date', formatExpiryDate(value));
+    const formatted = formatExpiryDate(value);
+    handleChange('expiry_date', formatted);
   };
 
   const availableLimit = (formData.credit_limit || 0) - (formData.current_value || 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData); // envia apenas os últimos 4 dígitos
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={e => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
       <div>
         <Label htmlFor="holder_name">Nome do Usuário *</Label>
         <Input
@@ -122,8 +113,8 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
           id="card_number"
           type="text"
           maxLength={19}
-          value={formatCardNumberInput(cardNumberInput)}
-          onChange={e => handleCardNumberChange(e.target.value)}
+          value={formatCardNumber(formData.card_number)}
+          onChange={e => handleChange('card_number', e.target.value.replace(/\D/g, ''))}
           placeholder="1234 5678 9012 3456"
           required
         />
@@ -180,18 +171,32 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         </div>
       </div>
 
+      {/* Limite disponível calculado */}
       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
         <span className="text-sm font-medium text-gray-700">Limite Disponível:</span>
         <span className="text-sm font-bold text-green-600">
-          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(availableLimit)}
+          {new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(availableLimit)}
         </span>
       </div>
 
+      {/* Botões de ação */}
       <div className="flex space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="flex-1"
+        >
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading} className="flex-1 bg-blue-600 hover:bg-blue-700">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="flex-1 bg-blue-600 hover:bg-blue-700"
+        >
           <Save className="h-4 w-4 mr-2" />
           {isLoading ? 'Salvando...' : 'Salvar Cartão'}
         </Button>
