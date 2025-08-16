@@ -69,8 +69,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   }
 
   const formatCurrencyInput = (value: number): string => {
-    if (isNaN(value) || value === null || value === undefined || value === 0) {
-      return '';
+    if (isNaN(value) || value === null || value === undefined) {
+      return '0,00';
     }
     return new Intl.NumberFormat('pt-BR', {
       minimumFractionDigits: 2,
@@ -213,10 +213,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-      return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
+      return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance || 0)}` : null;
     } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
       const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
-      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
+      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value || 0)}` : null;
     }
     
     return null;

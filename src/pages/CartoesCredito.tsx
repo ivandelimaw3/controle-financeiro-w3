@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import { Layout } from '@/components/Layout';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CreditCardsHeader } from '@/components/CreditCards/CreditCardsHeader';
 import { CreditCardsSummary } from '@/components/CreditCards/CreditCardsSummary';
@@ -121,16 +119,8 @@ const CartoesCredito = () => {
       <Dialog open={showCardForm} onOpenChange={setShowCardForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>{editingCard ? 'Editar Cartão' : 'Adicionar Novo Cartão'}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeCardForm}
-                className="h-6 w-6 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <DialogTitle>
+              {editingCard ? 'Editar Cartão' : 'Adicionar Novo Cartão'}
             </DialogTitle>
           </DialogHeader>
           
