@@ -27,12 +27,7 @@ export const CreditCardsHeader: React.FC<CreditCardsHeaderProps> = ({
             <h1 className="text-2xl font-bold text-gray-900">Controle de Cartões</h1>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <User className="h-5 w-5 text-gray-500" />
-          <span className="text-sm text-gray-600">João Silva</span>
-        </div>
-      </div>
-
+        
       {/* Título principal e ações */}
       <div className="flex items-center justify-between">
         <div>
