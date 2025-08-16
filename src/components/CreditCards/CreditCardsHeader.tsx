@@ -26,7 +26,6 @@ export const CreditCardsHeader: React.FC<CreditCardsHeaderProps> = ({
             <h1 className="text-2xl font-bold text-gray-900">Controle de Cartões</h1>
           </div>
         </div>
-        {/* Ícone e nome removidos */}
       </div>
 
       {/* Título principal e ações */}
@@ -36,6 +35,11 @@ export const CreditCardsHeader: React.FC<CreditCardsHeaderProps> = ({
           <p className="text-gray-600 mt-1">Gerencie seus cartões e acompanhe seus gastos</p>
         </div>
         <div className="flex items-center space-x-3">
+          {/* Botão agora vem antes do campo de busca */}
+          <Button onClick={onNewCard} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Cartão
+          </Button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -45,10 +49,6 @@ export const CreditCardsHeader: React.FC<CreditCardsHeaderProps> = ({
               className="pl-10 w-64"
             />
           </div>
-          <Button onClick={onNewCard} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Cartão
-          </Button>
         </div>
       </div>
     </>
