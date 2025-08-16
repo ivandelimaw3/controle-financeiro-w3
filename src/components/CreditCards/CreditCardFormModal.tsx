@@ -51,43 +51,11 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Máscara para número do cartão - apenas os 4 últimos dígitos editáveis
   const formatCardNumber = (value: string) => {
-    // Remove tudo que não é número
-    const numbers = value.replace(/\D/g, '');
-    
-    // Se está editando um cartão existente, mantém os primeiros 12 dígitos
-    if (card && card.card_number) {
-      const existingNumbers = card.card_number.replace(/\D/g, '');
-      const first12 = existingNumbers.slice(0, 12);
-      const last4 = numbers.slice(-4).padStart(4, '0');
-      const fullNumber = (first12 + last4).slice(0, 16);
-      return fullNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
-    }
-    
-    // Para novo cartão, preenche com zeros à esquerda e permite editar apenas os últimos 4
-    const last4 = numbers.slice(-4);
-    const paddedNumber = last4.padStart(16, '0');
-    return paddedNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
-  };
-
-  const handleCardNumberChange = (value: string) => {
-    // Remove espaços e caracteres não numéricos
-    const cleanValue = value.replace(/\D/g, '');
-    
-    if (card && card.card_number) {
-      // Modo edição: mantém os primeiros 12 dígitos, permite editar apenas os últimos 4
-      const existingNumbers = card.card_number.replace(/\D/g, '');
-      const first12 = existingNumbers.slice(0, 12);
-      const inputLast4 = cleanValue.slice(-4);
-      const fullNumber = first12 + inputLast4;
-      handleChange('card_number', fullNumber);
-    } else {
-      // Modo criação: permite apenas 4 dígitos
-      const last4 = cleanValue.slice(-4);
-      const paddedNumber = last4.padStart(16, '0');
-      handleChange('card_number', paddedNumber);
-    }
+    // Remove tudo que não é número e limita a 16 dígitos
+    const numbers = value.replace(/\D/g, '').slice(0, 16);
+    // Formata com espaços a cada 4 dígitos
+    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ');
   };
 
   const formatExpiryDate = (value: string) => {
@@ -141,17 +109,14 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
       </div>
 
       <div>
-        <Label htmlFor="card_number">
-          Número do Cartão * 
-          {!card && <span className="text-sm text-gray-500 ml-2">(Digite apenas os 4 últimos dígitos)</span>}
-        </Label>
+        <Label htmlFor="card_number">Número do Cartão *</Label>
         <Input
           id="card_number"
           type="text"
           maxLength={19}
           value={formatCardNumber(formData.card_number)}
-          onChange={e => handleCardNumberChange(e.target.value)}
-          placeholder={card ? "•••• •••• •••• ••••" : "0000 0000 0000 ••••"}
+          onChange={e => handleChange('card_number', e.target.value.replace(/\D/g, ''))}
+          placeholder="1234 5678 9012 3456"
           required
         />
       </div>
