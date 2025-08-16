@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const cardNumberRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<CreditCardFormData>({
     card_name: '',
     card_number: '',
@@ -44,27 +44,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         bank_name: card.bank_name || '',
         card_brand: card.card_brand,
       });
-    } else {
-      // Para novo cartão, inicia com zeros
-      setFormData(prev => ({
-        ...prev,
-        card_number: '0000000000000000'
-      }));
-    }
-  }, [card]);
-
-  // Posiciona o cursor nos últimos 4 dígitos quando o campo recebe foco
-  useEffect(() => {
-    if (!card && cardNumberRef.current) {
-      const timer = setTimeout(() => {
-        const input = cardNumberRef.current;
-        if (input) {
-          input.focus();
-          // Posiciona o cursor no início dos últimos 4 dígitos (posição 14 no formato "0000 0000 0000 0000")
-          input.setSelectionRange(13, 13);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
     }
   }, [card]);
 
@@ -108,42 +87,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
       const last4 = cleanValue.slice(-4);
       const paddedNumber = last4.padStart(16, '0');
       handleChange('card_number', paddedNumber);
-    }
-  };
-
-  const handleCardNumberFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (!card) {
-      // Para novo cartão, posiciona o cursor nos últimos 4 dígitos
-      setTimeout(() => {
-        e.target.setSelectionRange(14, 19); // Seleciona os últimos 4 dígitos
-      }, 0);
-    }
-  };
-
-  const handleCardNumberClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    if (!card) {
-      // Impede que o cursor seja posicionado antes dos últimos 4 dígitos para novos cartões
-      const target = e.target as HTMLInputElement;
-      if (target.selectionStart !== null && target.selectionStart < 14) {
-        setTimeout(() => {
-          target.setSelectionRange(14, 14);
-        }, 0);
-      }
-    }
-  };
-
-  const handleCardNumberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!card) {
-      const target = e.target as HTMLInputElement;
-      // Impede navegação para antes dos últimos 4 dígitos
-      if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && target.selectionStart !== null && target.selectionStart <= 14) {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-        }
-        if (e.key === 'Backspace' && target.selectionStart < 14) {
-          e.preventDefault();
-        }
-      }
     }
   };
 
@@ -203,15 +146,11 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
           {!card && <span className="text-sm text-gray-500 ml-2">(Digite apenas os 4 últimos dígitos)</span>}
         </Label>
         <Input
-          ref={cardNumberRef}
           id="card_number"
           type="text"
           maxLength={19}
           value={formatCardNumber(formData.card_number)}
           onChange={e => handleCardNumberChange(e.target.value)}
-          onFocus={handleCardNumberFocus}
-          onClick={handleCardNumberClick}
-          onKeyDown={handleCardNumberKeyDown}
           placeholder={card ? "•••• •••• •••• ••••" : "0000 0000 0000 ••••"}
           required
         />
