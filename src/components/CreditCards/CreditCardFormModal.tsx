@@ -61,7 +61,7 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         if (input) {
           input.focus();
           // Posiciona o cursor no início dos últimos 4 dígitos (posição 14 no formato "0000 0000 0000 0000")
-          input.setSelectionRange(14, 14);
+          input.setSelectionRange(13, 13);
         }
       }, 100);
       return () => clearTimeout(timer);
