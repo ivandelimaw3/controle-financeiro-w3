@@ -23,11 +23,15 @@ export const CreditCardItem: React.FC<CreditCardItemProps> = ({
     }).format(value);
   };
 
-  const formatCardNumber = (value?: string) => {
-    if (!value) return '**** **** **** 0000';
+  const formatCardNumber = (value: string) => {
     const numbers = value.replace(/\D/g, '');
-    const lastFour = numbers.slice(-4) || '0000';
-    return `**** **** **** ${lastFour}`;
+    if (numbers.length <= 4) {
+      return numbers;
+    }
+    // Mostra apenas os 4 últimos números, o resto fica mascarado
+    const lastFour = numbers.slice(-4);
+    const masked = '*'.repeat(numbers.length - 4);
+    return `${masked} ${lastFour}`;
   };
 
   const getStatusLabel = (currentValue: number, creditLimit: number) => {
@@ -71,7 +75,7 @@ export const CreditCardItem: React.FC<CreditCardItemProps> = ({
       <div className="space-y-3">
         <div>
           <p className="text-sm text-gray-600">Número do Cartão</p>
-          <p className="font-mono text-gray-900">{formatCardNumber(card.last_digits)}</p>
+          <p className="font-mono text-gray-900">{formatCardNumber(card.card_number)}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -81,7 +85,9 @@ export const CreditCardItem: React.FC<CreditCardItemProps> = ({
           </div>
           <div>
             <p className="text-sm text-gray-600">Vencimento</p>
-            <p className="text-gray-900">{card.due_date || 'Não informado'}</p>
+            <p className="text-gray-900">
+              {card.due_date || 'Não informado'}
+            </p>
           </div>
         </div>
 
