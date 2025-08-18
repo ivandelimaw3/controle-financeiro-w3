@@ -53,7 +53,7 @@ export function useCardAccountsData() {
       }
 
       const { data, error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .select(`
           *,
           creditcard:creditcards(card_name, card_number)
@@ -66,7 +66,7 @@ export function useCardAccountsData() {
         throw error;
       }
       
-      return data as CardAccountData[];
+      return (data || []) as CardAccountData[];
     },
   });
 
@@ -78,7 +78,7 @@ export function useCardAccountsData() {
       }
 
       const { data, error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .insert({
           ...accountData,
           user_id: user.id,
@@ -114,7 +114,7 @@ export function useCardAccountsData() {
   const updateCardAccountMutation = useMutation({
     mutationFn: async ({ id, accountData }: { id: number; accountData: CardAccountFormData }) => {
       const { data, error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .update(accountData)
         .eq('id', id)
         .select()
@@ -148,7 +148,7 @@ export function useCardAccountsData() {
   const deleteCardAccountMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .delete()
         .eq('id', id);
 

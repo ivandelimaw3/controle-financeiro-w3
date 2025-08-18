@@ -26,6 +26,15 @@ export function useCardAccountFilters(cardAccounts: CardAccountData[]) {
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
+  const clearFilters = () => {
+    setFilters({
+      status: '',
+      category: '',
+      creditcard: '',
+      search: ''
+    });
+  };
+
   const navigateMonth = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
       if (selectedMonth === 0) {
@@ -85,6 +94,7 @@ export function useCardAccountFilters(cardAccounts: CardAccountData[]) {
   return {
     filters,
     updateFilters,
+    clearFilters,
     filteredAccounts,
     selectedMonth,
     currentYear,

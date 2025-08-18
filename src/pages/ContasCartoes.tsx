@@ -28,6 +28,7 @@ const ContasCartoes = () => {
   const {
     filters,
     updateFilters,
+    clearFilters,
     filteredAccounts,
     selectedMonth,
     currentYear,
@@ -103,6 +104,7 @@ const ContasCartoes = () => {
         <CardAccountsFilters
           filters={filters}
           onFiltersChange={updateFilters}
+          onClearFilters={clearFilters}
         />
 
         <CardAccountsSummaryCards accounts={filteredAccounts} />
