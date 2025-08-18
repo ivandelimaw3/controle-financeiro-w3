@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,37 +52,38 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
   };
 
   const formatCardNumber = (value: string) => {
+    // Remove tudo que não é número e limita a 16 dígitos
     const numbers = value.replace(/\D/g, '').slice(0, 16);
+    // Formata com espaços a cada 4 dígitos
     return numbers.replace(/(\d{4})(?=\d)/g, '$1 ');
   };
 
   const formatExpiryDate = (value: string) => {
+    // Remove tudo que não é número
     const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 6 dígitos (MM/AAAA)
     const limited = numbers.slice(0, 6);
-
+    
+    // Formata como MM/AAAA
     if (limited.length >= 4) {
       return `${limited.slice(0, 2)}/${limited.slice(2)}`;
     } else if (limited.length >= 2) {
       return `${limited.slice(0, 2)}/${limited.slice(2)}`;
     }
-
+    
     return limited;
   };
 
   const handleExpiryDateChange = (value: string) => {
-    handleChange('expiry_date', formatExpiryDate(value));
+    const formatted = formatExpiryDate(value);
+    handleChange('expiry_date', formatted);
   };
 
   const availableLimit = (formData.credit_limit || 0) - (formData.current_value || 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Nome do Usuário */}
+    <form onSubmit={e => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
       <div>
         <Label htmlFor="holder_name">Nome do Usuário *</Label>
         <Input
@@ -94,7 +96,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         />
       </div>
 
-      {/* Nome do Cartão */}
       <div>
         <Label htmlFor="card_name">Nome do Cartão *</Label>
         <Input
@@ -107,7 +108,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         />
       </div>
 
-      {/* Número do Cartão */}
       <div>
         <Label htmlFor="card_number">Número do Cartão *</Label>
         <Input
@@ -121,7 +121,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         />
       </div>
 
-      {/* Data de Validade e Vencimento */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="expiry_date">Data de Validade *</Label>
@@ -147,7 +146,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         </div>
       </div>
 
-      {/* Limite de Crédito e Valor Atual */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="credit_limit">Limite de Crédito *</Label>
@@ -174,20 +172,32 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
         </div>
       </div>
 
-      {/* Limite disponível */}
+      {/* Limite disponível calculado */}
       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
         <span className="text-sm font-medium text-gray-700">Limite Disponível:</span>
         <span className="text-sm font-bold text-green-600">
-          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(availableLimit)}
+          {new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(availableLimit)}
         </span>
       </div>
 
-      {/* Botões */}
+      {/* Botões de ação */}
       <div className="flex space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="flex-1"
+        >
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading} className="flex-1 bg-blue-600 hover:bg-blue-700">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="flex-1 bg-blue-600 hover:bg-blue-700"
+        >
           <Save className="h-4 w-4 mr-2" />
           {isLoading ? 'Salvando...' : 'Salvar Cartão'}
         </Button>

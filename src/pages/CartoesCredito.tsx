@@ -1,6 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import { Layout } from '@/components/Layout';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CreditCardsHeader } from '@/components/CreditCards/CreditCardsHeader';
 import { CreditCardsSummary } from '@/components/CreditCards/CreditCardsSummary';
@@ -21,15 +23,8 @@ const CartoesCredito = () => {
     updateCard,
     deleteCard,
     isCreating,
-    isUpdating,
-    forceRefresh
+    isUpdating
   } = useCreditCardsData();
-
-  // Fazer refresh dos dados quando a página é carregada
-  useEffect(() => {
-    console.log('CartoesCredito: Componente montado, fazendo refresh dos dados...');
-    forceRefresh();
-  }, [forceRefresh]);
 
   // Filtros
   const filteredCards = creditCards.filter(card => {
@@ -72,14 +67,10 @@ const CartoesCredito = () => {
   const handleEditCard = (card: CreditCardData) => {
     setEditingCard(card);
     setShowCardForm(true);
-    // Refresh dos dados ao abrir modal de edição
-    forceRefresh();
   };
 
   const handleNewCard = () => {
     setShowCardForm(true);
-    // Refresh dos dados ao abrir modal de novo cartão
-    forceRefresh();
   };
 
   const closeCardForm = () => {
@@ -119,8 +110,16 @@ const CartoesCredito = () => {
       <Dialog open={showCardForm} onOpenChange={setShowCardForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {editingCard ? 'Editar Cartão' : 'Adicionar Novo Cartão'}
+            <DialogTitle className="flex items-center justify-between">
+              <span>{editingCard ? 'Editar Cartão' : 'Adicionar Novo Cartão'}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeCardForm}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </DialogTitle>
           </DialogHeader>
           

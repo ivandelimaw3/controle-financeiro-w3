@@ -77,6 +77,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "accounts_creditcards_id_fkey"
+            columns: ["creditcards_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_bank"
             columns: ["bank_id"]
             isOneToOne: false
@@ -124,61 +131,56 @@ export type Database = {
         }
         Relationships: []
       }
-      card_accounts: {
+      cards: {
         Row: {
-          amount: number
-          category: string
+          bank_name: string | null
+          card_brand: string | null
+          card_name: string
+          card_number: string
           created_at: string | null
-          creditcard_id: number
-          data_conta: string | null
-          description: string
-          due_date: string
+          credit_limit: number | null
+          current_value: number | null
+          due_date: string | null
+          expiry_date: string
+          holder_name: string
           id: number
-          parcela: string | null
-          recorrente_id: string | null
-          status: string
+          is_active: boolean | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          amount: number
-          category: string
+          bank_name?: string | null
+          card_brand?: string | null
+          card_name: string
+          card_number: string
           created_at?: string | null
-          creditcard_id: number
-          data_conta?: string | null
-          description: string
-          due_date: string
+          credit_limit?: number | null
+          current_value?: number | null
+          due_date?: string | null
+          expiry_date: string
+          holder_name: string
           id?: number
-          parcela?: string | null
-          recorrente_id?: string | null
-          status?: string
+          is_active?: boolean | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          amount?: number
-          category?: string
+          bank_name?: string | null
+          card_brand?: string | null
+          card_name?: string
+          card_number?: string
           created_at?: string | null
-          creditcard_id?: number
-          data_conta?: string | null
-          description?: string
-          due_date?: string
+          credit_limit?: number | null
+          current_value?: number | null
+          due_date?: string | null
+          expiry_date?: string
+          holder_name?: string
           id?: number
-          parcela?: string | null
-          recorrente_id?: string | null
-          status?: string
+          is_active?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "card_accounts_creditcard_id_fkey"
-            columns: ["creditcard_id"]
-            isOneToOne: false
-            referencedRelation: "creditcards"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       categories: {
         Row: {
