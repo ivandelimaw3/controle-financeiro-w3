@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreditCardsOptions } from '@/hooks/useCreditCardsOptions';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
+import { useToast } from '@/hooks/use-toast';
 import type { CardAccountData, CardAccountFormData } from '@/hooks/useCardAccountsData';
 
 interface CardAccountFormProps {
@@ -18,6 +19,7 @@ interface CardAccountFormProps {
 export const CardAccountForm = ({ account, onSubmit, onCancel, isLoading }: CardAccountFormProps) => {
   const { cards } = useCreditCardsOptions();
   const { categories } = useCategoriesData();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState<CardAccountFormData>({
     creditcard_id: 0,

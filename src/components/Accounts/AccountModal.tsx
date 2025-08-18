@@ -17,7 +17,7 @@ interface Account {
   recorrente_id?: string;
   qtd_parcelas?: number;
   bank_id?: number;
-  payment_source?: 'bank' | 'card';
+  payment_source?: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
 }
@@ -47,7 +47,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente',
     qtd_parcelas: 1,
     bank_id: undefined,
-    payment_source: undefined,
+    payment_source: 'bank',
     payment_source_id: undefined,
     payment_source_name: undefined
   });
@@ -102,9 +102,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         dataConta: formattedDataConta,
         type: account.type || 'despesa',
         status: account.status || 'pendente',
-        qtd_parcelas: 1, // Para edição, sempre 1 parcela
+        qtd_parcelas: 1,
         bank_id: account.bank_id,
-        payment_source: account.payment_source,
+        payment_source: 'bank',
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name
       };
@@ -120,13 +120,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: 'pendente',
         qtd_parcelas: 1,
         bank_id: undefined,
-        payment_source: undefined,
+        payment_source: 'bank',
         payment_source_id: undefined,
         payment_source_name: undefined
       });
     }
 
-    // Refresh das categorias e marcar como pronto
     refreshCategories().finally(() => {
       setIsFormReady(true);
     });
