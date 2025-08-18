@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
+import { Calendar, DollarSign, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CategorySelect } from './CategorySelect';
 import { Category } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
-import { useCardsOptions } from '@/hooks/useCardsOptions';
 
 interface Account {
   id?: number;
@@ -22,7 +22,7 @@ interface Account {
   recorrente_id?: string;
   qtd_parcelas?: number;
   bank_id?: number;
-  payment_source?: 'bank' | 'card';
+  payment_source?: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
 }
@@ -49,10 +49,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   isEditing
 }) => {
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
-  const { cardsOptions, loading: cardsLoading } = useCardsOptions();
 
-  // DEBUG: Log dos dados dos cartões
-  console.log('AccountForm: cardsOptions:', cardsOptions);
+  // DEBUG: Log dos dados dos bancos
+  console.log('AccountForm: banksOptions:', banksOptions);
   console.log('AccountForm: formData.payment_source:', formData.payment_source);
   console.log('AccountForm: formData.payment_source_id:', formData.payment_source_id);
 
@@ -132,34 +131,22 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, qtd_parcelas: value });
   };
 
-  const handlePaymentSourceChange = (value: 'bank' | 'card') => {
-    setFormData({ 
-      ...formData, 
-      payment_source: value,
-      payment_source_id: undefined, // Reset source ID when changing source type
-      payment_source_name: undefined // Reset source name when changing source type
-    });
-  };
+  const handleBankChange = (value: string) => {
+    const bankId = parseInt(value);
+    let bankName = '';
 
-  const handlePaymentSourceIdChange = (value: string) => {
-    const sourceId = parseInt(value);
-    let sourceName = '';
+    // Obter o nome do banco selecionado
+    const bank = banksOptions.find(b => b.id === value);
+    bankName = bank?.name || '';
 
-    // Obter o nome da fonte selecionada
-    if (formData.payment_source === 'bank') {
-      const bank = banksOptions.find(b => b.id === value);
-      sourceName = bank?.name || '';
-    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      const card = cardsOptions.find(c => c.id === value);
-      sourceName = card?.name || '';
-    }
-
-    console.log('Selecionada fonte:', formData.payment_source, 'ID:', sourceId, 'Nome:', sourceName);
+    console.log('Selecionado banco ID:', bankId, 'Nome:', bankName);
 
     setFormData({ 
       ...formData, 
-      payment_source_id: sourceId,
-      payment_source_name: sourceName // Adicionar o nome da fonte
+      payment_source: 'bank',
+      payment_source_id: bankId,
+      payment_source_name: bankName,
+      bank_id: bankId // Manter compatibilidade com campo bank_id
     });
   };
 
@@ -168,19 +155,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     e.preventDefault();
     
     // Validação da fonte de pagamento
-    if (formData.payment_source && !formData.payment_source_id) {
-      alert('Por favor, selecione uma fonte de pagamento específica (banco ou cartão).');
+    if (!formData.payment_source_id) {
+      alert('Por favor, selecione um banco.');
       return;
-    }
-    
-    // Se não há fonte selecionada, limpar os campos para evitar erro no banco
-    if (!formData.payment_source) {
-      setFormData({
-        ...formData,
-        payment_source: undefined,
-        payment_source_id: undefined,
-        payment_source_name: undefined
-      });
     }
     
     console.log('Dados enviados:', formData);
@@ -189,37 +166,20 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     onSubmit(e);
   };
 
-  // Obter o nome da fonte de pagamento selecionada
-  const getSelectedSourceName = () => {
-    if (!formData.payment_source || !formData.payment_source_id) return '';
+  // Obter o nome do banco selecionado
+  const getSelectedBankName = () => {
+    if (!formData.payment_source_id) return '';
     
-    if (formData.payment_source === 'bank') {
-      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-      return bank?.name || '';
-    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
-      console.log('getSelectedSourceName: Procurando cartão com ID:', formData.payment_source_id?.toString());
-      console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
-      console.log('getSelectedSourceName: Cartão encontrado:', card);
-      return card?.name || '';
-    }
-    
-    return '';
+    const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
+    return bank?.name || '';
   };
 
-  // Obter o saldo atual da fonte de pagamento
-  const getSelectedSourceBalance = () => {
-    if (!formData.payment_source || !formData.payment_source_id) return null;
+  // Obter o saldo atual do banco
+  const getSelectedBankBalance = () => {
+    if (!formData.payment_source_id) return null;
     
-    if (formData.payment_source === 'bank') {
-      const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-      return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance || 0)}` : null;
-    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
-      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
-      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value || 0)}` : null;
-    }
-    
-    return null;
+    const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
+    return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance || 0)}` : null;
   };
 
   return (
@@ -271,71 +231,43 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         </div>
       </div>
 
-      {/* Fonte do Pagamento */}
+      {/* Banco */}
       <div>
-        <Label htmlFor="payment_source" className="text-slate-700">
-          Fonte do Pagamento <span className="text-red-500">*</span>
+        <Label htmlFor="bank" className="text-slate-700">
+          Banco <span className="text-red-500">*</span>
         </Label>
-        <div className="grid grid-cols-2 gap-4 mt-1">
+        <div className="mt-1">
           <Select
-            value={formData.payment_source || ''}
-            onValueChange={handlePaymentSourceChange}
+            value={formData.payment_source_id?.toString() || ''}
+            onValueChange={handleBankChange}
             required
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione a fonte" />
+              <SelectValue placeholder="Selecione o banco" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="bank">
-                <div className="flex items-center gap-2">
-                  <Building2 size={16} />
-                  <span>Banco</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="card">
-                <div className="flex items-center gap-2">
-                  <CreditCard size={16} />
-                  <span>Cartão</span>
-                </div>
-              </SelectItem>
+              {banksOptions.map((bank) => (
+                <SelectItem key={bank.id} value={bank.id}>
+                  <div className="flex items-center gap-2">
+                    <Building2 size={16} />
+                    <span>{bank.name}</span>
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-
-          {formData.payment_source && (
-            <Select
-              value={formData.payment_source_id?.toString() || ''}
-              onValueChange={handlePaymentSourceIdChange}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={`Selecione ${formData.payment_source === 'bank' ? 'o banco' : 'o cartão'}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {formData.payment_source === 'bank' && banksOptions.map((bank) => (
-                  <SelectItem key={bank.id} value={bank.id}>
-                    {bank.name}
-                  </SelectItem>
-                ))}
-                {formData.payment_source === 'card' && Array.isArray(cardsOptions) && cardsOptions.map((card) => (
-                  <SelectItem key={card.id} value={card.id}>
-                    {card.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
         </div>
         
-        {/* Exibir informações da fonte selecionada */}
-        {formData.payment_source && formData.payment_source_id && (
+        {/* Exibir informações do banco selecionado */}
+        {formData.payment_source_id && (
           <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-slate-700">
-                {getSelectedSourceName()}
+                {getSelectedBankName()}
               </span>
-              {getSelectedSourceBalance() && (
+              {getSelectedBankBalance() && (
                 <span className="text-sm text-slate-600">
-                  {getSelectedSourceBalance()}
+                  {getSelectedBankBalance()}
                 </span>
               )}
             </div>
