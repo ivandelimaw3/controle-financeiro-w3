@@ -2,6 +2,7 @@
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreditCardsOptions } from '@/hooks/useCreditCardsOptions';
 import { useCategoriesData } from '@/hooks/useCategoriesData';

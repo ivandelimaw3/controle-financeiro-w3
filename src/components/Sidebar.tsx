@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -33,6 +34,14 @@ const Sidebar = () => {
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       hoverBg: 'hover:bg-green-100'
+    },
+    { 
+      icon: CreditCard, 
+      label: 'Contas Cartões', 
+      path: '/contas-cartoes', 
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      hoverBg: 'hover:bg-red-100'
     },
     { 
       icon: FileText, 

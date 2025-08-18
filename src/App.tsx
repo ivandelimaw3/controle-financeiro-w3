@@ -1,130 +1,160 @@
-import { Toaster } from "sonner";
-import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
-import { AccountsProvider } from "./contexts/AccountsContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { AccessControlWrapper } from "./components/AccessControlWrapper";
-import Dashboard from "./pages/Dashboard";
-import Contas from "./pages/Contas";
-import Categorias from "./pages/Categorias";
-import Relatorios from "./pages/Relatorios";
-import Bancos from "./pages/Bancos";
-import Investimentos from "./pages/Investimentos";
-import InvestimentosVencidos from "./pages/InvestimentosVencidos";
-import Admin from "./pages/Admin";
-import Auth from "./pages/Auth";
-import Analise from "./pages/Analise";
-import NotFound from "./pages/NotFound";
-import CartoesCredito from "./pages/CartoesCredito";
-import ChangePassword from "./pages/ChangePassword";
+
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import Index from '@/pages/Index';
+import Auth from '@/pages/Auth';
+import Dashboard from '@/pages/Dashboard';
+import Contas from '@/pages/Contas';
+import ContasCartoes from '@/pages/ContasCartoes';
+import Relatorios from '@/pages/Relatorios';
+import Categorias from '@/pages/Categorias';
+import Bancos from '@/pages/Bancos';
+import CartoesCredito from '@/pages/CartoesCredito';
+import CartoesNovo from '@/pages/CartoesNovo';
+import Investimentos from '@/pages/Investimentos';
+import InvestimentosVencidos from '@/pages/InvestimentosVencidos';
+import Analise from '@/pages/Analise';
+import Admin from '@/pages/Admin';
+import ChangePassword from '@/pages/ChangePassword';
+import NotFound from '@/pages/NotFound';
+import { AccountsProvider } from '@/contexts/AccountsContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      staleTime: 0,
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
 
-const App = () => {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <AccountsProvider>
-              <div className="min-h-screen">
-                <Routes>
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/change-password" element={
+      <AuthProvider>
+        <AccountsProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50">
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/change-password" element={<ChangePassword />} />
+                <Route
+                  path="/"
+                  element={
                     <ProtectedRoute>
-                      <ChangePassword />
+                      <Index />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/" element={
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper requiresAccess={false}>
-                        <Dashboard />
-                      </AccessControlWrapper>
+                      <Dashboard />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/contas" element={
+                  }
+                />
+                <Route
+                  path="/contas"
+                  element={
                     <ProtectedRoute>
                       <Contas />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/categorias" element={
+                  }
+                />
+                <Route
+                  path="/contas-cartoes"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <Categorias />
-                      </AccessControlWrapper>
+                      <ContasCartoes />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/bancos" element={
+                  }
+                />
+                <Route
+                  path="/relatorios"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <Bancos />
-                      </AccessControlWrapper>
+                      <Relatorios />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/investimentos" element={
+                  }
+                />
+                <Route
+                  path="/categorias"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <Investimentos />
-                      </AccessControlWrapper>
+                      <Categorias />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/investimentos-vencidos" element={
+                  }
+                />
+                <Route
+                  path="/bancos"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <InvestimentosVencidos />
-                      </AccessControlWrapper>
+                      <Bancos />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/cartoes-credito" element={
+                  }
+                />
+                <Route
+                  path="/cartoes-credito"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <CartoesCredito />
-                      </AccessControlWrapper>
+                      <CartoesCredito />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/analise" element={
+                  }
+                />
+                <Route
+                  path="/cartoes-credito/novo"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <Analise />
-                      </AccessControlWrapper>
+                      <CartoesNovo />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/relatorios" element={
+                  }
+                />
+                <Route
+                  path="/investimentos"
+                  element={
                     <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <Relatorios />
-                      </AccessControlWrapper>
+                      <Investimentos />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/admin" element={
+                  }
+                />
+                <Route
+                  path="/investimentos-vencidos"
+                  element={
+                    <ProtectedRoute>
+                      <InvestimentosVencidos />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analise"
+                  element={
+                    <ProtectedRoute>
+                      <Analise />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
                     <ProtectedRoute>
                       <Admin />
                     </ProtectedRoute>
-                  } />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster 
-                  duration={2000}
-                  closeButton={true}
+                  }
                 />
-                <ShadcnToaster />
-              </div>
-            </AccountsProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <Toaster />
+          </Router>
+        </AccountsProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
