@@ -132,7 +132,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, qtd_parcelas: value });
   };
 
-  // Agora o campo só aceita 'bank' como valor
   const handlePaymentSourceChange = (value: 'bank') => {
     setFormData({ 
       ...formData, 
@@ -146,7 +145,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     const sourceId = parseInt(value);
     let sourceName = '';
 
-    // Obter o nome da fonte selecionada (agora só pode ser banco)
+    // Obter o nome da fonte selecionada
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === value);
       sourceName = bank?.name || '';
@@ -165,8 +164,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação da fonte de pagamento - agora só precisa verificar se tem banco selecionado
-    if (!formData.payment_source_id) {
+    // Validação da fonte de pagamento
+    if (formData.payment_source && !formData.payment_source_id) {
       alert('Por favor, selecione um banco.');
       return;
     }
@@ -189,7 +188,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   // Obter o nome da fonte de pagamento selecionada
   const getSelectedSourceName = () => {
-    if (!formData.payment_source_id) return '';
+    if (!formData.payment_source || !formData.payment_source_id) return '';
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
@@ -201,7 +200,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   // Obter o saldo atual da fonte de pagamento
   const getSelectedSourceBalance = () => {
-    if (!formData.payment_source_id) return null;
+    if (!formData.payment_source || !formData.payment_source_id) return null;
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
@@ -260,20 +259,20 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         </div>
       </div>
 
-      {/* Fonte do Pagamento - Apenas Banco */}
+      {/* Fonte do Pagamento - Restringido apenas para Banco */}
       <div>
         <Label htmlFor="payment_source" className="text-slate-700">
           Fonte do Pagamento <span className="text-red-500">*</span>
         </Label>
-        <div className="mt-1">
-          {/* Primeiro select para escolher o tipo de fonte (agora só mostra banco) */}
+        <div className="grid grid-cols-1 gap-4 mt-1">
+          {/* Primeiro select - Restrito apenas para Banco */}
           <Select
-            value={'bank'} // Valor fixo para banco
+            value={formData.payment_source || ''}
             onValueChange={handlePaymentSourceChange}
-            disabled // Desabilita para mostrar apenas banco
+            required
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Selecione a fonte" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="bank">
@@ -285,23 +284,25 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             </SelectContent>
           </Select>
 
-          {/* Segundo select para selecionar o banco específico */}
-          <Select
-            value={formData.payment_source_id?.toString() || ''}
-            onValueChange={handlePaymentSourceIdChange}
-            required
-          >
-            <SelectTrigger className="mt-2">
-              <SelectValue placeholder="Selecione o banco" />
-            </SelectTrigger>
-            <SelectContent>
-              {banksOptions.map((bank) => (
-                <SelectItem key={bank.id} value={bank.id}>
-                  {bank.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Segundo select - Seleção do banco específico */}
+          {formData.payment_source === 'bank' && (
+            <Select
+              value={formData.payment_source_id?.toString() || ''}
+              onValueChange={handlePaymentSourceIdChange}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o banco" />
+              </SelectTrigger>
+              <SelectContent>
+                {banksOptions.map((bank) => (
+                  <SelectItem key={bank.id} value={bank.id}>
+                    {bank.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         
         {/* Exibir informações da fonte selecionada */}
