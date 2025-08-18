@@ -124,6 +124,62 @@ export type Database = {
         }
         Relationships: []
       }
+      card_accounts: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          creditcard_id: number
+          data_conta: string | null
+          description: string
+          due_date: string
+          id: number
+          parcela: string | null
+          recorrente_id: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          creditcard_id: number
+          data_conta?: string | null
+          description: string
+          due_date: string
+          id?: number
+          parcela?: string | null
+          recorrente_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          creditcard_id?: number
+          data_conta?: string | null
+          description?: string
+          due_date?: string
+          id?: number
+          parcela?: string | null
+          recorrente_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_accounts_creditcard_id_fkey"
+            columns: ["creditcard_id"]
+            isOneToOne: false
+            referencedRelation: "creditcards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string
