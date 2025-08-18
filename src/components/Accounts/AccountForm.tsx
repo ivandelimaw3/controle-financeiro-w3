@@ -22,7 +22,7 @@ interface Account {
   recorrente_id?: string;
   qtd_parcelas?: number;
   bank_id?: number;
-  payment_source?: 'bank'; // Alterado para apenas 'bank'
+  payment_source?: 'bank' | 'card';
   payment_source_id?: number;
   payment_source_name?: string;
 }
@@ -132,7 +132,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, qtd_parcelas: value });
   };
 
-  const handlePaymentSourceChange = (value: 'bank') => {
+  const handlePaymentSourceChange = (value: 'bank' | 'card') => {
     setFormData({ 
       ...formData, 
       payment_source: value,
@@ -149,6 +149,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === value);
       sourceName = bank?.name || '';
+    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
+      const card = cardsOptions.find(c => c.id === value);
+      sourceName = card?.name || '';
     }
 
     console.log('Selecionada fonte:', formData.payment_source, 'ID:', sourceId, 'Nome:', sourceName);
@@ -166,7 +169,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     
     // Validação da fonte de pagamento
     if (formData.payment_source && !formData.payment_source_id) {
-      alert('Por favor, selecione um banco.');
+      alert('Por favor, selecione uma fonte de pagamento específica (banco ou cartão).');
       return;
     }
     
@@ -188,11 +191,17 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   // Obter o nome da fonte de pagamento selecionada
   const getSelectedSourceName = () => {
-    if (!formData.payment_source_id) return '';
+    if (!formData.payment_source || !formData.payment_source_id) return '';
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
       return bank?.name || '';
+    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
+      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
+      console.log('getSelectedSourceName: Procurando cartão com ID:', formData.payment_source_id?.toString());
+      console.log('getSelectedSourceName: Cartões disponíveis:', cardsOptions.map(c => ({ id: c.id, name: c.name })));
+      console.log('getSelectedSourceName: Cartão encontrado:', card);
+      return card?.name || '';
     }
     
     return '';
@@ -200,14 +209,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   // Obter o saldo atual da fonte de pagamento
   const getSelectedSourceBalance = () => {
-    if (!formData.payment_source_id) return null;
+    if (!formData.payment_source || !formData.payment_source_id) return null;
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-      if (bank && typeof bank.balance === 'number') {
-        return `Saldo: R$ ${formatCurrencyInput(bank.balance)}`;
-      }
-      return null;
+      return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
+    } else if (formData.payment_source === 'card' && Array.isArray(cardsOptions)) {
+      const card = cardsOptions.find(c => c.id === formData.payment_source_id?.toString());
+      return card ? `Valor Atual: R$ ${formatCurrencyInput(card.current_value)}` : null;
     }
     
     return null;
@@ -262,13 +271,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         </div>
       </div>
 
-      {/* Fonte do Pagamento - Restringido apenas para Banco */}
+      {/* Fonte do Pagamento */}
       <div>
         <Label htmlFor="payment_source" className="text-slate-700">
           Fonte do Pagamento <span className="text-red-500">*</span>
         </Label>
-        <div className="grid grid-cols-1 gap-4 mt-1">
-          {/* Primeiro select - Restrito apenas para Banco */}
+        <div className="grid grid-cols-2 gap-4 mt-1">
           <Select
             value={formData.payment_source || ''}
             onValueChange={handlePaymentSourceChange}
@@ -284,23 +292,33 @@ export const AccountForm: React.FC<AccountFormProps> = ({
                   <span>Banco</span>
                 </div>
               </SelectItem>
+              <SelectItem value="card">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={16} />
+                  <span>Cartão</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
 
-          {/* Segundo select - Seleção do banco específico */}
-          {formData.payment_source === 'bank' && (
+          {formData.payment_source && (
             <Select
               value={formData.payment_source_id?.toString() || ''}
               onValueChange={handlePaymentSourceIdChange}
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o banco" />
+                <SelectValue placeholder={`Selecione ${formData.payment_source === 'bank' ? 'o banco' : 'o cartão'}`} />
               </SelectTrigger>
               <SelectContent>
-                {banksOptions.map((bank) => (
+                {formData.payment_source === 'bank' && banksOptions.map((bank) => (
                   <SelectItem key={bank.id} value={bank.id}>
                     {bank.name}
+                  </SelectItem>
+                ))}
+                {formData.payment_source === 'card' && Array.isArray(cardsOptions) && cardsOptions.map((card) => (
+                  <SelectItem key={card.id} value={card.id}>
+                    {card.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -308,8 +326,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
           )}
         </div>
         
-        {/* Exibir informações da fonte selecionada - Mostra nome e saldo em uma única linha */}
-        {formData.payment_source_id && (
+        {/* Exibir informações da fonte selecionada */}
+        {formData.payment_source && formData.payment_source_id && (
           <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-slate-700">
@@ -402,24 +420,3 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     </form>
   );
 };
-```
-
-A única mudança que fiz foi na função `getSelectedSourceBalance` para adicionar uma verificação adicional:
-
-```tsx
-const getSelectedSourceBalance = () => {
-  if (!formData.payment_source_id) return null;
-  
-  if (formData.payment_source === 'bank') {
-    const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-    if (bank && typeof bank.balance === 'number') {
-      return `Saldo: R$ ${formatCurrencyInput(bank.balance)}`;
-    }
-    return null;
-  }
-  
-  return null;
-};
-```
-
-Agora o código está seguro contra erros quando o `bank.balance` for undefined ou não for um número válido.
