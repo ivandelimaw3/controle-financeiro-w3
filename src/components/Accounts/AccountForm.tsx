@@ -1,3 +1,4 @@
+```tsx
 import React from 'react';
 import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,8 +50,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   isEditing
 }) => {
   const { banksOptions, isLoading: banksLoading } = useBanksOptions();
- 
-   // Verificação de segurança
+  const { cardsOptions, loading: cardsLoading } = useCardsOptions();
+
+  // DEBUG: Log dos dados dos cartões
+  console.log('AccountForm: cardsOptions:', cardsOptions);
+  console.log('AccountForm: formData.payment_source:', formData.payment_source);
+  console.log('AccountForm: formData.payment_source_id:', formData.payment_source_id);
+
+  // Verificação de segurança
   if (!formData) {
     return (
       <div className="text-center py-8">
@@ -306,4 +313,91 @@ export const AccountForm: React.FC<AccountFormProps> = ({
               <span className="text-sm font-medium text-slate-700">
                 {getSelectedSourceName()}
               </span>
-              {getSelectedSourceBalance()
+              {getSelectedSourceBalance() && (
+                <span className="text-sm text-slate-600">
+                  {getSelectedSourceBalance()}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <CategorySelect
+        value={formData.category || ''}
+        onValueChange={handleCategoryChange}
+        categories={categories || []}
+        accountType={formData.type || 'despesa'}
+        onRefresh={onRefreshCategories}
+        onAddCategory={onAddCategory}
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="dataConta" className="text-slate-700">Data da Conta</Label>
+          <div className="relative mt-1">
+            <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
+            <Input
+              id="dataConta"
+              type="date"
+              value={formData.dataConta || ''}
+              onChange={handleDataContaChange}
+              className="pl-10"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="dueDate" className="text-slate-700">Vencimento</Label>
+          <div className="relative mt-1">
+            <Calendar size={16} className="absolute left-3 top-3 text-slate-400" />
+            <Input
+              id="dueDate"
+              type="date"
+              value={formData.dueDate || ''}
+              onChange={handleDateChange}
+              className="pl-10"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="qtd_parcelas" className="text-slate-700">Parcelas</Label>
+        <Input
+          id="qtd_parcelas"
+          type="number"
+          min="1"
+          max="60"
+          value={formData.qtd_parcelas || 1}
+          onChange={handleParcellasChange}
+          className="mt-1"
+          placeholder="1"
+        />
+      </div>
+
+      <div className="flex gap-3 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="flex-1"
+        >
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+        >
+          {isEditing ? 'Atualizar' : 
+           (formData.qtd_parcelas && formData.qtd_parcelas > 1) ? 
+           `Criar ${formData.qtd_parcelas} Parcelas` : 
+           'Criar'}
+        </Button>
+      </div>
+    </form>
+  );
+};
+```
