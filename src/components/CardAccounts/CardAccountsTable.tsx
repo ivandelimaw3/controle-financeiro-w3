@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit, Trash2, Calendar, CreditCard } from 'lucide-react';
+import { Edit, Trash2, Calendar, CreditCard, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,10 +12,19 @@ interface CardAccountsTableProps {
   accounts: CardAccountData[];
   onEdit: (account: CardAccountData) => void;
   onDelete: (id: number) => void;
+  onToggleStatus: (id: number, currentStatus: string) => void;
   isDeleting: boolean;
+  isUpdating: boolean;
 }
 
-export const CardAccountsTable = ({ accounts, onEdit, onDelete, isDeleting }: CardAccountsTableProps) => {
+export const CardAccountsTable = ({ 
+  accounts, 
+  onEdit, 
+  onDelete, 
+  onToggleStatus, 
+  isDeleting,
+  isUpdating 
+}: CardAccountsTableProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -71,7 +80,7 @@ export const CardAccountsTable = ({ accounts, onEdit, onDelete, isDeleting }: Ca
             <TableHead>Vencimento</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Parcela</TableHead>
-            <TableHead className="w-32">Ações</TableHead>
+            <TableHead className="w-40">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -96,6 +105,17 @@ export const CardAccountsTable = ({ accounts, onEdit, onDelete, isDeleting }: Ca
               <TableCell>{account.parcela || '-'}</TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">
+                  {account.status === 'pendente' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onToggleStatus(account.id, account.status)}
+                      disabled={isUpdating}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

@@ -19,6 +19,7 @@ const ContasCartoes = () => {
     error,
     createCardAccount,
     updateCardAccount,
+    toggleCardAccountStatus,
     deleteCardAccount,
     isCreating,
     isUpdating,
@@ -53,6 +54,14 @@ const ContasCartoes = () => {
       } catch (error) {
         console.error('Erro ao atualizar conta do cartão:', error);
       }
+    }
+  };
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      await toggleCardAccountStatus({ id, currentStatus });
+    } catch (error) {
+      console.error('Erro ao alterar status da conta:', error);
     }
   };
 
@@ -113,7 +122,9 @@ const ContasCartoes = () => {
           accounts={filteredAccounts}
           onEdit={handleEditAccount}
           onDelete={handleDeleteAccount}
+          onToggleStatus={handleToggleStatus}
           isDeleting={isDeleting}
+          isUpdating={isUpdating}
         />
       </div>
 
