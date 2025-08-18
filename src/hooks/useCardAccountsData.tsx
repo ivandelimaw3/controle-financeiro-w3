@@ -147,20 +147,9 @@ export function useCardAccountsData() {
 
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, currentStatus }: { id: number; currentStatus: string }) => {
-      // Buscar os dados da conta primeiro
-      const { data: accountData, error: fetchError } = await supabase
-        .from('card_accounts' as any)
-        .select('*, creditcard:creditcards(id, current_value)')
-        .eq('id', id)
-        .single();
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
+      // O trigger do banco vai gerenciar automaticamente a atualização do saldo do cartão
       const newStatus = currentStatus === 'pendente' ? 'pago' : 'pendente';
       
-      // Atualizar o status da conta
       const { data, error } = await supabase
         .from('card_accounts' as any)
         .update({ status: newStatus })
@@ -170,33 +159,6 @@ export function useCardAccountsData() {
 
       if (error) {
         throw error;
-      }
-
-      // Se mudou para "pago", somar o valor ao cartão
-      if (newStatus === 'pago' && accountData.creditcard) {
-        const newCurrentValue = accountData.creditcard.current_value + accountData.amount;
-        
-        const { error: updateCardError } = await supabase
-          .from('creditcards')
-          .update({ current_value: newCurrentValue })
-          .eq('id', accountData.creditcard_id);
-
-        if (updateCardError) {
-          throw updateCardError;
-        }
-      }
-      // Se mudou para "pendente", subtrair o valor do cartão
-      else if (currentStatus === 'pago' && accountData.creditcard) {
-        const newCurrentValue = accountData.creditcard.current_value - accountData.amount;
-        
-        const { error: updateCardError } = await supabase
-          .from('creditcards')
-          .update({ current_value: newCurrentValue })
-          .eq('id', accountData.creditcard_id);
-
-        if (updateCardError) {
-          throw updateCardError;
-        }
       }
 
       return data;

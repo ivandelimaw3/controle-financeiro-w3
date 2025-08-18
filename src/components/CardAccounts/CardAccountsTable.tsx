@@ -43,12 +43,14 @@ export const CardAccountsTable = ({
   const getStatusBadge = (status: string) => {
     const variants = {
       'pendente': 'secondary',
-      'pago': 'default'
+      'pago': 'default',
+      'recebido': 'default'
     } as const;
 
     const labels = {
       'pendente': 'Pendente',
-      'pago': 'Pago'
+      'pago': 'Pago',
+      'recebido': 'Recebido'
     };
 
     return (
@@ -112,6 +114,7 @@ export const CardAccountsTable = ({
                       onClick={() => onToggleStatus(account.id, account.status)}
                       disabled={isUpdating}
                       className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      title="Marcar como pago"
                     >
                       <Check className="h-4 w-4" />
                     </Button>
@@ -120,6 +123,7 @@ export const CardAccountsTable = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(account)}
+                    title="Editar"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -128,6 +132,7 @@ export const CardAccountsTable = ({
                     size="sm"
                     onClick={() => onDelete(account.id)}
                     disabled={isDeleting}
+                    title="Excluir"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

@@ -159,6 +159,7 @@ export const CardAccountForm = ({ account, onSubmit, onCancel, isLoading }: Card
             <SelectContent>
               <SelectItem value="pendente">Pendente</SelectItem>
               <SelectItem value="pago">Pago</SelectItem>
+              <SelectItem value="recebido">Recebido</SelectItem>
             </SelectContent>
           </Select>
         </div>
