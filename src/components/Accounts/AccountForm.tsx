@@ -188,7 +188,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   // Obter o nome da fonte de pagamento selecionada
   const getSelectedSourceName = () => {
-    if (!formData.payment_source || !formData.payment_source_id) return '';
+    if (!formData.payment_source_id) return '';
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
@@ -200,7 +200,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
   // Obter o saldo atual da fonte de pagamento
   const getSelectedSourceBalance = () => {
-    if (!formData.payment_source || !formData.payment_source_id) return null;
+    if (!formData.payment_source_id) return null;
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
@@ -305,7 +305,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
           )}
         </div>
         
-        {/* Exibir informações da fonte selecionada */}
+        {/* Exibir informações da fonte selecionada - Mostra nome e saldo em uma única linha */}
         {formData.payment_source_id && (
           <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
             <div className="flex items-center justify-between">
