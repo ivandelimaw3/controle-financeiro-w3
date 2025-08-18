@@ -49,6 +49,44 @@ export const CardAccountForm = ({ account, onSubmit, onCancel, isLoading }: Card
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.creditcard_id || formData.creditcard_id === 0) {
+      toast({
+        title: "Erro de validação",
+        description: "Selecione um cartão de crédito",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      toast({
+        title: "Erro de validação", 
+        description: "Preencha a descrição",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.category) {
+      toast({
+        title: "Erro de validação",
+        description: "Selecione uma categoria",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.amount <= 0) {
+      toast({
+        title: "Erro de validação",
+        description: "O valor deve ser maior que zero",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Submetendo dados do formulário:', formData);
     onSubmit(formData);
   };
 
@@ -62,7 +100,7 @@ export const CardAccountForm = ({ account, onSubmit, onCancel, isLoading }: Card
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="creditcard_id">Cartão *</Label>
+        <Label htmlFor="creditcard_id">Cartão de Crédito *</Label>
         <Select
           value={formData.creditcard_id.toString()}
           onValueChange={(value) => handleChange('creditcard_id', parseInt(value))}
@@ -159,7 +197,6 @@ export const CardAccountForm = ({ account, onSubmit, onCancel, isLoading }: Card
             <SelectContent>
               <SelectItem value="pendente">Pendente</SelectItem>
               <SelectItem value="pago">Pago</SelectItem>
-              <SelectItem value="recebido">Recebido</SelectItem>
             </SelectContent>
           </Select>
         </div>

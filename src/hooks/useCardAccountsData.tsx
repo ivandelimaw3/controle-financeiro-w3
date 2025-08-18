@@ -52,8 +52,10 @@ export function useCardAccountsData() {
         throw new Error('Usuário não autenticado');
       }
 
+      console.log('useCardAccountsData: Buscando contas dos cartões para usuário:', user.id);
+
       const { data, error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .select(`
           *,
           creditcard:creditcards(card_name, card_number)
@@ -66,7 +68,8 @@ export function useCardAccountsData() {
         throw error;
       }
       
-      return (data || []) as any as CardAccountData[];
+      console.log('useCardAccountsData: Dados encontrados:', data);
+      return (data || []) as CardAccountData[];
     },
   });
 
@@ -77,8 +80,10 @@ export function useCardAccountsData() {
         throw new Error('Usuário não autenticado');
       }
 
+      console.log('Criando conta do cartão:', accountData);
+
       const { data, error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .insert({
           ...accountData,
           user_id: user.id,
@@ -91,6 +96,7 @@ export function useCardAccountsData() {
         throw error;
       }
 
+      console.log('Conta criada com sucesso:', data);
       return data;
     },
     onSuccess: () => {
@@ -114,8 +120,10 @@ export function useCardAccountsData() {
 
   const updateCardAccountMutation = useMutation({
     mutationFn: async ({ id, accountData }: { id: number; accountData: CardAccountFormData }) => {
+      console.log('Atualizando conta do cartão:', { id, accountData });
+
       const { data, error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .update(accountData)
         .eq('id', id)
         .select()
@@ -126,6 +134,7 @@ export function useCardAccountsData() {
         throw error;
       }
 
+      console.log('Conta atualizada com sucesso:', data);
       return data;
     },
     onSuccess: () => {
@@ -157,7 +166,7 @@ export function useCardAccountsData() {
       console.log('Novo status será:', newStatus);
       
       const { data, error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .update({ status: newStatus })
         .eq('id', id)
         .select()
@@ -195,15 +204,19 @@ export function useCardAccountsData() {
 
   const deleteCardAccountMutation = useMutation({
     mutationFn: async (id: number) => {
+      console.log('Deletando conta do cartão:', id);
+
       const { error } = await supabase
-        .from('card_accounts' as any)
+        .from('card_accounts')
         .delete()
         .eq('id', id);
 
       if (error) {
+        console.error('Erro ao deletar conta:', error);
         throw error;
       }
 
+      console.log('Conta deletada com sucesso:', id);
       return id;
     },
     onSuccess: () => {

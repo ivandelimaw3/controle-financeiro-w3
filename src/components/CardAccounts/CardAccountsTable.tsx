@@ -43,14 +43,12 @@ export const CardAccountsTable = ({
   const getStatusBadge = (status: string) => {
     const variants = {
       'pendente': 'secondary',
-      'pago': 'default',
-      'recebido': 'default'
+      'pago': 'default'
     } as const;
 
     const labels = {
       'pendente': 'Pendente',
-      'pago': 'Pago',
-      'recebido': 'Recebido'
+      'pago': 'Pago'
     };
 
     return (
