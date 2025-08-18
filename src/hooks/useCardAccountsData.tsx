@@ -160,7 +160,6 @@ export function useCardAccountsData() {
     mutationFn: async ({ id, currentStatus }: { id: number; currentStatus: string }) => {
       console.log('Iniciando toggle de status:', { id, currentStatus });
       
-      // O trigger do banco vai gerenciar automaticamente a atualização do saldo do cartão
       const newStatus = currentStatus === 'pendente' ? 'pago' : 'pendente';
       
       console.log('Novo status será:', newStatus);

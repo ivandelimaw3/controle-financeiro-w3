@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { AccountForm } from './AccountForm';
@@ -53,17 +54,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   });
   const [isFormReady, setIsFormReady] = useState(false);
 
-  // Formatação da data para input
   const formatDateForInput = (dateStr: string | null | undefined) => {
     if (!dateStr) return '';
     
-    // Se a data já estiver no formato YYYY-MM-DD, retorna como está
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
       return dateStr;
     }
     
     try {
-      // Cria a data como local para evitar problemas de timezone
       const date = new Date(dateStr + 'T00:00:00');
       if (!isNaN(date.getTime())) {
         const year = date.getFullYear();
@@ -93,7 +91,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       console.log('AccountModal: original data conta', account.dataConta);
       console.log('AccountModal: formatted data conta', formattedDataConta);
       
-      const newFormData = {
+      const newFormData: Account = {
         id: account.id,
         description: account.description || '',
         amount: Math.abs(account.amount) || 0,
@@ -104,7 +102,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: account.status || 'pendente',
         qtd_parcelas: 1,
         bank_id: account.bank_id,
-        payment_source: 'bank',
+        payment_source: 'bank' as const,
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name
       };
@@ -134,10 +132,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Corrigir a lógica: receitas devem ser positivas, despesas negativas
-    let finalAmount = Math.abs(formData.amount); // Sempre começar com valor positivo
+    let finalAmount = Math.abs(formData.amount);
     
-    // Se for despesa, tornar negativo
     if (formData.type === 'despesa') {
       finalAmount = -finalAmount;
     }
@@ -155,7 +151,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     onClose();
   };
 
-  // Função para atualizar categorias após criar nova categoria
   const handleRefreshCategories = async () => {
     try {
       await refreshCategories();
@@ -165,12 +160,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     }
   };
 
-  // Função para adicionar nova categoria e atualizar a lista
   const handleAddCategory = async (categoryData: { name: string; type: 'receita' | 'despesa'; color: string }) => {
     try {
       await addCategory(categoryData);
       console.log('New category added, refreshing list...');
-      // A lista já será atualizada automaticamente pelo hook useCategoriesData
     } catch (error) {
       console.error('Error adding category:', error);
     }

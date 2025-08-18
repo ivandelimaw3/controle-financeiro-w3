@@ -16,7 +16,7 @@ export interface Account {
   parcela?: string;
   recorrente_id?: string;
   bank_id?: number;
-  payment_source?: 'bank' | 'card';
+  payment_source?: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
 }
@@ -37,7 +37,7 @@ export interface Transaction {
   parcela?: string;
   recorrente_id?: string;
   bank_id?: number;
-  payment_source?: 'bank' | 'card';
+  payment_source?: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
 }
@@ -57,7 +57,6 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['creditcards'] });
   };
 
-  // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
       setLoading(true);
@@ -84,7 +83,6 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Transformar dados do Supabase para o formato da aplicação
       const transformedAccounts: Account[] = data.map(account => ({
         id: account.id,
         description: account.description,
@@ -97,7 +95,7 @@ export const useAccountsData = () => {
         parcela: account.parcela,
         recorrente_id: account.recorrente_id,
         bank_id: account.bank_id,
-        payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
+        payment_source: 'bank' as const,
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name
       }));
@@ -116,7 +114,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Criar nova conta
   const addAccount = async (accountData: CreateAccountData) => {
     try {
       if (!user) {
@@ -128,7 +125,6 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Se tem quantidade de parcelas, criar múltiplas contas
       if (accountData.qtd_parcelas && accountData.qtd_parcelas > 1) {
         const recorrenteId = crypto.randomUUID();
         const registros = [];
@@ -150,7 +146,7 @@ export const useAccountsData = () => {
             parcela: `${i + 1}/${accountData.qtd_parcelas}`,
             recorrente_id: recorrenteId,
             bank_id: accountData.bank_id,
-            payment_source: accountData.payment_source,
+            payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
             payment_source_name: accountData.payment_source_name
           });
@@ -171,7 +167,6 @@ export const useAccountsData = () => {
           return;
         }
 
-        // Transformar e adicionar à lista local
         const newAccounts = insertData.map(account => ({
           id: account.id,
           description: account.description,
@@ -184,14 +179,13 @@ export const useAccountsData = () => {
           parcela: account.parcela,
           recorrente_id: account.recorrente_id,
           bank_id: account.bank_id,
-          payment_source: (account.payment_source ?? undefined) as 'bank' | 'card' | undefined,
+          payment_source: 'bank' as const,
           payment_source_id: account.payment_source_id,
           payment_source_name: account.payment_source_name
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
         
-        // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
           invalidateCardsCache();
@@ -202,7 +196,6 @@ export const useAccountsData = () => {
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
         });
       } else {
-        // Criar conta única
         const { data, error } = await supabase
           .from('accounts')
           .insert([{
@@ -215,7 +208,7 @@ export const useAccountsData = () => {
             status: accountData.status,
             user_id: user.id,
             bank_id: accountData.bank_id,
-            payment_source: accountData.payment_source,
+            payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
             payment_source_name: accountData.payment_source_name
           }])
@@ -232,7 +225,6 @@ export const useAccountsData = () => {
           return;
         }
 
-        // Transformar e adicionar à lista local
         const newAccount: Account = {
           id: data.id,
           description: data.description,
@@ -245,14 +237,13 @@ export const useAccountsData = () => {
           parcela: data.parcela,
           recorrente_id: data.recorrente_id,
           bank_id: data.bank_id,
-          payment_source: (data.payment_source ?? undefined) as 'bank' | 'card' | undefined,
+          payment_source: 'bank' as const,
           payment_source_id: data.payment_source_id,
           payment_source_name: data.payment_source_name
         };
 
         setAccounts(prev => [newAccount, ...prev]);
         
-        // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
           invalidateCardsCache();
@@ -273,7 +264,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
     try {
       const { error } = await supabase
@@ -287,7 +277,7 @@ export const useAccountsData = () => {
           type: updatedAccount.type,
           status: updatedAccount.status,
           bank_id: updatedAccount.bank_id,
-          payment_source: updatedAccount.payment_source,
+          payment_source: 'bank',
           payment_source_id: updatedAccount.payment_source_id,
           payment_source_name: updatedAccount.payment_source_name
         })
@@ -304,14 +294,12 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Atualizar na lista local
       setAccounts(prev => 
         prev.map(account => 
           account.id === updatedAccount.id ? updatedAccount : account
         )
       );
 
-      // SÓ invalidar cache se a conta for paga/recebida
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
         invalidateBanksCache();
         invalidateCardsCache();
@@ -331,10 +319,8 @@ export const useAccountsData = () => {
     }
   };
 
-  // Deletar conta
   const deleteAccount = async (accountId: number) => {
     try {
-      // Buscar a conta antes de deletar para verificar se precisa reverter saldo
       const accountToDelete = accounts.find(acc => acc.id === accountId);
       
       const { error } = await supabase
@@ -352,10 +338,8 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
 
-      // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
       if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) {
         invalidateBanksCache();
         invalidateCardsCache();
@@ -375,7 +359,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
       if (!user) {
@@ -402,12 +385,10 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Atualizar na lista local
      setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
       
-      // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();
       invalidateCardsCache();
         

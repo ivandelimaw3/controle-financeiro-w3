@@ -88,6 +88,15 @@ export const CardAccountForm = ({ account, onSubmit, onCancel, isLoading }: Card
       return;
     }
 
+    if (!formData.due_date) {
+      toast({
+        title: "Erro de validação",
+        description: "Selecione a data de vencimento",
+        variant: "destructive",
+      });
+      return;
+    }
+
     console.log('Submetendo dados do formulário:', formData);
     onSubmit(formData);
   };
