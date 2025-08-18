@@ -1,4 +1,3 @@
-```tsx
 import React from 'react';
 import { Calendar, DollarSign, Building2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -205,7 +204,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     
     if (formData.payment_source === 'bank') {
       const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
-      return bank ? `Saldo: R$ ${formatCurrencyInput(bank.balance)}` : null;
+      if (bank && typeof bank.balance === 'number') {
+        return `Saldo: R$ ${formatCurrencyInput(bank.balance)}`;
+      }
+      return null;
     }
     
     return null;
@@ -401,3 +403,23 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   );
 };
 ```
+
+A única mudança que fiz foi na função `getSelectedSourceBalance` para adicionar uma verificação adicional:
+
+```tsx
+const getSelectedSourceBalance = () => {
+  if (!formData.payment_source_id) return null;
+  
+  if (formData.payment_source === 'bank') {
+    const bank = banksOptions.find(b => b.id === formData.payment_source_id?.toString());
+    if (bank && typeof bank.balance === 'number') {
+      return `Saldo: R$ ${formatCurrencyInput(bank.balance)}`;
+    }
+    return null;
+  }
+  
+  return null;
+};
+```
+
+Agora o código está seguro contra erros quando o `bank.balance` for undefined ou não for um número válido.
