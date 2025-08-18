@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit, Trash2, Calendar, CreditCard, Check } from 'lucide-react';
+import { Edit, Trash2, Calendar, CreditCard, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -117,6 +117,18 @@ export const CardAccountsTable = ({
                       title="Marcar como pago"
                     >
                       <Check className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {account.status === 'pago' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onToggleStatus(account.id, account.status)}
+                      disabled={isUpdating}
+                      className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                      title="Marcar como pendente"
+                    >
+                      <X className="h-4 w-4" />
                     </Button>
                   )}
                   <Button

@@ -87,6 +87,7 @@ export function useCardAccountsData() {
         .single();
 
       if (error) {
+        console.error('Erro ao criar conta:', error);
         throw error;
       }
 
@@ -121,6 +122,7 @@ export function useCardAccountsData() {
         .single();
 
       if (error) {
+        console.error('Erro ao atualizar conta:', error);
         throw error;
       }
 
@@ -147,8 +149,12 @@ export function useCardAccountsData() {
 
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, currentStatus }: { id: number; currentStatus: string }) => {
+      console.log('Iniciando toggle de status:', { id, currentStatus });
+      
       // O trigger do banco vai gerenciar automaticamente a atualização do saldo do cartão
       const newStatus = currentStatus === 'pendente' ? 'pago' : 'pendente';
+      
+      console.log('Novo status será:', newStatus);
       
       const { data, error } = await supabase
         .from('card_accounts' as any)
@@ -158,12 +164,15 @@ export function useCardAccountsData() {
         .single();
 
       if (error) {
+        console.error('Erro no toggle de status:', error);
         throw error;
       }
 
+      console.log('Status alterado com sucesso:', data);
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
+      console.log('onSuccess do toggle executado');
       queryClient.invalidateQueries({ queryKey: ['card-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['creditcards'] });
       

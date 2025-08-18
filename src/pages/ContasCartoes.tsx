@@ -58,6 +58,7 @@ const ContasCartoes = () => {
   };
 
   const handleToggleStatus = async (id, currentStatus) => {
+    console.log('Chamando handleToggleStatus:', { id, currentStatus });
     try {
       await toggleCardAccountStatus({ id, currentStatus });
     } catch (error) {
