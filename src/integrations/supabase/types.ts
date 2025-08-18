@@ -77,13 +77,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "accounts_creditcards_id_fkey"
-            columns: ["creditcards_id"]
-            isOneToOne: false
-            referencedRelation: "cards"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_bank"
             columns: ["bank_id"]
             isOneToOne: false
@@ -126,57 +119,6 @@ export type Database = {
           id?: number
           name?: string
           nickname?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      cards: {
-        Row: {
-          bank_name: string | null
-          card_brand: string | null
-          card_name: string
-          card_number: string
-          created_at: string | null
-          credit_limit: number | null
-          current_value: number | null
-          due_date: string | null
-          expiry_date: string
-          holder_name: string
-          id: number
-          is_active: boolean | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          bank_name?: string | null
-          card_brand?: string | null
-          card_name: string
-          card_number: string
-          created_at?: string | null
-          credit_limit?: number | null
-          current_value?: number | null
-          due_date?: string | null
-          expiry_date: string
-          holder_name: string
-          id?: number
-          is_active?: boolean | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          bank_name?: string | null
-          card_brand?: string | null
-          card_name?: string
-          card_number?: string
-          created_at?: string | null
-          credit_limit?: number | null
-          current_value?: number | null
-          due_date?: string | null
-          expiry_date?: string
-          holder_name?: string
-          id?: number
-          is_active?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
