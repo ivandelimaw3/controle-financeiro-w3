@@ -1,4 +1,3 @@
-// src/App.tsx
 import { Toaster } from "sonner";
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,8 +20,6 @@ import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
 import CartoesCredito from "./pages/CartoesCredito";
 import ChangePassword from "./pages/ChangePassword";
-// Importar a nova página
-import CreditCardAccounts from "./pages/CreditCardAccounts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,14 +89,6 @@ const App = () => {
                     <ProtectedRoute>
                       <AccessControlWrapper>
                         <CartoesCredito />
-                      </AccessControlWrapper>
-                    </ProtectedRoute>
-                  } />
-                  {/* Nova rota para contas de cartão */}
-                  <Route path="/contas-cartoes" element={
-                    <ProtectedRoute>
-                      <AccessControlWrapper>
-                        <CreditCardAccounts />
                       </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
