@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  BarChart4,
+  FileSearch,
   Receipt, 
   FileText, 
   Tag, 
@@ -11,11 +11,10 @@ import {
   TrendingUp, 
   PieChart,
   Settings,
-  Archive,
-  FileSearch
+  Archive
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
@@ -36,6 +35,14 @@ const Sidebar = () => {
       hoverBg: 'hover:bg-green-100'
     },
     { 
+      icon: Tag, 
+      label: 'Categorias', 
+      path: '/categorias', 
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      hoverBg: 'hover:bg-orange-100'
+    },
+    { 
       icon: FileText, 
       label: 'Relatórios', 
       path: '/relatorios', 
@@ -44,12 +51,12 @@ const Sidebar = () => {
       hoverBg: 'hover:bg-purple-100'
     },
     { 
-      icon: Tag, 
-      label: 'Categorias', 
-      path: '/categorias', 
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      hoverBg: 'hover:bg-orange-100'
+      icon: PieChart, 
+      label: 'Análise Gráfica', 
+      path: '/analise', 
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
+      hoverBg: 'hover:bg-cyan-100'
     },
     { 
       icon: Building2, 
@@ -63,14 +70,6 @@ const Sidebar = () => {
       icon: CreditCard, 
       label: 'Cartões', 
       path: '/cartoes-credito', 
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
-      hoverBg: 'hover:bg-pink-100'
-    },
-    { 
-      icon: CreditCard, 
-      label: 'Contas Cartões', 
-      path: '/contas-cartoes', 
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
       hoverBg: 'hover:bg-pink-100'
@@ -92,16 +91,8 @@ const Sidebar = () => {
       hoverBg: 'hover:bg-orange-100'
     },
     { 
-      icon: PieChart, 
-      label: 'Análise Gráfica', 
-      path: '/analise', 
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-50',
-      hoverBg: 'hover:bg-cyan-100'
-    },
-    { 
       icon: Settings, 
-      label: 'Admin', 
+      label: 'Administração', 
       path: '/admin', 
       color: 'text-gray-600',
       bgColor: 'bg-gray-50',
@@ -116,7 +107,7 @@ const Sidebar = () => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-            
+
             return (
               <Link
                 key={item.path}
