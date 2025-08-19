@@ -19,7 +19,7 @@ const CreditCardAccounts: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<any>(null);
 
-  const handleCreate = async (data: any) => {
+  const handleCreate = async ( any) => {
     try {
       await createAccount(data);
       setShowForm(false);
@@ -29,9 +29,9 @@ const CreditCardAccounts: React.FC = () => {
     }
   };
 
-  const handleUpdate = async (id: string, updates: any) => {
+  const handleUpdate = async ( any) => {
     try {
-      await updateAccount(id, updates);
+      await updateAccount(editingAccount.id, data);
       setEditingAccount(null);
       setShowForm(false);
       refreshAccounts();
@@ -61,9 +61,9 @@ const CreditCardAccounts: React.FC = () => {
     setEditingAccount(null);
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = ( any) => {
     if (editingAccount) {
-      handleUpdate(editingAccount.id, data);
+      handleUpdate(data);
     } else {
       handleCreate(data);
     }
