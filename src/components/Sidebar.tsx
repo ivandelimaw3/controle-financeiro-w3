@@ -1,3 +1,4 @@
+// src/components/Sidebar.tsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -62,6 +63,14 @@ const Sidebar = () => {
       icon: CreditCard, 
       label: 'Cartões', 
       path: '/cartoes-credito', 
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      hoverBg: 'hover:bg-pink-100'
+    },
+    { 
+      icon: CreditCard, 
+      label: 'Contas Cartões', 
+      path: '/credit-card-accounts', 
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
       hoverBg: 'hover:bg-pink-100'
