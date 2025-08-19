@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useCreditCardAccounts } from '../../hooks/useCreditCardAccounts';
 
 interface CreditCardAccountFormProps {
-  onSubmit: (data: any) => void;
+  onSubmit: ( any) => void;
   initialData?: any;
   onCancel: () => void;
 }
