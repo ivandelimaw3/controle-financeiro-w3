@@ -10,6 +10,9 @@ interface AccountTableProps {
 }
 
 const AccountTable: React.FC<AccountTableProps> = ({ accounts, onEdit, onDelete }) => {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow">
       <table className="min-w-full divide-y divide-gray-200">
@@ -17,7 +20,7 @@ const AccountTable: React.FC<AccountTableProps> = ({ accounts, onEdit, onDelete 
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor (R$)</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fonte</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lançada</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vence em</th>
@@ -27,41 +30,25 @@ const AccountTable: React.FC<AccountTableProps> = ({ accounts, onEdit, onDelete 
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {accounts.map((account) => (
+          {accounts.map(account => (
             <tr key={account.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap">{account.description}</td>
               <td className="px-6 py-4 whitespace-nowrap">{account.category_id}</td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-red-600 font-medium">
-                {account.amount < 0 ? '-' : ''}R$ {Math.abs(account.amount).toFixed(2)}
+                {formatCurrency(account.amount)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {account.payment_source === 'card' && account.payment_source_id && (
-                  <span className="text-sm text-gray-500">Cartão</span>
-                )}
-                {account.payment_source === 'bank' && <span className="text-sm text-gray-500">Banco</span>}
-                {account.payment_source === 'cash' && <span className="text-sm text-gray-500">Dinheiro</span>}
+                {account.payment_source === 'card' && account.payment_source_id && <span>Cartão</span>}
+                {account.payment_source === 'bank' && <span>Banco</span>}
+                {account.payment_source === 'cash' && <span>Dinheiro</span>}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.posted_at}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.due_date}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                {account.parcela}/{account.total_parcelas}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <StatusBadge status={account.status} />
-              </td>
+              <td className="px-6 py-4 whitespace-nowrap">{account.posted_at}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{account.due_date}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{account.parcela}/{account.total_parcelas}</td>
+              <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={account.status} /></td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button
-                  onClick={() => onEdit(account)}
-                  className="text-blue-600 hover:text-blue-900 mr-3"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => onDelete(account.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  Excluir
-                </button>
+                <button onClick={() => onEdit(account)} className="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
+                <button onClick={() => onDelete(account.id)} className="text-red-600 hover:text-red-900">Excluir</button>
               </td>
             </tr>
           ))}
