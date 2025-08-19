@@ -58,15 +58,18 @@ export const useCreditCardAccounts = () => {
         setLoading(true);
 
         // Carregar categorias
-        const { data: catData } = await supabase.from('categories').select('*');
+        const {  catData, error: catError } = await supabase.from('categories').select('*');
+        if (catError) throw catError;
         setCategories(catData || []);
 
         // Carregar cartões
-        const { data: cardData } = await supabase.from('creditcards').select('*');
+        const {  cardData, error: cardError } = await supabase.from('creditcards').select('*');
+        if (cardError) throw cardError;
         setCreditCards(cardData || []);
 
         // Carregar contas
-        const { data: accData } = await supabase.from('credit_card_accounts').select('*');
+        const {  accData, error: accError } = await supabase.from('credit_card_accounts').select('*');
+        if (accError) throw accError;
         setAccounts(accData || []);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -80,20 +83,19 @@ export const useCreditCardAccounts = () => {
 
   // Atualizar contas após operações
   const refreshAccounts = async () => {
-    const { data } = await supabase.from('credit_card_accounts').select('*');
+    const { data, error } = await supabase.from('credit_card_accounts').select('*');
+    if (error) throw error;
     setAccounts(data || []);
   };
 
   const createAccount = async (accountData: Omit<CreditCardAccount, 'id' | 'created_at' | 'updated_at'>) => {
     const { data, error } = await supabase.from('credit_card_accounts').insert([accountData]).single();
-
     if (error) throw error;
     return data;
   };
 
   const updateAccount = async (id: string, updates: Partial<CreditCardAccount>) => {
     const { data, error } = await supabase.from('credit_card_accounts').update(updates).eq('id', id).single();
-
     if (error) throw error;
     return data;
   };
