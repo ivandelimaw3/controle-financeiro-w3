@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  FileSearch,
+  BarChart4,
   Receipt, 
   FileText, 
   Tag, 
@@ -11,10 +11,11 @@ import {
   TrendingUp, 
   PieChart,
   Settings,
-  Archive
+  Archive,
+  FileSearch
 } from 'lucide-react';
 
-const Sidebar: React.FC = () => {
+const Sidebar = () => {
   const location = useLocation();
 
   const menuItems = [
@@ -107,7 +108,7 @@ const Sidebar: React.FC = () => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-
+            
             return (
               <Link
                 key={item.path}
