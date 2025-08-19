@@ -1,21 +1,24 @@
 // src/components/CardAccount/CreditCardAccountForm.tsx
-import React, { useState } from 'react';
-import { useCreditCardAccounts } from '../../hooks/useCreditCardAccounts';
+import React, { useState, useEffect } from 'react';
+import { useCreditCardAccounts, CreditCardAccount, CreditCardCategory, CreditCard } from '../../hooks/useCreditCardAccounts';
+import StatusBadge, { StatusType } from './StatusBadge';
 
 interface CreditCardAccountFormProps {
-  onSubmit: ( any) => void;
-  initialData?: any;
+  initialData?: CreditCardAccount;
+  onSubmit: (data: CreditCardAccount) => void;
   onCancel: () => void;
 }
 
-const CreditCardAccountForm: React.FC<CreditCardAccountFormProps> = ({ onSubmit, initialData, onCancel }) => {
+const CreditCardAccountForm: React.FC<CreditCardAccountFormProps> = ({ initialData, onSubmit, onCancel }) => {
   const { categories, creditCards } = useCreditCardAccounts();
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<CreditCardAccount>({
+    id: initialData?.id || '',
     description: initialData?.description || '',
     amount: initialData?.amount || 0,
-    category_id: initialData?.category_id?.toString() || '',
+    category_id: initialData?.category_id || '',
     payment_source: initialData?.payment_source || 'cash',
-    payment_source_id: initialData?.payment_source_id?.toString() || '',
+    payment_source_id: initialData?.payment_source_id || '',
     status: initialData?.status || 'pendente',
     due_date: initialData?.due_date || new Date().toISOString().split('T')[0],
     posted_at: initialData?.posted_at || new Date().toISOString().split('T')[0],
@@ -25,23 +28,22 @@ const CreditCardAccountForm: React.FC<CreditCardAccountFormProps> = ({ onSubmit,
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Converter valores numéricos de volta para números
-    const finalData = {
+
+    onSubmit({
       ...formData,
-      category_id: formData.category_id ? parseInt(formData.category_id) : null,
-      payment_source_id: formData.payment_source_id ? parseInt(formData.payment_source_id) : null,
-      amount: parseFloat(formData.amount.toString()),
-      parcela: parseInt(formData.parcela.toString()),
-      total_parcelas: parseInt(formData.total_parcelas.toString())
-    };
-    
-    onSubmit(finalData);
+      amount: Number(formData.amount),
+      parcela: Number(formData.parcela),
+      total_parcelas: Number(formData.total_parcelas),
+    });
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
   return (
@@ -80,10 +82,11 @@ const CreditCardAccountForm: React.FC<CreditCardAccountFormProps> = ({ onSubmit,
             value={formData.category_id}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
+            required
           >
             <option value="">Selecione</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id.toString()}>
+            {categories.map((cat: CreditCardCategory) => (
+              <option key={cat.id} value={cat.id}>
                 {cat.name}
               </option>
             ))}
@@ -113,10 +116,11 @@ const CreditCardAccountForm: React.FC<CreditCardAccountFormProps> = ({ onSubmit,
               value={formData.payment_source_id}
               onChange={handleChange}
               className="w-full border rounded px-3 py-2"
+              required
             >
               <option value="">Selecione</option>
-              {creditCards.map((card) => (
-                <option key={card.id} value={card.id.toString()}>
+              {creditCards.map((card: CreditCard) => (
+                <option key={card.id} value={card.id}>
                   {card.card_name}
                 </option>
               ))}
@@ -156,9 +160,9 @@ const CreditCardAccountForm: React.FC<CreditCardAccountFormProps> = ({ onSubmit,
           <input
             type="number"
             name="parcela"
+            min={1}
             value={formData.parcela}
             onChange={handleChange}
-            min="1"
             required
             className="w-full border rounded px-3 py-2"
           />
@@ -168,9 +172,9 @@ const CreditCardAccountForm: React.FC<CreditCardAccountFormProps> = ({ onSubmit,
           <input
             type="number"
             name="total_parcelas"
+            min={1}
             value={formData.total_parcelas}
             onChange={handleChange}
-            min="1"
             required
             className="w-full border rounded px-3 py-2"
           />
