@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CardAccount, CreateCardAccountData } from '@/hooks/useCardAccountsData';
 import { useCreditCardsOptions } from '@/hooks/useCreditCardsOptions';
+import { useCategoriesData } from '@/hooks/useCategoriesData';
 
 interface CardAccountModalProps {
   cardAccount?: CardAccount;
@@ -21,6 +22,7 @@ export const CardAccountModal: React.FC<CardAccountModalProps> = ({
   onClose
 }) => {
   const { cardsOptions, loading: loadingCards } = useCreditCardsOptions();
+  const { categories, addCategory, refreshCategories } = useCategoriesData();
   
   const [formData, setFormData] = useState<CreateCardAccountData>({
     creditcard_id: 0,
@@ -68,9 +70,11 @@ export const CardAccountModal: React.FC<CardAccountModalProps> = ({
     }));
   };
 
+  const expenseCategories = categories.filter(cat => cat.type === 'despesa');
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{cardAccount ? 'Editar Conta de Cartão' : 'Nova Conta de Cartão'}</span>
@@ -132,7 +136,18 @@ export const CardAccountModal: React.FC<CardAccountModalProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Categoria *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="category">Categoria *</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={refreshCategories}
+                className="text-xs h-6 px-2"
+              >
+                Atualizar
+              </Button>
+            </div>
             <Select
               value={formData.category}
               onValueChange={(value) => handleInputChange('category', value)}
@@ -141,12 +156,17 @@ export const CardAccountModal: React.FC<CardAccountModalProps> = ({
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="alimentacao">Alimentação</SelectItem>
-                <SelectItem value="transporte">Transporte</SelectItem>
-                <SelectItem value="lazer">Lazer</SelectItem>
-                <SelectItem value="saude">Saúde</SelectItem>
-                <SelectItem value="educacao">Educação</SelectItem>
-                <SelectItem value="outros">Outros</SelectItem>
+                {expenseCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.name}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name}
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

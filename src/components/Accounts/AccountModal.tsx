@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         category: account.category,
         due_date: account.due_date,
         data_conta: account.data_conta || '',
-        status: account.status as 'pendente' | 'pago' | 'vencida' | 'recebido',
+        status: account.status as 'pendente' | 'pago' | 'recebido',
         parcela: account.parcela || '',
         bank_id: account.bank_id || 0,
         creditcards_id: account.creditcards_id || 0,
