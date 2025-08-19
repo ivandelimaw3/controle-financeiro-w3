@@ -70,7 +70,7 @@ const Sidebar = () => {
     { 
       icon: CreditCard, 
       label: 'Contas Cartões', 
-      path: '/credit-card-accounts', 
+      path: '/contas-cartoes', 
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
       hoverBg: 'hover:bg-pink-100'
