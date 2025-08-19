@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,8 +31,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     amount: 0,
     type: 'despesa',
     category: '',
-    due_date: '',
-    data_conta: '',
+    dueDate: '',
+    dataConta: '',
     status: 'pendente',
     parcela: '',
     bank_id: 0,
@@ -49,8 +50,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         amount: account.amount,
         type: account.type as 'receita' | 'despesa',
         category: account.category,
-        due_date: account.due_date,
-        data_conta: account.data_conta || '',
+        dueDate: account.due_date,
+        dataConta: account.data_conta || '',
         status: account.status as 'pendente' | 'pago' | 'recebido',
         parcela: account.parcela || '',
         bank_id: account.bank_id || 0,
@@ -66,7 +67,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.description || !formData.amount || !formData.category || !formData.due_date) {
+    if (!formData.description || !formData.amount || !formData.category || !formData.dueDate) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -167,22 +168,22 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="due_date">Data de Vencimento *</Label>
+            <Label htmlFor="dueDate">Data de Vencimento *</Label>
             <Input
-              id="due_date"
+              id="dueDate"
               type="date"
-              value={formData.due_date}
-              onChange={(e) => handleInputChange('due_date', e.target.value)}
+              value={formData.dueDate}
+              onChange={(e) => handleInputChange('dueDate', e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="data_conta">Data da Conta</Label>
+            <Label htmlFor="dataConta">Data da Conta</Label>
             <Input
-              id="data_conta"
+              id="dataConta"
               type="date"
-              value={formData.data_conta}
-              onChange={(e) => handleInputChange('data_conta', e.target.value)}
+              value={formData.dataConta}
+              onChange={(e) => handleInputChange('dataConta', e.target.value)}
             />
           </div>
 

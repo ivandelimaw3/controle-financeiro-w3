@@ -1,26 +1,27 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
-import { Auth } from '@/pages/Auth';
-import { Index } from '@/pages/Index';
-import { Dashboard } from '@/pages/Dashboard';
-import { Contas } from '@/pages/Contas';
-import { ContasCartoes } from '@/pages/ContasCartoes';
-import { Bancos } from '@/pages/Bancos';
-import { CartoesCredito } from '@/pages/CartoesCredito';
-import { CartoesNovo } from '@/pages/CartoesNovo';
-import { Categorias } from '@/pages/Categorias';
-import { Investimentos } from '@/pages/Investimentos';
-import { InvestimentosVencidos } from '@/pages/InvestimentosVencidos';
-import { Analise } from '@/pages/Analise';
-import { Relatorios } from '@/pages/Relatorios';
-import { NotFound } from '@/pages/NotFound';
+import Auth from '@/pages/Auth';
+import Index from '@/pages/Index';
+import Dashboard from '@/pages/Dashboard';
+import Contas from '@/pages/Contas';
+import ContasCartoes from '@/pages/ContasCartoes';
+import Bancos from '@/pages/Bancos';
+import CartoesCredito from '@/pages/CartoesCredito';
+import CartoesNovo from '@/pages/CartoesNovo';
+import Categorias from '@/pages/Categorias';
+import Investimentos from '@/pages/Investimentos';
+import InvestimentosVencidos from '@/pages/InvestimentosVencidos';
+import Analise from '@/pages/Analise';
+import Relatorios from '@/pages/Relatorios';
+import NotFound from '@/pages/NotFound';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Admin } from '@/pages/Admin';
+import Admin from '@/pages/Admin';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
-import { ChangePassword } from '@/pages/ChangePassword';
+import ChangePassword from '@/pages/ChangePassword';
 
 const queryClient = new QueryClient();
 

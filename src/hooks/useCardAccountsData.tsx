@@ -59,7 +59,7 @@ export function useCardAccountsData() {
         throw error;
       }
       
-      return data as CardAccount[];
+      return data || [];
     }
   });
 
