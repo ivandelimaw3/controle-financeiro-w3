@@ -1,3 +1,4 @@
+// src/components/Sidebar.tsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -35,14 +36,6 @@ const Sidebar = () => {
       hoverBg: 'hover:bg-green-100'
     },
     { 
-      icon: Tag, 
-      label: 'Categorias', 
-      path: '/categorias', 
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      hoverBg: 'hover:bg-orange-100'
-    },
-    { 
       icon: FileText, 
       label: 'Relatórios', 
       path: '/relatorios', 
@@ -51,12 +44,12 @@ const Sidebar = () => {
       hoverBg: 'hover:bg-purple-100'
     },
     { 
-      icon: PieChart, 
-      label: 'Análise Gráfica', 
-      path: '/analise', 
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-50',
-      hoverBg: 'hover:bg-cyan-100'
+      icon: Tag, 
+      label: 'Categorias', 
+      path: '/categorias', 
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      hoverBg: 'hover:bg-orange-100'
     },
     { 
       icon: Building2, 
@@ -70,6 +63,14 @@ const Sidebar = () => {
       icon: CreditCard, 
       label: 'Cartões', 
       path: '/cartoes-credito', 
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      hoverBg: 'hover:bg-pink-100'
+    },
+    { 
+      icon: CreditCard, 
+      label: 'Contas Cartões', 
+      path: '/credit-card-accounts', 
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
       hoverBg: 'hover:bg-pink-100'
@@ -91,8 +92,16 @@ const Sidebar = () => {
       hoverBg: 'hover:bg-orange-100'
     },
     { 
+      icon: PieChart, 
+      label: 'Análise Gráfica', 
+      path: '/analise', 
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
+      hoverBg: 'hover:bg-cyan-100'
+    },
+    { 
       icon: Settings, 
-      label: 'Administração', 
+      label: 'Admin', 
       path: '/admin', 
       color: 'text-gray-600',
       bgColor: 'bg-gray-50',
