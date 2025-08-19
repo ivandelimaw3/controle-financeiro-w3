@@ -22,7 +22,7 @@ import NotFound from "./pages/NotFound";
 import CartoesCredito from "./pages/CartoesCredito";
 import ChangePassword from "./pages/ChangePassword";
 // Importar a nova página
-import CreditCardAccounts from "./pages/CreditCardAccounts"; // Novo import
+import CreditCardAccounts from "./pages/CreditCardAccounts"; // Corrigido para o caminho correto
 
 const queryClient = new QueryClient({
   defaultOptions: {
