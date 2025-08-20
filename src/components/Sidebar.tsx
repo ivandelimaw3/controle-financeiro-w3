@@ -34,14 +34,7 @@ const Sidebar: React.FC = () => {
       bgColor: 'bg-green-50',
       hoverBg: 'hover:bg-green-100'
     },
-    { 
-      icon: CreditCard, 
-      label: 'Contas Cartões', 
-      path: '/card-accounts', 
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      hoverBg: 'hover:bg-purple-100'
-    },
+    
     { 
       icon: Tag, 
       label: 'Categorias', 
@@ -81,6 +74,14 @@ const Sidebar: React.FC = () => {
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
       hoverBg: 'hover:bg-pink-100'
+    },
+    { 
+      icon: CreditCard, 
+      label: 'Contas Cartões', 
+      path: '/card-accounts', 
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      hoverBg: 'hover:bg-purple-100'
     },
     { 
       icon: TrendingUp, 
