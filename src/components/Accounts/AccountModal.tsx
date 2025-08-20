@@ -1,14 +1,28 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, X } from 'lucide-react';
+import { Save, X, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Account, AccountFormData } from '@/hooks/useAccountsData';
+import { Account } from '@/hooks/useAccountsData';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
+import { formatCurrency } from '@/utils/formatters';
+
+export interface AccountFormData {
+  description: string;
+  amount: number;
+  due_date: string;
+  type: 'receita' | 'despesa';
+  category: string;
+  status: 'pendente' | 'pago' | 'recebido';
+  payment_source: string;
+  payment_source_id: number | null;
+  payment_source_name: string;
+  data_conta?: string;
+}
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -16,6 +30,7 @@ interface AccountModalProps {
   onSubmit: (data: AccountFormData) => void;
   account?: Account;
   isLoading?: boolean;
+  categories: string[];
 }
 
 export const AccountModal: React.FC<AccountModalProps> = ({
@@ -23,9 +38,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onClose,
   onSubmit,
   account,
-  isLoading = false
+  isLoading = false,
+  categories
 }) => {
-  const { categories } = useCategoriesData();
+  const { categories: categoriesData } = useCategoriesData();
   const { banks } = useBanksOptions();
 
   const [formData, setFormData] = useState<AccountFormData>({
@@ -37,22 +53,27 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente',
     payment_source: 'bank',
     payment_source_id: null,
-    payment_source_name: ''
+    payment_source_name: '',
+    data_conta: ''
   });
+
+  const [displayAmount, setDisplayAmount] = useState('');
 
   useEffect(() => {
     if (account) {
       setFormData({
         description: account.description,
         amount: account.amount,
-        due_date: account.due_date,
+        due_date: account.dueDate,
         type: account.type as 'receita' | 'despesa',
         category: account.category,
         status: account.status as 'pendente' | 'pago' | 'recebido',
         payment_source: account.payment_source || 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name || ''
+        payment_source_name: account.payment_source_name || '',
+        data_conta: account.data_conta || ''
       });
+      setDisplayAmount(formatCurrencyInput(account.amount));
     } else {
       setFormData({
         description: '',
@@ -63,10 +84,35 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: 'pendente',
         payment_source: 'bank',
         payment_source_id: null,
-        payment_source_name: ''
+        payment_source_name: '',
+        data_conta: ''
       });
+      setDisplayAmount('');
     }
   }, [account, isOpen]);
+
+  const formatCurrencyInput = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (value: string): number => {
+    // Remove todos os caracteres que não sejam dígitos
+    const numbers = value.replace(/\D/g, '');
+    // Converte para número dividindo por 100 (para considerar os centavos)
+    return numbers ? parseFloat(numbers) / 100 : 0;
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = parseCurrencyInput(inputValue);
+    const formattedValue = formatCurrencyInput(numericValue);
+    
+    setDisplayAmount(formattedValue);
+    setFormData(prev => ({ ...prev, amount: numericValue }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,12 +124,25 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   };
 
   const getFilteredCategories = () => {
-    return categories.filter(cat => cat.type === formData.type);
+    return categoriesData.filter(cat => cat.type === formData.type);
   };
+
+  const handleBankChange = (bankId: string) => {
+    const selectedBank = banks.find(bank => bank.id === bankId);
+    if (selectedBank) {
+      setFormData(prev => ({
+        ...prev,
+        payment_source_id: parseInt(bankId),
+        payment_source_name: selectedBank.name
+      }));
+    }
+  };
+
+  const selectedBank = banks.find(bank => bank.id === formData.payment_source_id?.toString());
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
             {account ? 'Editar Conta' : 'Nova Conta'}
@@ -91,6 +150,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Descrição */}
           <div>
             <Label htmlFor="description">Descrição *</Label>
             <Input
@@ -103,17 +163,15 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             />
           </div>
 
+          {/* Data da Conta e Data de Vencimento */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="amount">Valor *</Label>
+              <Label htmlFor="data_conta">Data da Conta</Label>
               <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={e => handleChange('amount', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
-                required
+                id="data_conta"
+                type="date"
+                value={formData.data_conta}
+                onChange={e => handleChange('data_conta', e.target.value)}
               />
             </div>
             <div>
@@ -128,72 +186,63 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="type">Tipo *</Label>
-            <Select 
-              value={formData.type} 
-              onValueChange={value => handleChange('type', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="receita">Receita</SelectItem>
-                <SelectItem value="despesa">Despesa</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Tipo e Categoria */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="type">Tipo *</Label>
+              <Select 
+                value={formData.type} 
+                onValueChange={value => handleChange('type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="receita">Receita</SelectItem>
+                  <SelectItem value="despesa">Despesa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="category">Categoria *</Label>
+              <Select 
+                value={formData.category} 
+                onValueChange={value => handleChange('category', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getFilteredCategories().map(category => (
+                    <SelectItem key={category.id} value={category.name}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="category">Categoria *</Label>
-            <Select 
-              value={formData.category} 
-              onValueChange={value => handleChange('category', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {getFilteredCategories().map(category => (
-                  <SelectItem key={category.id} value={category.name}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: category.color }}
-                      />
-                      {category.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="payment_source">Fonte de Pagamento *</Label>
-            <Select 
-              value={formData.payment_source} 
-              onValueChange={value => handleChange('payment_source', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a fonte" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bank">Banco</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {formData.payment_source === 'bank' && (
+          {/* Fonte de Pagamento e Banco */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="payment_source">Fonte de Pagamento *</Label>
+              <div className="flex items-center h-10 px-3 py-2 border border-input bg-gray-50 rounded-md">
+                <Building2 className="h-4 w-4 mr-2 text-gray-500" />
+                <span className="text-sm text-gray-700">Banco</span>
+              </div>
+            </div>
             <div>
               <Label htmlFor="payment_source_id">Banco *</Label>
               <Select 
                 value={formData.payment_source_id?.toString() || ''} 
-                onValueChange={value => {
-                  const selectedBank = banks.find(bank => bank.id === value);
-                  handleChange('payment_source_id', parseInt(value));
-                  handleChange('payment_source_name', selectedBank?.name || '');
-                }}
+                onValueChange={handleBankChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um banco" />
@@ -201,37 +250,86 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <SelectContent>
                   {banks.map(bank => (
                     <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
                         <span>{bank.name}</span>
-                        <span className="text-sm text-gray-500 ml-2">
-                          {new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL'
-                          }).format(bank.balance)}
-                        </span>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Mostrar informações do banco selecionado */}
+          {selectedBank && (
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Building2 className="h-5 w-5 text-blue-600" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-blue-900">{selectedBank.name}</span>
+                  <span className="text-xs text-blue-600">Banco selecionado</span>
+                </div>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-xs font-medium text-blue-700">Saldo Atual:</span>
+                <span className="text-sm font-bold text-blue-800">
+                  {formatCurrency(selectedBank.balance)}
+                </span>
+              </div>
+            </div>
           )}
 
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select 
-              value={formData.status} 
-              onValueChange={value => handleChange('status', value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="pago">Pago</SelectItem>
-                <SelectItem value="recebido">Recebido</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Status e Valor */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={value => handleChange('status', value as 'pendente' | 'pago' | 'recebido')}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pendente">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      Pendente
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pago">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      Pago
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="recebido">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      Recebido
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="amount">Valor *</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                  R$
+                </span>
+                <Input
+                  id="amount"
+                  type="text"
+                  value={displayAmount}
+                  onChange={handleAmountChange}
+                  placeholder="0,00"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex space-x-3 pt-4">
