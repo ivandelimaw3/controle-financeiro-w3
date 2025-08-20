@@ -152,16 +152,16 @@ const CardAccounts = () => {
               </p>
             </div>
             <div className="flex justify-start">
-   <Button
-    onClick={() => handleOpenModal()}
-    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
-  >
-    <Plus className="h-4 w-4 mr-2" />
-    Nova Conta
-  </Button>
+ <Button
+  onClick={() => handleOpenModal()}
+  className="mr-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+>
+  <Plus className="h-4 w-4 mr-2" />
+  Nova Conta
+</Button>          
 </div>
 
-          {/* Cards Informativos */}
+        {/* Cards Informativos */}
           {!loading && (
             <CardAccountsSummaryCards 
               cardAccounts={filteredCardAccounts} 
