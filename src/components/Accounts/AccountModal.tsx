@@ -14,14 +14,14 @@ import { formatCurrency } from '@/utils/formatters';
 export interface AccountFormData {
   description: string;
   amount: number;
-  due_date: string;
+  dueDate: string;
   type: 'receita' | 'despesa';
   category: string;
   status: 'pendente' | 'pago' | 'recebido';
   payment_source: string;
   payment_source_id: number | null;
   payment_source_name: string;
-  data_conta?: string;
+  dataConta?: string;
 }
 
 interface AccountModalProps {
@@ -47,14 +47,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [formData, setFormData] = useState<AccountFormData>({
     description: '',
     amount: 0,
-    due_date: '',
+    dueDate: '',
     type: 'despesa',
     category: '',
     status: 'pendente',
     payment_source: 'bank',
     payment_source_id: null,
     payment_source_name: '',
-    data_conta: ''
+    dataConta: ''
   });
 
   const [displayAmount, setDisplayAmount] = useState('');
@@ -64,28 +64,28 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setFormData({
         description: account.description,
         amount: account.amount,
-        due_date: account.dueDate,
+        dueDate: account.dueDate,
         type: account.type as 'receita' | 'despesa',
         category: account.category,
         status: account.status as 'pendente' | 'pago' | 'recebido',
         payment_source: account.payment_source || 'bank',
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name || '',
-        data_conta: account.data_conta || ''
+        dataConta: account.dataConta || ''
       });
       setDisplayAmount(formatCurrencyInput(account.amount));
     } else {
       setFormData({
         description: '',
         amount: 0,
-        due_date: '',
+        dueDate: '',
         type: 'despesa',
         category: '',
         status: 'pendente',
         payment_source: 'bank',
         payment_source_id: null,
         payment_source_name: '',
-        data_conta: ''
+        dataConta: ''
       });
       setDisplayAmount('');
     }
@@ -166,21 +166,21 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           {/* Data da Conta e Data de Vencimento */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="data_conta">Data da Conta</Label>
+              <Label htmlFor="dataConta">Data da Conta</Label>
               <Input
-                id="data_conta"
+                id="dataConta"
                 type="date"
-                value={formData.data_conta}
-                onChange={e => handleChange('data_conta', e.target.value)}
+                value={formData.dataConta}
+                onChange={e => handleChange('dataConta', e.target.value)}
               />
             </div>
             <div>
-              <Label htmlFor="due_date">Data de Vencimento *</Label>
+              <Label htmlFor="dueDate">Data de Vencimento *</Label>
               <Input
-                id="due_date"
+                id="dueDate"
                 type="date"
-                value={formData.due_date}
-                onChange={e => handleChange('due_date', e.target.value)}
+                value={formData.dueDate}
+                onChange={e => handleChange('dueDate', e.target.value)}
                 required
               />
             </div>
