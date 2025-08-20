@@ -7,6 +7,7 @@ import { CardAccountFormModal } from '@/components/CardAccounts/CardAccountFormM
 import { CardAccountsTable } from '@/components/CardAccounts/CardAccountsTable';
 import { CardAccountsSummaryCards } from '@/components/CardAccounts/CardAccountsSummaryCards';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
+import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 
@@ -19,6 +20,13 @@ const CardAccounts = () => {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
+
+  // Estados dos filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [typeFilter, setTypeFilter] = useState('todos'); // Sempre despesa para cartões
+  const [monthFilter, setMonthFilter] = useState(today.getMonth().toString());
+  const [yearFilter, setYearFilter] = useState(today.getFullYear().toString());
 
   const {
     cardAccounts,
@@ -57,13 +65,29 @@ const CardAccounts = () => {
 
   useAccountsReminder(cardAccountsForReminder);
 
-  // Filtrar contas por mês/ano se não estiver mostrando todas
-  const filteredCardAccounts = isShowingAll 
-    ? cardAccounts 
-    : cardAccounts.filter(account => {
-        const accountDate = new Date(account.due_date);
-        return accountDate.getMonth() === currentMonth && accountDate.getFullYear() === currentYear;
-      });
+  // Aplicar todos os filtros
+  const filteredCardAccounts = cardAccounts.filter(account => {
+    // Filtro de pesquisa
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesSearch = searchTerm === '' || 
+                         account.description.toLowerCase().includes(searchLower) ||
+                         account.category_name?.toLowerCase().includes(searchLower) ||
+                         account.payment_source_name?.toLowerCase().includes(searchLower) ||
+                         account.card_name?.toLowerCase().includes(searchLower);
+
+    // Filtro de status
+    const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
+
+    // Filtro de mês/ano
+    const accountDate = new Date(account.due_date);
+    const accountMonth = accountDate.getMonth();
+    const accountYear = accountDate.getFullYear();
+    
+    const matchesMonth = isShowingAll || monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
+    const matchesYear = isShowingAll || yearFilter === 'todos' || accountYear === parseInt(yearFilter);
+
+    return matchesSearch && matchesStatus && matchesMonth && matchesYear;
+  });
 
   const handleOpenModal = (account?: CardAccount) => {
     setEditingAccount(account);
@@ -97,11 +121,20 @@ const CardAccounts = () => {
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     setCurrentMonth(month);
     setCurrentYear(year);
+    setMonthFilter(month.toString());
+    setYearFilter(year.toString());
     setIsShowingAll(false);
   };
 
   const handleShowAll = () => {
     setIsShowingAll(!isShowingAll);
+    if (!isShowingAll) {
+      setMonthFilter('todos');
+      setYearFilter('todos');
+    } else {
+      setMonthFilter(currentMonth.toString());
+      setYearFilter(currentYear.toString());
+    }
   };
 
   return (
@@ -127,6 +160,29 @@ const CardAccounts = () => {
             </Button>
           </div>
 
+          {/* Cards Informativos */}
+          {!loading && (
+            <CardAccountsSummaryCards 
+              cardAccounts={filteredCardAccounts} 
+              totalFound={filteredCardAccounts.length}
+            />
+          )}
+
+          {/* Filtros de Pesquisa */}
+          <AccountsFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            typeFilter={typeFilter}
+            setTypeFilter={setTypeFilter}
+            monthFilter={monthFilter}
+            setMonthFilter={setMonthFilter}
+            yearFilter={yearFilter}
+            setYearFilter={setYearFilter}
+            accounts={filteredCardAccounts}
+          />
+
           {/* Month Navigator */}
           <MonthNavigator
             currentMonth={currentMonth}
@@ -135,9 +191,6 @@ const CardAccounts = () => {
             onShowAll={handleShowAll}
             isShowingAll={isShowingAll}
           />
-
-          {/* Cards Informativos */}
-          {!loading && <CardAccountsSummaryCards cardAccounts={filteredCardAccounts} />}
 
           {/* Tabela */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20">
