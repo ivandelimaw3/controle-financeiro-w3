@@ -142,34 +142,28 @@ const CardAccounts = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="container mx-auto p-6 space-y-6">
           {/* Header */}
-          <div className="flex items-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-         Contas Cartões
-         </h1>
-       <Button
-       onClick={() => handleOpenModal()}
-       className="ml-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
-  >
-    <Plus className="h-4 w-4 mr-2" />
-    Nova Conta
-  </Button>
-</div>
-
-<p className="text-slate-600 mt-1">
-  Gerencie suas contas de cartões de crédito
-</p>
-            </div>
-            <div className="flex justify-start">
-     <Button
+          <div className="flex items-center justify-between">
+            <Button
               onClick={() => handleOpenModal()}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
             >
               <Plus className="h-4 w-4 mr-2" />
               Nova Conta
             </Button>
+            
+            <div className="text-center">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                Contas Cartões
+              </h1>
+              <p className="text-slate-600 mt-1">
+                Gerencie suas contas de cartões de crédito
+              </p>
+            </div>
+            
+            <div className="w-[120px]" /> {/* Spacer for centering */}
           </div>
 
-        {/* Cards Informativos */}
+          {/* Cards Informativos */}
           {!loading && (
             <CardAccountsSummaryCards 
               cardAccounts={filteredCardAccounts} 
