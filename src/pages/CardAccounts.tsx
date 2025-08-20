@@ -56,50 +56,56 @@ const CardAccounts = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Contas Cartões</h1>
-            <p className="text-gray-600 mt-1">
-              Gerencie suas contas de cartões de crédito
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                Contas Cartões
+              </h1>
+              <p className="text-slate-600 mt-1">
+                Gerencie suas contas de cartões de crédito
+              </p>
+            </div>
+            <Button
+              onClick={() => handleOpenModal()}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Conta
+            </Button>
           </div>
-          <Button
-            onClick={() => handleOpenModal()}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Conta
-          </Button>
-        </div>
 
-        {/* Cards Informativos */}
-        {!loading && <CardAccountsSummaryCards cardAccounts={cardAccounts} />}
+          {/* Cards Informativos */}
+          {!loading && <CardAccountsSummaryCards cardAccounts={cardAccounts} />}
 
-        {/* Tabela */}
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="text-lg text-gray-600">Carregando contas...</div>
+          {/* Tabela */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20">
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="text-lg text-slate-600">Carregando contas...</div>
+              </div>
+            ) : (
+              <CardAccountsTable
+                cardAccounts={cardAccounts}
+                onEdit={handleOpenModal}
+                onDelete={handleDelete}
+                onStatusChange={handleStatusChange}
+                isDeleting={isDeleting}
+              />
+            )}
           </div>
-        ) : (
-          <CardAccountsTable
-            cardAccounts={cardAccounts}
-            onEdit={handleOpenModal}
-            onDelete={handleDelete}
-            onStatusChange={handleStatusChange}
-            isDeleting={isDeleting}
+
+          {/* Modal */}
+          <CardAccountFormModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            onSubmit={handleSubmit}
+            cardAccount={editingAccount}
+            isLoading={isCreating || isUpdating}
           />
-        )}
-
-        {/* Modal */}
-        <CardAccountFormModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSubmit={handleSubmit}
-          cardAccount={editingAccount}
-          isLoading={isCreating || isUpdating}
-        />
+        </div>
       </div>
     </Layout>
   );

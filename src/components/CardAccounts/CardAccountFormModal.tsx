@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save } from 'lucide-react';
+import { Save, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useCreditCardsOptions } from '@/hooks/useCreditCardsOptions';
+import { formatCurrency } from '@/utils/formatters';
 
 interface CardAccountFormModalProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
     data_conta: ''
   });
 
+  const [displayAmount, setDisplayAmount] = useState('');
+
   useEffect(() => {
     if (cardAccount) {
       setFormData({
@@ -55,6 +58,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
         payment_source_name: cardAccount.payment_source_name || cardAccount.card_name || '',
         data_conta: cardAccount.data_conta || ''
       });
+      setDisplayAmount(formatCurrencyInput(cardAccount.amount));
     } else {
       setFormData({
         description: '',
@@ -68,8 +72,32 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
         payment_source_name: '',
         data_conta: ''
       });
+      setDisplayAmount('');
     }
   }, [cardAccount, isOpen]);
+
+  const formatCurrencyInput = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (value: string): number => {
+    // Remove todos os caracteres que não sejam dígitos
+    const numbers = value.replace(/\D/g, '');
+    // Converte para número dividindo por 100 (para considerar os centavos)
+    return numbers ? parseFloat(numbers) / 100 : 0;
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = parseCurrencyInput(inputValue);
+    const formattedValue = formatCurrencyInput(numericValue);
+    
+    setDisplayAmount(formattedValue);
+    setFormData(prev => ({ ...prev, amount: numericValue }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,13 +199,10 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="payment_source">Fonte de Pagamento</Label>
-              <Input
-                id="payment_source"
-                type="text"
-                value="Cartão"
-                readOnly
-                className="bg-gray-100 cursor-not-allowed"
-              />
+              <div className="flex items-center h-10 px-3 py-2 border border-input bg-gray-50 rounded-md">
+                <CreditCard className="h-4 w-4 mr-2 text-gray-500" />
+                <span className="text-sm text-gray-700">Cartão</span>
+              </div>
             </div>
             <div>
               <Label htmlFor="card_id">Cartão de Crédito *</Label>
@@ -191,7 +216,8 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
                 <SelectContent>
                   {cards.map(card => (
                     <SelectItem key={card.id} value={card.id}>
-                      <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-blue-600" />
                         <span>{card.name}</span>
                       </div>
                     </SelectItem>
@@ -203,23 +229,20 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
 
           {/* Mostrar informações do cartão selecionado */}
           {selectedCard && (
-            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-blue-700">Cartão: {selectedCard.name}</span>
-                <span className="text-sm text-blue-600">
-                  Usado: {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  }).format(selectedCard.current_value)}
-                </span>
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-5 w-5 text-blue-600" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-blue-900">{selectedCard.name}</span>
+                  <span className="text-xs text-blue-600">
+                    Usado: {formatCurrency(selectedCard.current_value)}
+                  </span>
+                </div>
               </div>
               <div className="flex flex-col text-right">
-                <span className="text-sm font-medium text-blue-700">Limite Disponível:</span>
-                <span className="text-sm font-bold text-blue-600">
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  }).format((selectedCard.credit_limit || 0) - (selectedCard.current_value || 0))}
+                <span className="text-xs font-medium text-blue-700">Limite Disponível:</span>
+                <span className="text-sm font-bold text-blue-800">
+                  {formatCurrency((selectedCard.credit_limit || 0) - (selectedCard.current_value || 0))}
                 </span>
               </div>
             </div>
@@ -229,15 +252,20 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="amount">Valor *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={e => handleChange('amount', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                  R$
+                </span>
+                <Input
+                  id="amount"
+                  type="text"
+                  value={displayAmount}
+                  onChange={handleAmountChange}
+                  placeholder="0,00"
+                  className="pl-10"
+                  required
+                />
+              </div>
             </div>
             <div>
               <Label htmlFor="status">Status</Label>
@@ -249,8 +277,18 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                  <SelectItem value="pago">Pago</SelectItem>
+                  <SelectItem value="pendente">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      Pendente
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pago">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      Pago
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
