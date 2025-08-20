@@ -94,11 +94,10 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
 
   const despesaCategories = categories.filter(cat => cat.type === 'despesa');
   const selectedCard = cards.find(card => card.id === formData.card_id.toString());
-  const availableLimit = selectedCard ? (selectedCard.credit_limit || 0) - (selectedCard.current_value || 0) : 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
             {cardAccount ? 'Editar Conta de Cartão' : 'Nova Conta de Cartão'}
@@ -106,6 +105,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Descrição */}
           <div>
             <Label htmlFor="description">Descrição *</Label>
             <Input
@@ -118,17 +118,15 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
             />
           </div>
 
+          {/* Data da Compra e Data de Vencimento */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="amount">Valor *</Label>
+              <Label htmlFor="data_conta">Data da Compra</Label>
               <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={e => handleChange('amount', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
-                required
+                id="data_conta"
+                type="date"
+                value={formData.data_conta}
+                onChange={e => handleChange('data_conta', e.target.value)}
               />
             </div>
             <div>
@@ -143,16 +141,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="data_conta">Data da Compra/Transação</Label>
-            <Input
-              id="data_conta"
-              type="date"
-              value={formData.data_conta}
-              onChange={e => handleChange('data_conta', e.target.value)}
-            />
-          </div>
-
+          {/* Categoria */}
           <div>
             <Label htmlFor="category_id">Categoria *</Label>
             <Select 
@@ -178,6 +167,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
             </Select>
           </div>
 
+          {/* Fonte de Pagamento e Cartão de Crédito */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="payment_source">Fonte de Pagamento</Label>
@@ -203,12 +193,6 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
                     <SelectItem key={card.id} value={card.id}>
                       <div className="flex items-center justify-between w-full">
                         <span>{card.name}</span>
-                        <span className="text-sm text-gray-500 ml-2">
-                          Disponível: {new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL'
-                          }).format((card.credit_limit || 0) - (card.current_value || 0))}
-                        </span>
                       </div>
                     </SelectItem>
                   ))}
@@ -217,33 +201,59 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
             </div>
           </div>
 
-          {/* Mostrar limite disponível do cartão selecionado */}
+          {/* Mostrar informações do cartão selecionado */}
           {selectedCard && (
             <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-              <span className="text-sm font-medium text-blue-700">Limite Disponível:</span>
-              <span className="text-sm font-bold text-blue-600">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(availableLimit)}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-blue-700">Cartão: {selectedCard.name}</span>
+                <span className="text-sm text-blue-600">
+                  Usado: {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(selectedCard.current_value)}
+                </span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-sm font-medium text-blue-700">Limite Disponível:</span>
+                <span className="text-sm font-bold text-blue-600">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format((selectedCard.credit_limit || 0) - (selectedCard.current_value || 0))}
+                </span>
+              </div>
             </div>
           )}
 
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select 
-              value={formData.status} 
-              onValueChange={value => handleChange('status', value as 'pendente' | 'pago')}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="pago">Pago</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Valor e Status */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="amount">Valor *</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={formData.amount}
+                onChange={e => handleChange('amount', parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={value => handleChange('status', value as 'pendente' | 'pago')}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="pago">Pago</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="flex space-x-3 pt-4">

@@ -50,7 +50,7 @@ export function useCreditCardsOptions() {
       return transformedData;
     },
     refetchOnWindowFocus: false,
-    staleTime: 60000,
+    staleTime: 30000, // Reduzido para 30 segundos para atualização mais frequente
     gcTime: 300000,
     retry: 1
   });

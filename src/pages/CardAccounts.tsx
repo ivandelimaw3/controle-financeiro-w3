@@ -5,6 +5,7 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { CardAccountFormModal } from '@/components/CardAccounts/CardAccountFormModal';
 import { CardAccountsTable } from '@/components/CardAccounts/CardAccountsTable';
+import { CardAccountsSummaryCards } from '@/components/CardAccounts/CardAccountsSummaryCards';
 import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 
 const CardAccounts = () => {
@@ -72,6 +73,9 @@ const CardAccounts = () => {
             Nova Conta
           </Button>
         </div>
+
+        {/* Cards Informativos */}
+        {!loading && <CardAccountsSummaryCards cardAccounts={cardAccounts} />}
 
         {/* Tabela */}
         {loading ? (

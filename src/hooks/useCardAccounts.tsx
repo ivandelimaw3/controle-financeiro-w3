@@ -132,6 +132,7 @@ export const useCardAccounts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['card-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['creditcards-options'] });
+      queryClient.invalidateQueries({ queryKey: ['creditcards'] }); // Invalidar também a query principal dos cartões
       toast({
         title: "Sucesso",
         description: "Conta criada com sucesso.",
@@ -169,6 +170,7 @@ export const useCardAccounts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['card-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['creditcards-options'] });
+      queryClient.invalidateQueries({ queryKey: ['creditcards'] });
       toast({
         title: "Sucesso",
         description: "Conta atualizada com sucesso.",
@@ -206,6 +208,7 @@ export const useCardAccounts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['card-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['creditcards-options'] });
+      queryClient.invalidateQueries({ queryKey: ['creditcards'] });
       toast({
         title: "Sucesso",
         description: "Status atualizado com sucesso.",
@@ -239,6 +242,7 @@ export const useCardAccounts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['card-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['creditcards-options'] });
+      queryClient.invalidateQueries({ queryKey: ['creditcards'] });
       toast({
         title: "Sucesso",
         description: "Conta excluída com sucesso.",
