@@ -1,224 +1,259 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { AccountForm } from './AccountForm';
-import { useCategoriesData } from '@/hooks/useCategoriesData';
-import { CreateAccountData } from '@/hooks/useAccountsData';
 
-interface Account {
-  id?: number;
-  description: string;
-  amount: number;
-  category: string;
-  dueDate: string;
-  dataConta?: string;
-  type: 'receita' | 'despesa';
-  status: 'pendente' | 'pago' | 'recebido';
-  parcela?: string;
-  recorrente_id?: string;
-  qtd_parcelas?: number;
-  bank_id?: number;
-  payment_source?: 'bank' | 'card';
-  payment_source_id?: number;
-  payment_source_name?: string;
-}
+import React, { useState, useEffect } from 'react';
+import { Save, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Account, AccountFormData } from '@/hooks/useAccountsData';
+import { useCategoriesData } from '@/hooks/useCategoriesData';
+import { useBanksOptions } from '@/hooks/useBanksOptions';
 
 interface AccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (account: CreateAccountData | Account) => void;
+  onSubmit: (data: AccountFormData) => void;
   account?: Account;
-  categories?: string[];
+  isLoading?: boolean;
 }
 
 export const AccountModal: React.FC<AccountModalProps> = ({
   isOpen,
   onClose,
-  onSave,
-  account
+  onSubmit,
+  account,
+  isLoading = false
 }) => {
-  const { categories: categoriesFromDB, refreshCategories, loading: categoriesLoading, addCategory } = useCategoriesData();
-  const [formData, setFormData] = useState<Account>({
+  const { categories } = useCategoriesData();
+  const { banks } = useBanksOptions();
+
+  const [formData, setFormData] = useState<AccountFormData>({
     description: '',
     amount: 0,
-    category: '',
-    dueDate: '',
-    dataConta: '',
+    due_date: '',
     type: 'despesa',
+    category: '',
     status: 'pendente',
-    qtd_parcelas: 1,
-    bank_id: undefined,
-    payment_source: undefined,
-    payment_source_id: undefined,
-    payment_source_name: undefined
+    payment_source: 'bank',
+    payment_source_id: null,
+    payment_source_name: ''
   });
-  const [isFormReady, setIsFormReady] = useState(false);
-
-  // Formatação da data para input
-  const formatDateForInput = (dateStr: string | null | undefined) => {
-    if (!dateStr) return '';
-    
-    // Se a data já estiver no formato YYYY-MM-DD, retorna como está
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return dateStr;
-    }
-    
-    try {
-      // Cria a data como local para evitar problemas de timezone
-      const date = new Date(dateStr + 'T00:00:00');
-      if (!isNaN(date.getTime())) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-    } catch (error) {
-      console.error('Error formatting date:', error);
-    }
-    
-    return '';
-  };
 
   useEffect(() => {
-    if (!isOpen) {
-      setIsFormReady(false);
-      return;
-    }
-
-    if (account?.id) {
-      const formattedDueDate = formatDateForInput(account.dueDate);
-      const formattedDataConta = formatDateForInput(account.dataConta);
-      
-      console.log('AccountModal: original due date', account.dueDate);
-      console.log('AccountModal: formatted due date', formattedDueDate);
-      console.log('AccountModal: original data conta', account.dataConta);
-      console.log('AccountModal: formatted data conta', formattedDataConta);
-      
-      const newFormData = {
-        id: account.id,
-        description: account.description || '',
-        amount: Math.abs(account.amount) || 0,
-        category: account.category || '',
-        dueDate: formattedDueDate,
-        dataConta: formattedDataConta,
-        type: account.type || 'despesa',
-        status: account.status || 'pendente',
-        qtd_parcelas: 1, // Para edição, sempre 1 parcela
-        bank_id: account.bank_id,
-        payment_source: account.payment_source,
+    if (account) {
+      setFormData({
+        description: account.description,
+        amount: account.amount,
+        due_date: account.due_date,
+        type: account.type as 'receita' | 'despesa',
+        category: account.category,
+        status: account.status as 'pendente' | 'pago' | 'recebido',
+        payment_source: account.payment_source || 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name
-      };
-      setFormData(newFormData);
+        payment_source_name: account.payment_source_name || ''
+      });
     } else {
       setFormData({
         description: '',
         amount: 0,
-        category: '',
-        dueDate: '',
-        dataConta: '',
+        due_date: '',
         type: 'despesa',
+        category: '',
         status: 'pendente',
-        qtd_parcelas: 1,
-        bank_id: undefined,
-        payment_source: undefined,
-        payment_source_id: undefined,
-        payment_source_name: undefined
+        payment_source: 'bank',
+        payment_source_id: null,
+        payment_source_name: ''
       });
     }
-
-    // Refresh das categorias e marcar como pronto
-    refreshCategories().finally(() => {
-      setIsFormReady(true);
-    });
-  }, [isOpen, account, refreshCategories]);
+  }, [account, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Corrigir a lógica: receitas devem ser positivas, despesas negativas
-    let finalAmount = Math.abs(formData.amount); // Sempre começar com valor positivo
-    
-    // Se for despesa, tornar negativo
-    if (formData.type === 'despesa') {
-      finalAmount = -finalAmount;
-    }
-    
-    console.log('AccountModal: Saving account with type:', formData.type);
-    console.log('AccountModal: Original amount:', formData.amount);
-    console.log('AccountModal: Final amount:', finalAmount);
-    
-    const accountToSave = {
-      ...formData,
-      amount: finalAmount
-    };
-    
-    onSave(accountToSave);
-    onClose();
+    onSubmit(formData);
   };
 
-  // Função para atualizar categorias após criar nova categoria
-  const handleRefreshCategories = async () => {
-    try {
-      await refreshCategories();
-      console.log('Categories refreshed successfully');
-    } catch (error) {
-      console.error('Error refreshing categories:', error);
-    }
+  const handleChange = (field: keyof AccountFormData, value: string | number | null) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Função para adicionar nova categoria e atualizar a lista
-  const handleAddCategory = async (categoryData: { name: string; type: 'receita' | 'despesa'; color: string }) => {
-    try {
-      await addCategory(categoryData);
-      console.log('New category added, refreshing list...');
-      // A lista já será atualizada automaticamente pelo hook useCategoriesData
-    } catch (error) {
-      console.error('Error adding category:', error);
-    }
+  const getFilteredCategories = () => {
+    return categories.filter(cat => cat.type === formData.type);
   };
-
-  if (!isOpen) {
-    return null;
-  }
-
-  const isEditing = !!(account?.id);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center p-6 border-b border-slate-200 flex-shrink-0">
-          <h2 className="text-xl font-semibold text-slate-800">
-            {isEditing ? 'Editar Conta' : 'Nova Conta'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-100"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>
+            {account ? 'Editar Conta' : 'Nova Conta'}
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-6">
-            {!isFormReady ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-slate-600">Carregando...</div>
-              </div>
-            ) : (
-              <AccountForm
-                formData={formData}
-                setFormData={setFormData}
-                categories={categoriesFromDB || []}
-                onRefreshCategories={handleRefreshCategories}
-                onAddCategory={handleAddCategory}
-                onSubmit={handleSubmit}
-                onCancel={onClose}
-                isEditing={isEditing}
-              />
-            )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="description">Descrição *</Label>
+            <Input
+              id="description"
+              type="text"
+              value={formData.description}
+              onChange={e => handleChange('description', e.target.value)}
+              placeholder="Descrição da conta"
+              required
+            />
           </div>
-        </div>
-      </div>
-    </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="amount">Valor *</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={formData.amount}
+                onChange={e => handleChange('amount', parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="due_date">Data de Vencimento *</Label>
+              <Input
+                id="due_date"
+                type="date"
+                value={formData.due_date}
+                onChange={e => handleChange('due_date', e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="type">Tipo *</Label>
+            <Select 
+              value={formData.type} 
+              onValueChange={value => handleChange('type', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="receita">Receita</SelectItem>
+                <SelectItem value="despesa">Despesa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="category">Categoria *</Label>
+            <Select 
+              value={formData.category} 
+              onValueChange={value => handleChange('category', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {getFilteredCategories().map(category => (
+                  <SelectItem key={category.id} value={category.name}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="payment_source">Fonte de Pagamento *</Label>
+            <Select 
+              value={formData.payment_source} 
+              onValueChange={value => handleChange('payment_source', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a fonte" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bank">Banco</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {formData.payment_source === 'bank' && (
+            <div>
+              <Label htmlFor="payment_source_id">Banco *</Label>
+              <Select 
+                value={formData.payment_source_id?.toString() || ''} 
+                onValueChange={value => {
+                  const selectedBank = banks.find(bank => bank.id === value);
+                  handleChange('payment_source_id', parseInt(value));
+                  handleChange('payment_source_name', selectedBank?.name || '');
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um banco" />
+                </SelectTrigger>
+                <SelectContent>
+                  {banks.map(bank => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{bank.name}</span>
+                        <span className="text-sm text-gray-500 ml-2">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL'
+                          }).format(bank.balance)}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select 
+              value={formData.status} 
+              onValueChange={value => handleChange('status', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="pago">Pago</SelectItem>
+                <SelectItem value="recebido">Recebido</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isLoading ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };

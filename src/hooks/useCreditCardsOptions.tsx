@@ -6,6 +6,7 @@ export interface CreditCardOption {
   id: string;
   name: string;
   current_value: number;
+  credit_limit: number;
 }
 
 export function useCreditCardsOptions() {
@@ -25,7 +26,7 @@ export function useCreditCardsOptions() {
 
       const { data, error } = await supabase
         .from('creditcards')
-        .select('id, card_name, current_value')
+        .select('id, card_name, current_value, credit_limit')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('card_name');
@@ -40,7 +41,8 @@ export function useCreditCardsOptions() {
       const transformedData = (data || []).map(card => ({
         id: String(card.id),
         name: card.card_name,
-        current_value: card.current_value ?? 0
+        current_value: card.current_value ?? 0,
+        credit_limit: card.credit_limit ?? 0
       }));
 
       console.log('useCreditCardsOptions: Dados transformados:', transformedData);

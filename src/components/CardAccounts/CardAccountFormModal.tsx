@@ -69,6 +69,8 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
   };
 
   const despesaCategories = categories.filter(cat => cat.type === 'despesa');
+  const selectedCard = cards.find(card => card.id === formData.card_id.toString());
+  const availableLimit = selectedCard ? (selectedCard.credit_limit || 0) - (selectedCard.current_value || 0) : 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -142,6 +144,18 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
             </Select>
           </div>
 
+          {/* Campo de Fonte de Pagamento fixo como Cartão */}
+          <div>
+            <Label htmlFor="payment_source">Fonte de Pagamento</Label>
+            <Input
+              id="payment_source"
+              type="text"
+              value="Cartão"
+              readOnly
+              className="bg-gray-100 cursor-not-allowed"
+            />
+          </div>
+
           <div>
             <Label htmlFor="card_id">Cartão de Crédito *</Label>
             <Select 
@@ -154,12 +168,33 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
               <SelectContent>
                 {cards.map(card => (
                   <SelectItem key={card.id} value={card.id}>
-                    {card.name}
+                    <div className="flex items-center justify-between w-full">
+                      <span>{card.name}</span>
+                      <span className="text-sm text-gray-500 ml-2">
+                        Disponível: {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL'
+                        }).format((card.credit_limit || 0) - (card.current_value || 0))}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Mostrar limite disponível do cartão selecionado */}
+          {selectedCard && (
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+              <span className="text-sm font-medium text-blue-700">Limite Disponível:</span>
+              <span className="text-sm font-bold text-blue-600">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(availableLimit)}
+              </span>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="status">Status</Label>
