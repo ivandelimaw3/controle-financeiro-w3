@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -32,6 +33,14 @@ const Sidebar: React.FC = () => {
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       hoverBg: 'hover:bg-green-100'
+    },
+    { 
+      icon: CreditCard, 
+      label: 'Contas Cartões', 
+      path: '/card-accounts', 
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      hoverBg: 'hover:bg-purple-100'
     },
     { 
       icon: Tag, 
