@@ -3,13 +3,14 @@ import React from 'react';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CardAccount } from '@/hooks/useCardAccounts';
 
 interface CardAccountsTableProps {
   cardAccounts: CardAccount[];
   onEdit: (cardAccount: CardAccount) => void;
   onDelete: (id: number) => void;
+  onStatusChange: (id: number, status: 'pendente' | 'pago') => void;
   isDeleting?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
   cardAccounts,
   onEdit,
   onDelete,
+  onStatusChange,
   isDeleting = false
 }) => {
   const formatCurrency = (value: number) => {
@@ -28,6 +30,17 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('pt-BR');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pago':
+        return 'bg-green-100 text-green-800';
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   if (cardAccounts.length === 0) {
@@ -78,12 +91,18 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
                 {account.card_name || 'Cartão não encontrado'}
               </TableCell>
               <TableCell>
-                <Badge 
-                  variant={account.status === 'pago' ? 'default' : 'secondary'}
-                  className={account.status === 'pago' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
+                <Select
+                  value={account.status}
+                  onValueChange={(value) => onStatusChange(account.id, value as 'pendente' | 'pago')}
                 >
-                  {account.status === 'pago' ? 'Pago' : 'Pendente'}
-                </Badge>
+                  <SelectTrigger className={`w-32 h-8 text-xs ${getStatusColor(account.status)}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="pago">Pago</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
                 <div className="flex space-x-1">

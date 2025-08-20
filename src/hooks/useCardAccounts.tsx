@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -172,6 +171,43 @@ export const useCardAccounts = () => {
     }
   });
 
+  // Atualizar status da conta
+  const updateCardAccountStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: 'pendente' | 'pago' }) => {
+      console.log('useCardAccounts: Atualizando status da conta:', id, status);
+
+      const { data: result, error } = await supabase
+        .from('card_accounts')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('useCardAccounts: Erro ao atualizar status:', error);
+        throw error;
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['card-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['creditcards-options'] });
+      toast({
+        title: "Sucesso",
+        description: "Status atualizado com sucesso.",
+      });
+    },
+    onError: (error) => {
+      console.error('useCardAccounts: Erro ao atualizar status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Deletar conta
   const deleteCardAccount = useMutation({
     mutationFn: async (id: number) => {
@@ -212,9 +248,11 @@ export const useCardAccounts = () => {
     refetch,
     createCardAccount: createCardAccount.mutate,
     updateCardAccount: updateCardAccount.mutate,
+    updateCardAccountStatus: updateCardAccountStatus.mutate,
     deleteCardAccount: deleteCardAccount.mutate,
     isCreating: createCardAccount.isPending,
     isUpdating: updateCardAccount.isPending,
+    isUpdatingStatus: updateCardAccountStatus.isPending,
     isDeleting: deleteCardAccount.isPending
   };
 };

@@ -16,9 +16,11 @@ const CardAccounts = () => {
     loading,
     createCardAccount,
     updateCardAccount,
+    updateCardAccountStatus,
     deleteCardAccount,
     isCreating,
     isUpdating,
+    isUpdatingStatus,
     isDeleting
   } = useCardAccounts();
 
@@ -39,6 +41,10 @@ const CardAccounts = () => {
       createCardAccount(data);
     }
     handleCloseModal();
+  };
+
+  const handleStatusChange = (id: number, status: 'pendente' | 'pago') => {
+    updateCardAccountStatus({ id, status });
   };
 
   const handleDelete = (id: number) => {
@@ -77,6 +83,7 @@ const CardAccounts = () => {
             cardAccounts={cardAccounts}
             onEdit={handleOpenModal}
             onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
             isDeleting={isDeleting}
           />
         )}
