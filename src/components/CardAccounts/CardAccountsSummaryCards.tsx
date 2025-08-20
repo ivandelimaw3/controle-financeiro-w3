@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CreditCard, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { CreditCard, CheckCircle, Clock, Calendar } from 'lucide-react';
 import { CardAccount } from '@/hooks/useCardAccounts';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -46,7 +46,7 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
             <p className="text-xl font-bold text-blue-600">
               {totalAccounts}
             </p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-xl font-bold text-blue-600 mt-1">
               {formatCurrency(totalAmount)}
             </p>
           </div>
@@ -64,7 +64,7 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
             <p className="text-xl font-bold text-green-600">
               {paidAccounts}
             </p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-xl font-bold text-green-600 mt-1">
               {formatCurrency(paidAmount)}
             </p>
           </div>
@@ -82,7 +82,7 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
             <p className="text-xl font-bold text-red-600">
               {pendingAccounts}
             </p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-xl font-bold text-red-600 mt-1">
               {formatCurrency(pendingAmount)}
             </p>
           </div>

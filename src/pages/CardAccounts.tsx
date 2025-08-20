@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -33,21 +32,21 @@ const CardAccounts = () => {
     isDeleting
   } = useCardAccounts();
 
-  // Ativar lembretes para contas de cartão
+  // Ativar lembretes para contas de cartão - corrigindo o mapeamento
   const cardAccountsForReminder = cardAccounts.map(account => ({
-    id: account.id,
+    id: account.id.toString(),
     description: account.description,
     amount: account.amount,
     dueDate: account.due_date,
-    status: account.status as 'pendente' | 'pago' | 'recebido',
-    type: 'despesa' as 'receita' | 'despesa',
+    status: account.status === 'pago' ? 'pago' as const : 'pendente' as const,
+    type: 'despesa' as const,
     category: account.category_name || 'Sem categoria',
     payment_source_name: account.payment_source_name || '',
     created_at: account.created_at,
     updated_at: account.updated_at,
     user_id: '',
     payment_source_id: account.payment_source_id,
-    payment_source: account.payment_source || '',
+    payment_source: 'bank' as const,
     data_conta: account.data_conta,
     creditcards_id: account.card_id,
     bank_id: null,
