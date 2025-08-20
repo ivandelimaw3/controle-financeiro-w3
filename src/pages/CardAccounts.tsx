@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -15,7 +14,7 @@ const CardAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<CardAccount | undefined>();
   const [isShowingAll, setIsShowingAll] = useState(false);
-  
+
   // Estado do mês/ano atual
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -41,9 +40,9 @@ const CardAccounts = () => {
     isDeleting
   } = useCardAccounts();
 
-  // Ativar lembretes para contas de cartão - corrigindo o mapeamento
+  // Ativar lembretes para contas de cartão
   const cardAccountsForReminder = cardAccounts.map(account => ({
-    id: account.id, // Manter como number
+    id: account.id,
     description: account.description,
     amount: account.amount,
     dueDate: account.due_date,
@@ -65,30 +64,29 @@ const CardAccounts = () => {
 
   useAccountsReminder(cardAccountsForReminder);
 
-  // Aplicar todos os filtros
+  // Filtros
   const filteredCardAccounts = cardAccounts.filter(account => {
-    // Filtro de pesquisa
     const searchLower = searchTerm.toLowerCase().trim();
-    const matchesSearch = searchTerm === '' || 
-                         account.description.toLowerCase().includes(searchLower) ||
-                         account.category_name?.toLowerCase().includes(searchLower) ||
-                         account.payment_source_name?.toLowerCase().includes(searchLower) ||
-                         account.card_name?.toLowerCase().includes(searchLower);
+    const matchesSearch =
+      searchTerm === '' ||
+      account.description.toLowerCase().includes(searchLower) ||
+      account.category_name?.toLowerCase().includes(searchLower) ||
+      account.payment_source_name?.toLowerCase().includes(searchLower) ||
+      account.card_name?.toLowerCase().includes(searchLower);
 
-    // Filtro de status
     const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
 
-    // Filtro de mês/ano
     const accountDate = new Date(account.due_date);
     const accountMonth = accountDate.getMonth();
     const accountYear = accountDate.getFullYear();
-    
+
     const matchesMonth = isShowingAll || monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
     const matchesYear = isShowingAll || yearFilter === 'todos' || accountYear === parseInt(yearFilter);
 
     return matchesSearch && matchesStatus && matchesMonth && matchesYear;
   });
 
+  // Ações
   const handleOpenModal = (account?: CardAccount) => {
     setEditingAccount(account);
     setIsModalOpen(true);
@@ -141,17 +139,11 @@ const CardAccounts = () => {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="container mx-auto p-6 space-y-6">
+          
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <Button
-              onClick={() => handleOpenModal()}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Conta
-            </Button>
-            
-            <div className="text-center">
+          <div className="flex items-center">
+            {/* Título à esquerda */}
+            <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
                 Contas Cartões
               </h1>
@@ -159,8 +151,16 @@ const CardAccounts = () => {
                 Gerencie suas contas de cartões de crédito
               </p>
             </div>
-            
-            <div className="w-[120px]" /> {/* Spacer for centering */}
+
+            {/* Botão à direita do título */}
+            <Button
+              onClick={() => handleOpenModal()}
+              className="ml-auto bg-gradient-to-r from-blue-600 to-indigo-600 
+                         hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Conta
+            </Button>
           </div>
 
           {/* Cards Informativos */}
@@ -171,7 +171,7 @@ const CardAccounts = () => {
             />
           )}
 
-          {/* Filtros de Pesquisa */}
+          {/* Filtros */}
           <AccountsFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
