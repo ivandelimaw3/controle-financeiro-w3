@@ -75,7 +75,7 @@ export const useCardAccounts = () => {
         due_date: account.due_date,
         category_id: account.category_id,
         card_id: account.card_id,
-        status: account.status,
+        status: account.status as 'pendente' | 'pago',
         created_at: account.created_at,
         updated_at: account.updated_at,
         category_name: account.categories?.name,

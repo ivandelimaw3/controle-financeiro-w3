@@ -5,7 +5,7 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { CardAccountFormModal } from '@/components/CardAccounts/CardAccountFormModal';
 import { CardAccountsTable } from '@/components/CardAccounts/CardAccountsTable';
-import { useCardAccounts, CardAccount } from '@/hooks/useCardAccounts';
+import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 
 const CardAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,7 +32,7 @@ const CardAccounts = () => {
     setEditingAccount(undefined);
   };
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: CardAccountFormData) => {
     if (editingAccount) {
       updateCardAccount({ id: editingAccount.id, data });
     } else {
