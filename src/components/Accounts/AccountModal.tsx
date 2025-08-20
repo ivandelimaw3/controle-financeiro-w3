@@ -18,7 +18,7 @@ export interface AccountFormData {
   type: 'receita' | 'despesa';
   category: string;
   status: 'pendente' | 'pago' | 'recebido';
-  payment_source: string;
+  payment_source: 'bank';  // Fixo como 'bank'
   payment_source_id: number | null;
   payment_source_name: string;
   dataConta?: string;
@@ -68,7 +68,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         type: account.type as 'receita' | 'despesa',
         category: account.category,
         status: account.status as 'pendente' | 'pago' | 'recebido',
-        payment_source: account.payment_source || 'bank',
+        payment_source: 'bank',
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name || '',
         dataConta: account.dataConta || ''
@@ -99,9 +99,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   };
 
   const parseCurrencyInput = (value: string): number => {
-    // Remove todos os caracteres que não sejam dígitos
     const numbers = value.replace(/\D/g, '');
-    // Converte para número dividindo por 100 (para considerar os centavos)
     return numbers ? parseFloat(numbers) / 100 : 0;
   };
 
