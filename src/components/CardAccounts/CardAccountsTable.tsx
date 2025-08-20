@@ -60,8 +60,9 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
             <TableHead>Descrição</TableHead>
             <TableHead>Valor</TableHead>
             <TableHead>Vencimento</TableHead>
+            <TableHead>Data Compra</TableHead>
             <TableHead>Categoria</TableHead>
-            <TableHead>Cartão</TableHead>
+            <TableHead>Fonte Pagamento</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-[100px]">Ações</TableHead>
           </TableRow>
@@ -79,6 +80,9 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
                 {formatDate(account.due_date)}
               </TableCell>
               <TableCell>
+                {account.data_conta ? formatDate(account.data_conta) : '-'}
+              </TableCell>
+              <TableCell>
                 <div className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
@@ -88,7 +92,14 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
                 </div>
               </TableCell>
               <TableCell>
-                {account.card_name || 'Cartão não encontrado'}
+                <div className="text-sm">
+                  <div className="font-medium">
+                    {account.payment_source === 'card' ? 'Cartão' : account.payment_source || 'Cartão'}
+                  </div>
+                  <div className="text-gray-500">
+                    {account.payment_source_name || account.card_name || 'Cartão não encontrado'}
+                  </div>
+                </div>
               </TableCell>
               <TableCell>
                 <Select

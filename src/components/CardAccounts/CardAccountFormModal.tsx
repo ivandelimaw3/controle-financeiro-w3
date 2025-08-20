@@ -34,7 +34,11 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
     due_date: '',
     category_id: 0,
     card_id: 0,
-    status: 'pendente'
+    status: 'pendente',
+    payment_source: 'card',
+    payment_source_id: 0,
+    payment_source_name: '',
+    data_conta: ''
   });
 
   useEffect(() => {
@@ -45,7 +49,11 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
         due_date: cardAccount.due_date,
         category_id: cardAccount.category_id,
         card_id: cardAccount.card_id,
-        status: cardAccount.status
+        status: cardAccount.status,
+        payment_source: cardAccount.payment_source || 'card',
+        payment_source_id: cardAccount.payment_source_id || cardAccount.card_id,
+        payment_source_name: cardAccount.payment_source_name || cardAccount.card_name || '',
+        data_conta: cardAccount.data_conta || ''
       });
     } else {
       setFormData({
@@ -54,7 +62,11 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
         due_date: '',
         category_id: 0,
         card_id: 0,
-        status: 'pendente'
+        status: 'pendente',
+        payment_source: 'card',
+        payment_source_id: 0,
+        payment_source_name: '',
+        data_conta: ''
       });
     }
   }, [cardAccount, isOpen]);
@@ -66,6 +78,18 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
 
   const handleChange = (field: keyof CardAccountFormData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCardChange = (cardId: string) => {
+    const selectedCard = cards.find(card => card.id === cardId);
+    if (selectedCard) {
+      setFormData(prev => ({
+        ...prev,
+        card_id: parseInt(cardId),
+        payment_source_id: parseInt(cardId),
+        payment_source_name: selectedCard.name
+      }));
+    }
   };
 
   const despesaCategories = categories.filter(cat => cat.type === 'despesa');
@@ -120,6 +144,16 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
           </div>
 
           <div>
+            <Label htmlFor="data_conta">Data da Compra/Transação</Label>
+            <Input
+              id="data_conta"
+              type="date"
+              value={formData.data_conta}
+              onChange={e => handleChange('data_conta', e.target.value)}
+            />
+          </div>
+
+          <div>
             <Label htmlFor="category_id">Categoria *</Label>
             <Select 
               value={formData.category_id.toString()} 
@@ -144,43 +178,43 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
             </Select>
           </div>
 
-          {/* Campo de Fonte de Pagamento fixo como Cartão */}
-          <div>
-            <Label htmlFor="payment_source">Fonte de Pagamento</Label>
-            <Input
-              id="payment_source"
-              type="text"
-              value="Cartão"
-              readOnly
-              className="bg-gray-100 cursor-not-allowed"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="card_id">Cartão de Crédito *</Label>
-            <Select 
-              value={formData.card_id.toString()} 
-              onValueChange={value => handleChange('card_id', parseInt(value))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cartão" />
-              </SelectTrigger>
-              <SelectContent>
-                {cards.map(card => (
-                  <SelectItem key={card.id} value={card.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{card.name}</span>
-                      <span className="text-sm text-gray-500 ml-2">
-                        Disponível: {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        }).format((card.credit_limit || 0) - (card.current_value || 0))}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="payment_source">Fonte de Pagamento</Label>
+              <Input
+                id="payment_source"
+                type="text"
+                value="Cartão"
+                readOnly
+                className="bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <Label htmlFor="card_id">Cartão de Crédito *</Label>
+              <Select 
+                value={formData.card_id.toString()} 
+                onValueChange={handleCardChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um cartão" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cards.map(card => (
+                    <SelectItem key={card.id} value={card.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{card.name}</span>
+                        <span className="text-sm text-gray-500 ml-2">
+                          Disponível: {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL'
+                          }).format((card.credit_limit || 0) - (card.current_value || 0))}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Mostrar limite disponível do cartão selecionado */}

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +13,10 @@ export interface CardAccount {
   status: 'pendente' | 'pago';
   created_at: string;
   updated_at: string;
+  payment_source?: string;
+  payment_source_id?: number;
+  payment_source_name?: string;
+  data_conta?: string;
   category_name?: string;
   category_color?: string;
   card_name?: string;
@@ -24,6 +29,10 @@ export interface CardAccountFormData {
   category_id: number;
   card_id: number;
   status: 'pendente' | 'pago';
+  payment_source: string;
+  payment_source_id: number;
+  payment_source_name: string;
+  data_conta?: string;
 }
 
 export const useCardAccounts = () => {
@@ -77,6 +86,10 @@ export const useCardAccounts = () => {
         status: account.status as 'pendente' | 'pago',
         created_at: account.created_at,
         updated_at: account.updated_at,
+        payment_source: account.payment_source,
+        payment_source_id: account.payment_source_id,
+        payment_source_name: account.payment_source_name,
+        data_conta: account.data_conta,
         category_name: account.categories?.name,
         category_color: account.categories?.color,
         card_name: account.creditcards?.card_name

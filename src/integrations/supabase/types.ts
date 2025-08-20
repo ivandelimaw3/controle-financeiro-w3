@@ -130,9 +130,13 @@ export type Database = {
           card_id: number
           category_id: number
           created_at: string | null
+          data_conta: string | null
           description: string
           due_date: string
           id: number
+          payment_source: string | null
+          payment_source_id: number | null
+          payment_source_name: string | null
           status: string
           updated_at: string | null
           user_id: string
@@ -142,9 +146,13 @@ export type Database = {
           card_id: number
           category_id: number
           created_at?: string | null
+          data_conta?: string | null
           description: string
           due_date: string
           id?: number
+          payment_source?: string | null
+          payment_source_id?: number | null
+          payment_source_name?: string | null
           status?: string
           updated_at?: string | null
           user_id: string
@@ -154,9 +162,13 @@ export type Database = {
           card_id?: number
           category_id?: number
           created_at?: string | null
+          data_conta?: string | null
           description?: string
           due_date?: string
           id?: number
+          payment_source?: string | null
+          payment_source_id?: number | null
+          payment_source_name?: string | null
           status?: string
           updated_at?: string | null
           user_id?: string
