@@ -51,7 +51,7 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50/50">
-            <TableHead className="font-semibold text-slate-700">Descrição</TableHead>
+            <TableHead className="font-semibold text-slate-700 min-w-[200px]">Descrição</TableHead>
             <TableHead className="font-semibold text-slate-700">Valor</TableHead>
             <TableHead className="font-semibold text-slate-700">Data da Compra</TableHead>
             <TableHead className="font-semibold text-slate-700">Vencimento</TableHead>
@@ -64,8 +64,10 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
         <TableBody>
           {cardAccounts.map((account) => (
             <TableRow key={account.id} className="hover:bg-slate-50/50 transition-colors">
-              <TableCell className="font-medium text-slate-900">
-                {account.description}
+              <TableCell className="font-medium text-slate-900 min-w-[200px] max-w-[250px]">
+                <div className="truncate" title={account.description}>
+                  {account.description}
+                </div>
               </TableCell>
               <TableCell className="font-semibold text-slate-900">
                 {formatCurrency(account.amount)}

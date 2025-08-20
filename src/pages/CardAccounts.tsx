@@ -6,11 +6,19 @@ import { Button } from '@/components/ui/button';
 import { CardAccountFormModal } from '@/components/CardAccounts/CardAccountFormModal';
 import { CardAccountsTable } from '@/components/CardAccounts/CardAccountsTable';
 import { CardAccountsSummaryCards } from '@/components/CardAccounts/CardAccountsSummaryCards';
+import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
+import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 
 const CardAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<CardAccount | undefined>();
+  const [isShowingAll, setIsShowingAll] = useState(false);
+  
+  // Estado do mês/ano atual
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
   const {
     cardAccounts,
@@ -24,6 +32,38 @@ const CardAccounts = () => {
     isUpdatingStatus,
     isDeleting
   } = useCardAccounts();
+
+  // Ativar lembretes para contas de cartão
+  const cardAccountsForReminder = cardAccounts.map(account => ({
+    id: account.id,
+    description: account.description,
+    amount: account.amount,
+    dueDate: account.due_date,
+    status: account.status as 'pendente' | 'pago' | 'recebido',
+    type: 'despesa' as 'receita' | 'despesa',
+    category: account.category_name || 'Sem categoria',
+    payment_source_name: account.payment_source_name || '',
+    created_at: account.created_at,
+    updated_at: account.updated_at,
+    user_id: '',
+    payment_source_id: account.payment_source_id,
+    payment_source: account.payment_source || '',
+    data_conta: account.data_conta,
+    creditcards_id: account.card_id,
+    bank_id: null,
+    recorrente_id: null,
+    parcela: null
+  }));
+
+  useAccountsReminder(cardAccountsForReminder);
+
+  // Filtrar contas por mês/ano se não estiver mostrando todas
+  const filteredCardAccounts = isShowingAll 
+    ? cardAccounts 
+    : cardAccounts.filter(account => {
+        const accountDate = new Date(account.due_date);
+        return accountDate.getMonth() === currentMonth && accountDate.getFullYear() === currentYear;
+      });
 
   const handleOpenModal = (account?: CardAccount) => {
     setEditingAccount(account);
@@ -54,6 +94,16 @@ const CardAccounts = () => {
     }
   };
 
+  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
+    setCurrentMonth(month);
+    setCurrentYear(year);
+    setIsShowingAll(false);
+  };
+
+  const handleShowAll = () => {
+    setIsShowingAll(!isShowingAll);
+  };
+
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -77,8 +127,17 @@ const CardAccounts = () => {
             </Button>
           </div>
 
+          {/* Month Navigator */}
+          <MonthNavigator
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onMonthChange={handleMonthChange}
+            onShowAll={handleShowAll}
+            isShowingAll={isShowingAll}
+          />
+
           {/* Cards Informativos */}
-          {!loading && <CardAccountsSummaryCards cardAccounts={cardAccounts} />}
+          {!loading && <CardAccountsSummaryCards cardAccounts={filteredCardAccounts} />}
 
           {/* Tabela */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20">
@@ -88,7 +147,7 @@ const CardAccounts = () => {
               </div>
             ) : (
               <CardAccountsTable
-                cardAccounts={cardAccounts}
+                cardAccounts={filteredCardAccounts}
                 onEdit={handleOpenModal}
                 onDelete={handleDelete}
                 onStatusChange={handleStatusChange}
