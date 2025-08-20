@@ -151,14 +151,15 @@ const CardAccounts = () => {
                 Gerencie suas contas de cartões de crédito
               </p>
             </div>
-            <Button
-              onClick={() => handleOpenModal()}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Conta
-            </Button>
-          </div>
+            <div className="flex justify-start">
+   <Button
+    onClick={() => handleOpenModal()}
+    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+  >
+    <Plus className="h-4 w-4 mr-2" />
+    Nova Conta
+  </Button>
+</div>
 
           {/* Cards Informativos */}
           {!loading && (
