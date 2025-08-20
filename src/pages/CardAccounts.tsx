@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -34,7 +35,7 @@ const CardAccounts = () => {
 
   // Ativar lembretes para contas de cartão - corrigindo o mapeamento
   const cardAccountsForReminder = cardAccounts.map(account => ({
-    id: account.id.toString(),
+    id: account.id, // Manter como number
     description: account.description,
     amount: account.amount,
     dueDate: account.due_date,
