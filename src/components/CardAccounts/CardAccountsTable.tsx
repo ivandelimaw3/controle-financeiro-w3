@@ -22,10 +22,12 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
   onStatusChange,
   isDeleting = false
 }) => {
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('pt-BR');
-  };
-
+ const formatDate = (date: string) => {
+  if (!date) return "";
+  // Garante que pega apenas YYYY-MM-DD sem timezone
+  const [year, month, day] = date.split("T")[0].split("-");
+  return `${day}/${month}/${year}`;
+};
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pago':
