@@ -10,6 +10,7 @@ import { CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useCreditCardsOptions } from '@/hooks/useCreditCardsOptions';
 import { formatCurrency } from '@/utils/formatters';
+import { createLocalDate, formatDateForInput } from '@/utils/dateUtils';
 
 interface CardAccountFormModalProps {
   isOpen: boolean;
@@ -49,14 +50,14 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
       setFormData({
         description: cardAccount.description,
         amount: cardAccount.amount,
-        due_date: cardAccount.due_date,
+        due_date: formatDateForInput(cardAccount.due_date),
         category_id: cardAccount.category_id,
         card_id: cardAccount.card_id,
         status: cardAccount.status,
         payment_source: cardAccount.payment_source || 'card',
         payment_source_id: cardAccount.payment_source_id || cardAccount.card_id,
         payment_source_name: cardAccount.payment_source_name || cardAccount.card_name || '',
-        data_conta: cardAccount.data_conta || ''
+        data_conta: formatDateForInput(cardAccount.data_conta || '')
       });
       setDisplayAmount(formatCurrencyInput(cardAccount.amount));
     } else {
@@ -101,7 +102,15 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Garantir que as datas sejam tratadas como locais
+    const dataToSubmit = {
+      ...formData,
+      due_date: createLocalDate(formData.due_date),
+      data_conta: formData.data_conta ? createLocalDate(formData.data_conta) : ''
+    };
+    
+    onSubmit(dataToSubmit);
   };
 
   const handleChange = (field: keyof CardAccountFormData, value: string | number) => {

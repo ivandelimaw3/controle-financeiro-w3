@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Save, X, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Account } from '@/hooks/useAccountsData';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
 import { formatCurrency } from '@/utils/formatters';
+import { createLocalDate, formatDateForInput } from '@/utils/dateUtils';
 
 export interface AccountFormData {
   description: string;
@@ -64,14 +64,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setFormData({
         description: account.description,
         amount: account.amount,
-        dueDate: account.dueDate,
+        dueDate: formatDateForInput(account.dueDate),
         type: account.type as 'receita' | 'despesa',
         category: account.category,
         status: account.status as 'pendente' | 'pago' | 'recebido',
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name || '',
-        dataConta: account.dataConta || ''
+        dataConta: formatDateForInput(account.dataConta || '')
       });
       setDisplayAmount(formatCurrencyInput(account.amount));
     } else {
@@ -114,7 +114,15 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Garantir que as datas sejam tratadas como locais
+    const dataToSubmit = {
+      ...formData,
+      dueDate: createLocalDate(formData.dueDate),
+      dataConta: formData.dataConta ? createLocalDate(formData.dataConta) : ''
+    };
+    
+    onSubmit(dataToSubmit);
   };
 
   const handleChange = (field: keyof AccountFormData, value: string | number | null) => {
