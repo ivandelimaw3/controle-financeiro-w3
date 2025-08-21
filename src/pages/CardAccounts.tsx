@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { CardAccountFormModal } from '@/components/CardAccounts/CardAccountFormModal';
 import { CardAccountsTable } from '@/components/CardAccounts/CardAccountsTable';
 import { CardAccountsSummaryCards } from '@/components/CardAccounts/CardAccountsSummaryCards';
@@ -14,6 +24,8 @@ const CardAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<CardAccount | undefined>();
   const [isShowingAll, setIsShowingAll] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<number | null>(null);
 
   // Estado do mês/ano atual
   const today = new Date();
@@ -111,9 +123,21 @@ const CardAccounts = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir esta conta?')) {
-      deleteCardAccount(id);
+    setAccountToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (accountToDelete) {
+      deleteCardAccount(accountToDelete);
+      setDeleteDialogOpen(false);
+      setAccountToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setAccountToDelete(null);
   };
 
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
@@ -227,6 +251,29 @@ const CardAccounts = () => {
             cardAccount={editingAccount}
             isLoading={isCreating || isUpdating}
           />
+
+          {/* Diálogo de Confirmação de Exclusão */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={cancelDelete}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={confirmDelete}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </Layout>
