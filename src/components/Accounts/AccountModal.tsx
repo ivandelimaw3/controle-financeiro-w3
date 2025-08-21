@@ -9,7 +9,7 @@ import { Account } from '@/hooks/useAccountsData';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
 import { formatCurrency } from '@/utils/formatters';
-import { createLocalDate, formatDateForInput } from '@/utils/dateUtils';
+import { createLocalDate, formatDateForInput, formatDatabaseDateForInput } from '@/utils/dateUtils';
 
 export interface AccountFormData {
   description: string;
@@ -64,14 +64,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setFormData({
         description: account.description,
         amount: account.amount,
-        dueDate: formatDateForInput(account.dueDate),
+        dueDate: formatDatabaseDateForInput(account.dueDate),
         type: account.type as 'receita' | 'despesa',
         category: account.category,
         status: account.status as 'pendente' | 'pago' | 'recebido',
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name || '',
-        dataConta: formatDateForInput(account.dataConta || '')
+        dataConta: formatDatabaseDateForInput(account.dataConta || '')
       });
       setDisplayAmount(formatCurrencyInput(account.amount));
     } else {

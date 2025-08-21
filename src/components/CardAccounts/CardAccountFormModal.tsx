@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Save, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useCreditCardsOptions } from '@/hooks/useCreditCardsOptions';
 import { formatCurrency } from '@/utils/formatters';
-import { createLocalDate, formatDateForInput } from '@/utils/dateUtils';
+import { createLocalDate, formatDateForInput, formatDatabaseDateForInput } from '@/utils/dateUtils';
 
 interface CardAccountFormModalProps {
   isOpen: boolean;
@@ -50,14 +49,14 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
       setFormData({
         description: cardAccount.description,
         amount: cardAccount.amount,
-        due_date: formatDateForInput(cardAccount.due_date),
+        due_date: formatDatabaseDateForInput(cardAccount.due_date),
         category_id: cardAccount.category_id,
         card_id: cardAccount.card_id,
         status: cardAccount.status,
         payment_source: cardAccount.payment_source || 'card',
         payment_source_id: cardAccount.payment_source_id || cardAccount.card_id,
         payment_source_name: cardAccount.payment_source_name || cardAccount.card_name || '',
-        data_conta: formatDateForInput(cardAccount.data_conta || '')
+        data_conta: formatDatabaseDateForInput(cardAccount.data_conta || '')
       });
       setDisplayAmount(formatCurrencyInput(cardAccount.amount));
     } else {
