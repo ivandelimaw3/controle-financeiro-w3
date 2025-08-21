@@ -22,8 +22,11 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   isDeleting = false
 }) => {
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('pt-BR');
-  };
+  if (!date) return "";
+  // Garante que pega apenas YYYY-MM-DD sem timezone
+  const [year, month, day] = date.split("T")[0].split("-");
+  return `${day}/${month}/${year}`;
+};
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
