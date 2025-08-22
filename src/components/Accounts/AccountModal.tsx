@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Save, X, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { CategorySelect } from '@/components/Accounts/CategorySelect';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
 import { formatCurrency } from '@/utils/formatters';
+import { formatDateToDDMMYYYY, formatDateToYYYYMMDD } from '@/utils/dateUtils';
 
 export interface AccountFormData {
   description: string;
@@ -158,55 +158,35 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             />
           </div>
 
-          {/* Data da Conta e Data de Vencimento */}
+          {/* Tipo e Categoria */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="dataConta">Data da Conta</Label>
-              <Input
-                id="dataConta"
-                type="date"
-                value={formData.dataConta}
-                onChange={e => handleChange('dataConta', e.target.value)}
-              />
+              <Label htmlFor="type">Tipo *</Label>
+              <Select 
+                value={formData.type} 
+                onValueChange={value => handleChange('type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="receita">Receita</SelectItem>
+                  <SelectItem value="despesa">Despesa</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <Label htmlFor="dueDate">Data de Vencimento *</Label>
-              <Input
-                id="dueDate"
-                type="date"
-                value={formData.dueDate}
-                onChange={e => handleChange('dueDate', e.target.value)}
-                required
+              <Label>Categoria *</Label>
+              <CategorySelect
+                value={formData.category}
+                onValueChange={(value) => handleChange('category', value)}
+                categories={categoriesData}
+                accountType={formData.type}
+                onRefresh={refreshCategories}
+                onAddCategory={addCategory}
               />
             </div>
           </div>
-
-          {/* Tipo */}
-          <div>
-            <Label htmlFor="type">Tipo *</Label>
-            <Select 
-              value={formData.type} 
-              onValueChange={value => handleChange('type', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="receita">Receita</SelectItem>
-                <SelectItem value="despesa">Despesa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Categoria usando CategorySelect */}
-          <CategorySelect
-            value={formData.category}
-            onValueChange={(value) => handleChange('category', value)}
-            categories={categoriesData}
-            accountType={formData.type}
-            onRefresh={refreshCategories}
-            onAddCategory={addCategory}
-          />
 
           {/* Fonte de Pagamento e Banco */}
           <div className="grid grid-cols-2 gap-4">
@@ -240,24 +220,28 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
           </div>
 
-          {/* Mostrar informações do banco selecionado */}
-          {selectedBank && (
-            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <Building2 className="h-5 w-5 text-blue-600" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-blue-900">{selectedBank.name}</span>
-                  <span className="text-xs text-blue-600">Banco selecionado</span>
-                </div>
-              </div>
-              <div className="flex flex-col text-right">
-                <span className="text-xs font-medium text-blue-700">Saldo Atual:</span>
-                <span className="text-sm font-bold text-blue-800">
-                  {formatCurrency(selectedBank.balance)}
-                </span>
-              </div>
+          {/* Data da Conta e Data de Vencimento */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="dataConta">Data da Conta</Label>
+              <Input
+                id="dataConta"
+                type="date"
+                value={formData.dataConta}
+                onChange={e => handleChange('dataConta', e.target.value)}
+              />
             </div>
-          )}
+            <div>
+              <Label htmlFor="dueDate">Data de Vencimento *</Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={e => handleChange('dueDate', e.target.value)}
+                required
+              />
+            </div>
+          </div>
 
           {/* Status e Valor */}
           <div className="grid grid-cols-2 gap-4">
@@ -310,6 +294,25 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Mostrar informações do banco selecionado */}
+          {selectedBank && (
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Building2 className="h-5 w-5 text-blue-600" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-blue-900">{selectedBank.name}</span>
+                  <span className="text-xs text-blue-600">Banco selecionado</span>
+                </div>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-xs font-medium text-blue-700">Saldo Atual:</span>
+                <span className="text-sm font-bold text-blue-800">
+                  {formatCurrency(selectedBank.balance)}
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="flex space-x-3 pt-4">
             <Button
