@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Save, X, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Account } from '@/hooks/useAccountsData';
+import { CategorySelect } from '@/components/Accounts/CategorySelect';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useBanksOptions } from '@/hooks/useBanksOptions';
 import { formatCurrency } from '@/utils/formatters';
@@ -40,7 +42,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   isLoading = false,
   categories
 }) => {
-  const { categories: categoriesData } = useCategoriesData();
+  const { categories: categoriesData, addCategory, refreshCategories } = useCategoriesData();
   const { banks } = useBanksOptions();
 
   const [formData, setFormData] = useState<AccountFormData>({
@@ -120,10 +122,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const getFilteredCategories = () => {
-    return categoriesData.filter(cat => cat.type === formData.type);
-  };
-
   const handleBankChange = (bankId: string) => {
     const selectedBank = banks.find(bank => bank.id === bankId);
     if (selectedBank) {
@@ -183,48 +181,32 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
           </div>
 
-          {/* Tipo e Categoria */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="type">Tipo *</Label>
-              <Select 
-                value={formData.type} 
-                onValueChange={value => handleChange('type', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="receita">Receita</SelectItem>
-                  <SelectItem value="despesa">Despesa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="category">Categoria *</Label>
-              <Select 
-                value={formData.category} 
-                onValueChange={value => handleChange('category', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getFilteredCategories().map(category => (
-                    <SelectItem key={category.id} value={category.name}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Tipo */}
+          <div>
+            <Label htmlFor="type">Tipo *</Label>
+            <Select 
+              value={formData.type} 
+              onValueChange={value => handleChange('type', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="receita">Receita</SelectItem>
+                <SelectItem value="despesa">Despesa</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Categoria usando CategorySelect */}
+          <CategorySelect
+            value={formData.category}
+            onValueChange={(value) => handleChange('category', value)}
+            categories={categoriesData}
+            accountType={formData.type}
+            onRefresh={refreshCategories}
+            onAddCategory={addCategory}
+          />
 
           {/* Fonte de Pagamento e Banco */}
           <div className="grid grid-cols-2 gap-4">
