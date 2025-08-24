@@ -178,19 +178,19 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
-              <SelectContent className="max-h-80 overflow-y-auto">
-               {getFilteredCategories().map(category => (
-              <SelectItem key={category.id} value={category.name}>
-            <div className="flex items-center gap-2">
-            <div 
-          className="w-3 h-3 rounded-full" 
-          style={{ backgroundColor: category.color }}
-          />
-         {category.name}
-       </div>
-       </SelectItem>
-      ))}
-      </SelectContent> 
+              <SelectContent>
+                {despesaCategories.map(category => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
