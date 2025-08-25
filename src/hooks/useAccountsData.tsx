@@ -97,7 +97,7 @@ export const useAccountsData = () => {
         bank_id: account.bank_id,
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name
+        payment_source_name: account.payment_source_name,
         saldo_anterior: account.saldo_anterior
       }));
 
