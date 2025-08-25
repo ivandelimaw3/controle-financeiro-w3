@@ -1,85 +1,112 @@
-import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, History } from 'lucide-react';
-import { Account } from '@/contexts/AccountsContext';
+import React, { useState, useEffect } from 'react';
+import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Account, useAccountsData } from '@/hooks/useAccountsData';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
+  month: number; // 0 a 11
+  year: number;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
-  // Função para formatar valores em reais brasileiros
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, month, year }) => {
+  const { getPreviousMonthBalance, savePreviousMonthBalance } = useAccountsData();
 
-  const calculateTotalPago = () => {
-    return accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pago')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-  };
+  const [saldoAnterior, setSaldoAnterior] = useState<number>(0);
+  const [editSaldo, setEditSaldo] = useState<boolean>(false);
+  const [manualSaldo, setManualSaldo] = useState<string>('');
 
-  const calculateTotalRecebido = () => {
-    return accounts
-      .filter(account => account.type === 'receita' && account.status === 'recebido')
-      .reduce((sum, account) => sum + account.amount, 0);
-  };
+  useEffect(() => {
+    const fetchSaldoAnterior = async () => {
+      const saldo = await getPreviousMonthBalance(month, year);
+      setSaldoAnterior(saldo);
+      setManualSaldo(saldo.toFixed(2));
+    };
+    fetchSaldoAnterior();
+  }, [month, year, getPreviousMonthBalance]);
 
-  const calculateSaldoFinal = () => {
-    return calculateTotalRecebido() - calculateTotalPago();
-  };
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  const calculateTotalPago = () =>
+    accounts
+      .filter(a => a.type === 'despesa' && a.status === 'pago')
+      .reduce((sum, a) => sum + Math.abs(a.amount), 0);
+
+  const calculateTotalRecebido = () =>
+    accounts
+      .filter(a => a.type === 'receita' && a.status === 'recebido')
+      .reduce((sum, a) => sum + a.amount, 0);
+
+  const calculateSaldoFinal = () =>
+    saldoAnterior + calculateTotalRecebido() - calculateTotalPago();
 
   const calculateTotalPendente = () => {
     const receitasPendentes = accounts
-      .filter(account => account.type === 'receita' && account.status === 'pendente')
-      .reduce((sum, account) => sum + account.amount, 0);
+      .filter(a => a.type === 'receita' && a.status === 'pendente')
+      .reduce((sum, a) => sum + a.amount, 0);
     const despesasPendentes = accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pendente')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+      .filter(a => a.type === 'despesa' && a.status === 'pendente')
+      .reduce((sum, a) => sum + Math.abs(a.amount), 0);
     return receitasPendentes - despesasPendentes;
   };
 
-  const getSaldoAnterior = () => {
-    if (!accounts || accounts.length === 0) return 0;
-    // pega o primeiro valor de saldo_anterior encontrado
-    const saldoAnterior = accounts[0].saldo_anterior;
-    return saldoAnterior ? Number(saldoAnterior) : 0;
+  const handleSaveManualSaldo = async () => {
+    const value = parseFloat(manualSaldo.replace(',', '.'));
+    await savePreviousMonthBalance(month, year, value);
+    setSaldoAnterior(value);
+    setEditSaldo(false);
   };
 
   return (
     <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {/* Saldo Mês Anterior */}
-<div 
-  className="p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
-  onClick={() => {
-    const newValue = prompt(
-      'Digite o saldo do mês anterior:',
-      getSaldoAnterior().toString()
-    );
-    if (newValue !== null && !isNaN(Number(newValue))) {
-      // Aqui você pode chamar a função do hook para salvar no banco
-      console.log('Novo saldo manual:', Number(newValue));
-      // Ex: savePreviousMonthBalance(month, year, Number(newValue))
-    }
-  }}
-  title="Clique para editar o saldo do mês anterior"
->
-  <div className="flex items-center gap-3">
-    <div className="p-2 bg-gray-100 rounded-lg">
-      <History size={20} className="text-gray-600" />
-    </div>
-    <div className="flex-1">
-      <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
-      <p className="text-xl font-bold text-gray-700">
-        {formatCurrency(getSaldoAnterior())}
-      </p>
-    </div>
-  </div>
-</div>
+      <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gray-100 rounded-lg">
+            <Clock size={20} className="text-gray-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
+            {!editSaldo ? (
+              <div className="flex items-center justify-between">
+                <p className="text-xl font-bold text-gray-700">{formatCurrency(saldoAnterior)}</p>
+                <button
+                  className="ml-2 text-sm text-blue-600 hover:underline"
+                  onClick={() => setEditSaldo(true)}
+                >
+                  Editar
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="border rounded px-2 py-1 w-24 text-right"
+                  value={manualSaldo}
+                  onChange={e => setManualSaldo(e.target.value)}
+                />
+                <button
+                  className="text-sm text-green-600 hover:underline"
+                  onClick={handleSaveManualSaldo}
+                >
+                  Salvar
+                </button>
+                <button
+                  className="text-sm text-red-600 hover:underline"
+                  onClick={() => {
+                    setManualSaldo(saldoAnterior.toFixed(2));
+                    setEditSaldo(false);
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-    {/* Total Recebido */}
+      {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-green-100 rounded-lg">
@@ -87,9 +114,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Recebido</p>
-            <p className="text-xl font-bold text-green-600">
-              {formatCurrency(calculateTotalRecebido())}
-            </p>
+            <p className="text-xl font-bold text-green-600">{formatCurrency(calculateTotalRecebido())}</p>
           </div>
         </div>
       </div>
@@ -102,9 +127,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Pago</p>
-            <p className="text-xl font-bold text-red-600">
-              {formatCurrency(calculateTotalPago())}
-            </p>
+            <p className="text-xl font-bold text-red-600">{formatCurrency(calculateTotalPago())}</p>
           </div>
         </div>
       </div>
@@ -117,7 +140,11 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Final</p>
-            <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p
+              className={`text-xl font-bold ${
+                calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
               {formatCurrency(calculateSaldoFinal())}
             </p>
           </div>
@@ -132,7 +159,11 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Pendente</p>
-            <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p
+              className={`text-xl font-bold ${
+                calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
               {formatCurrency(calculateTotalPendente())}
             </p>
           </div>
