@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';

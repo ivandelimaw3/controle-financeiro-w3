@@ -1,209 +1,354 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { AccountForm } from './AccountForm';
+import { Save, X, Building2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Account } from '@/hooks/useAccountsData';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
-import { CreateAccountData } from '@/hooks/useAccountsData';
+import { useBanksOptions } from '@/hooks/useBanksOptions';
+import { formatCurrency } from '@/utils/formatters';
 
-interface Account {
-  id?: number;
+export interface AccountFormData {
   description: string;
   amount: number;
-  category: string;
   dueDate: string;
   type: 'receita' | 'despesa';
+  category: string;
   status: 'pendente' | 'pago' | 'recebido';
-  parcela?: string;
-  recorrente_id?: string;
-  qtd_parcelas?: number;
-  bank_id?: number;
-  payment_source?: 'bank' | 'card';
-  payment_source_id?: number;
+  payment_source: 'bank';  // Fixo como 'bank'
+  payment_source_id: number | null;
+  payment_source_name: string;
+  dataConta?: string;
 }
 
 interface AccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (account: CreateAccountData | Account) => void;
+  onSubmit: (data: AccountFormData) => void;
   account?: Account;
-  categories?: string[];
+  isLoading?: boolean;
+  categories: string[];
 }
 
 export const AccountModal: React.FC<AccountModalProps> = ({
   isOpen,
   onClose,
-  onSave,
-  account
+  onSubmit,
+  account,
+  isLoading = false,
+  categories
 }) => {
-  const { categories: categoriesFromDB, refreshCategories, loading: categoriesLoading, addCategory } = useCategoriesData();
-  const [formData, setFormData] = useState<Account>({
+  const { categories: categoriesData } = useCategoriesData();
+  const { banks } = useBanksOptions();
+
+  const [formData, setFormData] = useState<AccountFormData>({
     description: '',
     amount: 0,
-    category: '',
     dueDate: '',
     type: 'despesa',
+    category: '',
     status: 'pendente',
-    qtd_parcelas: 1,
-    bank_id: undefined,
-    payment_source: undefined,
-    payment_source_id: undefined
+    payment_source: 'bank',
+    payment_source_id: null,
+    payment_source_name: '',
+    dataConta: ''
   });
-  const [isFormReady, setIsFormReady] = useState(false);
 
-  // Formatação da data para input
-  const formatDateForInput = (dateStr: string | null | undefined) => {
-    if (!dateStr) return '';
-    
-    // Se a data já estiver no formato YYYY-MM-DD, retorna como está
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return dateStr;
-    }
-    
-    try {
-      // Cria a data como local para evitar problemas de timezone
-      const date = new Date(dateStr + 'T00:00:00');
-      if (!isNaN(date.getTime())) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-    } catch (error) {
-      console.error('Error formatting date:', error);
-    }
-    
-    return '';
-  };
+  const [displayAmount, setDisplayAmount] = useState('');
 
   useEffect(() => {
-    if (!isOpen) {
-      setIsFormReady(false);
-      return;
-    }
-
-    if (account?.id) {
-      const formattedDueDate = formatDateForInput(account.dueDate);
-      
-      console.log('AccountModal: original date', account.dueDate);
-      console.log('AccountModal: formatted date', formattedDueDate);
-      
-      const newFormData = {
-        id: account.id,
-        description: account.description || '',
-        amount: Math.abs(account.amount) || 0,
-        category: account.category || '',
-        dueDate: formattedDueDate,
-        type: account.type || 'despesa',
-        status: account.status || 'pendente',
-        qtd_parcelas: 1, // Para edição, sempre 1 parcela
-        bank_id: account.bank_id,
-        payment_source: account.payment_source,
-        payment_source_id: account.payment_source_id
-      };
-      setFormData(newFormData);
+    if (account) {
+      setFormData({
+        description: account.description,
+        amount: account.amount,
+        dueDate: account.dueDate,
+        type: account.type as 'receita' | 'despesa',
+        category: account.category,
+        status: account.status as 'pendente' | 'pago' | 'recebido',
+        payment_source: 'bank',
+        payment_source_id: account.payment_source_id,
+        payment_source_name: account.payment_source_name || '',
+        dataConta: account.dataConta || ''
+      });
+      setDisplayAmount(formatCurrencyInput(account.amount));
     } else {
       setFormData({
         description: '',
         amount: 0,
-        category: '',
         dueDate: '',
         type: 'despesa',
+        category: '',
         status: 'pendente',
-        qtd_parcelas: 1,
-        bank_id: undefined,
-        payment_source: undefined,
-        payment_source_id: undefined
+        payment_source: 'bank',
+        payment_source_id: null,
+        payment_source_name: '',
+        dataConta: ''
       });
+      setDisplayAmount('');
     }
+  }, [account, isOpen]);
 
-    // Refresh das categorias e marcar como pronto
-    refreshCategories().finally(() => {
-      setIsFormReady(true);
-    });
-  }, [isOpen, account, refreshCategories]);
+  const formatCurrencyInput = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (value: string): number => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers ? parseFloat(numbers) / 100 : 0;
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = parseCurrencyInput(inputValue);
+    const formattedValue = formatCurrencyInput(numericValue);
+    
+    setDisplayAmount(formattedValue);
+    setFormData(prev => ({ ...prev, amount: numericValue }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Corrigir a lógica: receitas devem ser positivas, despesas negativas
-    let finalAmount = Math.abs(formData.amount); // Sempre começar com valor positivo
-    
-    // Se for despesa, tornar negativo
-    if (formData.type === 'despesa') {
-      finalAmount = -finalAmount;
-    }
-    
-    console.log('AccountModal: Saving account with type:', formData.type);
-    console.log('AccountModal: Original amount:', formData.amount);
-    console.log('AccountModal: Final amount:', finalAmount);
-    
-    const accountToSave = {
-      ...formData,
-      amount: finalAmount
-    };
-    
-    onSave(accountToSave);
-    onClose();
+    onSubmit(formData);
   };
 
-  // Função para atualizar categorias após criar nova categoria
-  const handleRefreshCategories = async () => {
-    try {
-      await refreshCategories();
-      console.log('Categories refreshed successfully');
-    } catch (error) {
-      console.error('Error refreshing categories:', error);
+  const handleChange = (field: keyof AccountFormData, value: string | number | null) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const getFilteredCategories = () => {
+    return categoriesData.filter(cat => cat.type === formData.type);
+  };
+
+  const handleBankChange = (bankId: string) => {
+    const selectedBank = banks.find(bank => bank.id === bankId);
+    if (selectedBank) {
+      setFormData(prev => ({
+        ...prev,
+        payment_source_id: parseInt(bankId),
+        payment_source_name: selectedBank.name
+      }));
     }
   };
 
-  // Função para adicionar nova categoria e atualizar a lista
-  const handleAddCategory = async (categoryData: { name: string; type: 'receita' | 'despesa'; color: string }) => {
-    try {
-      await addCategory(categoryData);
-      console.log('New category added, refreshing list...');
-      // A lista já será atualizada automaticamente pelo hook useCategoriesData
-    } catch (error) {
-      console.error('Error adding category:', error);
-    }
-  };
-
-  if (!isOpen) {
-    return null;
-  }
-
-  const isEditing = !!(account?.id);
+  const selectedBank = banks.find(bank => bank.id === formData.payment_source_id?.toString());
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-slate-800">
-            {isEditing ? 'Editar Conta' : 'Nova Conta'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>
+            {account ? 'Editar Conta' : 'Nova Conta'}
+          </DialogTitle>
+        </DialogHeader>
 
-        {!isFormReady ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-slate-600">Carregando...</div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Descrição */}
+          <div>
+            <Label htmlFor="description">Descrição *</Label>
+            <Input
+              id="description"
+              type="text"
+              value={formData.description}
+              onChange={e => handleChange('description', e.target.value)}
+              placeholder="Descrição da conta"
+              required
+            />
           </div>
-        ) : (
-          <AccountForm
-            formData={formData}
-            setFormData={setFormData}
-            categories={categoriesFromDB || []}
-            onRefreshCategories={handleRefreshCategories}
-            onAddCategory={handleAddCategory}
-            onSubmit={handleSubmit}
-            onCancel={onClose}
-            isEditing={isEditing}
+
+          {/* Data da Conta e Data de Vencimento */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="dataConta">Data da Conta</Label>
+              <Input
+                id="dataConta"
+                type="date"
+                value={formData.dataConta}
+                onChange={e => handleChange('dataConta', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="dueDate">Data de Vencimento *</Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={e => handleChange('dueDate', e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Tipo e Categoria */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="type">Tipo *</Label>
+              <Select 
+                value={formData.type} 
+                onValueChange={value => handleChange('type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="receita">Receita</SelectItem>
+                  <SelectItem value="despesa">Despesa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="category">Categoria *</Label>
+              <Select 
+                value={formData.category} 
+                onValueChange={value => handleChange('category', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80 overflow-y-auto">
+               {getFilteredCategories().map(category => (
+              <SelectItem key={category.id} value={category.name}>
+            <div className="flex items-center gap-2">
+            <div 
+          className="w-3 h-3 rounded-full" 
+          style={{ backgroundColor: category.color }}
           />
-        )}
+         {category.name}
+       </div>
+       </SelectItem>
+      ))}
+      </SelectContent>                 
+        </Select>
+       </div>
       </div>
-    </div>
+
+          {/* Fonte de Pagamento e Banco */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="payment_source">Fonte de Pagamento *</Label>
+              <div className="flex items-center h-10 px-3 py-2 border border-input bg-gray-50 rounded-md">
+                <Building2 className="h-4 w-4 mr-2 text-gray-500" />
+                <span className="text-sm text-gray-700">Banco</span>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="payment_source_id">Banco *</Label>
+              <Select 
+                value={formData.payment_source_id?.toString() || ''} 
+                onValueChange={handleBankChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um banco" />
+                </SelectTrigger>
+                <SelectContent>
+                  {banks.map(bank => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <span>{bank.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Mostrar informações do banco selecionado */}
+          {selectedBank && (
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Building2 className="h-5 w-5 text-blue-600" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-blue-900">{selectedBank.name}</span>
+                  <span className="text-xs text-blue-600">Banco selecionado</span>
+                </div>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-xs font-medium text-blue-700">Saldo Atual:</span>
+                <span className="text-sm font-bold text-blue-800">
+                  {formatCurrency(selectedBank.balance)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Status e Valor */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={value => handleChange('status', value as 'pendente' | 'pago' | 'recebido')}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pendente">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      Pendente
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pago">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      Pago
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="recebido">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      Recebido
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="amount">Valor *</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                  R$
+                </span>
+                <Input
+                  id="amount"
+                  type="text"
+                  value={displayAmount}
+                  onChange={handleAmountChange}
+                  placeholder="0,00"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isLoading ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
