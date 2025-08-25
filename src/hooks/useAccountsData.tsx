@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,9 +19,10 @@ export interface Account {
   payment_source: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
+  saldo_anterior?: number;
 }
 
-export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
+export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id' | 'saldo_anterior'> {
   qtd_parcelas?: number;
 }
 
@@ -96,7 +96,8 @@ export const useAccountsData = () => {
         bank_id: account.bank_id,
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name
+        payment_source_name: account.payment_source_name,
+        saldo_anterior: account.saldo_anterior
       }));
 
       setAccounts(transformedAccounts);
@@ -183,7 +184,8 @@ export const useAccountsData = () => {
           bank_id: account.bank_id,
           payment_source: 'bank' as const,
           payment_source_id: account.payment_source_id,
-          payment_source_name: account.payment_source_name
+          payment_source_name: account.payment_source_name,
+          saldo_anterior: account.saldo_anterior
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
@@ -243,7 +245,8 @@ export const useAccountsData = () => {
           bank_id: data.bank_id,
           payment_source: 'bank',
           payment_source_id: data.payment_source_id,
-          payment_source_name: data.payment_source_name
+          payment_source_name: data.payment_source_name,
+          saldo_anterior: data.saldo_anterior
         };
 
         setAccounts(prev => [newAccount, ...prev]);
@@ -284,7 +287,8 @@ export const useAccountsData = () => {
           bank_id: updatedAccount.bank_id,
           payment_source: 'bank',
           payment_source_id: updatedAccount.payment_source_id,
-          payment_source_name: updatedAccount.payment_source_name
+          payment_source_name: updatedAccount.payment_source_name,
+          saldo_anterior: updatedAccount.saldo_anterior
         })
         .eq('id', updatedAccount.id)
         .eq('user_id', user.id); 
@@ -416,6 +420,92 @@ export const useAccountsData = () => {
     }
   };
 
+  // Função para obter saldo do mês anterior usando a coluna saldo_anterior nas accounts
+  const getPreviousMonthBalance = async (currentMonth: number, currentYear: number): Promise<number> => {
+    try {
+      if (!user) return 0;
+      
+      // Calcular mês e ano anterior
+      let prevMonth = currentMonth - 1;
+      let prevYear = currentYear;
+      
+      if (prevMonth < 0) {
+        prevMonth = 11;
+        prevYear -= 1;
+      }
+      
+      // Formatar data para busca (YYYY-MM)
+      const prevMonthStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;
+      
+      // Buscar o saldo anterior na tabela accounts filtrando por mês e ano anterior
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('saldo_anterior')
+        .eq('user_id', user.id)
+        .ilike('due_date', `${prevMonthStr}%`) // Filtra por mês/ano anterior
+        .order('due_date', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error('Erro ao buscar saldo anterior:', error);
+        return 0;
+      }
+      
+      // Se encontrar registros, retorna o saldo anterior mais recente
+      if (data && data.length > 0) {
+        return data[0].saldo_anterior || 0;
+      }
+      
+      // Se não encontrar registros, retorna 0
+      return 0;
+    } catch (error) {
+      console.error('Erro ao buscar saldo anterior:', error);
+      return 0;
+    }
+  };
+
+  // Função para salvar saldo manualmente na coluna saldo_anterior
+  const savePreviousMonthBalance = async (currentMonth: number, currentYear: number, balance: number): Promise<void> => {
+    try {
+      if (!user) return;
+      
+      // Calcular mês e ano anterior
+      let prevMonth = currentMonth - 1;
+      let prevYear = currentYear;
+      
+      if (prevMonth < 0) {
+        prevMonth = 11;
+        prevYear -= 1;
+      }
+      
+      // Formatar data para busca (YYYY-MM)
+      const prevMonthStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;
+      
+      // Atualizar todos os registros do mês anterior com o novo saldo
+      const { error } = await supabase
+        .from('accounts')
+        .update({
+          saldo_anterior: balance
+        })
+        .eq('user_id', user.id)
+        .ilike('due_date', `${prevMonthStr}%`);
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      // Invalidar cache para atualizar os dados
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    } catch (error) {
+      console.error('Erro ao salvar saldo anterior:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o saldo anterior.",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchAccounts();
@@ -432,6 +522,183 @@ export const useAccountsData = () => {
     updateAccount,
     deleteAccount,
     updateAccountStatus,
-    refreshAccounts: fetchAccounts
+    refreshAccounts: fetchAccounts,
+    getPreviousMonthBalance,
+    savePreviousMonthBalance
   };
+};
+
+import React, { useState, useEffect } from 'react';
+import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Account, useAccountsData } from '@/hooks/useAccountsData';
+
+interface AccountsSummaryCardsProps {
+  accounts: Account[];
+  month: number; // 0 a 11
+  year: number;
+}
+
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, month, year }) => {
+  const { getPreviousMonthBalance, savePreviousMonthBalance } = useAccountsData();
+
+  const [saldoAnterior, setSaldoAnterior] = useState<number>(0);
+  const [editSaldo, setEditSaldo] = useState<boolean>(false);
+  const [manualSaldo, setManualSaldo] = useState<string>('');
+
+  useEffect(() => {
+    const fetchSaldoAnterior = async () => {
+      const saldo = await getPreviousMonthBalance(month, year);
+      setSaldoAnterior(saldo);
+      setManualSaldo(saldo.toFixed(2));
+    };
+    fetchSaldoAnterior();
+  }, [month, year, getPreviousMonthBalance]);
+
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  const calculateTotalPago = () =>
+    accounts
+      .filter(a => a.type === 'despesa' && a.status === 'pago')
+      .reduce((sum, a) => sum + Math.abs(a.amount), 0);
+
+  const calculateTotalRecebido = () =>
+    accounts
+      .filter(a => a.type === 'receita' && a.status === 'recebido')
+      .reduce((sum, a) => sum + a.amount, 0);
+
+  const calculateSaldoFinal = () =>
+    saldoAnterior + calculateTotalRecebido() - calculateTotalPago();
+
+  const calculateTotalPendente = () => {
+    const receitasPendentes = accounts
+      .filter(a => a.type === 'receita' && a.status === 'pendente')
+      .reduce((sum, a) => sum + a.amount, 0);
+    const despesasPendentes = accounts
+      .filter(a => a.type === 'despesa' && a.status === 'pendente')
+      .reduce((sum, a) => sum + Math.abs(a.amount), 0);
+    return receitasPendentes - despesasPendentes;
+  };
+
+  const handleSaveManualSaldo = async () => {
+    const value = parseFloat(manualSaldo.replace(',', '.'));
+    await savePreviousMonthBalance(month, year, value);
+    setSaldoAnterior(value);
+    setEditSaldo(false);
+  };
+
+  return (
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Saldo Mês Anterior */}
+      <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gray-100 rounded-lg">
+            <Clock size={20} className="text-gray-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
+            {!editSaldo ? (
+              <div className="flex items-center justify-between">
+                <p className="text-xl font-bold text-gray-700">{formatCurrency(saldoAnterior)}</p>
+                <button
+                  className="ml-2 text-sm text-blue-600 hover:underline"
+                  onClick={() => setEditSaldo(true)}
+                >
+                  Editar
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="border rounded px-2 py-1 w-24 text-right"
+                  value={manualSaldo}
+                  onChange={e => setManualSaldo(e.target.value)}
+                />
+                <button
+                  className="text-sm text-green-600 hover:underline"
+                  onClick={handleSaveManualSaldo}
+                >
+                  Salvar
+                </button>
+                <button
+                  className="text-sm text-red-600 hover:underline"
+                  onClick={() => {
+                    setManualSaldo(saldoAnterior.toFixed(2));
+                    setEditSaldo(false);
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Total Recebido */}
+      <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <TrendingUp size={20} className="text-green-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Total Recebido</p>
+            <p className="text-xl font-bold text-green-600">{formatCurrency(calculateTotalRecebido())}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Total Pago */}
+      <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-red-100 rounded-lg">
+            <TrendingDown size={20} className="text-red-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Total Pago</p>
+            <p className="text-xl font-bold text-red-600">{formatCurrency(calculateTotalPago())}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Saldo Final */}
+      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <DollarSign size={20} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Final</p>
+            <p
+              className={`text-xl font-bold ${
+                calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              {formatCurrency(calculateSaldoFinal())}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Saldo Pendente */}
+      <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-yellow-100 rounded-lg">
+            <Clock size={20} className="text-yellow-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Pendente</p>
+            <p
+              className={`text-xl font-bold ${
+                calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              {formatCurrency(calculateTotalPendente())}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
