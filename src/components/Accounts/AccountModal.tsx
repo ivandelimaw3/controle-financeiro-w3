@@ -21,6 +21,7 @@ export interface AccountFormData {
   payment_source_id: number | null;
   payment_source_name: string;
   dataConta?: string;
+  saldo_anterior?: number | null;
 }
 
 interface AccountModalProps {
@@ -54,9 +55,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     payment_source_id: null,
     payment_source_name: '',
     dataConta: ''
+    saldo_anterior: null,
   });
 
   const [displayAmount, setDisplayAmount] = useState('');
+  const [displaySaldoAnterior, setDisplaySaldoAnterior] = useState('');
 
   useEffect(() => {
     if (account) {
@@ -70,9 +73,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
         payment_source_name: account.payment_source_name || '',
-        dataConta: account.dataConta || ''
+        dataConta: account.dataConta || '',
+        saldo_anterior: account.saldo_anterior,
       });
       setDisplayAmount(formatCurrencyInput(account.amount));
+      setDisplaySaldoAnterior(formatCurrencyInput(account.saldo_anterior || 0));
     } else {
       setFormData({
         description: '',
@@ -85,8 +90,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         payment_source_id: null,
         payment_source_name: '',
         dataConta: ''
+        saldo_anterior: null,
       });
       setDisplayAmount('');
+      setDisplaySaldoAnterior('');
     }
   }, [account, isOpen]);
 
@@ -109,6 +116,15 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     
     setDisplayAmount(formattedValue);
     setFormData(prev => ({ ...prev, amount: numericValue }));
+  };
+
+  const handleSaldoAnteriorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = parseCurrencyInput(inputValue);
+    const formattedValue = formatCurrencyInput(numericValue);
+    
+    setDisplaySaldoAnterior(formattedValue);
+    setFormData(prev => ({ ...prev, saldo_anterior: numericValue }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -327,6 +343,27 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Saldo Mês Anterior */}
+          <div>
+            <Label htmlFor="saldo_anterior">Saldo Mês Anterior (Opcional)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                R$
+              </span>
+              <Input
+                id="saldo_anterior"
+                type="text"
+                value={displaySaldoAnterior}
+                onChange={handleSaldoAnteriorChange}
+                placeholder="0,00"
+                className="pl-10"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Usado para o card de resumo. Se deixado em branco, será R$ 0,00.
+            </p>
           </div>
 
           <div className="flex space-x-3 pt-4">
