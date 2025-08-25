@@ -51,17 +51,34 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   return (
     <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {/* Saldo Mês Anterior */}
-      <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gray-100 rounded-lg">
-            <History size={20} className="text-gray-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
-            <p className="text-xl font-bold text-gray-700">
-              {formatCurrency(getSaldoAnterior())}
-            </p>
-          </div>
+<div 
+  className="p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+  onClick={() => {
+    const newValue = prompt(
+      'Digite o saldo do mês anterior:',
+      getSaldoAnterior().toString()
+    );
+    if (newValue !== null && !isNaN(Number(newValue))) {
+      // Aqui você pode chamar a função do hook para salvar no banco
+      console.log('Novo saldo manual:', Number(newValue));
+      // Ex: savePreviousMonthBalance(month, year, Number(newValue))
+    }
+  }}
+  title="Clique para editar o saldo do mês anterior"
+>
+  <div className="flex items-center gap-3">
+    <div className="p-2 bg-gray-100 rounded-lg">
+      <History size={20} className="text-gray-600" />
+    </div>
+    <div className="flex-1">
+      <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
+      <p className="text-xl font-bold text-gray-700">
+        {formatCurrency(getSaldoAnterior())}
+      </p>
+    </div>
+  </div>
+</div>
+
         </div>
       </div>
 
