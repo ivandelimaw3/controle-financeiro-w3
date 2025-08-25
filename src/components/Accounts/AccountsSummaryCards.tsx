@@ -14,7 +14,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
 
   const [saldoAnterior, setSaldoAnterior] = useState<number>(0);
   const [editSaldo, setEditSaldo] = useState<boolean>(false);
-  const [manualSaldo, setManualSaldo] = useState<string>('');
+  const [manualSaldo, setManualSaldo] = useState<string>('0.00');
 
   useEffect(() => {
     const fetchSaldoAnterior = async () => {
@@ -52,10 +52,31 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   };
 
   const handleSaveManualSaldo = async () => {
-    const value = parseFloat(manualSaldo.replace(',', '.'));
-    await savePreviousMonthBalance(month, year, value);
-    setSaldoAnterior(value);
-    setEditSaldo(false);
+    const value = parseFloat(manualSaldo.replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(value)) {
+      await savePreviousMonthBalance(month, year, value);
+      setSaldoAnterior(value);
+      setEditSaldo(false);
+    }
+  };
+
+  const handleManualSaldoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permitir apenas números e vírgula/decimal
+    const cleanedValue = value.replace(/[^\d,]/g, '');
+    
+    // Limitar para 2 casas decimais
+    if (cleanedValue.includes(',')) {
+      const parts = cleanedValue.split(',');
+      if (parts.length > 2) {
+        const newCleanedValue = parts[0] + ',' + parts.slice(1).join('');
+        setManualSaldo(newCleanedValue);
+      } else {
+        setManualSaldo(cleanedValue);
+      }
+    } else {
+      setManualSaldo(cleanedValue);
+    }
   };
 
   return (
@@ -84,7 +105,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
                   type="text"
                   className="border rounded px-2 py-1 w-24 text-right"
                   value={manualSaldo}
-                  onChange={e => setManualSaldo(e.target.value)}
+                  onChange={handleManualSaldoChange}
+                  placeholder="0,00"
+                  autoFocus
                 />
                 <button
                   className="text-sm text-green-600 hover:underline"
