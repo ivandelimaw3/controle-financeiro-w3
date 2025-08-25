@@ -1,19 +1,13 @@
 
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
-  previousMonthBalance?: number;
-  onPreviousMonthBalanceChange?: (value: number) => void;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
-  accounts, 
-  previousMonthBalance = 0,
-  onPreviousMonthBalanceChange 
-}) => {
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
   // Função para formatar valores em reais brasileiros
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -35,7 +29,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   const calculateSaldoFinal = () => {
-    return previousMonthBalance + calculateTotalRecebido() - calculateTotalPago();
+    return calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
@@ -48,36 +42,8 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     return receitasPendentes - despesasPendentes;
   };
 
-  const handlePreviousBalanceClick = () => {
-    if (!onPreviousMonthBalanceChange) return;
-    
-    const newValue = prompt('Digite o saldo do mês anterior:', previousMonthBalance.toString());
-    if (newValue !== null && !isNaN(Number(newValue))) {
-      onPreviousMonthBalanceChange(Number(newValue));
-    }
-  };
-
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {/* Saldo Mês Anterior */}
-      <div 
-        className="p-4 bg-purple-50 rounded-xl border border-purple-200 cursor-pointer hover:shadow-md transition-shadow"
-        onClick={handlePreviousBalanceClick}
-        title="Clique para editar o saldo do mês anterior"
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Calendar size={20} className="text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
-            <p className={`text-xl font-bold ${previousMonthBalance >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-              {previousMonthBalance !== 0 ? formatCurrency(previousMonthBalance) : '--'}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">

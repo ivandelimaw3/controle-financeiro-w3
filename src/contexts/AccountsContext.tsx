@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useAccountsData, Account, CreateAccountData } from '@/hooks/useAccountsData';
 
@@ -27,8 +28,6 @@ interface AccountsContextType {
   getSaldo: () => number;
   getContasPendentes: () => number;
   refreshAccounts: () => Promise<void>;
-  getPreviousMonthBalance: (month: number, year: number) => Promise<number>;
-  savePreviousMonthBalance: (month: number, year: number, saldoAnterior: number) => Promise<void>;
 }
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -53,9 +52,7 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
     updateAccount,
     deleteAccount,
     updateAccountStatus,
-    refreshAccounts,
-    getPreviousMonthBalance,
-    savePreviousMonthBalance
+    refreshAccounts
   } = useAccountsData();
 
   const getTransactions = (): Transaction[] => {
@@ -124,9 +121,7 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
       getTotalDespesas,
       getSaldo,
       getContasPendentes,
-      refreshAccounts,
-      getPreviousMonthBalance,
-      savePreviousMonthBalance
+      refreshAccounts
     }}>
       {children}
     </AccountsContext.Provider>
