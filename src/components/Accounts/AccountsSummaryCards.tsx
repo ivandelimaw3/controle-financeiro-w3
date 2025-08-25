@@ -72,7 +72,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
             <p className={`text-xl font-bold ${previousMonthBalance >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-              {formatCurrency(previousMonthBalance)}
+              {previousMonthBalance !== 0 ? formatCurrency(previousMonthBalance) : '--'}
             </p>
           </div>
         </div>

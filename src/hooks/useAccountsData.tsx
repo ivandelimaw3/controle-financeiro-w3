@@ -54,28 +54,69 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
-  // Função para obter o saldo anterior do mês especificado
+  // Função para calcular o saldo final de um mês específico
+  const calculateMonthFinalBalance = async (month: number, year: number): Promise<number> => {
+    if (!user) return 0;
+
+    try {
+      // Buscar todas as contas do mês especificado
+      const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      const endDate = `${year}-${String(month + 2).padStart(2, '0')}-01`;
+      
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('due_date', startDate)
+        .lt('due_date', endDate);
+
+      if (error) {
+        console.error('Erro ao buscar contas do mês:', error);
+        return 0;
+      }
+
+      if (!data || data.length === 0) {
+        return 0;
+      }
+
+      // Calcular totais do mês
+      const totalRecebido = data
+        .filter(account => account.type === 'receita' && account.status === 'recebido')
+        .reduce((sum, account) => sum + parseFloat(account.amount.toString()), 0);
+
+      const totalPago = data
+        .filter(account => account.type === 'despesa' && account.status === 'pago')
+        .reduce((sum, account) => sum + Math.abs(parseFloat(account.amount.toString())), 0);
+
+      // Buscar o saldo anterior do primeiro registro do mês (todos devem ter o mesmo)
+      const saldoAnterior = data[0]?.saldo_anterior ? parseFloat(data[0].saldo_anterior.toString()) : 0;
+
+      // Calcular saldo final: saldo anterior + receitas - despesas
+      return saldoAnterior + totalRecebido - totalPago;
+
+    } catch (error) {
+      console.error('Erro ao calcular saldo final do mês:', error);
+      return 0;
+    }
+  };
+
+  // Função para obter o saldo anterior do mês (que é o saldo final do mês anterior)
   const getPreviousMonthBalance = async (month: number, year: number): Promise<number> => {
     if (!user) return 0;
 
     try {
-      // Buscar o último registro do mês especificado que tenha saldo_anterior definido
-      const { data, error } = await supabase
-        .from('accounts')
-        .select('saldo_anterior')
-        .eq('user_id', user.id)
-        .gte('due_date', `${year}-${String(month).padStart(2, '0')}-01`)
-        .lt('due_date', `${year}-${String(month + 1).padStart(2, '0')}-01`)
-        .not('saldo_anterior', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('Erro ao buscar saldo anterior:', error);
-        return 0;
+      // Calcular o mês anterior
+      let previousMonth = month - 1;
+      let previousYear = year;
+      
+      if (previousMonth < 0) {
+        previousMonth = 11;
+        previousYear = year - 1;
       }
 
-      return data && data.length > 0 ? parseFloat(data[0].saldo_anterior.toString()) : 0;
+      // Buscar o saldo final do mês anterior
+      return await calculateMonthFinalBalance(previousMonth, previousYear);
+
     } catch (error) {
       console.error('Erro ao buscar saldo anterior:', error);
       return 0;
@@ -87,12 +128,15 @@ export const useAccountsData = () => {
     if (!user) return;
 
     try {
+      const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      const endDate = `${year}-${String(month + 2).padStart(2, '0')}-01`;
+
       const { error } = await supabase
         .from('accounts')
         .update({ saldo_anterior: saldoAnterior })
         .eq('user_id', user.id)
-        .gte('due_date', `${year}-${String(month).padStart(2, '0')}-01`)
-        .lt('due_date', `${year}-${String(month + 1).padStart(2, '0')}-01`);
+        .gte('due_date', startDate)
+        .lt('due_date', endDate);
 
       if (error) {
         console.error('Erro ao salvar saldo anterior:', error);
@@ -106,6 +150,9 @@ export const useAccountsData = () => {
           title: "Sucesso",
           description: "Saldo anterior salvo com sucesso.",
         });
+        
+        // Atualizar a lista local
+        await fetchAccounts();
       }
     } catch (error) {
       console.error('Erro ao salvar saldo anterior:', error);

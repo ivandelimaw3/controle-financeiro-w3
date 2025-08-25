@@ -58,21 +58,27 @@ const Contas: React.FC = () => {
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
-  // Carregar saldo anterior do mês quando mudar o filtro de mês/ano
+  // Carregar saldo anterior automaticamente quando mudar o filtro de mês/ano
   useEffect(() => {
     const loadPreviousBalance = async () => {
       if (monthFilter !== 'todos' && yearFilter !== 'todos') {
         const month = parseInt(monthFilter);
         const year = parseInt(yearFilter);
+        
+        // Buscar o saldo final do mês anterior automaticamente
         const balance = await getPreviousMonthBalance(month, year);
         setPreviousMonthBalance(balance);
+        
+        console.log(`Saldo anterior calculado para ${month + 1}/${year}: R$ ${balance}`);
+      } else {
+        setPreviousMonthBalance(0);
       }
     };
     
     loadPreviousBalance();
   }, [monthFilter, yearFilter, getPreviousMonthBalance]);
 
-  // Handler para mudança do saldo anterior
+  // Handler para mudança manual do saldo anterior
   const handlePreviousMonthBalanceChange = async (value: number) => {
     setPreviousMonthBalance(value);
     
