@@ -1,4 +1,3 @@
-// src/hooks/useAccountsData.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,10 +19,10 @@ export interface Account {
   payment_source: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
-  saldo_anterior?: number;
+  saldo_anterior?: number | null;
 }
 
-export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id' | 'saldo_anterior'> {
+export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
   qtd_parcelas?: number;
 }
 
@@ -42,6 +41,7 @@ export interface Transaction {
   payment_source: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
+  saldo_anterior?: number | null;
 }
 
 export const useAccountsData = () => {
@@ -97,7 +97,7 @@ export const useAccountsData = () => {
         bank_id: account.bank_id,
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name,
+        payment_source_name: account.payment_source_name
         saldo_anterior: account.saldo_anterior
       }));
 
@@ -151,7 +151,8 @@ export const useAccountsData = () => {
             bank_id: accountData.bank_id,
             payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
-            payment_source_name: accountData.payment_source_name
+            payment_source_name: accountData.payment_source_name,
+            saldo_anterior: accountData.saldo_anterior
           });
         }
 
@@ -216,7 +217,8 @@ export const useAccountsData = () => {
             bank_id: accountData.bank_id,
             payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
-            payment_source_name: accountData.payment_source_name
+            payment_source_name: accountData.payment_source_name,
+            saldo_anterior: accountData.saldo_anterior
           }])
           .select()
           .single();
@@ -421,92 +423,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Função para obter saldo do mês anterior
-  const getPreviousMonthBalance = async (currentMonth: number, currentYear: number): Promise<number> => {
-    try {
-      if (!user) return 0;
-      
-      // Calcular mês e ano anterior
-      let prevMonth = currentMonth - 1;
-      let prevYear = currentYear;
-      
-      if (prevMonth < 0) {
-        prevMonth = 11;
-        prevYear -= 1;
-      }
-      
-      // Formatar data para busca (YYYY-MM)
-      const prevMonthStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;
-      
-      // Buscar o saldo anterior na tabela accounts filtrando por mês e ano anterior
-      const { data, error } = await supabase
-        .from('accounts')
-        .select('saldo_anterior')
-        .eq('user_id', user.id)
-        .ilike('due_date', `${prevMonthStr}%`) // Filtra por mês/ano anterior
-        .order('due_date', { ascending: false })
-        .limit(1);
-      
-      if (error) {
-        console.error('Erro ao buscar saldo anterior:', error);
-        return 0;
-      }
-      
-      // Se encontrar registros, retorna o saldo anterior mais recente
-      if (data && data.length > 0) {
-        return data[0].saldo_anterior || 0;
-      }
-      
-      // Se não encontrar registros, retorna 0
-      return 0;
-    } catch (error) {
-      console.error('Erro ao buscar saldo anterior:', error);
-      return 0;
-    }
-  };
-
-  // Função para salvar saldo manualmente
-  const savePreviousMonthBalance = async (currentMonth: number, currentYear: number, balance: number): Promise<void> => {
-    try {
-      if (!user) return;
-      
-      // Calcular mês e ano anterior
-      let prevMonth = currentMonth - 1;
-      let prevYear = currentYear;
-      
-      if (prevMonth < 0) {
-        prevMonth = 11;
-        prevYear -= 1;
-      }
-      
-      // Formatar data para busca (YYYY-MM)
-      const prevMonthStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;
-      
-      // Atualizar todos os registros do mês anterior com o novo saldo
-      const { error } = await supabase
-        .from('accounts')
-        .update({
-          saldo_anterior: balance
-        })
-        .eq('user_id', user.id)
-        .ilike('due_date', `${prevMonthStr}%`);
-      
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      // Invalidar cache para atualizar os dados
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    } catch (error) {
-      console.error('Erro ao salvar saldo anterior:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar o saldo anterior.",
-        variant: "destructive"
-      });
-    }
-  };
-
   useEffect(() => {
     if (user) {
       fetchAccounts();
@@ -523,8 +439,6 @@ export const useAccountsData = () => {
     updateAccount,
     deleteAccount,
     updateAccountStatus,
-    refreshAccounts: fetchAccounts,
-    getPreviousMonthBalance,
-    savePreviousMonthBalance
+    refreshAccounts: fetchAccounts
   };
 };
