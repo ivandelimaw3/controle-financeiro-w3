@@ -19,7 +19,6 @@ export interface Account {
   payment_source: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
-  saldo_anterior?: number | null;
 }
 
 export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
@@ -41,7 +40,6 @@ export interface Transaction {
   payment_source: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
-  saldo_anterior?: number | null;
 }
 
 export const useAccountsData = () => {
@@ -97,8 +95,7 @@ export const useAccountsData = () => {
         bank_id: account.bank_id,
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name,
-        saldo_anterior: account.saldo_anterior
+        payment_source_name: account.payment_source_name
       }));
 
       setAccounts(transformedAccounts);
@@ -151,8 +148,7 @@ export const useAccountsData = () => {
             bank_id: accountData.bank_id,
             payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
-            payment_source_name: accountData.payment_source_name,
-            saldo_anterior: accountData.saldo_anterior
+            payment_source_name: accountData.payment_source_name
           });
         }
 
@@ -186,8 +182,7 @@ export const useAccountsData = () => {
           bank_id: account.bank_id,
           payment_source: 'bank' as const,
           payment_source_id: account.payment_source_id,
-          payment_source_name: account.payment_source_name,
-          saldo_anterior: account.saldo_anterior
+          payment_source_name: account.payment_source_name
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
@@ -217,8 +212,7 @@ export const useAccountsData = () => {
             bank_id: accountData.bank_id,
             payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
-            payment_source_name: accountData.payment_source_name,
-            saldo_anterior: accountData.saldo_anterior
+            payment_source_name: accountData.payment_source_name
           }])
           .select()
           .single();
@@ -248,8 +242,7 @@ export const useAccountsData = () => {
           bank_id: data.bank_id,
           payment_source: 'bank',
           payment_source_id: data.payment_source_id,
-          payment_source_name: data.payment_source_name,
-          saldo_anterior: data.saldo_anterior
+          payment_source_name: data.payment_source_name
         };
 
         setAccounts(prev => [newAccount, ...prev]);
@@ -290,8 +283,7 @@ export const useAccountsData = () => {
           bank_id: updatedAccount.bank_id,
           payment_source: 'bank',
           payment_source_id: updatedAccount.payment_source_id,
-          payment_source_name: updatedAccount.payment_source_name,
-          saldo_anterior: updatedAccount.saldo_anterior
+          payment_source_name: updatedAccount.payment_source_name
         })
         .eq('id', updatedAccount.id)
         .eq('user_id', user.id); 
