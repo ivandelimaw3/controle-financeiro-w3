@@ -54,7 +54,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     payment_source: 'bank',
     payment_source_id: null,
     payment_source_name: '',
-    dataConta: ''
+    dataConta: '',
     saldo_anterior: null,
   });
 
@@ -89,7 +89,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         payment_source: 'bank',
         payment_source_id: null,
         payment_source_name: '',
-        dataConta: ''
+        dataConta: '',
         saldo_anterior: null,
       });
       setDisplayAmount('');
