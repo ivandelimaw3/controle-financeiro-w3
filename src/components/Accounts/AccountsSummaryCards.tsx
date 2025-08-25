@@ -1,3 +1,4 @@
+// src/components/AccountsSummaryCards.tsx
 import React, { useState, useEffect } from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account, useAccountsData } from '@/hooks/useAccountsData';
