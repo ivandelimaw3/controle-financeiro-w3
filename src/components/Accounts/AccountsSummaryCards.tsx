@@ -79,10 +79,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   </div>
 </div>
 
-        </div>
-      </div>
-
-      {/* Total Recebido */}
+    {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-green-100 rounded-lg">
