@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,10 +60,25 @@ export const useAccountsData = () => {
     if (!user) return 0;
 
     try {
-      // Buscar todas as contas do mês especificado
-      const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-      const endDate = `${year}-${String(month + 2).padStart(2, '0')}-01`;
+      console.log(`Calculando saldo final para mês ${month + 1}/${year}`);
       
+      // Construir as datas de início e fim do mês
+      const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      
+      // Para o último dia do mês, usar o primeiro dia do próximo mês
+      let nextMonth = month + 1;
+      let nextYear = year;
+      
+      if (nextMonth > 11) {
+        nextMonth = 0;
+        nextYear = year + 1;
+      }
+      
+      const endDate = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-01`;
+      
+      console.log(`Buscando contas entre ${startDate} e ${endDate}`);
+
+      // Buscar todas as contas do mês especificado
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
@@ -76,23 +92,42 @@ export const useAccountsData = () => {
       }
 
       if (!data || data.length === 0) {
+        console.log('Nenhuma conta encontrada para este mês');
         return 0;
       }
 
-      // Calcular totais do mês
+      console.log(`Encontradas ${data.length} contas para o mês`);
+
+      // Calcular totais do mês (apenas contas pagas/recebidas)
       const totalRecebido = data
         .filter(account => account.type === 'receita' && account.status === 'recebido')
-        .reduce((sum, account) => sum + parseFloat(account.amount.toString()), 0);
+        .reduce((sum, account) => {
+          const value = parseFloat(account.amount.toString());
+          console.log(`Receita recebida: ${account.description} = R$ ${value}`);
+          return sum + value;
+        }, 0);
 
       const totalPago = data
         .filter(account => account.type === 'despesa' && account.status === 'pago')
-        .reduce((sum, account) => sum + Math.abs(parseFloat(account.amount.toString())), 0);
+        .reduce((sum, account) => {
+          const value = Math.abs(parseFloat(account.amount.toString()));
+          console.log(`Despesa paga: ${account.description} = R$ ${value}`);
+          return sum + value;
+        }, 0);
 
-      // Buscar o saldo anterior do primeiro registro do mês (todos devem ter o mesmo)
+      // Buscar o saldo anterior (deve ser o mesmo em todas as contas do mês)
       const saldoAnterior = data[0]?.saldo_anterior ? parseFloat(data[0].saldo_anterior.toString()) : 0;
-
+      
       // Calcular saldo final: saldo anterior + receitas - despesas
-      return saldoAnterior + totalRecebido - totalPago;
+      const saldoFinal = saldoAnterior + totalRecebido - totalPago;
+      
+      console.log(`Mês ${month + 1}/${year}:`);
+      console.log(`- Saldo anterior: R$ ${saldoAnterior}`);
+      console.log(`- Total recebido: R$ ${totalRecebido}`);
+      console.log(`- Total pago: R$ ${totalPago}`);
+      console.log(`- Saldo final: R$ ${saldoFinal}`);
+
+      return saldoFinal;
 
     } catch (error) {
       console.error('Erro ao calcular saldo final do mês:', error);
@@ -105,6 +140,8 @@ export const useAccountsData = () => {
     if (!user) return 0;
 
     try {
+      console.log(`Buscando saldo anterior para ${month + 1}/${year}`);
+      
       // Calcular o mês anterior
       let previousMonth = month - 1;
       let previousYear = year;
@@ -114,8 +151,14 @@ export const useAccountsData = () => {
         previousYear = year - 1;
       }
 
+      console.log(`Mês anterior: ${previousMonth + 1}/${previousYear}`);
+
       // Buscar o saldo final do mês anterior
-      return await calculateMonthFinalBalance(previousMonth, previousYear);
+      const balance = await calculateMonthFinalBalance(previousMonth, previousYear);
+      
+      console.log(`Saldo anterior encontrado: R$ ${balance}`);
+      
+      return balance;
 
     } catch (error) {
       console.error('Erro ao buscar saldo anterior:', error);
