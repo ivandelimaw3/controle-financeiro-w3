@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +19,7 @@ export interface Account {
   payment_source: 'bank';
   payment_source_id?: number;
   payment_source_name?: string;
+  saldo_anterior?: number;
 }
 
 export interface CreateAccountData extends Omit<Account, 'id' | 'parcela' | 'recorrente_id'> {
@@ -52,6 +52,64 @@ export const useAccountsData = () => {
 
   const invalidateBanksCache = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
+  };
+
+  // Função para obter o saldo anterior do mês especificado
+  const getPreviousMonthBalance = async (month: number, year: number): Promise<number> => {
+    if (!user) return 0;
+
+    try {
+      // Buscar o último registro do mês especificado que tenha saldo_anterior definido
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('saldo_anterior')
+        .eq('user_id', user.id)
+        .gte('due_date', `${year}-${String(month).padStart(2, '0')}-01`)
+        .lt('due_date', `${year}-${String(month + 1).padStart(2, '0')}-01`)
+        .not('saldo_anterior', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Erro ao buscar saldo anterior:', error);
+        return 0;
+      }
+
+      return data && data.length > 0 ? parseFloat(data[0].saldo_anterior.toString()) : 0;
+    } catch (error) {
+      console.error('Erro ao buscar saldo anterior:', error);
+      return 0;
+    }
+  };
+
+  // Função para salvar o saldo anterior em todas as contas do mês
+  const savePreviousMonthBalance = async (month: number, year: number, saldoAnterior: number) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('accounts')
+        .update({ saldo_anterior: saldoAnterior })
+        .eq('user_id', user.id)
+        .gte('due_date', `${year}-${String(month).padStart(2, '0')}-01`)
+        .lt('due_date', `${year}-${String(month + 1).padStart(2, '0')}-01`);
+
+      if (error) {
+        console.error('Erro ao salvar saldo anterior:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível salvar o saldo anterior.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Sucesso",
+          description: "Saldo anterior salvo com sucesso.",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao salvar saldo anterior:', error);
+    }
   };
 
   // Carregar contas do Supabase
@@ -96,7 +154,8 @@ export const useAccountsData = () => {
         bank_id: account.bank_id,
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name
+        payment_source_name: account.payment_source_name,
+        saldo_anterior: account.saldo_anterior ? parseFloat(account.saldo_anterior.toString()) : 0
       }));
 
       setAccounts(transformedAccounts);
@@ -149,7 +208,8 @@ export const useAccountsData = () => {
             bank_id: accountData.bank_id,
             payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
-            payment_source_name: accountData.payment_source_name
+            payment_source_name: accountData.payment_source_name,
+            saldo_anterior: accountData.saldo_anterior || 0
           });
         }
 
@@ -183,7 +243,8 @@ export const useAccountsData = () => {
           bank_id: account.bank_id,
           payment_source: 'bank' as const,
           payment_source_id: account.payment_source_id,
-          payment_source_name: account.payment_source_name
+          payment_source_name: account.payment_source_name,
+          saldo_anterior: account.saldo_anterior ? parseFloat(account.saldo_anterior.toString()) : 0
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
@@ -213,7 +274,8 @@ export const useAccountsData = () => {
             bank_id: accountData.bank_id,
             payment_source: 'bank',
             payment_source_id: accountData.payment_source_id,
-            payment_source_name: accountData.payment_source_name
+            payment_source_name: accountData.payment_source_name,
+            saldo_anterior: accountData.saldo_anterior || 0
           }])
           .select()
           .single();
@@ -243,7 +305,8 @@ export const useAccountsData = () => {
           bank_id: data.bank_id,
           payment_source: 'bank',
           payment_source_id: data.payment_source_id,
-          payment_source_name: data.payment_source_name
+          payment_source_name: data.payment_source_name,
+          saldo_anterior: data.saldo_anterior ? parseFloat(data.saldo_anterior.toString()) : 0
         };
 
         setAccounts(prev => [newAccount, ...prev]);
@@ -284,7 +347,8 @@ export const useAccountsData = () => {
           bank_id: updatedAccount.bank_id,
           payment_source: 'bank',
           payment_source_id: updatedAccount.payment_source_id,
-          payment_source_name: updatedAccount.payment_source_name
+          payment_source_name: updatedAccount.payment_source_name,
+          saldo_anterior: updatedAccount.saldo_anterior || 0
         })
         .eq('id', updatedAccount.id)
         .eq('user_id', user.id); 
@@ -432,6 +496,8 @@ export const useAccountsData = () => {
     updateAccount,
     deleteAccount,
     updateAccountStatus,
-    refreshAccounts: fetchAccounts
+    refreshAccounts: fetchAccounts,
+    getPreviousMonthBalance,
+    savePreviousMonthBalance
   };
 };

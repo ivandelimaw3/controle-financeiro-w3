@@ -30,6 +30,7 @@ export type Database = {
           payment_source_id: number | null
           payment_source_name: string | null
           recorrente_id: string | null
+          saldo_anterior: number | null
           status: string
           type: string
           updated_at: string | null
@@ -50,6 +51,7 @@ export type Database = {
           payment_source_id?: number | null
           payment_source_name?: string | null
           recorrente_id?: string | null
+          saldo_anterior?: number | null
           status: string
           type: string
           updated_at?: string | null
@@ -70,6 +72,7 @@ export type Database = {
           payment_source_id?: number | null
           payment_source_name?: string | null
           recorrente_id?: string | null
+          saldo_anterior?: number | null
           status?: string
           type?: string
           updated_at?: string | null

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
@@ -13,9 +13,11 @@ import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
+import { useAccountsData } from '@/hooks/useAccountsData';
 
 const Contas: React.FC = () => {
   const { accounts, loading } = useAccounts();
+  const { getPreviousMonthBalance, savePreviousMonthBalance } = useAccountsData();
   const [previousMonthBalance, setPreviousMonthBalance] = useState(0);
   
   // Ativar sistema de lembretes para contas vencendo hoje
@@ -50,6 +52,38 @@ const Contas: React.FC = () => {
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
 
+  // Obter mês e ano atual - sempre inicializar no mês atual
+  const today = new Date();
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
+  const currentYear = parseInt(yearFilter);
+  const isShowingAll = monthFilter === 'todos';
+
+  // Carregar saldo anterior do mês quando mudar o filtro de mês/ano
+  useEffect(() => {
+    const loadPreviousBalance = async () => {
+      if (monthFilter !== 'todos' && yearFilter !== 'todos') {
+        const month = parseInt(monthFilter);
+        const year = parseInt(yearFilter);
+        const balance = await getPreviousMonthBalance(month, year);
+        setPreviousMonthBalance(balance);
+      }
+    };
+    
+    loadPreviousBalance();
+  }, [monthFilter, yearFilter, getPreviousMonthBalance]);
+
+  // Handler para mudança do saldo anterior
+  const handlePreviousMonthBalanceChange = async (value: number) => {
+    setPreviousMonthBalance(value);
+    
+    // Salvar no banco apenas se não estiver mostrando todos os meses
+    if (monthFilter !== 'todos' && yearFilter !== 'todos') {
+      const month = parseInt(monthFilter);
+      const year = parseInt(yearFilter);
+      await savePreviousMonthBalance(month, year, value);
+    }
+  };
+
   // Handler para mudança de mês no navegador
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     console.log('Mudança de mês:', { startDate, endDate, month, year });
@@ -62,13 +96,8 @@ const Contas: React.FC = () => {
     console.log('Mostrando todos os meses');
     setMonthFilter('todos');
     setYearFilter('todos');
+    setPreviousMonthBalance(0); // Reset quando mostrar todos
   };
-
-  // Obter mês e ano atual - sempre inicializar no mês atual
-  const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
-  const currentYear = parseInt(yearFilter);
-  const isShowingAll = monthFilter === 'todos';
 
   const handleSubmit = (data: AccountFormData) => {
     handleSave(data);
@@ -108,7 +137,7 @@ const Contas: React.FC = () => {
           <AccountsSummaryCards 
             accounts={filteredAccounts} 
             previousMonthBalance={previousMonthBalance}
-            onPreviousMonthBalanceChange={setPreviousMonthBalance}
+            onPreviousMonthBalanceChange={handlePreviousMonthBalanceChange}
           />
 
           <div className="mb-4">
