@@ -53,136 +53,11 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
-  // Função para obter mês/ano atual
-  const getCurrentMonthYear = () => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  };
-
-  // Função para atualizar/criar saldo anterior
-  const updatePreviousBalance = async (amount: number) => {
-    try {
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Usuário não autenticado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const currentMonthYear = getCurrentMonthYear();
-      const firstDayOfMonth = `${currentMonthYear}-01`;
-
-      // Verificar se já existe uma conta de saldo inicial para este mês
-      const existingAccount = accounts.find(account => 
-        account.category === 'saldo_inicial' && 
-        account.dueDate?.startsWith(currentMonthYear)
-      );
-
-      if (existingAccount) {
-        // Atualizar conta existente
-        const { error } = await supabase
-          .from('accounts')
-          .update({ 
-            amount: amount,
-            description: `Saldo Inicial - ${currentMonthYear}`,
-          })
-          .eq('id', existingAccount.id)
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Erro ao atualizar saldo anterior:', error);
-          toast({
-            title: "Erro",
-            description: "Não foi possível atualizar o saldo anterior.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        // Atualizar na lista local
-        setAccounts(prev => prev.map(account => 
-          account.id === existingAccount.id 
-            ? { ...account, amount, description: `Saldo Inicial - ${currentMonthYear}` }
-            : account
-        ));
-
-        toast({
-          title: "Sucesso",
-          description: "Saldo anterior atualizado com sucesso.",
-        });
-      } else {
-        // Criar nova conta de saldo inicial
-        const { data, error } = await supabase
-          .from('accounts')
-          .insert([{
-            description: `Saldo Inicial - ${currentMonthYear}`,
-            amount: amount,
-            category: 'saldo_inicial',
-            due_date: firstDayOfMonth,
-            data_conta: firstDayOfMonth,
-            type: amount >= 0 ? 'receita' : 'despesa',
-            status: 'recebido', // Sempre considerado como já efetivado
-            user_id: user.id,
-            payment_source: 'bank'
-          }])
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Erro ao criar saldo anterior:', error);
-          toast({
-            title: "Erro",
-            description: "Não foi possível criar o saldo anterior.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        // Transformar e adicionar à lista local
-        const newAccount: Account = {
-          id: data.id,
-          description: data.description,
-          amount: parseFloat(data.amount.toString()),
-          category: data.category,
-          dueDate: data.due_date,
-          dataConta: data.data_conta,
-          type: data.type as 'receita' | 'despesa',
-          status: data.status as 'pendente' | 'pago' | 'recebido',
-          parcela: data.parcela,
-          recorrente_id: data.recorrente_id,
-          bank_id: data.bank_id,
-          payment_source: 'bank',
-          payment_source_id: data.payment_source_id,
-          payment_source_name: data.payment_source_name
-        };
-
-        setAccounts(prev => [newAccount, ...prev]);
-
-        toast({
-          title: "Sucesso",
-          description: "Saldo anterior criado com sucesso.",
-        });
-      }
-
-      // Invalidar cache dos bancos já que isso afeta o saldo
-      invalidateBanksCache();
-
-    } catch (error) {
-      console.error('Erro ao processar saldo anterior:', error);
-      toast({
-        title: "Erro",
-        description: "Erro inesperado ao processar saldo anterior.",
-        variant: "destructive"
-      });
-    }
-  };
-
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
       setLoading(true);
+      
       if (!user) {
         console.log('Usuário não autenticado - fetchAccounts');
         setAccounts([]);
@@ -311,12 +186,12 @@ export const useAccountsData = () => {
         }));
 
         setAccounts(prev => [...newAccounts, ...prev]);
-
+        
         // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
         }
-
+               
         toast({
           title: "Sucesso",
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
@@ -371,12 +246,12 @@ export const useAccountsData = () => {
         };
 
         setAccounts(prev => [newAccount, ...prev]);
-
+        
         // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
         }
-
+        
         toast({
           title: "Sucesso",
           description: "Conta criada com sucesso.",
@@ -411,7 +286,7 @@ export const useAccountsData = () => {
           payment_source_name: updatedAccount.payment_source_name
         })
         .eq('id', updatedAccount.id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id); 
 
       if (error) {
         console.error('Erro ao atualizar conta:', error);
@@ -424,9 +299,11 @@ export const useAccountsData = () => {
       }
 
       // Atualizar na lista local
-      setAccounts(prev => prev.map(account => 
-        account.id === updatedAccount.id ? updatedAccount : account
-      ));
+      setAccounts(prev => 
+        prev.map(account => 
+          account.id === updatedAccount.id ? updatedAccount : account
+        )
+      );
 
       // SÓ invalidar cache se a conta for paga/recebida
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
@@ -452,7 +329,7 @@ export const useAccountsData = () => {
     try {
       // Buscar a conta antes de deletar para verificar se precisa reverter saldo
       const accountToDelete = accounts.find(acc => acc.id === accountId);
-
+      
       const { error } = await supabase
         .from('accounts')
         .delete()
@@ -501,7 +378,6 @@ export const useAccountsData = () => {
         });
         return;
       }
-
       const { error } = await supabase
         .from('accounts')
         .update({ status })
@@ -519,13 +395,13 @@ export const useAccountsData = () => {
       }
 
       // Atualizar na lista local
-      setAccounts(prev => prev.map(acc => 
+     setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
-
+      
       // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();
-
+        
       toast({
         title: "Sucesso",
         description: "Status da conta atualizado com sucesso.",
@@ -555,7 +431,6 @@ export const useAccountsData = () => {
     updateAccount,
     deleteAccount,
     updateAccountStatus,
-    updatePreviousBalance, // Nova função para gerenciar saldo anterior
     refreshAccounts: fetchAccounts
   };
 };
