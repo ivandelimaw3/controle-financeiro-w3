@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useState } from "react"
 import { Clock, TrendingUp, TrendingDown, DollarSign, Calculator, Edit3, Check, X } from "lucide-react"
@@ -36,8 +38,8 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
 
   const calculatePreviousBalance = () => {
     return accounts
-      .filter((account) => account.category === "Saldo Inicial" && account.status === "recebido")
-      .reduce((sum, account) => sum + account.amount, 0)
+      .filter((account) => account.previous_balance !== null && account.previous_balance !== undefined)
+      .reduce((sum, account) => sum + (account.previous_balance || 0), 0)
   }
 
   const calculateSaldoFinal = () => {
