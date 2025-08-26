@@ -446,7 +446,10 @@ export const useAccountsData = () => {
 
   const updatePreviousBalance = async (amount: number) => {
     try {
+      console.log("[v0] updatePreviousBalance called with amount:", amount)
+
       if (!user) {
+        console.log("[v0] No user authenticated")
         toast({
           title: "Erro",
           description: "Usuário não autenticado.",
@@ -455,11 +458,16 @@ export const useAccountsData = () => {
         return
       }
 
+      console.log("[v0] User authenticated:", user.id)
+
       const currentDate = new Date()
       const currentMonth = currentDate.getMonth() + 1
       const currentYear = currentDate.getFullYear()
 
+      console.log("[v0] Current month/year:", currentMonth, currentYear)
+
       // Verificar se já existe uma conta para este mês com previous_balance
+      console.log("[v0] Checking for existing account with previous_balance...")
       const { data: existingAccount, error: fetchError } = await supabase
         .from("accounts")
         .select("*")
@@ -469,7 +477,10 @@ export const useAccountsData = () => {
         .not("previous_balance", "is", null)
         .single()
 
+      console.log("[v0] Existing account query result:", { existingAccount, fetchError })
+
       if (existingAccount) {
+        console.log("[v0] Updating existing account:", existingAccount.id)
         // Atualizar conta existente
         const { error: updateError } = await supabase
           .from("accounts")
@@ -477,8 +488,10 @@ export const useAccountsData = () => {
           .eq("id", existingAccount.id)
           .eq("user_id", user.id)
 
+        console.log("[v0] Update result:", { updateError })
+
         if (updateError) {
-          console.error("Erro ao atualizar saldo anterior:", updateError)
+          console.error("[v0] Erro ao atualizar saldo anterior:", updateError)
           toast({
             title: "Erro",
             description: "Não foi possível atualizar o saldo anterior.",
@@ -493,7 +506,9 @@ export const useAccountsData = () => {
             account.id === existingAccount.id ? { ...account, previous_balance: amount } : account,
           ),
         )
+        console.log("[v0] Local state updated for existing account")
       } else {
+        console.log("[v0] Creating new account with previous_balance")
         // Criar nova conta com previous_balance
         const { data: newAccount, error: insertError } = await supabase
           .from("accounts")
@@ -507,14 +522,18 @@ export const useAccountsData = () => {
               status: "recebido",
               user_id: user.id,
               payment_source: "bank",
+              payment_source_id: null,
+              payment_source_name: null,
               previous_balance: amount, // Armazenar o saldo no campo previous_balance
             },
           ])
           .select()
           .single()
 
+        console.log("[v0] Insert result:", { newAccount, insertError })
+
         if (insertError) {
-          console.error("Erro ao criar saldo anterior:", insertError)
+          console.error("[v0] Erro ao criar saldo anterior:", insertError)
           toast({
             title: "Erro",
             description: "Não foi possível criar o saldo anterior.",
@@ -543,14 +562,16 @@ export const useAccountsData = () => {
         }
 
         setAccounts((prev) => [transformedAccount, ...prev])
+        console.log("[v0] New account added to local state")
       }
 
+      console.log("[v0] updatePreviousBalance completed successfully")
       toast({
         title: "Sucesso",
         description: "Saldo anterior atualizado com sucesso.",
       })
     } catch (error) {
-      console.error("Erro ao atualizar saldo anterior:", error)
+      console.error("[v0] Erro ao atualizar saldo anterior:", error)
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o saldo anterior.",
