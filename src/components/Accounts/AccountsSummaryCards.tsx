@@ -2,16 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Account, useAccountsData } from "@/hooks/useAccountsData";
 import { Clock, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { useAccountsData, Account } from "@/hooks/useAccountsData";
 
 export const AccountsSummaryCards: React.FC = () => {
   const { accounts, upsertPreviousBalance } = useAccountsData();
+
   const [editing, setEditing] = useState(false);
 
-  // Busca o saldo inicial do mês (Saldo Mês Anterior)
+  // Saldo Mês Anterior
   const saldoAnterior = accounts.find(a => a.description === "Saldo Mês Anterior")?.previous_balance ?? 0;
-
   const [value, setValue] = useState(saldoAnterior.toString());
 
   useEffect(() => {
@@ -43,14 +43,19 @@ export const AccountsSummaryCards: React.FC = () => {
     .reduce((sum, a) => a.type === "receita" ? sum + a.amount : sum - Math.abs(a.amount), 0);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-      
+    <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
       {/* Saldo Mês Anterior */}
-      <Card className="cursor-pointer hover:shadow-lg transition" onClick={() => !editing && setEditing(true)}>
+      <Card className="cursor-pointer hover:shadow-lg transition" onClick={() => setEditing(true)}>
         <CardContent className="p-4">
           {editing ? (
             <div className="flex gap-2 items-center">
-              <Input type="number" value={value} onChange={e => setValue(e.target.value)} />
+              <Input
+                type="number"
+                value={value}
+                onChange={e => setValue(e.target.value)}
+                placeholder="0,00"
+              />
               <Button size="sm" onClick={handleSave}>Salvar</Button>
               <Button size="sm" variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
             </div>
@@ -114,3 +119,4 @@ export const AccountsSummaryCards: React.FC = () => {
     </div>
   );
 };
+
