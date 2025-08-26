@@ -1,9 +1,7 @@
-"use client"
-
 import type React from "react"
 import { useState } from "react"
 import { Clock, TrendingUp, TrendingDown, DollarSign, Calculator, Edit3, Check, X } from "lucide-react"
-import type { Account } from "@/contexts/AccountsContext"
+import type { Account } from "@/hooks/useAccountsData"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -66,8 +64,14 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
 
   const handleSavePreviousBalance = () => {
     const amount = Number.parseFloat(previousBalanceInput) || 0
+    console.log("[v0] Component: handleSavePreviousBalance called with amount:", amount)
+    console.log("[v0] Component: onUpdatePreviousBalance function exists:", !!onUpdatePreviousBalance)
+
     if (onUpdatePreviousBalance) {
+      console.log("[v0] Component: Calling onUpdatePreviousBalance...")
       onUpdatePreviousBalance(amount)
+    } else {
+      console.log("[v0] Component: onUpdatePreviousBalance is not provided!")
     }
     setIsEditingPreviousBalance(false)
     setPreviousBalanceInput("")
