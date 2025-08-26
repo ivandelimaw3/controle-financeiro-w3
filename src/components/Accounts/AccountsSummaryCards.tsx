@@ -1,18 +1,45 @@
+
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
+import { PreviousBalanceCard } from './PreviousBalanceCard';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
+  onUpdatePreviousBalance: (amount: number, month: number, year: number) => Promise<void>;
+  month?: number;
+  year?: number;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
+  accounts, 
+  onUpdatePreviousBalance,
+  month,
+  year 
+}) => {
+  // Usar mês e ano atuais se não fornecidos
+  const today = new Date();
+  const currentMonth = month !== undefined ? month : today.getMonth() + 1;
+  const currentYear = year !== undefined ? year : today.getFullYear();
+
   // Função para formatar valores em reais brasileiros
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  // Buscar saldo anterior do mês/ano específico
+  const getPreviousBalance = () => {
+    const description = `Saldo Inicial - ${String(currentMonth).padStart(2, '0')}/${currentYear}`;
+    const previousBalanceAccount = accounts.find(
+      account => account.description === description && 
+                 account.category === 'Saldo Inicial' &&
+                 account.type === 'receita'
+    );
+    
+    return previousBalanceAccount ? previousBalanceAccount.amount : 0;
   };
 
   const calculateTotalPago = () => {
@@ -28,7 +55,8 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   };
 
   const calculateSaldoFinal = () => {
-    return calculateTotalRecebido() - calculateTotalPago();
+    const previousBalance = getPreviousBalance();
+    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
@@ -42,7 +70,15 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   };
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Saldo Mês Anterior - Novo Card */}
+      <PreviousBalanceCard
+        accounts={accounts}
+        month={currentMonth}
+        year={currentYear}
+        onUpdateBalance={onUpdatePreviousBalance}
+      />
+
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
@@ -73,7 +109,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
         </div>
       </div>
 
-      {/* Saldo Final */}
+      {/* Saldo Final - Agora inclui o saldo anterior */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">

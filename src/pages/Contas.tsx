@@ -1,3 +1,4 @@
+
 import type React from "react"
 import { Layout } from "@/components/Layout"
 import { AccountsHeader } from "@/components/Accounts/AccountsHeader"
@@ -14,7 +15,7 @@ import { useAccountFilters } from "@/hooks/useAccountFilters"
 import { useAccountOperations } from "@/hooks/useAccountOperations"
 
 const Contas: React.FC = () => {
-  const { accounts, loading, updatePreviousBalance } = useAccountsData()
+  const { accounts, loading, upsertPreviousBalance } = useAccountsData()
 
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts)
@@ -64,7 +65,7 @@ const Contas: React.FC = () => {
 
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date()
-  const currentMonth = monthFilter === "todos" ? today.getMonth() : Number.parseInt(monthFilter)
+  const currentMonth = monthFilter === "todos" ? today.getMonth() + 1 : Number.parseInt(monthFilter) + 1
   const currentYear = Number.parseInt(yearFilter)
   const isShowingAll = monthFilter === "todos"
 
@@ -103,7 +104,12 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards accounts={filteredAccounts} onUpdatePreviousBalance={updatePreviousBalance} />
+          <AccountsSummaryCards 
+            accounts={filteredAccounts} 
+            onUpdatePreviousBalance={upsertPreviousBalance}
+            month={currentMonth}
+            year={currentYear}
+          />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
@@ -113,7 +119,7 @@ const Contas: React.FC = () => {
 
           {/* Navegador de mês - logo acima da tabela */}
           <MonthNavigator
-            currentMonth={currentMonth}
+            currentMonth={currentMonth - 1}
             currentYear={currentYear}
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}

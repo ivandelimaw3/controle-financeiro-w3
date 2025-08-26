@@ -112,6 +112,143 @@ export const useAccountsData = () => {
     }
   };
 
+  // Upsert saldo do mês anterior
+  const upsertPreviousBalance = async (amount: number, month: number, year: number) => {
+    try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Criar identificador único para o saldo inicial do mês
+      const description = `Saldo Inicial - ${String(month).padStart(2, '0')}/${year}`;
+      const dueDate = `${year}-${String(month).padStart(2, '0')}-01`;
+
+      // Verificar se já existe um registro de saldo inicial para este mês/ano
+      const { data: existingBalance, error: searchError } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('description', description)
+        .eq('type', 'receita')
+        .eq('category', 'Saldo Inicial')
+        .single();
+
+      if (searchError && searchError.code !== 'PGRST116') {
+        console.error('Erro ao buscar saldo anterior:', searchError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível verificar saldo anterior.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (existingBalance) {
+        // Atualizar registro existente
+        const { error: updateError } = await supabase
+          .from('accounts')
+          .update({
+            amount: amount,
+            previous_balance: amount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingBalance.id);
+
+        if (updateError) {
+          console.error('Erro ao atualizar saldo anterior:', updateError);
+          toast({
+            title: "Erro",
+            description: "Não foi possível atualizar o saldo anterior.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Atualizar na lista local
+        setAccounts(prev =>
+          prev.map(account =>
+            account.id === existingBalance.id
+              ? { ...account, amount: amount }
+              : account
+          )
+        );
+
+        toast({
+          title: "Sucesso",
+          description: "Saldo anterior atualizado com sucesso.",
+        });
+      } else {
+        // Criar novo registro
+        const { data: newBalance, error: insertError } = await supabase
+          .from('accounts')
+          .insert([{
+            description: description,
+            amount: amount,
+            category: 'Saldo Inicial',
+            due_date: dueDate,
+            type: 'receita',
+            status: 'recebido',
+            user_id: user.id,
+            previous_balance: amount,
+            payment_source: 'bank'
+          }])
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Erro ao criar saldo anterior:', insertError);
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar o saldo anterior.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Transformar e adicionar à lista local
+        const newAccount: Account = {
+          id: newBalance.id,
+          description: newBalance.description,
+          amount: parseFloat(newBalance.amount.toString()),
+          category: newBalance.category,
+          dueDate: newBalance.due_date,
+          dataConta: newBalance.data_conta,
+          type: newBalance.type as 'receita' | 'despesa',
+          status: newBalance.status as 'pendente' | 'pago' | 'recebido',
+          parcela: newBalance.parcela,
+          recorrente_id: newBalance.recorrente_id,
+          bank_id: newBalance.bank_id,
+          payment_source: 'bank',
+          payment_source_id: newBalance.payment_source_id,
+          payment_source_name: newBalance.payment_source_name
+        };
+
+        setAccounts(prev => [newAccount, ...prev]);
+
+        toast({
+          title: "Sucesso",
+          description: "Saldo anterior criado com sucesso.",
+        });
+      }
+
+      // Invalidar cache dos bancos
+      invalidateBanksCache();
+
+    } catch (error) {
+      console.error('Erro ao processar saldo anterior:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar o saldo anterior.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Criar nova conta
   const addAccount = async (accountData: CreateAccountData) => {
     try {
@@ -431,6 +568,7 @@ export const useAccountsData = () => {
     updateAccount,
     deleteAccount,
     updateAccountStatus,
-    refreshAccounts: fetchAccounts
+    refreshAccounts: fetchAccounts,
+    upsertPreviousBalance
   };
 };
