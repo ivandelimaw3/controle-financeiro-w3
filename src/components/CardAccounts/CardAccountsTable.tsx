@@ -53,34 +53,34 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50/50">
-            <TableHead className="font-semibold text-slate-700 min-w-[200px]">Descrição</TableHead>
-            <TableHead className="font-semibold text-slate-700">Valor</TableHead>
-            <TableHead className="font-semibold text-slate-700">Data da Compra</TableHead>
-            <TableHead className="font-semibold text-slate-700">Vencimento</TableHead>
-            <TableHead className="font-semibold text-slate-700">Categoria</TableHead>
-            <TableHead className="font-semibold text-slate-700">Cartão</TableHead>
-            <TableHead className="font-semibold text-slate-700">Status</TableHead>
-            <TableHead className="w-[100px] font-semibold text-slate-700">Ações</TableHead>
+            <TableHead className="font-semibold text-slate-700 min-w-[200px] h-8 py-1">Descrição</TableHead>
+            <TableHead className="font-semibold text-slate-700 h-8 py-1">Valor</TableHead>
+            <TableHead className="font-semibold text-slate-700 h-8 py-1">Data da Compra</TableHead>
+            <TableHead className="font-semibold text-slate-700 h-8 py-1">Vencimento</TableHead>
+            <TableHead className="font-semibold text-slate-700 h-8 py-1">Categoria</TableHead>
+            <TableHead className="font-semibold text-slate-700 h-8 py-1">Cartão</TableHead>
+            <TableHead className="font-semibold text-slate-700 h-8 py-1">Status</TableHead>
+            <TableHead className="w-[100px] font-semibold text-slate-700 h-8 py-1">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {cardAccounts.map((account) => (
-            <TableRow key={account.id} className="hover:bg-slate-50/50 transition-colors">
-              <TableCell className="font-medium text-slate-900 min-w-[200px] max-w-[250px]">
+            <TableRow key={account.id} className="hover:bg-slate-50/50 transition-colors h-10">
+              <TableCell className="font-medium text-slate-900 min-w-[200px] max-w-[250px] py-1">
                 <div className="truncate" title={account.description}>
                   {account.description}
                 </div>
               </TableCell>
-              <TableCell className="font-semibold text-slate-900">
+              <TableCell className="font-semibold text-slate-900 py-1">
                 {formatCurrency(account.amount)}
               </TableCell>
-              <TableCell className="text-slate-600">
+              <TableCell className="text-slate-600 py-1">
                 {account.data_conta ? formatDate(account.data_conta) : '-'}
               </TableCell>
-              <TableCell className="text-slate-600">
+              <TableCell className="text-slate-600 py-1">
                 {formatDate(account.due_date)}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-1">
                 <div className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
@@ -89,7 +89,7 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
                   <span className="text-slate-700">{account.category_name || 'Sem categoria'}</span>
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="py-1">
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-blue-600" />
                   <span className="text-slate-700 font-medium">
@@ -97,12 +97,12 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
                   </span>
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="py-1">
                 <Select
                   value={account.status}
                   onValueChange={(value) => onStatusChange(account.id, value as 'pendente' | 'pago')}
                 >
-                  <SelectTrigger className={`w-32 h-8 text-xs border ${getStatusColor(account.status)}`}>
+                  <SelectTrigger className={`w-32 h-6 text-xs border ${getStatusColor(account.status)}`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -121,24 +121,24 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
                   </SelectContent>
                 </Select>
               </TableCell>
-              <TableCell>
+              <TableCell className="py-1">
                 <div className="flex space-x-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(account)}
-                    className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700"
+                    className="h-6 w-6 p-0 hover:bg-blue-100 hover:text-blue-700"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-3 w-3" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(account.id)}
                     disabled={isDeleting}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
+                    className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </TableCell>
