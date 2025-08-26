@@ -37,15 +37,10 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
-  // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-
-      if (!user) {
-        setAccounts([]);
-        return;
-      }
+      if (!user) { setAccounts([]); return; }
 
       const { data, error } = await supabase
         .from('accounts')
@@ -53,16 +48,9 @@ export const useAccountsData = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar as contas.",
-          variant: "destructive"
-        });
-        return;
-      }
+      if (error) throw error;
 
-      const transformedAccounts: Account[] = data.map(account => ({
+      const transformed: Account[] = data.map(account => ({
         id: account.id,
         description: account.description,
         amount: parseFloat(account.amount.toString()),
@@ -80,55 +68,41 @@ export const useAccountsData = () => {
         previous_balance: account.previous_balance ? parseFloat(account.previous_balance.toString()) : null,
       }));
 
-      setAccounts(transformedAccounts);
+      setAccounts(transformed);
 
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as contas.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro", description: "Não foi possível carregar as contas.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  // Criar ou atualizar "Saldo Mês Anterior"
   const upsertPreviousBalance = async (value: number) => {
-    try {
-      if (!user) return;
+    if (!user) return;
 
-      // Checar se já existe account com previous_balance
-      const { data: existingData, error: fetchError } = await supabase
+    try {
+      // Verifica se já existe saldo anterior
+      const { data: existingData } = await supabase
         .from('accounts')
         .select('*')
         .eq('user_id', user.id)
         .not('previous_balance', 'is', null)
         .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        toast({ title: "Erro", description: "Não foi possível buscar saldo anterior.", variant: "destructive" });
-        return;
-      }
-
       if (existingData) {
-        // Atualizar
-        const { error: updateError } = await supabase
+        // Atualiza saldo anterior
+        const { error } = await supabase
           .from('accounts')
           .update({ previous_balance: value, description: 'Saldo Mês Anterior', type: 'receita', status: 'recebido' })
           .eq('id', existingData.id)
           .eq('user_id', user.id);
-
-        if (updateError) {
-          toast({ title: "Erro", description: "Não foi possível atualizar saldo anterior.", variant: "destructive" });
-          return;
-        }
+        if (error) throw error;
 
         setAccounts(prev => prev.map(acc => acc.id === existingData.id ? { ...acc, previous_balance: value } : acc));
 
       } else {
-        // Criar
-        const { data: insertData, error: insertError } = await supabase
+        // Cria saldo anterior
+        const { data: insertData, error } = await supabase
           .from('accounts')
           .insert([{
             description: 'Saldo Mês Anterior',
@@ -144,26 +118,21 @@ export const useAccountsData = () => {
           .select()
           .single();
 
-        if (insertError) {
-          toast({ title: "Erro", description: "Não foi possível criar saldo anterior.", variant: "destructive" });
-          return;
-        }
+        if (error) throw error;
 
         setAccounts(prev => [insertData as Account, ...prev]);
       }
 
       toast({ title: "Sucesso", description: "Saldo Mês Anterior atualizado com sucesso." });
-
     } catch (error) {
-      toast({ title: "Erro", description: "Erro inesperado ao atualizar saldo anterior.", variant: "destructive" });
+      toast({ title: "Erro", description: "Não foi possível atualizar saldo anterior.", variant: "destructive" });
     }
   };
 
-  // Add, update, delete, status (mantendo lógica original)
+  // Funções CRUD padrão
   const addAccount = async (accountData: CreateAccountData) => {
+    if (!user) return;
     try {
-      if (!user) return;
-
       const { data, error } = await supabase
         .from('accounts')
         .insert([{
@@ -183,77 +152,60 @@ export const useAccountsData = () => {
         }])
         .select()
         .single();
-
       if (error) throw error;
-
       setAccounts(prev => [data as Account, ...prev]);
-
       if (accountData.status === 'pago' || accountData.status === 'recebido') invalidateBanksCache();
-
       toast({ title: "Sucesso", description: "Conta criada com sucesso." });
-    } catch (error) {
+    } catch {
       toast({ title: "Erro", description: "Não foi possível criar a conta.", variant: "destructive" });
     }
   };
 
   const updateAccount = async (updatedAccount: Account) => {
+    if (!user) return;
     try {
       const { error } = await supabase
         .from('accounts')
         .update(updatedAccount)
         .eq('id', updatedAccount.id)
         .eq('user_id', user.id);
-
       if (error) throw error;
-
       setAccounts(prev => prev.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
-
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') invalidateBanksCache();
-
       toast({ title: "Sucesso", description: "Conta atualizada com sucesso." });
-    } catch (error) {
+    } catch {
       toast({ title: "Erro", description: "Não foi possível atualizar a conta.", variant: "destructive" });
     }
   };
 
   const deleteAccount = async (accountId: number) => {
+    if (!user) return;
     try {
       const accountToDelete = accounts.find(acc => acc.id === accountId);
       const { error } = await supabase.from('accounts').delete().eq('id', accountId);
-
       if (error) throw error;
-
       setAccounts(prev => prev.filter(acc => acc.id !== accountId));
-
       if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) invalidateBanksCache();
-
       toast({ title: "Sucesso", description: "Conta deletada com sucesso." });
-    } catch (error) {
+    } catch {
       toast({ title: "Erro", description: "Não foi possível deletar a conta.", variant: "destructive" });
     }
   };
 
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
+    if (!user) return;
     try {
-      if (!user) return;
-
       const { error } = await supabase.from('accounts').update({ status }).eq('id', id).eq('user_id', user.id);
-
       if (error) throw error;
-
       setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, status } : acc));
       invalidateBanksCache();
-
       toast({ title: "Sucesso", description: "Status da conta atualizado com sucesso." });
-    } catch (error) {
+    } catch {
       toast({ title: "Erro", description: "Erro inesperado ao atualizar status.", variant: "destructive" });
     }
   };
 
-  useEffect(() => {
-    if (user) fetchAccounts();
-    else { setAccounts([]); setLoading(false); }
-  }, [user]);
+  useEffect(() => { if (user) fetchAccounts(); else { setAccounts([]); setLoading(false); } }, [user]);
 
   return {
     accounts,
