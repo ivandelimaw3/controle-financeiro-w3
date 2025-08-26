@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react"
-import { supabase, checkSupabaseConfig } from "@/integrations/supabase/client"
+import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 
-// <CHANGE> Mantendo todas as interfaces existentes
 export interface Account {
   id: number
   description: string
@@ -45,14 +44,12 @@ export interface Transaction {
 }
 
 export const useAccountsData = () => {
-  // <CHANGE> Mantendo todo o estado existente
   const [accounts, setAccounts] = useState<Account[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // <CHANGE> Mantendo função de invalidação de cache existente
   const invalidateBanksCache = () => {
     try {
       queryClient.invalidateQueries({ queryKey: ["banks"] })
@@ -61,14 +58,8 @@ export const useAccountsData = () => {
     }
   }
 
-  // <CHANGE> Melhorando função para buscar saldo anterior do mês atual
   const getCurrentMonthPreviousBalance = async (): Promise<number> => {
     try {
-      if (!checkSupabaseConfig()) {
-        // Mock data for development
-        return 1500
-      }
-
       if (!user) {
         return 0
       }
@@ -99,51 +90,10 @@ export const useAccountsData = () => {
     }
   }
 
-  // <CHANGE> Mantendo função fetchAccounts existente com dados mock
+  // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
       setLoading(true)
-
-      if (!checkSupabaseConfig()) {
-        console.log("Supabase não configurado - usando dados mock")
-        setAccounts([
-          {
-            id: 1,
-            description: "Saldo Inicial - 01/2024",
-            amount: 1500,
-            category: "Saldo Inicial",
-            dueDate: "2024-01-01",
-            type: "receita",
-            status: "recebido",
-            payment_source: "bank",
-            previous_balance: 1500,
-          },
-          {
-            id: 2,
-            description: "Receita Mock",
-            amount: 500,
-            category: "Vendas",
-            dueDate: "2024-01-15",
-            type: "receita",
-            status: "recebido",
-            payment_source: "bank",
-            previous_balance: null,
-          },
-          {
-            id: 3,
-            description: "Despesa Mock",
-            amount: -200,
-            category: "Gastos",
-            dueDate: "2024-01-10",
-            type: "despesa",
-            status: "pago",
-            payment_source: "bank",
-            previous_balance: null,
-          },
-        ])
-        setLoading(false)
-        return
-      }
 
       if (!user) {
         console.log("Usuário não autenticado - fetchAccounts")
@@ -200,26 +150,9 @@ export const useAccountsData = () => {
     }
   }
 
-  // <CHANGE> Mantendo função addAccount existente com suporte a parcelas
+  // Criar nova conta
   const addAccount = async (accountData: CreateAccountData) => {
     try {
-      if (!checkSupabaseConfig()) {
-        // For mock mode, just add to local state
-        const newAccount: Account = {
-          id: Math.max(...accounts.map((a) => a.id), 0) + 1,
-          ...accountData,
-          parcela: undefined,
-          recorrente_id: undefined,
-          previous_balance: null,
-        }
-        setAccounts((prev) => [newAccount, ...prev])
-        toast({
-          title: "Sucesso (Mock)",
-          description: "Conta criada localmente. Configure Supabase para persistir dados.",
-        })
-        return
-      }
-
       if (!user) {
         toast({
           title: "Erro",
@@ -229,8 +162,8 @@ export const useAccountsData = () => {
         return
       }
 
+      // Se tem quantidade de parcelas, criar múltiplas contas
       if (accountData.qtd_parcelas && accountData.qtd_parcelas > 1) {
-        // Criar múltiplas parcelas
         const recorrenteId = crypto.randomUUID()
         const registros = []
         const valorPorParcela = accountData.amount / accountData.qtd_parcelas
@@ -254,7 +187,7 @@ export const useAccountsData = () => {
             payment_source: "bank",
             payment_source_id: accountData.payment_source_id,
             payment_source_name: accountData.payment_source_name,
-            previous_balance: null,
+            previous_balance: accountData.previous_balance || null,
           })
         }
 
@@ -318,7 +251,7 @@ export const useAccountsData = () => {
               payment_source: "bank",
               payment_source_id: accountData.payment_source_id,
               payment_source_name: accountData.payment_source_name,
-              previous_balance: null,
+              previous_balance: accountData.previous_balance || null,
             },
           ])
           .select()
@@ -375,19 +308,9 @@ export const useAccountsData = () => {
     }
   }
 
-  // <CHANGE> Mantendo função updateAccount existente
+  // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
     try {
-      if (!checkSupabaseConfig()) {
-        // For mock mode, just update local state
-        setAccounts((prev) => prev.map((account) => (account.id === updatedAccount.id ? updatedAccount : account)))
-        toast({
-          title: "Sucesso (Mock)",
-          description: "Conta atualizada localmente. Configure Supabase para persistir dados.",
-        })
-        return
-      }
-
       const { error } = await supabase
         .from("accounts")
         .update({
@@ -417,4 +340,243 @@ export const useAccountsData = () => {
         return
       }
 
-      // Atualizar na list
+      // Atualizar na lista local
+      setAccounts((prev) => prev.map((account) => (account.id === updatedAccount.id ? updatedAccount : account)))
+
+      // SÓ invalidar cache se a conta for paga/recebida
+      if (updatedAccount.status === "pago" || updatedAccount.status === "recebido") {
+        invalidateBanksCache()
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Conta atualizada com sucesso.",
+      })
+    } catch (error) {
+      console.error("Erro ao atualizar conta:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a conta.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Deletar conta
+  const deleteAccount = async (accountId: number) => {
+    try {
+      // Buscar a conta antes de deletar para verificar se precisa reverter saldo
+      const accountToDelete = accounts.find((acc) => acc.id === accountId)
+
+      const { error } = await supabase.from("accounts").delete().eq("id", accountId)
+
+      if (error) {
+        console.error("Erro ao deletar conta:", error)
+        toast({
+          title: "Erro",
+          description: "Não foi possível deletar a conta.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Remover da lista local
+      setAccounts((prev) => prev.filter((account) => account.id !== accountId))
+
+      // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
+      if (accountToDelete && (accountToDelete.status === "pago" || accountToDelete.status === "recebido")) {
+        invalidateBanksCache()
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Conta deletada com sucesso.",
+      })
+    } catch (error) {
+      console.error("Erro ao deletar conta:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível deletar a conta.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Atualizar status da conta
+  const updateAccountStatus = async (id: number, status: "pendente" | "pago" | "recebido") => {
+    try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive",
+        })
+        return
+      }
+      const { error } = await supabase.from("accounts").update({ status }).eq("id", id).eq("user_id", user.id)
+
+      if (error) {
+        console.error("Erro ao atualizar status:", error)
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar o status.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Atualizar na lista local
+      setAccounts((prev) => prev.map((acc) => (acc.id === id ? { ...acc, status } : acc)))
+
+      // SEMPRE invalidar cache quando status muda (pode afetar saldo)
+      invalidateBanksCache()
+
+      toast({
+        title: "Sucesso",
+        description: "Status da conta atualizado com sucesso.",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar status.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const updatePreviousBalance = async (amount: number) => {
+    try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const currentDate = new Date()
+      const currentMonth = currentDate.getMonth() + 1
+      const currentYear = currentDate.getFullYear()
+
+      // Verificar se já existe uma conta para este mês com previous_balance
+      const { data: existingAccount, error: fetchError } = await supabase
+        .from("accounts")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("due_date", `${currentYear}-${currentMonth.toString().padStart(2, "0")}-01`)
+        .lt("due_date", `${currentYear}-${(currentMonth + 1).toString().padStart(2, "0")}-01`)
+        .not("previous_balance", "is", null)
+        .single()
+
+      if (existingAccount) {
+        // Atualizar conta existente
+        const { error: updateError } = await supabase
+          .from("accounts")
+          .update({ previous_balance: amount })
+          .eq("id", existingAccount.id)
+          .eq("user_id", user.id)
+
+        if (updateError) {
+          console.error("Erro ao atualizar saldo anterior:", updateError)
+          toast({
+            title: "Erro",
+            description: "Não foi possível atualizar o saldo anterior.",
+            variant: "destructive",
+          })
+          return
+        }
+
+        // Atualizar estado local
+        setAccounts((prev) =>
+          prev.map((account) =>
+            account.id === existingAccount.id ? { ...account, previous_balance: amount } : account,
+          ),
+        )
+      } else {
+        // Criar nova conta com previous_balance
+        const { data: newAccount, error: insertError } = await supabase
+          .from("accounts")
+          .insert([
+            {
+              description: `Saldo Inicial - ${currentMonth.toString().padStart(2, "0")}/${currentYear}`,
+              amount: 0, // Amount é 0, o saldo fica no previous_balance
+              category: "Saldo Inicial",
+              due_date: `${currentYear}-${currentMonth.toString().padStart(2, "0")}-01`,
+              type: "receita",
+              status: "recebido",
+              user_id: user.id,
+              payment_source: "bank",
+              previous_balance: amount, // Armazenar o saldo no campo previous_balance
+            },
+          ])
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error("Erro ao criar saldo anterior:", insertError)
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar o saldo anterior.",
+            variant: "destructive",
+          })
+          return
+        }
+
+        // Adicionar ao estado local
+        const transformedAccount: Account = {
+          id: newAccount.id,
+          description: newAccount.description,
+          amount: Number.parseFloat(newAccount.amount.toString()),
+          category: newAccount.category,
+          dueDate: newAccount.due_date,
+          dataConta: newAccount.data_conta,
+          type: newAccount.type as "receita" | "despesa",
+          status: newAccount.status as "pendente" | "pago" | "recebido",
+          parcela: newAccount.parcela,
+          recorrente_id: newAccount.recorrente_id,
+          bank_id: newAccount.bank_id,
+          payment_source: "bank",
+          payment_source_id: newAccount.payment_source_id,
+          payment_source_name: newAccount.payment_source_name,
+          previous_balance: newAccount.previous_balance,
+        }
+
+        setAccounts((prev) => [transformedAccount, ...prev])
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Saldo anterior atualizado com sucesso.",
+      })
+    } catch (error) {
+      console.error("Erro ao atualizar saldo anterior:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o saldo anterior.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  useEffect(() => {
+    if (user) {
+      fetchAccounts()
+    } else {
+      setAccounts([])
+      setLoading(false)
+    }
+  }, [user])
+
+  return {
+    accounts,
+    loading,
+    addAccount,
+    updateAccount,
+    deleteAccount,
+    updateAccountStatus,
+    updatePreviousBalance,
+    getCurrentMonthPreviousBalance,
+    refreshAccounts: fetchAccounts,
+  }
+}
