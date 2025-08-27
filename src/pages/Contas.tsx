@@ -109,14 +109,14 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards 
-            accounts={filteredAccounts} 
-            onUpdatePreviousBalance={upsertPreviousBalance}
-            getPreviousMonthBalance={getPreviousMonthBalance}
-            calculateMonthFinalBalance={calculateMonthFinalBalance}
-            month={currentMonth}
-            year={currentYear}
-          />
+  <AccountsSummaryCards 
+  accounts={filteredAccounts} 
+  previousBalance={getPreviousMonthBalance(currentMonth, currentYear)} // 🔹 passa só o valor numérico
+  onUpdatePreviousBalance={upsertPreviousBalance}
+  calculateMonthFinalBalance={calculateMonthFinalBalance}
+  month={currentMonth}
+  year={currentYear}
+ />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
