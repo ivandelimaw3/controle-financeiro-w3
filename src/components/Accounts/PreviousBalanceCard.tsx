@@ -84,11 +84,9 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
           <div className="flex items-center gap-2">
             <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
             {!isJanuary && (
-              <Info 
-                size={14} 
-                className="text-blue-500" 
-                title="Calculado automaticamente baseado no saldo final do mês anterior"
-              />
+              <div title="Calculado automaticamente baseado no saldo final do mês anterior">
+                <Info size={14} className="text-blue-500" />
+              </div>
             )}
           </div>
           {isEditing ? (
