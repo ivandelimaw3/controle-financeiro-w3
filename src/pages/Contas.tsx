@@ -8,7 +8,7 @@ import { AccountModal, type AccountFormData } from "@/components/Accounts/Accoun
 import { MonthNavigator } from "@/components/Accounts/MonthNavigator"
 import { AccessControlWrapper } from "@/components/AccessControlWrapper"
 import { Loader2 } from "lucide-react"
-import { useAccountsData } from "@/hooks/useAccountsData"
+import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from "@/hooks/useAccountsReminder"
 import { useAccountFilters } from "@/hooks/useAccountFilters"
 import { useAccountOperations } from "@/hooks/useAccountOperations"
