@@ -68,30 +68,26 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-      <div className="p-6 border-b border-slate-200">
-        <h3 className="text-lg font-semibold text-slate-800">Meus Investimentos</h3>
-      </div>
-      
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Investidor</TableHead>
-              <TableHead>Investimento</TableHead>
-              <TableHead>Instituição</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead className="text-right">Investido</TableHead>
-              <TableHead className="text-right">Valor Atual</TableHead>
-              <TableHead className="text-right">Rendimento</TableHead>
-              <TableHead className="text-right">Rentabilidade</TableHead>
-              <TableHead className="text-right">Compra</TableHead>
-              <TableHead className="text-right">Vencimento</TableHead>
-              <TableHead></TableHead>
+            <TableRow className="bg-slate-50 border-b border-slate-200">
+              <TableHead className="py-3 px-4 font-semibold text-slate-700">Investidor</TableHead>
+              <TableHead className="py-3 px-4 font-semibold text-slate-700">Investimento</TableHead>
+              <TableHead className="py-3 px-4 font-semibold text-slate-700">Instituição</TableHead>
+              <TableHead className="py-3 px-4 font-semibold text-slate-700">Tipo</TableHead>
+              <TableHead className="text-right py-3 px-4 font-semibold text-slate-700">Investido</TableHead>
+              <TableHead className="text-right py-3 px-4 font-semibold text-slate-700">Valor Atual</TableHead>
+              <TableHead className="text-right py-3 px-4 font-semibold text-slate-700">Rendimento</TableHead>
+              <TableHead className="text-right py-3 px-4 font-semibold text-slate-700">Rentabilidade</TableHead>
+              <TableHead className="text-right py-3 px-4 font-semibold text-slate-700">Compra</TableHead>
+              <TableHead className="text-right py-3 px-4 font-semibold text-slate-700">Vencimento</TableHead>
+              <TableHead className="py-3 px-4 font-semibold text-slate-700"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {investments.map((investment) => {
+            {investments.map((investment, index) => {
               const investedAmount = Number(investment.invested_amount);
               const currentValue = Number(investment.current_value);
               const returnPercentage = calculateReturn(investedAmount, currentValue);
@@ -100,28 +96,28 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
               const expired = isExpired(investment.maturity_date);
               
               return (
-                <TableRow key={investment.id} className={expired ? 'bg-orange-50' : ''}>
-                  <TableCell className="font-medium">
+                <TableRow key={investment.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'} ${expired ? 'bg-orange-50' : ''}`}>
+                  <TableCell className="py-2 px-4">
                     <div className="flex items-center gap-2">
                       {expired && <AlertTriangle size={16} className="text-orange-500" />}
-                      {investment.investor_name || '-'}
+                      <span className="font-medium text-slate-800">{investment.investor_name || '-'}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{investment.name}</TableCell>
-                  <TableCell>{investment.institution?.name}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-2 px-4 font-medium text-slate-800">{investment.name}</TableCell>
+                  <TableCell className="py-2 px-4 text-slate-800">{investment.institution?.name}</TableCell>
+                  <TableCell className="py-2 px-4">
                     <span className="text-sm text-slate-600">
                       {investment.type?.name}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">{formatCurrency(investedAmount)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(currentValue)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-2 px-4 font-semibold text-slate-800">{formatCurrency(investedAmount)}</TableCell>
+                  <TableCell className="text-right py-2 px-4 font-semibold text-slate-800">{formatCurrency(currentValue)}</TableCell>
+                  <TableCell className="text-right py-2 px-4">
                     <span className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(Math.abs(returnValue))}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-2 px-4">
                     <div className={`flex items-center justify-end gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                       {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                       <span className="font-medium">
@@ -129,30 +125,32 @@ export const InvestmentTable: React.FC<InvestmentTableProps> = ({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right text-sm text-slate-600">
+                  <TableCell className="text-right py-2 px-4 text-sm text-slate-600">
                     {formatDate(investment.purchase_date)}
                   </TableCell>
-                  <TableCell className="text-right text-sm text-slate-600">
+                  <TableCell className="text-right py-2 px-4 text-sm text-slate-600">
                     <div className="flex items-center justify-end gap-1">
                       {expired && <AlertTriangle size={14} className="text-orange-500" />}
                       {formatDate(investment.maturity_date)}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-2 px-4">
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onEdit(investment)}
+                        className="h-7 w-7 p-0"
                       >
-                        <Edit size={16} />
+                        <Edit size={14} />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(investment.id)}
+                        className="h-7 w-7 p-0"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={14} />
                       </Button>
                     </div>
                   </TableCell>
