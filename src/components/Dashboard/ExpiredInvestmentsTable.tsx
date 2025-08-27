@@ -39,21 +39,19 @@ export const ExpiredInvestmentsTable: React.FC<ExpiredInvestmentsTableProps> = (
 
   return (
     <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-6 shadow-md mb-6">
-      <div className="flex items-center gap-3 mb-5">
-        <div>
-          <h3 className="text-xl font-bold text-red-800">
-            ⚠️ {expiredInvestments.length} Aplicações Vencidas
-          </h3>
-          <p className="text-sm text-red-700 font-medium">
-            Aplicações que já atingiram sua data de vencimento
-          </p>
-        </div>
+      <div className="bg-white rounded-lg p-4 mb-5">
+        <h3 className="text-xl font-bold text-black">
+          ⚠️ {expiredInvestments.length} Aplicações Vencidas
+        </h3>
+        <p className="text-sm text-black font-medium">
+          Aplicações que já atingiram sua data de vencimento
+        </p>
       </div>
       
       <div className="bg-white border-2 border-red-200 rounded-lg overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-red-100 border-b-2 border-red-200">
+            <thead className="bg-yellow-400 border-b-2 border-red-200">
               <tr>
                 <th className="text-left py-3 px-4 font-bold text-black">Status</th>
                 <th className="text-left py-3 px-4 font-bold text-black">Investidor</th>
