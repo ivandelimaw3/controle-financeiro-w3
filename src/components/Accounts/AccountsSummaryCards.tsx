@@ -1,31 +1,12 @@
-
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
-import { PreviousBalanceCard } from './PreviousBalanceCard';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
-  onUpdatePreviousBalance: (amount: number, month: number, year: number) => Promise<void>;
-  getPreviousMonthBalance: (month: number, year: number) => number;
-  calculateMonthFinalBalance: (month: number, year: number) => number;
-  month?: number;
-  year?: number;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
-  accounts, 
-  onUpdatePreviousBalance,
-  getPreviousMonthBalance,
-  calculateMonthFinalBalance,
-  month,
-  year 
-}) => {
-  // Usar mês e ano atuais se não fornecidos
-  const today = new Date();
-  const currentMonth = month !== undefined ? month : today.getMonth() + 1;
-  const currentYear = year !== undefined ? year : today.getFullYear();
-
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
   // Função para formatar valores em reais brasileiros
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -34,58 +15,34 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     }).format(value);
   };
 
-  // Filtrar contas do mês atual (excluindo saldo inicial para evitar dupla contagem)
-  const getCurrentMonthAccounts = () => {
-    const startDate = new Date(currentYear, currentMonth - 1, 1);
-    const endDate = new Date(currentYear, currentMonth, 0);
-    
-    return accounts.filter(account => {
-      const accountDate = new Date(account.dueDate);
-      return accountDate >= startDate && 
-             accountDate <= endDate &&
-             !(account.category === 'Saldo Inicial' && account.type === 'receita');
-    });
-  };
-
-  const monthAccounts = getCurrentMonthAccounts();
-
   const calculateTotalPago = () => {
-    return monthAccounts
+    return accounts
       .filter(account => account.type === 'despesa' && account.status === 'pago')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
   const calculateTotalRecebido = () => {
-    return monthAccounts
+    return accounts
       .filter(account => account.type === 'receita' && account.status === 'recebido')
       .reduce((sum, account) => sum + account.amount, 0);
   };
 
   const calculateSaldoFinal = () => {
-    return calculateMonthFinalBalance(currentMonth, currentYear);
+    return calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
-    const receitasPendentes = monthAccounts
+    const receitasPendentes = accounts
       .filter(account => account.type === 'receita' && account.status === 'pendente')
       .reduce((sum, account) => sum + account.amount, 0);
-    const despesasPendentes = monthAccounts
+    const despesasPendentes = accounts
       .filter(account => account.type === 'despesa' && account.status === 'pendente')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
     return receitasPendentes - despesasPendentes;
   };
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {/* Saldo Mês Anterior - Agora com lógica automática */}
-      <PreviousBalanceCard
-        accounts={accounts}
-        month={currentMonth}
-        year={currentYear}
-        onUpdateBalance={onUpdatePreviousBalance}
-        getPreviousMonthBalance={getPreviousMonthBalance}
-      />
-
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
@@ -116,7 +73,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
         </div>
       </div>
 
-      {/* Saldo Final - Agora calcula automaticamente a cadeia */}
+      {/* Saldo Final */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
