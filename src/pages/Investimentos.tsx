@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -78,15 +79,6 @@ const Investimentos = () => {
     return current >= invested ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
-  const totalInvestments = investments.length;
-  const profitableInvestments = investments.filter(inv => 
-    Number(inv.current_value) >= Number(inv.invested_amount)
-  ).length;
-  const totalInvested = investments.reduce((sum, inv) => sum + Number(inv.invested_amount), 0);
-  const totalCurrent = investments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
-  const totalGain = totalCurrent - totalInvested;
-  const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
-
   const expiredInvestments = investments.filter(inv => {
     if (!inv.maturity_date) return false;
     
@@ -116,6 +108,16 @@ const Investimentos = () => {
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
+
+  // Cálculos baseados nos investimentos filtrados
+  const totalInvestments = filteredInvestments.length;
+  const profitableInvestments = filteredInvestments.filter(inv => 
+    Number(inv.current_value) >= Number(inv.invested_amount)
+  ).length;
+  const totalInvested = filteredInvestments.reduce((sum, inv) => sum + Number(inv.invested_amount), 0);
+  const totalCurrent = filteredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
+  const totalGain = totalCurrent - totalInvested;
+  const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
   const handleCreateInvestment = async (investmentData: any) => {
     await addInvestment(investmentData);
@@ -211,64 +213,66 @@ const Investimentos = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Total Investido</p>
-                  <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalInvested)}</p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Valor Atual</p>
-                  <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalCurrent)}</p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Investimentos</p>
-                  <p className="text-2xl font-bold text-slate-800">{totalInvestments}</p>
-                </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Building2 className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Rentabilidade</p>
-                  <p className={`text-2xl font-bold ${gainPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {gainPercentage.toFixed(2)}%
-                  </p>
-                </div>
-                <div className="p-3 bg-yellow-100 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-yellow-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-
           <ExpiredInvestmentsTable 
             expiredInvestments={expiredInvestments}
             onMoveToExpired={handleMoveExpiredInvestment}
           />
 
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            {/* Cards de Resumo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600">Total Investido</p>
+                    <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalInvested)}</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <DollarSign className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600">Valor Atual</p>
+                    <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalCurrent)}</p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <TrendingUp className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600">Investimentos</p>
+                    <p className="text-2xl font-bold text-slate-800">{totalInvestments}</p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <Building2 className="h-6 w-6 text-purple-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600">Rentabilidade</p>
+                    <p className={`text-2xl font-bold ${gainPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {gainPercentage.toFixed(2)}%
+                    </p>
+                  </div>
+                  <div className="p-3 bg-yellow-100 rounded-lg">
+                    <CheckCircle className="h-6 w-6 text-yellow-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Barra de Pesquisa */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
@@ -302,6 +306,7 @@ const Investimentos = () => {
               </Select>
             </div>
 
+            {/* Tabela de Investimentos */}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-slate-50 border-b border-slate-200">
