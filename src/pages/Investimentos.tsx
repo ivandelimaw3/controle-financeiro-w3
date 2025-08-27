@@ -259,8 +259,6 @@ const Investimentos = () => {
           </div>
         </div>
 
-        <ExpiredInvestmentCards expiredInvestments={expiredInvestments} />
-
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
@@ -295,6 +293,8 @@ const Investimentos = () => {
             </Select>
           </div>
         </div>
+
+        <ExpiredInvestmentCards expiredInvestments={expiredInvestments} />
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
