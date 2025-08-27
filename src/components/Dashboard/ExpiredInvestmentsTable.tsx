@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertTriangle, Archive } from 'lucide-react';
+import { Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Investment } from '@/hooks/useInvestmentsData';
@@ -40,9 +40,6 @@ export const ExpiredInvestmentsTable: React.FC<ExpiredInvestmentsTableProps> = (
   return (
     <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-6 shadow-md mb-6">
       <div className="flex items-center gap-3 mb-5">
-        <div className="p-2.5 bg-red-100 rounded-full">
-          <AlertTriangle className="h-6 w-6 text-red-600" />
-        </div>
         <div>
           <h3 className="text-xl font-bold text-red-800">
             ⚠️ {expiredInvestments.length} Aplicações Vencidas
@@ -58,13 +55,13 @@ export const ExpiredInvestmentsTable: React.FC<ExpiredInvestmentsTableProps> = (
           <table className="w-full">
             <thead className="bg-red-100 border-b-2 border-red-200">
               <tr>
-                <th className="text-left py-3 px-4 font-bold text-red-800">Status</th>
-                <th className="text-left py-3 px-4 font-bold text-red-800">Investidor</th>
-                <th className="text-left py-3 px-4 font-bold text-red-800">Investimento</th>
-                <th className="text-left py-3 px-4 font-bold text-red-800">Instituição</th>
-                <th className="text-right py-3 px-4 font-bold text-red-800">Valor Atual</th>
-                <th className="text-right py-3 px-4 font-bold text-red-800">Data Vencimento</th>
-                <th className="text-center py-3 px-4 font-bold text-red-800">Ação</th>
+                <th className="text-left py-3 px-4 font-bold text-black">Status</th>
+                <th className="text-left py-3 px-4 font-bold text-black">Investidor</th>
+                <th className="text-left py-3 px-4 font-bold text-black">Investimento</th>
+                <th className="text-left py-3 px-4 font-bold text-black">Instituição</th>
+                <th className="text-right py-3 px-4 font-bold text-black">Valor Atual</th>
+                <th className="text-right py-3 px-4 font-bold text-black">Data Vencimento</th>
+                <th className="text-center py-3 px-4 font-bold text-black">Ação</th>
               </tr>
             </thead>
             <tbody>
@@ -72,8 +69,7 @@ export const ExpiredInvestmentsTable: React.FC<ExpiredInvestmentsTableProps> = (
                 <tr key={investment.id} className={`border-b border-red-100 hover:bg-red-25 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-red-25'}`}>
                   <td className="py-3 px-4">
                     <Badge className="bg-red-500 text-white text-xs font-bold px-2 py-1">
-                      <AlertTriangle size={12} className="mr-1" />
-                      VENCIDA
+                      ⚠️ VENCIDA
                     </Badge>
                   </td>
                   <td className="py-3 px-4">
@@ -94,7 +90,6 @@ export const ExpiredInvestmentsTable: React.FC<ExpiredInvestmentsTableProps> = (
                   </td>
                   <td className="text-right py-3 px-4">
                     <div className="flex items-center justify-end gap-2">
-                      <AlertTriangle size={14} className="text-red-500" />
                       <span className="font-bold text-red-700 bg-red-100 px-2 py-1 rounded text-sm">
                         {formatDate(investment.maturity_date)}
                       </span>
