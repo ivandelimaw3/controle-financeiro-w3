@@ -10,6 +10,7 @@ import { InvestmentForm } from '@/components/Dashboard/InvestmentForm';
 import { ExpiredInvestmentCards } from '@/components/Dashboard/ExpiredInvestmentCards';
 import { useInvestmentsData, Investment, InvestmentInstitution, InvestmentType } from '@/hooks/useInvestmentsData';
 import { useToast } from '@/hooks/use-toast';
+import { ExpiredInvestmentsTable } from '@/components/Dashboard/ExpiredInvestmentsTable';
 
 const Investimentos = () => {
   const [showInvestmentForm, setShowInvestmentForm] = useState(false);
@@ -163,18 +164,20 @@ const Investimentos = () => {
     setEditingInvestment(undefined);
   };
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-slate-600">Carregando investimentos...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  const handleMoveExpiredInvestment = async (investmentId: number) => {
+    if (confirm('Tem certeza que deseja arquivar esta aplicação vencida? Ela será movida para o histórico de investimentos vencidos.')) {
+      // Move apenas este investimento específico
+      const investment = investments.find(inv => inv.id === investmentId);
+      if (investment) {
+        await deleteInvestment(investmentId);
+        toast({
+          title: "Aplicação arquivada!",
+          description: `${investment.name} foi movida para o histórico.`,
+          duration: 2000,
+        });
+      }
+    }
+  };
 
   return (
     <Layout>
@@ -202,7 +205,7 @@ const Investimentos = () => {
               className="border-orange-300 text-orange-600 hover:bg-orange-50"
             >
               <Archive size={20} className="mr-2" />
-              Remover Aplicações Vencidas ({expiredInvestments.length})
+              Arquivar Todas ({expiredInvestments.length})
             </Button>
           )}
         </div>
@@ -294,7 +297,10 @@ const Investimentos = () => {
           </div>
         </div>
 
-        <ExpiredInvestmentCards expiredInvestments={expiredInvestments} />
+        <ExpiredInvestmentsTable 
+          expiredInvestments={expiredInvestments}
+          onMoveToExpired={handleMoveExpiredInvestment}
+        />
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
