@@ -1,4 +1,3 @@
-
 import type React from "react"
 import { Layout } from "@/components/Layout"
 import { AccountsHeader } from "@/components/Accounts/AccountsHeader"
@@ -15,7 +14,13 @@ import { useAccountFilters } from "@/hooks/useAccountFilters"
 import { useAccountOperations } from "@/hooks/useAccountOperations"
 
 const Contas: React.FC = () => {
-  const { accounts, loading, upsertPreviousBalance } = useAccountsData()
+  const { 
+    accounts, 
+    loading, 
+    upsertPreviousBalance,
+    getPreviousMonthBalance,
+    calculateMonthFinalBalance
+  } = useAccountsData()
 
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts)
@@ -107,6 +112,8 @@ const Contas: React.FC = () => {
           <AccountsSummaryCards 
             accounts={filteredAccounts} 
             onUpdatePreviousBalance={upsertPreviousBalance}
+            getPreviousMonthBalance={getPreviousMonthBalance}
+            calculateMonthFinalBalance={calculateMonthFinalBalance}
             month={currentMonth}
             year={currentYear}
           />

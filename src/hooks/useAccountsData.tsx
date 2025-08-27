@@ -112,7 +112,60 @@ export const useAccountsData = () => {
     }
   };
 
-  // Upsert saldo do mês anterior
+  // Calcular saldo final de um mês específico
+  const calculateMonthFinalBalance = (month: number, year: number) => {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0); // Último dia do mês
+    
+    // Filtrar contas do mês específico (exceto saldo inicial)
+    const monthAccounts = accounts.filter(account => {
+      const accountDate = new Date(account.dueDate);
+      return accountDate >= startDate && 
+             accountDate <= endDate &&
+             !(account.category === 'Saldo Inicial' && account.type === 'receita');
+    });
+
+    // Calcular receitas e despesas do mês
+    const totalReceitas = monthAccounts
+      .filter(account => account.type === 'receita' && account.status === 'recebido')
+      .reduce((sum, account) => sum + account.amount, 0);
+
+    const totalDespesas = monthAccounts
+      .filter(account => account.type === 'despesa' && account.status === 'pago')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+
+    // Obter saldo anterior do mês
+    const previousBalance = getPreviousMonthBalance(month, year);
+
+    return previousBalance + totalReceitas - totalDespesas;
+  };
+
+  // Obter saldo do mês anterior (automaticamente do saldo final do mês passado)
+  const getPreviousMonthBalance = (month: number, year: number): number => {
+    let previousMonth = month - 1;
+    let previousYear = year;
+
+    if (previousMonth < 1) {
+      previousMonth = 12;
+      previousYear = year - 1;
+    }
+
+    // Se for janeiro, buscar saldo inicial manual do ano
+    if (month === 1) {
+      const description = `Saldo Inicial - 01/${year}`;
+      const initialBalanceAccount = accounts.find(
+        account => account.description === description && 
+                   account.category === 'Saldo Inicial' &&
+                   account.type === 'receita'
+      );
+      return initialBalanceAccount ? initialBalanceAccount.amount : 0;
+    }
+
+    // Para outros meses, calcular saldo final do mês anterior
+    return calculateMonthFinalBalance(previousMonth, previousYear);
+  };
+
+  // Upsert saldo inicial (apenas para janeiro ou correções manuais)
   const upsertPreviousBalance = async (amount: number, month: number, year: number) => {
     try {
       if (!user) {
@@ -124,11 +177,21 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Criar identificador único para o saldo inicial do mês
+      // Só permitir edição manual para janeiro (saldo inicial do ano)
+      if (month !== 1) {
+        toast({
+          title: "Informação",
+          description: "O saldo anterior é calculado automaticamente baseado no mês anterior. Só é possível editar manualmente o saldo inicial de janeiro.",
+          variant: "default"
+        });
+        return;
+      }
+
+      // Criar identificador único para o saldo inicial do ano
       const description = `Saldo Inicial - ${String(month).padStart(2, '0')}/${year}`;
       const dueDate = `${year}-${String(month).padStart(2, '0')}-01`;
 
-      // Verificar se já existe um registro de saldo inicial para este mês/ano
+      // Verificar se já existe um registro de saldo inicial para este ano
       const { data: existingBalance, error: searchError } = await supabase
         .from('accounts')
         .select('*')
@@ -180,7 +243,7 @@ export const useAccountsData = () => {
 
         toast({
           title: "Sucesso",
-          description: "Saldo anterior atualizado com sucesso.",
+          description: "Saldo inicial do ano atualizado com sucesso.",
         });
       } else {
         // Criar novo registro
@@ -232,7 +295,7 @@ export const useAccountsData = () => {
 
         toast({
           title: "Sucesso",
-          description: "Saldo anterior criado com sucesso.",
+          description: "Saldo inicial do ano criado com sucesso.",
         });
       }
 
@@ -569,6 +632,8 @@ export const useAccountsData = () => {
     deleteAccount,
     updateAccountStatus,
     refreshAccounts: fetchAccounts,
-    upsertPreviousBalance
+    upsertPreviousBalance,
+    getPreviousMonthBalance,
+    calculateMonthFinalBalance
   };
 };
