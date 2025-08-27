@@ -1,14 +1,17 @@
-import React from 'react';
-import { Edit, Trash2, Archive, TrendingUp, Calendar } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Edit, Trash2, Archive, TrendingUp, Calendar, Search } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { useExpiredInvestments } from '@/hooks/useExpiredInvestments';
 import { useToast } from '@/hooks/use-toast';
 
 const InvestimentosVencidos = () => {
   const { toast } = useToast();
   const { expiredInvestments, loading, deleteExpiredInvestment } = useExpiredInvestments();
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Funções de formatação
   const formatCurrency = (value: number) => {
@@ -42,6 +45,12 @@ const InvestimentosVencidos = () => {
     }
   };
 
+  // Filtrar investimentos com base no termo de pesquisa
+  const filteredInvestments = expiredInvestments.filter(investment =>
+    investment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (investment.investor_name && investment.investor_name.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   if (loading) {
     return (
       <Layout>
@@ -57,7 +66,7 @@ const InvestimentosVencidos = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 bg-white min-h-screen">
         {/* Header */}
         <div className="flex flex-col space-y-4">
           <div className="flex items-center justify-between">
@@ -70,7 +79,7 @@ const InvestimentosVencidos = () => {
             <div className="flex items-center gap-2">
               <Archive className="h-6 w-6 text-orange-500" />
               <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                {expiredInvestments.length} Vencidos
+                {filteredInvestments.length} Vencidos
               </Badge>
             </div>
           </div>
@@ -82,7 +91,7 @@ const InvestimentosVencidos = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Total de Investimentos</p>
-                <p className="text-2xl font-bold text-slate-800">{expiredInvestments.length}</p>
+                <p className="text-2xl font-bold text-slate-800">{filteredInvestments.length}</p>
               </div>
               <div className="p-3 bg-orange-100 rounded-lg">
                 <Archive className="h-6 w-6 text-orange-600" />
@@ -95,7 +104,7 @@ const InvestimentosVencidos = () => {
               <div>
                 <p className="text-sm font-medium text-slate-600">Valor Total Resgatado</p>
                 <p className="text-2xl font-bold text-slate-800">
-                  {formatCurrency(expiredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0))}
+                  {formatCurrency(filteredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0))}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -109,8 +118,8 @@ const InvestimentosVencidos = () => {
               <div>
                 <p className="text-sm font-medium text-slate-600">Último Vencimento</p>
                 <p className="text-2xl font-bold text-slate-800">
-                  {expiredInvestments.length > 0 
-                    ? formatDate(expiredInvestments[0]?.maturity_date || '') 
+                  {filteredInvestments.length > 0 
+                    ? formatDate(filteredInvestments[0]?.maturity_date || '') 
                     : '-'
                   }
                 </p>
@@ -119,6 +128,19 @@ const InvestimentosVencidos = () => {
                 <Calendar className="h-6 w-6 text-blue-600" />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Campo de Pesquisa */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Input
+              placeholder="Pesquisar por nome do investimento ou investidor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </div>
 
@@ -132,18 +154,18 @@ const InvestimentosVencidos = () => {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="text-left p-4 font-semibold text-slate-700">Investimento</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Investido</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Valor Final</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Rendimento</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Compra</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Vencimento</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Movido</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Investimento</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Investido</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Valor Final</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Rendimento</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Compra</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Vencimento</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Movido</th>
+                  <th className="text-left p-2 font-semibold text-slate-700">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {expiredInvestments.map((investment, index) => {
+                {filteredInvestments.map((investment, index) => {
                   const investedAmount = Number(investment.invested_amount);
                   const currentValue = Number(investment.current_value);
                   const gain = currentValue - investedAmount;
@@ -151,7 +173,7 @@ const InvestimentosVencidos = () => {
                   
                   return (
                     <tr key={investment.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
-                      <td className="py-3 px-4">
+                      <td className="py-1 px-2">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                             <Archive className="h-5 w-5 text-orange-600" />
@@ -162,17 +184,17 @@ const InvestimentosVencidos = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1 px-2">
                         <span className="font-semibold text-slate-800">
                           {formatCurrency(investedAmount)}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1 px-2">
                         <span className="font-semibold text-slate-800">
                           {formatCurrency(currentValue)}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1 px-2">
                         <div className="flex flex-col">
                           <span className={`font-semibold ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {gain >= 0 ? '+' : ''}{formatCurrency(gain)}
@@ -182,16 +204,16 @@ const InvestimentosVencidos = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-slate-600">
+                      <td className="py-1 px-2 text-sm text-slate-600">
                         {formatDate(investment.purchase_date)}
                       </td>
-                      <td className="py-3 px-4 text-sm text-slate-600">
+                      <td className="py-1 px-2 text-sm text-slate-600">
                         {formatDate(investment.maturity_date)}
                       </td>
-                      <td className="py-3 px-4 text-sm text-slate-600">
+                      <td className="py-1 px-2 text-sm text-slate-600">
                         {formatDate(investment.moved_at)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1 px-2">
                         <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
@@ -218,14 +240,14 @@ const InvestimentosVencidos = () => {
             </table>
           </div>
           
-          {expiredInvestments.length === 0 && (
+          {filteredInvestments.length === 0 && (
             <div className="p-8 text-center text-slate-500">
               <Archive className="h-12 w-12 text-slate-300 mx-auto mb-4" />
               <p className="text-lg font-medium text-slate-600 mb-2">
-                Nenhum investimento vencido encontrado
+                {searchTerm ? 'Nenhum investimento encontrado para a pesquisa' : 'Nenhum investimento vencido encontrado'}
               </p>
               <p className="text-slate-500">
-                Os investimentos aparecerão aqui quando forem movidos após o vencimento.
+                {searchTerm ? 'Tente pesquisar com outros termos.' : 'Os investimentos aparecerão aqui quando forem movidos após o vencimento.'}
               </p>
             </div>
           )}
