@@ -4,12 +4,12 @@ import { Account } from '@/contexts/AccountsContext';
 import { PreviousBalanceCard } from './PreviousBalanceCard';
 
 interface AccountsSummaryCardsProps {
-  accounts: Account[];
-  onUpdatePreviousBalance: (amount: number, month: number, year: number) => Promise<void>;
-  getPreviousMonthBalance: (month: number, year: number) => number;
-  calculateMonthFinalBalance: (month: number, year: number) => number;
-  month?: number;
-  year?: number;
+  accounts: Account[]
+  previousBalance: number   // 👈 novo
+  onUpdatePreviousBalance: (month: number, year: number, value: number) => Promise<void>
+  calculateMonthFinalBalance: (month: number, year: number) => number
+  month: number
+  year: number
 }
 
 export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
