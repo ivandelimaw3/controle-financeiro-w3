@@ -256,14 +256,15 @@ const Investimentos = () => {
 
   return (
     <Layout>
-      <div className="bg-white min-h-screen">
-        <div className="space-y-6">
-          <div className="text-center mt-10">
-         <h1 className="text-3xl font-bold text-slate-800">Gestão de Investimentos</h1>
+  <div className="bg-white min-h-screen">
+    <div className="space-y-6">
+      {/* Container interno só para o texto */}
+      <div className="text-center py-20">  {/* py-20 adiciona espaço acima e abaixo */}
+        <h1 className="text-3xl font-bold text-slate-800">Gestão de Investimentos</h1>
         <p className="text-slate-600 mt-1">
-       Gerencie sua carteira de investimentos e acompanhe a performance
-     </p>
-    </div>
+          Gerencie sua carteira de investimentos e acompanhe a performance
+        </p>
+       </div>
 
           <div className="flex justify-between items-center">
             <Button
