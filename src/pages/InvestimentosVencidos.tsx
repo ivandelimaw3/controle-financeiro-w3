@@ -51,6 +51,12 @@ const InvestimentosVencidos = () => {
     (investment.investor_name && investment.investor_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // Calcular valores baseados nos investimentos filtrados
+  const totalFilteredValue = filteredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
+  const lastMaturityDate = filteredInvestments.length > 0 
+    ? filteredInvestments.sort((a, b) => new Date(b.maturity_date || '').getTime() - new Date(a.maturity_date || '').getTime())[0]?.maturity_date
+    : null;
+
   if (loading) {
     return (
       <Layout>
@@ -85,6 +91,19 @@ const InvestimentosVencidos = () => {
           </div>
         </div>
 
+        {/* Campo de Pesquisa */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Input
+              placeholder="Pesquisar por nome do investimento ou investidor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -104,7 +123,7 @@ const InvestimentosVencidos = () => {
               <div>
                 <p className="text-sm font-medium text-slate-600">Valor Total Resgatado</p>
                 <p className="text-2xl font-bold text-slate-800">
-                  {formatCurrency(filteredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0))}
+                  {formatCurrency(totalFilteredValue)}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -118,29 +137,13 @@ const InvestimentosVencidos = () => {
               <div>
                 <p className="text-sm font-medium text-slate-600">Último Vencimento</p>
                 <p className="text-2xl font-bold text-slate-800">
-                  {filteredInvestments.length > 0 
-                    ? formatDate(filteredInvestments[0]?.maturity_date || '') 
-                    : '-'
-                  }
+                  {lastMaturityDate ? formatDate(lastMaturityDate) : '-'}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
                 <Calendar className="h-6 w-6 text-blue-600" />
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Campo de Pesquisa */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-            <Input
-              placeholder="Pesquisar por nome do investimento ou investidor..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
           </div>
         </div>
 
