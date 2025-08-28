@@ -42,6 +42,15 @@ export interface Transaction {
   payment_source_name?: string;
 }
 
+export interface PreviousBalance {
+  id: number;
+  month: number;
+  year: number;
+  value: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useAccountsData = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +62,7 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
-  // Carregar contas do Supabase
+  // ------------------- CONTAS -------------------
   const fetchAccounts = async () => {
     try {
       setLoading(true);
@@ -80,7 +89,6 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Transformar dados do Supabase para o formato da aplicação
       const transformedAccounts: Account[] = data.map(account => ({
         id: account.id,
         description: account.description,
@@ -112,7 +120,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Criar nova conta
   const addAccount = async (accountData: CreateAccountData) => {
     try {
       if (!user) {
@@ -124,7 +131,6 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Se tem quantidade de parcelas, criar múltiplas contas
       if (accountData.qtd_parcelas && accountData.qtd_parcelas > 1) {
         const recorrenteId = crypto.randomUUID();
         const registros = [];
@@ -167,7 +173,6 @@ export const useAccountsData = () => {
           return;
         }
 
-        // Transformar e adicionar à lista local
         const newAccounts = insertData.map(account => ({
           id: account.id,
           description: account.description,
@@ -187,7 +192,6 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [...newAccounts, ...prev]);
         
-        // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
         }
@@ -197,7 +201,6 @@ export const useAccountsData = () => {
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
         });
       } else {
-        // Criar conta única
         const { data, error } = await supabase
           .from('accounts')
           .insert([{
@@ -227,7 +230,6 @@ export const useAccountsData = () => {
           return;
         }
 
-        // Transformar e adicionar à lista local
         const newAccount: Account = {
           id: data.id,
           description: data.description,
@@ -247,7 +249,6 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [newAccount, ...prev]);
         
-        // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
         }
@@ -267,7 +268,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
     try {
       const { error } = await supabase
@@ -298,14 +298,12 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Atualizar na lista local
       setAccounts(prev => 
         prev.map(account => 
           account.id === updatedAccount.id ? updatedAccount : account
         )
       );
 
-      // SÓ invalidar cache se a conta for paga/recebida
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
         invalidateBanksCache();
       }
@@ -324,10 +322,8 @@ export const useAccountsData = () => {
     }
   };
 
-  // Deletar conta
   const deleteAccount = async (accountId: number) => {
     try {
-      // Buscar a conta antes de deletar para verificar se precisa reverter saldo
       const accountToDelete = accounts.find(acc => acc.id === accountId);
       
       const { error } = await supabase
@@ -345,10 +341,8 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
 
-      // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
       if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) {
         invalidateBanksCache();
       }
@@ -367,7 +361,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
       if (!user) {
@@ -394,12 +387,10 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Atualizar na lista local
      setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
       
-      // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();
         
       toast({
@@ -415,6 +406,69 @@ export const useAccountsData = () => {
     }
   };
 
+  // ------------------- SALDO MÊS ANTERIOR -------------------
+  const getPreviousBalance = async (month: number, year: number): Promise<PreviousBalance | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('previous_balances')
+        .select('*')
+        .eq('month', month)
+        .eq('year', year)
+        .single();
+
+      if (error && error.code !== 'PGRST116') return null;
+
+      return data || null;
+    } catch (err) {
+      console.error('Erro inesperado ao buscar saldo anterior:', err);
+      return null;
+    }
+  };
+
+  const updateOrCreatePreviousBalance = async (month: number, year: number, value: number) => {
+    const existing = await getPreviousBalance(month, year);
+
+    if (!existing) {
+      const { data, error } = await supabase
+        .from('previous_balances')
+        .insert([{ month, year, value }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao criar saldo anterior:', error);
+        return null;
+      }
+
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('previous_balances')
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao atualizar saldo anterior:', error);
+        return null;
+      }
+
+      return data;
+    }
+  };
+
+  const propagateBalanceToNextMonth = async (month: number, year: number, saldoFinal: number) => {
+    let nextMonth = month + 1;
+    let nextYear = year;
+    if (nextMonth > 12) {
+      nextMonth = 1;
+      nextYear += 1;
+    }
+    await updateOrCreatePreviousBalance(nextMonth, nextYear, saldoFinal);
+  };
+  // -----------------------------------------------------------
+
   useEffect(() => {
     if (user) {
       fetchAccounts();
@@ -425,12 +479,3 @@ export const useAccountsData = () => {
   }, [user]);
 
   return {
-    accounts,
-    loading,
-    addAccount,
-    updateAccount,
-    deleteAccount,
-    updateAccountStatus,
-    refreshAccounts: fetchAccounts
-  };
-};
