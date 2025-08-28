@@ -479,3 +479,15 @@ export const useAccountsData = () => {
   }, [user]);
 
   return {
+    accounts,
+    loading,
+    addAccount,
+    updateAccount,
+    deleteAccount,
+    updateAccountStatus,
+    refreshAccounts: fetchAccounts,
+    getPreviousBalance,
+    updateOrCreatePreviousBalance,
+    propagateBalanceToNextMonth
+  };
+};
