@@ -12,13 +12,9 @@ import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
-import { useMonthlyBalances } from '@/hooks/useMonthlyBalances';
 
 const Contas: React.FC = () => {
   const { accounts, loading } = useAccounts();
-  
-  // Hook para gerenciar saldos mensais
-  const { getMonthlyBalance, updateMonthlyBalance } = useMonthlyBalances();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -68,56 +64,9 @@ const Contas: React.FC = () => {
 
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter);
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
-
-  // Função melhorada para obter saldo anterior
-  const getPreviousMonthBalance = (month: number, year: number): number => {
-    console.log(`getPreviousMonthBalance chamada para ${month}/${year}`);
-    
-    // Para janeiro, sempre buscar o saldo salvo na tabela monthly_balances
-    if (month === 1) {
-      const savedBalance = getMonthlyBalance(month, year);
-      console.log(`Janeiro ${year}: saldo salvo = ${savedBalance}`);
-      return savedBalance;
-    }
-
-    // Para outros meses, calcular baseado no mês anterior
-    const previousMonth = month === 1 ? 12 : month - 1;
-    const previousYear = month === 1 ? year - 1 : year;
-
-    console.log(`Calculando para ${month}/${year} baseado no mês anterior ${previousMonth}/${previousYear}`);
-
-    // Obter contas do mês anterior
-    const previousMonthAccounts = accounts.filter(account => {
-      const dueDate = new Date(account.dueDate);
-      const accountMonth = dueDate.getMonth() + 1;
-      const accountYear = dueDate.getFullYear();
-      return accountMonth === previousMonth && accountYear === previousYear;
-    });
-
-    console.log(`Contas do mês ${previousMonth}/${previousYear}:`, previousMonthAccounts.length);
-
-    // Calcular totais do mês anterior
-    const totalRecebido = previousMonthAccounts
-      .filter(account => account.type === 'receita' && account.status === 'recebido')
-      .reduce((sum, account) => sum + account.amount, 0);
-
-    const totalPago = previousMonthAccounts
-      .filter(account => account.type === 'despesa' && account.status === 'pago')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-
-    console.log(`Mês ${previousMonth}/${previousYear} - Recebido: ${totalRecebido}, Pago: ${totalPago}`);
-
-    // Obter saldo inicial do mês anterior (recursivo)
-    const saldoInicialAnterior = getPreviousMonthBalance(previousMonth, previousYear);
-    
-    const saldoFinal = saldoInicialAnterior + totalRecebido - totalPago;
-    console.log(`Saldo final ${previousMonth}/${previousYear}: ${saldoInicialAnterior} + ${totalRecebido} - ${totalPago} = ${saldoFinal}`);
-    
-    return saldoFinal;
-  };
 
   const handleSubmit = (data: AccountFormData) => {
     handleSave(data);
@@ -154,13 +103,7 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards 
-            accounts={filteredAccounts}
-            month={!isShowingAll ? currentMonth : undefined}
-            year={!isShowingAll ? currentYear : undefined}
-            onUpdateBalance={updateMonthlyBalance}
-            getPreviousMonthBalance={getPreviousMonthBalance}
-          />
+          <AccountsSummaryCards accounts={filteredAccounts} />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
@@ -170,7 +113,7 @@ const Contas: React.FC = () => {
 
           {/* Navegador de mês - logo acima da tabela */}
           <MonthNavigator
-            currentMonth={currentMonth - 1} // -1 porque MonthNavigator espera 0-11
+            currentMonth={currentMonth}
             currentYear={currentYear}
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
