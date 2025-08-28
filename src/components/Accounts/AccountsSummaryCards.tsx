@@ -3,6 +3,7 @@ import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 import { PreviousBalanceCard } from './PreviousBalanceCard';
+import { formatCurrency } from '@/utils/formatters';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
@@ -19,14 +20,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   onUpdateBalance, 
   getPreviousMonthBalance 
 }) => {
-  // Função para formatar valores em reais brasileiros
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
+  
   const calculateTotalPago = () => {
     return accounts
       .filter(account => account.type === 'despesa' && account.status === 'pago')
@@ -68,7 +62,6 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
       {/* Card de Saldo Mês Anterior - só mostra se temos as props necessárias */}
       {onUpdateBalance && getPreviousMonthBalance && month !== undefined && year !== undefined && (
         <PreviousBalanceCard
-          accounts={accounts}
           month={month}
           year={year}
           onUpdateBalance={onUpdateBalance}

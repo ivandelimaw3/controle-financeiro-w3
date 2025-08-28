@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Wallet, Edit3, Check, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Account } from '@/hooks/useAccountsData';
+import { formatCurrency } from '@/utils/formatters';
 
 interface PreviousBalanceCardProps {
-  accounts: Account[];
   month: number;
   year: number;
   onUpdateBalance: (amount: number, month: number, year: number) => Promise<void>;
@@ -14,7 +13,6 @@ interface PreviousBalanceCardProps {
 }
 
 export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
-  accounts,
   month,
   year,
   onUpdateBalance,
@@ -24,15 +22,7 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
   const [inputValue, setInputValue] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Função para formatar valores em reais brasileiros
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  // Obter saldo anterior usando a nova lógica
+  // Obter saldo anterior usando a lógica
   const previousBalance = getPreviousMonthBalance(month, year);
   const isJanuary = month === 1;
 

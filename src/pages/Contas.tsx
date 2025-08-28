@@ -69,29 +69,38 @@ const Contas: React.FC = () => {
 
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter);
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
   // Função para obter saldo do mês anterior com lógica automática
   const getPreviousMonthBalance = (month: number, year: number): number => {
+    console.log(`Calculando saldo anterior para ${month}/${year}`);
+    
     // Para janeiro, procurar saldo salvo ou usar 0
     if (month === 1) {
-      return getMonthlyBalance(month, year);
+      const savedBalance = getMonthlyBalance(month, year);
+      console.log(`Janeiro ${year}: saldo salvo = ${savedBalance}`);
+      return savedBalance;
     }
 
     // Para outros meses, calcular baseado no saldo final do mês anterior
-    const previousMonth = month === 1 ? 12 : month - 1;
+    const previousMonth = month - 1;
     const previousYear = month === 1 ? year - 1 : year;
 
-    // Obter contas do mês anterior
+    console.log(`Calculando para ${month}/${year} baseado em ${previousMonth}/${previousYear}`);
+
+    // Obter contas do mês anterior que estão efetivadas (pagas/recebidas)
     const previousMonthAccounts = accounts.filter(account => {
       const dueDate = new Date(account.dueDate);
-      return dueDate.getMonth() === previousMonth - 1 && // -1 porque getMonth() retorna 0-11
-             dueDate.getFullYear() === previousYear;
+      const accountMonth = dueDate.getMonth() + 1; // getMonth() retorna 0-11
+      const accountYear = dueDate.getFullYear();
+      return accountMonth === previousMonth && accountYear === previousYear;
     });
 
-    // Calcular saldo final do mês anterior
+    console.log(`Contas do mês ${previousMonth}/${previousYear}:`, previousMonthAccounts.length);
+
+    // Calcular receitas e despesas efetivadas do mês anterior
     const totalRecebido = previousMonthAccounts
       .filter(account => account.type === 'receita' && account.status === 'recebido')
       .reduce((sum, account) => sum + account.amount, 0);
@@ -100,10 +109,15 @@ const Contas: React.FC = () => {
       .filter(account => account.type === 'despesa' && account.status === 'pago')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
 
+    console.log(`Mês ${previousMonth}/${previousYear} - Recebido: ${totalRecebido}, Pago: ${totalPago}`);
+
     // Incluir saldo anterior do mês anterior (recursivo)
     const saldoAnteriorDoPrevious = getPreviousMonthBalance(previousMonth, previousYear);
     
-    return saldoAnteriorDoPrevious + totalRecebido - totalPago;
+    const saldoFinal = saldoAnteriorDoPrevious + totalRecebido - totalPago;
+    console.log(`Saldo final ${previousMonth}/${previousYear}: ${saldoAnteriorDoPrevious} + ${totalRecebido} - ${totalPago} = ${saldoFinal}`);
+    
+    return saldoFinal;
   };
 
   const handleSubmit = (data: AccountFormData) => {
@@ -143,7 +157,7 @@ const Contas: React.FC = () => {
 
           <AccountsSummaryCards 
             accounts={filteredAccounts}
-            month={!isShowingAll ? currentMonth + 1 : undefined} // +1 porque os meses são 1-12 na base
+            month={!isShowingAll ? currentMonth : undefined}
             year={!isShowingAll ? currentYear : undefined}
             onUpdateBalance={updateMonthlyBalance}
             getPreviousMonthBalance={getPreviousMonthBalance}
@@ -157,7 +171,7 @@ const Contas: React.FC = () => {
 
           {/* Navegador de mês - logo acima da tabela */}
           <MonthNavigator
-            currentMonth={currentMonth}
+            currentMonth={currentMonth - 1} // -1 porque MonthNavigator espera 0-11
             currentYear={currentYear}
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
