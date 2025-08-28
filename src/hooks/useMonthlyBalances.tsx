@@ -21,9 +21,13 @@ export const useMonthlyBalances = () => {
   const { toast } = useToast();
 
   const fetchBalances = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('monthly_balances')
         .select('*')
@@ -41,6 +45,7 @@ export const useMonthlyBalances = () => {
         return;
       }
 
+      console.log('Saldos mensais carregados:', data);
       setBalances(data || []);
     } catch (error) {
       console.error('Erro ao carregar saldos mensais:', error);
@@ -51,13 +56,17 @@ export const useMonthlyBalances = () => {
 
   const getMonthlyBalance = (month: number, year: number): number => {
     const balance = balances.find(b => b.month === month && b.year === year);
-    return balance ? Number(balance.balance) : 0;
+    const result = balance ? Number(balance.balance) : 0;
+    console.log(`Saldo encontrado para ${month}/${year}:`, result);
+    return result;
   };
 
-  const updateMonthlyBalance = async (month: number, year: number, amount: number): Promise<void> => {
+  const updateMonthlyBalance = async (amount: number, month: number, year: number): Promise<void> => {
     if (!user) return;
 
     try {
+      console.log(`Salvando saldo ${amount} para ${month}/${year}`);
+      
       const { data, error } = await supabase
         .from('monthly_balances')
         .upsert({
@@ -78,6 +87,8 @@ export const useMonthlyBalances = () => {
         });
         return;
       }
+
+      console.log('Saldo salvo com sucesso:', data);
 
       // Atualizar estado local
       setBalances(prev => {
@@ -108,9 +119,7 @@ export const useMonthlyBalances = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchBalances();
-    }
+    fetchBalances();
   }, [user]);
 
   return {

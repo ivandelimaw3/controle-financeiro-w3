@@ -28,14 +28,17 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
 
   // Atualizar input quando o saldo anterior mudar
   useEffect(() => {
-    setInputValue(previousBalance.toString());
-  }, [previousBalance]);
+    if (!isEditing) {
+      setInputValue(previousBalance.toString());
+    }
+  }, [previousBalance, isEditing]);
 
   const handleEdit = () => {
     if (!isJanuary) {
       return; // Não permite edição para meses diferentes de janeiro
     }
     setIsEditing(true);
+    setInputValue(previousBalance.toString());
   };
 
   const handleCancel = () => {
@@ -44,6 +47,8 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
   };
 
   const handleSave = async () => {
+    if (!isJanuary) return;
+    
     setIsLoading(true);
     try {
       const amount = parseFloat(inputValue) || 0;
