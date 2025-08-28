@@ -479,3 +479,12 @@ export const useAccountsData = () => {
   }, [user]);
 
   return {
+  accounts,
+  loading,
+  addAccount,
+  updateAccount,
+  deleteAccount,
+  updateAccountStatus,
+  refreshAccounts: fetchAccounts,
+  getPreviousBalance, // <-- se você adicionou esse método
+};
