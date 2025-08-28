@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -12,9 +13,13 @@ import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
+import { useMonthlyBalances } from '@/hooks/useMonthlyBalances';
 
 const Contas: React.FC = () => {
   const { accounts, loading } = useAccounts();
+  
+  // Hook para gerenciar saldos mensais
+  const { getMonthlyBalance, updateMonthlyBalance } = useMonthlyBalances();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -68,6 +73,39 @@ const Contas: React.FC = () => {
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
+  // Função para obter saldo do mês anterior com lógica automática
+  const getPreviousMonthBalance = (month: number, year: number): number => {
+    // Para janeiro, procurar saldo salvo ou usar 0
+    if (month === 1) {
+      return getMonthlyBalance(month, year);
+    }
+
+    // Para outros meses, calcular baseado no saldo final do mês anterior
+    const previousMonth = month === 1 ? 12 : month - 1;
+    const previousYear = month === 1 ? year - 1 : year;
+
+    // Obter contas do mês anterior
+    const previousMonthAccounts = accounts.filter(account => {
+      const dueDate = new Date(account.dueDate);
+      return dueDate.getMonth() === previousMonth - 1 && // -1 porque getMonth() retorna 0-11
+             dueDate.getFullYear() === previousYear;
+    });
+
+    // Calcular saldo final do mês anterior
+    const totalRecebido = previousMonthAccounts
+      .filter(account => account.type === 'receita' && account.status === 'recebido')
+      .reduce((sum, account) => sum + account.amount, 0);
+
+    const totalPago = previousMonthAccounts
+      .filter(account => account.type === 'despesa' && account.status === 'pago')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+
+    // Incluir saldo anterior do mês anterior (recursivo)
+    const saldoAnteriorDoPrevious = getPreviousMonthBalance(previousMonth, previousYear);
+    
+    return saldoAnteriorDoPrevious + totalRecebido - totalPago;
+  };
+
   const handleSubmit = (data: AccountFormData) => {
     handleSave(data);
   };
@@ -103,7 +141,13 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards accounts={filteredAccounts} />
+          <AccountsSummaryCards 
+            accounts={filteredAccounts}
+            month={!isShowingAll ? currentMonth + 1 : undefined} // +1 porque os meses são 1-12 na base
+            year={!isShowingAll ? currentYear : undefined}
+            onUpdateBalance={updateMonthlyBalance}
+            getPreviousMonthBalance={getPreviousMonthBalance}
+          />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
