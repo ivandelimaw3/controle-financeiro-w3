@@ -22,9 +22,11 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
   const [inputValue, setInputValue] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Obter saldo anterior usando a lógica
+  // Obter saldo anterior
   const previousBalance = getPreviousMonthBalance(month, year);
   const isJanuary = month === 1;
+
+  console.log(`PreviousBalanceCard - Mês: ${month}/${year}, Saldo: ${previousBalance}, É Janeiro: ${isJanuary}`);
 
   // Atualizar input quando o saldo anterior mudar
   useEffect(() => {
@@ -34,25 +36,35 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
   }, [previousBalance, isEditing]);
 
   const handleEdit = () => {
+    console.log(`Tentando editar - Mês: ${month}, É Janeiro: ${isJanuary}`);
     if (!isJanuary) {
-      return; // Não permite edição para meses diferentes de janeiro
+      console.log('Não é janeiro, edição não permitida');
+      return;
     }
+    console.log('Iniciando edição para janeiro');
     setIsEditing(true);
     setInputValue(previousBalance.toString());
   };
 
   const handleCancel = () => {
+    console.log('Cancelando edição');
     setIsEditing(false);
     setInputValue(previousBalance.toString());
   };
 
   const handleSave = async () => {
-    if (!isJanuary) return;
+    if (!isJanuary) {
+      console.log('Tentativa de salvar em mês que não é janeiro');
+      return;
+    }
     
+    console.log(`Salvando saldo: ${inputValue} para ${month}/${year}`);
     setIsLoading(true);
     try {
       const amount = parseFloat(inputValue) || 0;
+      console.log(`Chamando onUpdateBalance com: ${amount}, ${month}, ${year}`);
       await onUpdateBalance(amount, month, year);
+      console.log('Saldo salvo com sucesso');
       setIsEditing(false);
     } catch (error) {
       console.error('Erro ao salvar saldo anterior:', error);

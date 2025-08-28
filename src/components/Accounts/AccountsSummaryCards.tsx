@@ -37,13 +37,15 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     const totalRecebido = calculateTotalRecebido();
     const totalPago = calculateTotalPago();
     
-    // Se temos as funções de saldo anterior, incluir na conta
+    // Incluir o saldo anterior no cálculo
     if (getPreviousMonthBalance && month !== undefined && year !== undefined) {
       const saldoAnterior = getPreviousMonthBalance(month, year);
-      return saldoAnterior + totalRecebido - totalPago;
+      const saldoFinal = saldoAnterior + totalRecebido - totalPago;
+      console.log(`Calculando Saldo Final: ${saldoAnterior} + ${totalRecebido} - ${totalPago} = ${saldoFinal}`);
+      return saldoFinal;
     }
     
-    // Senão, usar cálculo tradicional
+    // Fallback para cálculo sem saldo anterior
     return totalRecebido - totalPago;
   };
 
@@ -54,6 +56,13 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     const despesasPendentes = accounts
       .filter(account => account.type === 'despesa' && account.status === 'pendente')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    
+    // Para o saldo pendente, também incluir o saldo anterior se disponível
+    if (getPreviousMonthBalance && month !== undefined && year !== undefined) {
+      const saldoAnterior = getPreviousMonthBalance(month, year);
+      return saldoAnterior + receitasPendentes - despesasPendentes;
+    }
+    
     return receitasPendentes - despesasPendentes;
   };
 

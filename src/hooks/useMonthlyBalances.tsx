@@ -62,27 +62,56 @@ export const useMonthlyBalances = () => {
   };
 
   const updateMonthlyBalance = async (amount: number, month: number, year: number): Promise<void> => {
-    if (!user) return;
+    if (!user) {
+      console.error('Usuário não autenticado');
+      return;
+    }
 
     try {
-      console.log(`Salvando saldo ${amount} para ${month}/${year}`);
+      console.log(`Salvando saldo ${amount} para ${month}/${year} - User ID: ${user.id}`);
       
-      const { data, error } = await supabase
+      // Verificar se já existe um registro
+      const { data: existing } = await supabase
         .from('monthly_balances')
-        .upsert({
-          user_id: user.id,
-          month,
-          year,
-          balance: amount
-        })
-        .select()
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('month', month)
+        .eq('year', year)
         .single();
 
+      let result;
+      
+      if (existing) {
+        console.log('Atualizando registro existente:', existing.id);
+        // Atualizar registro existente
+        result = await supabase
+          .from('monthly_balances')
+          .update({ balance: amount })
+          .eq('id', existing.id)
+          .select()
+          .single();
+      } else {
+        console.log('Criando novo registro');
+        // Criar novo registro
+        result = await supabase
+          .from('monthly_balances')
+          .insert({
+            user_id: user.id,
+            month,
+            year,
+            balance: amount
+          })
+          .select()
+          .single();
+      }
+
+      const { data, error } = result;
+
       if (error) {
-        console.error('Erro ao atualizar saldo mensal:', error);
+        console.error('Erro ao salvar saldo mensal:', error);
         toast({
           title: "Erro",
-          description: "Não foi possível atualizar o saldo mensal.",
+          description: "Não foi possível salvar o saldo mensal.",
           variant: "destructive"
         });
         return;
@@ -92,13 +121,11 @@ export const useMonthlyBalances = () => {
 
       // Atualizar estado local
       setBalances(prev => {
-        const existing = prev.find(b => b.month === month && b.year === year);
-        if (existing) {
-          return prev.map(b => 
-            b.month === month && b.year === year 
-              ? { ...b, balance: amount, updated_at: data.updated_at }
-              : b
-          );
+        const existingIndex = prev.findIndex(b => b.month === month && b.year === year);
+        if (existingIndex >= 0) {
+          const newBalances = [...prev];
+          newBalances[existingIndex] = { ...newBalances[existingIndex], balance: amount, updated_at: data.updated_at };
+          return newBalances;
         } else {
           return [...prev, data];
         }
@@ -109,10 +136,10 @@ export const useMonthlyBalances = () => {
         description: "Saldo mensal atualizado com sucesso.",
       });
     } catch (error) {
-      console.error('Erro ao atualizar saldo mensal:', error);
+      console.error('Erro ao salvar saldo mensal:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o saldo mensal.",
+        description: "Não foi possível salvar o saldo mensal.",
         variant: "destructive"
       });
     }
