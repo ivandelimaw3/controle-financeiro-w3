@@ -77,21 +77,25 @@ export const useAccountsData = () => {
     return saldoAnterior + totalRecebido - totalPago;
   };
 
-  // Função para carregar saldo do mês atual (que será usado como anterior para o próximo mês)
-  const fetchSaldoMesAtual = async (ano: number, mes: number) => {
+  // Função para carregar saldo do mês anterior
+  const fetchSaldoMesAnterior = async (ano: number, mes: number) => {
     try {
       if (!user) return 0;
+
+      // Se for janeiro (mês 1), busca dezembro do ano anterior
+      const mesBusca = mes === 1 ? 12 : mes - 1;
+      const anoBusca = mes === 1 ? ano - 1 : ano;
 
       const { data, error } = await supabase
         .from('saldo_mes_anterior')
         .select('valor, automatico')
         .eq('user_id', user.id)
-        .eq('ano', ano)
-        .eq('mes', mes)
+        .eq('ano', anoBusca)
+        .eq('mes', mesBusca)
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar saldo do mês:', error);
+        console.error('Erro ao buscar saldo mês anterior:', error);
         return 0;
       }
 
@@ -102,8 +106,8 @@ export const useAccountsData = () => {
     }
   };
 
-  // Função para salvar/atualizar saldo do mês
-  const salvarSaldoMes = async (ano: number, mes: number, valor: number, automatico: boolean = false) => {
+  // Função para salvar/atualizar saldo do mês anterior
+  const salvarSaldoMesAnterior = async (ano: number, mes: number, valor: number, automatico: boolean = false) => {
     try {
       if (!user) {
         toast({
@@ -135,12 +139,12 @@ export const useAccountsData = () => {
 
       if (error) throw error;
       
-      console.log(`Saldo ${automatico ? 'automático' : 'manual'} salvo para ${mes}/${ano}: R$ ${valor}`);
+      setSaldoMesAnterior(valor);
       
       if (!automatico) {
         toast({
           title: "Sucesso",
-          description: "Saldo atualizado com sucesso.",
+          description: "Saldo do mês anterior atualizado com sucesso.",
         });
       }
       
@@ -150,7 +154,7 @@ export const useAccountsData = () => {
       if (!automatico) {
         toast({
           title: "Erro",
-          description: "Não foi possível salvar o saldo.",
+          description: "Não foi possível salvar o saldo do mês anterior.",
           variant: "destructive"
         });
       }
@@ -158,32 +162,27 @@ export const useAccountsData = () => {
     }
   };
 
-  // Função para atualizar automaticamente o saldo do próximo mês
-  const atualizarSaldoProximoMes = async (anoAtual: number, mesAtual: number) => {
+  // Função para verificar e atualizar automaticamente o saldo do próximo mês
+  const atualizarSaldoProximoMesAutomatico = async (anoAtual: number, mesAtual: number, saldoFinal: number) => {
     try {
       if (!user) return;
 
       const proximoMes = mesAtual === 12 ? 1 : mesAtual + 1;
       const proximoAno = mesAtual === 12 ? anoAtual + 1 : anoAtual;
 
-      // Calcular saldo final do mês atual
-      const saldoFinal = calcularSaldoFinal(accounts, saldoMesAnterior);
-      
-      // Verificar se já existe saldo para o próximo mês
+      // Verifica se já existe um saldo para o próximo mês
       const { data: saldoExistente } = await supabase
         .from('saldo_mes_anterior')
-        .select('id, automatico, valor')
+        .select('id, automatico')
         .eq('user_id', user.id)
         .eq('ano', proximoAno)
         .eq('mes', proximoMes)
         .single();
 
-      // Se não existe saldo OU existe mas foi calculado automaticamente, atualiza
+      // Só atualiza automaticamente se não existir saldo ou se foi calculado automaticamente antes
       if (!saldoExistente || saldoExistente.automatico) {
-        await salvarSaldoMes(proximoAno, proximoMes, saldoFinal, true);
-        console.log(`Saldo automático atualizado: ${proximoMes}/${proximoAno} = R$ ${saldoFinal}`);
-      } else {
-        console.log(`Saldo manual encontrado para ${proximoMes}/${proximoAno}, mantendo valor: R$ ${saldoExistente.valor}`);
+        await salvarSaldoMesAnterior(proximoAno, proximoMes, saldoFinal, true);
+        console.log(`Saldo automático atualizado para ${proximoMes}/${proximoAno}: R$ ${saldoFinal}`);
       }
     } catch (error) {
       console.error('Erro ao atualizar saldo automático:', error);
@@ -237,16 +236,20 @@ export const useAccountsData = () => {
 
       setAccounts(transformedAccounts);
       
-      // Carregar saldo do mês atual
+      // Calcular saldo final e atualizar automaticamente o próximo mês
       const hoje = new Date();
       const anoAtual = hoje.getFullYear();
       const mesAtual = hoje.getMonth() + 1;
       
-      const saldoAtual = await fetchSaldoMesAtual(anoAtual, mesAtual);
-      setSaldoMesAnterior(saldoAtual);
+      const saldoAnterior = await fetchSaldoMesAnterior(anoAtual, mesAtual);
+      setSaldoMesAnterior(saldoAnterior);
       
-      console.log(`Contas carregadas: ${transformedAccounts.length} contas | Saldo mês atual: R$ ${saldoAtual}`);
+      const saldoFinal = calcularSaldoFinal(transformedAccounts, saldoAnterior);
       
+      // Atualiza automaticamente o saldo do próximo mês
+      await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
+      
+      console.log(`Contas carregadas: ${transformedAccounts.length} contas encontradas`);
     } catch (error) {
       console.error('Erro ao carregar contas:', error);
       toast({
@@ -256,25 +259,6 @@ export const useAccountsData = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Função pública para salvar saldo manualmente (usada pelo modal)
-  const salvarSaldoMesAnterior = async (valor: number) => {
-    try {
-      const hoje = new Date();
-      const ano = hoje.getFullYear();
-      const mes = hoje.getMonth() + 1;
-      
-      await salvarSaldoMes(ano, mes, valor, false);
-      setSaldoMesAnterior(valor);
-      
-      // Atualizar automaticamente o próximo mês
-      await atualizarSaldoProximoMes(ano, mes);
-      
-    } catch (error) {
-      console.error('Erro ao salvar saldo manual:', error);
-      throw error;
     }
   };
 
@@ -353,9 +337,12 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [...newAccounts, ...prev]);
         
-        // Atualizar saldo do próximo mês
+        // Atualizar saldo do próximo mês automaticamente
         const hoje = new Date();
-        await atualizarSaldoProximoMes(hoje.getFullYear(), hoje.getMonth() + 1);
+        const anoAtual = hoje.getFullYear();
+        const mesAtual = hoje.getMonth() + 1;
+        const saldoFinal = calcularSaldoFinal([...newAccounts, ...prev], saldoMesAnterior);
+        await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
         
         // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
@@ -417,9 +404,12 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [newAccount, ...prev]);
         
-        // Atualizar saldo do próximo mês
+        // Atualizar saldo do próximo mês automaticamente
         const hoje = new Date();
-        await atualizarSaldoProximoMes(hoje.getFullYear(), hoje.getMonth() + 1);
+        const anoAtual = hoje.getFullYear();
+        const mesAtual = hoje.getMonth() + 1;
+        const saldoFinal = calcularSaldoFinal([newAccount, ...prev], saldoMesAnterior);
+        await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
         
         // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
@@ -479,9 +469,12 @@ export const useAccountsData = () => {
         )
       );
       
-      // Atualizar saldo do próximo mês
+      // Atualizar saldo do próximo mês automaticamente
       const hoje = new Date();
-      await atualizarSaldoProximoMes(hoje.getFullYear(), hoje.getMonth() + 1);
+      const anoAtual = hoje.getFullYear();
+      const mesAtual = hoje.getMonth() + 1;
+      const saldoFinal = calcularSaldoFinal(accounts, saldoMesAnterior);
+      await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
 
       // SÓ invalidar cache se a conta for paga/recebida
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
@@ -526,9 +519,12 @@ export const useAccountsData = () => {
       // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
       
-      // Atualizar saldo do próximo mês
+      // Atualizar saldo do próximo mês automaticamente
       const hoje = new Date();
-      await atualizarSaldoProximoMes(hoje.getFullYear(), hoje.getMonth() + 1);
+      const anoAtual = hoje.getFullYear();
+      const mesAtual = hoje.getMonth() + 1;
+      const saldoFinal = calcularSaldoFinal(accounts.filter(acc => acc.id !== accountId), saldoMesAnterior);
+      await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
 
       // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
       if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) {
@@ -581,9 +577,12 @@ export const useAccountsData = () => {
         acc.id === id ? { ...acc, status } : acc
       ));
       
-      // Atualizar saldo do próximo mês
+      // Atualizar saldo do próximo mês automaticamente
       const hoje = new Date();
-      await atualizarSaldoProximoMes(hoje.getFullYear(), hoje.getMonth() + 1);
+      const anoAtual = hoje.getFullYear();
+      const mesAtual = hoje.getMonth() + 1;
+      const saldoFinal = calcularSaldoFinal(accounts, saldoMesAnterior);
+      await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
       
       // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();
@@ -616,7 +615,7 @@ export const useAccountsData = () => {
     loading,
     saldoMesAnterior,
     salvarSaldoMesAnterior,
-    fetchSaldoMesAtual,
+    fetchSaldoMesAnterior,
     addAccount,
     updateAccount,
     deleteAccount,
