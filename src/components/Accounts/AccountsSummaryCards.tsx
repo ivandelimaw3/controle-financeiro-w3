@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
-import { SaldoMesAnteriorModal } from './SaldoMesAnteriorModal'; // Criaremos este componente
+import { SaldoMesAnteriorModal } from './SaldoMesAnteriorModal';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
