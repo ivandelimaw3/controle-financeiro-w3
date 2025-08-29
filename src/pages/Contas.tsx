@@ -12,9 +12,11 @@ import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
+import { usePreviousBalance } from '@/hooks/usePreviousBalance';
 
 const Contas: React.FC = () => {
   const { accounts, loading } = useAccounts();
+  const { previousBalance } = usePreviousBalance();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -103,7 +105,7 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards accounts={filteredAccounts} />
+          <AccountsSummaryCards accounts={filteredAccounts} previousBalance={previousBalance} />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
