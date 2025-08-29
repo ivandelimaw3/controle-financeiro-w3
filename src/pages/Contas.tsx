@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -9,13 +8,13 @@ import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModa
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2 } from 'lucide-react';
-import { useAccountsData } from '@/hooks/useAccountsData';
+import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 
 const Contas: React.FC = () => {
-  const { accounts, loading } = useAccountsData();
+  const { accounts, loading } = useAccounts();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -63,10 +62,10 @@ const Contas: React.FC = () => {
     setYearFilter('todos');
   };
 
-  // Obter mês e ano para exibição
+  // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
-  const displayMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter);
-  const displayYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter);
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
+  const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
   const handleSubmit = (data: AccountFormData) => {
@@ -104,11 +103,7 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards 
-            accounts={filteredAccounts}
-            month={displayMonth}
-            year={displayYear}
-          />
+          <AccountsSummaryCards accounts={filteredAccounts} />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
@@ -118,8 +113,8 @@ const Contas: React.FC = () => {
 
           {/* Navegador de mês - logo acima da tabela */}
           <MonthNavigator
-            currentMonth={displayMonth} // Agora usa 1-12 diretamente
-            currentYear={displayYear}
+            currentMonth={currentMonth}
+            currentYear={currentYear}
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
             isShowingAll={isShowingAll}
