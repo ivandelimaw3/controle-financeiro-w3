@@ -44,6 +44,7 @@ export interface Transaction {
 
 export const useAccountsData = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [saldoMesAnterior, setSaldoMesAnterior] = useState(0);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -51,6 +52,87 @@ export const useAccountsData = () => {
 
   const invalidateBanksCache = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
+  };
+
+  // Função para carregar saldo do mês anterior
+  const fetchSaldoMesAnterior = async (ano: number, mes: number) => {
+    try {
+      if (!user) return 0;
+
+      // Se for janeiro (mês 1), busca dezembro do ano anterior
+      const mesBusca = mes === 1 ? 12 : mes - 1;
+      const anoBusca = mes === 1 ? ano - 1 : ano;
+
+      const { data, error } = await supabase
+        .from('saldo_mes_anterior')
+        .select('valor')
+        .eq('user_id', user.id)
+        .eq('ano', anoBusca)
+        .eq('mes', mesBusca)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar saldo mês anterior:', error);
+        return 0;
+      }
+
+      return data?.valor || 0;
+    } catch (error) {
+      console.error('Erro ao buscar saldo:', error);
+      return 0;
+    }
+  };
+
+  // Função para salvar/atualizar saldo do mês anterior
+  const salvarSaldoMesAnterior = async (ano: number, mes: number, valor: number) => {
+    try {
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('saldo_mes_anterior')
+        .upsert(
+          { 
+            user_id: user.id,
+            ano, 
+            mes, 
+            valor,
+            updated_at: new Date().toISOString()
+          },
+          { 
+            onConflict: 'user_id,ano,mes',
+            ignoreDuplicates: false
+          }
+        )
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Atualiza o estado local
+      setSaldoMesAnterior(valor);
+      
+      toast({
+        title: "Sucesso",
+        description: "Saldo do mês anterior atualizado com sucesso.",
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('Erro ao salvar saldo:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o saldo do mês anterior.",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
   // Carregar contas do Supabase
@@ -418,8 +500,14 @@ export const useAccountsData = () => {
   useEffect(() => {
     if (user) {
       fetchAccounts();
+      
+      // Carrega saldo do mês anterior baseado no mês atual
+      const today = new Date();
+      fetchSaldoMesAnterior(today.getFullYear(), today.getMonth() + 1)
+        .then(saldo => setSaldoMesAnterior(saldo));
     } else {
       setAccounts([]);
+      setSaldoMesAnterior(0);
       setLoading(false);
     }
   }, [user]);
@@ -427,6 +515,9 @@ export const useAccountsData = () => {
   return {
     accounts,
     loading,
+    saldoMesAnterior,
+    salvarSaldoMesAnterior,
+    fetchSaldoMesAnterior,
     addAccount,
     updateAccount,
     deleteAccount,
