@@ -1,49 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Wallet, Edit3, Check, X, Info } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Calendar, Edit3, Check, X, Info, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Account } from '@/hooks/useAccountsData';
+import { usePreviousMonthBalance } from '@/hooks/usePreviousMonthBalance';
+import { formatCurrency } from '@/utils/formatters';
 
 interface PreviousBalanceCardProps {
-  accounts: Account[];
   month: number;
   year: number;
-  onUpdateBalance: (amount: number, month: number, year: number) => Promise<void>;
-  getPreviousMonthBalance: (month: number, year: number) => number;
+  onBalanceChange?: (balance: number) => void;
 }
 
 export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
-  accounts,
   month,
   year,
-  onUpdateBalance,
-  getPreviousMonthBalance
+  onBalanceChange
 }) => {
+  const { previousBalance, loading, canEdit, savePreviousBalance } = usePreviousMonthBalance(year, month);
   const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState('0');
-  const [isLoading, setIsLoading] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Função para formatar valores em reais brasileiros
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  // Obter saldo anterior usando a nova lógica
-  const previousBalance = getPreviousMonthBalance(month, year);
-  const isJanuary = month === 1;
-
-  // Atualizar input quando o saldo anterior mudar
-  useEffect(() => {
+  React.useEffect(() => {
     setInputValue(previousBalance.toString());
-  }, [previousBalance]);
+    if (onBalanceChange) {
+      onBalanceChange(previousBalance);
+    }
+  }, [previousBalance, onBalanceChange]);
 
   const handleEdit = () => {
-    if (!isJanuary) {
-      return; // Não permite edição para meses diferentes de janeiro
-    }
+    if (!canEdit) return;
+    setInputValue(previousBalance.toString());
     setIsEditing(true);
   };
 
@@ -53,15 +41,20 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
   };
 
   const handleSave = async () => {
-    setIsLoading(true);
+    setIsSaving(true);
     try {
-      const amount = parseFloat(inputValue) || 0;
-      await onUpdateBalance(amount, month, year);
-      setIsEditing(false);
+      const value = parseFloat(inputValue) || 0;
+      const success = await savePreviousBalance(value);
+      if (success) {
+        setIsEditing(false);
+        if (onBalanceChange) {
+          onBalanceChange(value);
+        }
+      }
     } catch (error) {
-      console.error('Erro ao salvar saldo anterior:', error);
+      console.error('Erro ao salvar:', error);
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -73,21 +66,51 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
     }
   };
 
+  const getMonthName = (month: number) => {
+    const months = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return months[month - 1];
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <Calendar size={20} className="text-purple-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
+            <p className="text-lg text-slate-400">Carregando...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-purple-100 rounded-lg">
-          <Wallet size={20} className="text-purple-600" />
+          <Calendar size={20} className="text-purple-600" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
-            {!isJanuary && (
-              <div title="Calculado automaticamente baseado no saldo final do mês anterior">
+            {!canEdit && (
+              <div title={`Valor calculado automaticamente baseado no saldo final de ${getMonthName(month - 1 === 0 ? 12 : month - 1)}`}>
                 <Info size={14} className="text-blue-500" />
               </div>
             )}
+            {month === 1 && (
+              <div title="Saldo inicial do ano - pode incluir valor do ano anterior">
+                <TrendingUp size={14} className="text-green-500" />
+              </div>
+            )}
           </div>
+          
           {isEditing ? (
             <div className="flex items-center gap-2 mt-1">
               <Input
@@ -98,14 +121,14 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
                 className="h-8 text-lg font-bold"
                 placeholder="0.00"
                 step="0.01"
-                disabled={isLoading}
+                disabled={isSaving}
                 autoFocus
               />
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={handleSave}
-                disabled={isLoading}
+                disabled={isSaving}
                 className="p-1 h-8 w-8 text-green-600 hover:bg-green-100"
               >
                 <Check size={16} />
@@ -114,7 +137,7 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
                 size="sm"
                 variant="ghost"
                 onClick={handleCancel}
-                disabled={isLoading}
+                disabled={isSaving}
                 className="p-1 h-8 w-8 text-red-600 hover:bg-red-100"
               >
                 <X size={16} />
@@ -122,10 +145,10 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <p className="text-xl font-bold text-purple-600">
+              <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(previousBalance)}
               </p>
-              {isJanuary && (
+              {canEdit && (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -138,9 +161,16 @@ export const PreviousBalanceCard: React.FC<PreviousBalanceCardProps> = ({
               )}
             </div>
           )}
-          {!isJanuary && (
+          
+          {!canEdit && (
             <p className="text-xs text-slate-500 mt-1">
-              Calculado automaticamente
+              {month === 1 ? 'Saldo inicial do ano' : 'Calculado automaticamente'}
+            </p>
+          )}
+          
+          {canEdit && (
+            <p className="text-xs text-purple-600 mt-1">
+              Editável - clique no ícone para alterar
             </p>
           )}
         </div>

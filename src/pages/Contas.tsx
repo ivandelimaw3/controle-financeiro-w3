@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -14,7 +15,7 @@ import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 
 const Contas: React.FC = () => {
-  const { accounts, loading, saldoMesAnterior, salvarSaldoMesAnterior } = useAccountsData();
+  const { accounts, loading } = useAccountsData();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -62,20 +63,10 @@ const Contas: React.FC = () => {
     setYearFilter('todos');
   };
 
-  // Função para atualizar o saldo do mês anterior
-  const handleUpdateSaldoMesAnterior = async (valor: number) => {
-    try {
-      const today = new Date();
-      await salvarSaldoMesAnterior(today.getFullYear(), today.getMonth() + 1, valor);
-    } catch (error) {
-      console.error('Erro ao atualizar saldo:', error);
-    }
-  };
-
-  // Obter mês e ano atual - sempre inicializar no mês atual
+  // Obter mês e ano para exibição
   const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
-  const currentYear = parseInt(yearFilter);
+  const displayMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter);
+  const displayYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
   const handleSubmit = (data: AccountFormData) => {
@@ -114,9 +105,9 @@ const Contas: React.FC = () => {
           />
 
           <AccountsSummaryCards 
-            accounts={filteredAccounts} 
-            saldoMesAnterior={saldoMesAnterior}
-            onUpdateSaldoMesAnterior={handleUpdateSaldoMesAnterior}
+            accounts={filteredAccounts}
+            month={displayMonth}
+            year={displayYear}
           />
 
           <div className="mb-4">
@@ -127,8 +118,8 @@ const Contas: React.FC = () => {
 
           {/* Navegador de mês - logo acima da tabela */}
           <MonthNavigator
-            currentMonth={currentMonth}
-            currentYear={currentYear}
+            currentMonth={displayMonth - 1} // MonthNavigator usa índice 0-11
+            currentYear={displayYear}
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
             isShowingAll={isShowingAll}

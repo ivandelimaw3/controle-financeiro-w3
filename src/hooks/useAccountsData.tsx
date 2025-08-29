@@ -77,22 +77,79 @@ export const useAccountsData = () => {
     return saldoAnterior + totalRecebido - totalPago;
   };
 
+  // Função para verificar saldo do último dia do ano anterior
+  const verificarSaldoAnoAnterior = async (ano: number) => {
+    try {
+      if (!user) return 0;
+
+      const ultimoDiaAnoAnterior = `${ano - 1}-12-31`;
+      
+      // Buscar última conta do ano anterior (31/12)
+      const { data: ultimaConta, error } = await supabase
+        .from('accounts')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('due_date', ultimoDiaAnoAnterior)
+        .eq('status', 'recebido')
+        .order('amount', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar saldo ano anterior:', error);
+        return 0;
+      }
+
+      return ultimaConta?.amount || 0;
+    } catch (error) {
+      console.error('Erro ao verificar saldo ano anterior:', error);
+      return 0;
+    }
+  };
+
   // Função para carregar saldo do mês anterior
   const fetchSaldoMesAnterior = async (ano: number, mes: number) => {
     try {
       if (!user) return 0;
 
-      // Se for janeiro (mês 1), busca dezembro do ano anterior
-      const mesBusca = mes === 1 ? 12 : mes - 1;
-      const anoBusca = mes === 1 ? ano - 1 : ano;
+      // Para janeiro, verificar se existe saldo registrado ou buscar do ano anterior
+      if (mes === 1) {
+        // Primeiro, verificar se já existe saldo registrado para janeiro
+        const { data: saldoJaneiro } = await supabase
+          .rpc('get_previous_month_balance', {
+            target_user_id: user.id,
+            target_year: ano,
+            target_month: 1
+          })
+          .maybeSingle();
+
+        if (saldoJaneiro && saldoJaneiro.valor !== null) {
+          return saldoJaneiro.valor;
+        }
+
+        // Se não tem saldo registrado, buscar do ano anterior
+        const saldoAnoAnterior = await verificarSaldoAnoAnterior(ano);
+        
+        if (saldoAnoAnterior > 0) {
+          // Registrar automaticamente como saldo inicial
+          await salvarSaldoMesAnterior(ano, 1, saldoAnoAnterior, true);
+          return saldoAnoAnterior;
+        }
+
+        return 0;
+      }
+
+      // Para outros meses, buscar o saldo final do mês anterior
+      const mesBusca = mes - 1;
+      const anoBusca = ano;
 
       const { data, error } = await supabase
-        .from('saldo_mes_anterior')
-        .select('valor, automatico')
-        .eq('user_id', user.id)
-        .eq('ano', anoBusca)
-        .eq('mes', mesBusca)
-        .single();
+        .rpc('get_previous_month_balance', {
+          target_user_id: user.id,
+          target_year: anoBusca,
+          target_month: mesBusca
+        })
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar saldo mês anterior:', error);
@@ -119,23 +176,13 @@ export const useAccountsData = () => {
       }
 
       const { data, error } = await supabase
-        .from('saldo_mes_anterior')
-        .upsert(
-          { 
-            user_id: user.id,
-            ano, 
-            mes, 
-            valor,
-            automatico,
-            updated_at: new Date().toISOString()
-          },
-          { 
-            onConflict: 'user_id,ano,mes',
-            ignoreDuplicates: false
-          }
-        )
-        .select()
-        .single();
+        .rpc('save_previous_month_balance', {
+          target_user_id: user.id,
+          target_year: ano,
+          target_month: mes,
+          balance_value: valor,
+          is_automatic: automatico
+        });
 
       if (error) throw error;
       
@@ -172,12 +219,12 @@ export const useAccountsData = () => {
 
       // Verifica se já existe um saldo para o próximo mês
       const { data: saldoExistente } = await supabase
-        .from('saldo_mes_anterior')
-        .select('id, automatico')
-        .eq('user_id', user.id)
-        .eq('ano', proximoAno)
-        .eq('mes', proximoMes)
-        .single();
+        .rpc('get_previous_month_balance', {
+          target_user_id: user.id,
+          target_year: proximoAno,
+          target_month: proximoMes
+        })
+        .maybeSingle();
 
       // Só atualiza automaticamente se não existir saldo ou se foi calculado automaticamente antes
       if (!saldoExistente || saldoExistente.automatico) {
@@ -236,7 +283,7 @@ export const useAccountsData = () => {
 
       setAccounts(transformedAccounts);
       
-      // Calcular saldo final e atualizar automaticamente o próximo mês
+      // Calcular saldo anterior e final para o mês atual
       const hoje = new Date();
       const anoAtual = hoje.getFullYear();
       const mesAtual = hoje.getMonth() + 1;
@@ -341,7 +388,7 @@ export const useAccountsData = () => {
         const hoje = new Date();
         const anoAtual = hoje.getFullYear();
         const mesAtual = hoje.getMonth() + 1;
-        const saldoFinal = calcularSaldoFinal([...newAccounts, ...prev], saldoMesAnterior);
+        const saldoFinal = calcularSaldoFinal([...newAccounts, ...accounts], saldoMesAnterior);
         await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
         
         // SÓ invalidar cache se a conta for paga/recebida
@@ -408,7 +455,7 @@ export const useAccountsData = () => {
         const hoje = new Date();
         const anoAtual = hoje.getFullYear();
         const mesAtual = hoje.getMonth() + 1;
-        const saldoFinal = calcularSaldoFinal([newAccount, ...prev], saldoMesAnterior);
+        const saldoFinal = calcularSaldoFinal([newAccount, ...accounts], saldoMesAnterior);
         await atualizarSaldoProximoMesAutomatico(anoAtual, mesAtual, saldoFinal);
         
         // SÓ invalidar cache se a conta for paga/recebida
@@ -431,7 +478,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
     try {
       const { error } = await supabase
@@ -495,7 +541,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Deletar conta
   const deleteAccount = async (accountId: number) => {
     try {
       // Buscar a conta antes de deletar para verificar se precisa reverter saldo
@@ -545,7 +590,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
       if (!user) {

@@ -1,28 +1,22 @@
+
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
-import { SaldoMesAnteriorModal } from './SaldoMesAnteriorModal';
+import { PreviousBalanceCard } from './PreviousBalanceCard';
+import { formatCurrency } from '@/utils/formatters';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
-  saldoMesAnterior: number;
-  onUpdateSaldoMesAnterior?: (valor: number) => void;
+  month: number;
+  year: number;
 }
 
 export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
-  accounts, 
-  saldoMesAnterior,
-  onUpdateSaldoMesAnterior 
+  accounts,
+  month,
+  year
 }) => {
-  const [isSaldoModalOpen, setIsSaldoModalOpen] = React.useState(false);
-
-  // Função para formatar valores em reais brasileiros
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+  const [previousBalance, setPreviousBalance] = React.useState(0);
 
   const calculateTotalPago = () => {
     return accounts
@@ -37,7 +31,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   const calculateSaldoFinal = () => {
-    return saldoMesAnterior + calculateTotalRecebido() - calculateTotalPago();
+    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
@@ -47,46 +41,22 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     const despesasPendentes = accounts
       .filter(account => account.type === 'despesa' && account.status === 'pendente')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-    return receitasPendentes - despesasPendentes;
+    return previousBalance + receitasPendentes - despesasPendentes;
   };
 
-  // Verifica se é o primeiro dia do mês
-  const isPrimeiroDiaMes = () => {
-    const hoje = new Date();
-    return hoje.getDate() === 1;
-  };
-
-  const handleSaldoMesAnteriorUpdate = (valor: number) => {
-    if (onUpdateSaldoMesAnterior) {
-      onUpdateSaldoMesAnterior(valor);
-    }
-    setIsSaldoModalOpen(false);
+  const handlePreviousBalanceChange = (balance: number) => {
+    setPreviousBalance(balance);
   };
 
   return (
-    <>
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Saldo Mês Anterior */}
-        <div 
-          className="p-4 bg-purple-50 rounded-xl border border-purple-200 cursor-pointer hover:bg-purple-100 transition-colors"
-          onClick={() => setIsSaldoModalOpen(true)}
-          title="Clique para editar o saldo do mês anterior"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Calendar size={20} className="text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
-              <p className={`text-xl font-bold ${saldoMesAnterior >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(saldoMesAnterior)}
-              </p>
-              {isPrimeiroDiaMes() && (
-                <p className="text-xs text-purple-500 mt-1">Clique para atualizar</p>
-              )}
-            </div>
-          </div>
-        </div>
+        <PreviousBalanceCard
+          month={month}
+          year={year}
+          onBalanceChange={handlePreviousBalanceChange}
+        />
 
         {/* Total Recebido */}
         <div className="p-4 bg-green-50 rounded-xl border border-green-200">
@@ -129,6 +99,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
               <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(calculateSaldoFinal())}
               </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Anterior + Recebido - Pago
+              </p>
             </div>
           </div>
         </div>
@@ -140,21 +113,17 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
               <Clock size={20} className="text-yellow-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-slate-600">Saldo Pendente</p>
+              <p className="text-sm text-slate-600">Saldo Projetado</p>
               <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(calculateTotalPendente())}
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Com contas pendentes
               </p>
             </div>
           </div>
         </div>
       </div>
-
-      <SaldoMesAnteriorModal
-        isOpen={isSaldoModalOpen}
-        onClose={() => setIsSaldoModalOpen(false)}
-        onSave={handleSaldoMesAnteriorUpdate}
-        currentValue={saldoMesAnterior}
-      />
-    </>
+    </div>
   );
 };
