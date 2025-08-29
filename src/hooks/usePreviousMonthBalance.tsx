@@ -23,18 +23,23 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
     if (!user) return 0;
 
     try {
+      // Buscar última conta do ano anterior (dezembro)
       const { data, error } = await supabase
-        .rpc('get_previous_year_final_balance', {
-          target_user_id: user.id,
-          target_year: year
-        });
+        .from('accounts')
+        .select('amount')
+        .eq('user_id', user.id)
+        .like('due_date', `${year - 1}-12-%`)
+        .eq('status', 'recebido')
+        .order('amount', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar saldo ano anterior:', error);
         return 0;
       }
 
-      return data || 0;
+      return data?.amount || 0;
     } catch (error) {
       console.error('Erro ao buscar saldo ano anterior:', error);
       return 0;
@@ -47,15 +52,14 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
 
     setLoading(true);
     try {
-      // Para janeiro, implementar lógica especial
+      // Para janeiro, verificar se já existe saldo registrado
       if (month === 1) {
-        // Primeiro verificar se já existe saldo registrado
         const { data: existingBalance } = await supabase
-          .rpc('get_previous_month_balance', {
-            target_user_id: user.id,
-            target_year: year,
-            target_month: 1
-          })
+          .from('saldo_mes_anterior')
+          .select('valor')
+          .eq('user_id', user.id)
+          .eq('ano', year)
+          .eq('mes', 1)
           .maybeSingle();
 
         if (existingBalance && existingBalance.valor !== null) {
@@ -84,12 +88,15 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
         setCanEdit(checkIfEditable());
       } else {
         // Para outros meses, buscar do mês anterior
+        const mesBusca = month === 1 ? 12 : month - 1;
+        const anoBusca = month === 1 ? year - 1 : year;
+
         const { data } = await supabase
-          .rpc('get_previous_month_balance', {
-            target_user_id: user.id,
-            target_year: month === 1 ? year - 1 : year,
-            target_month: month === 1 ? 12 : month - 1
-          })
+          .from('saldo_mes_anterior')
+          .select('valor')
+          .eq('user_id', user.id)
+          .eq('ano', anoBusca)
+          .eq('mes', mesBusca)
           .maybeSingle();
 
         setPreviousBalance(data?.valor || 0);
@@ -108,13 +115,17 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
     if (!user) return false;
 
     try {
-      const { data, error } = await supabase
-        .rpc('save_previous_month_balance', {
-          target_user_id: user.id,
-          target_year: year,
-          target_month: month,
-          balance_value: value,
-          is_automatic: automatic
+      const { error } = await supabase
+        .from('saldo_mes_anterior')
+        .upsert({
+          user_id: user.id,
+          ano: year,
+          mes: month,
+          valor: value,
+          automatico: automatic,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,ano,mes'
         });
 
       if (error) throw error;
