@@ -61,6 +61,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
             <p className="text-xl font-bold text-purple-600">
               {formatCurrency(previousBalance || 0)}
             </p>
+            {/* Indicador de edição disponível em janeiro */}
             {isJanuary && !previousBalance && (
               <p className="text-xs text-slate-500 mt-1">Editar valor inicial</p>
             )}
