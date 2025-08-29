@@ -5,9 +5,10 @@ import { Account } from '@/contexts/AccountsContext';
 interface AccountsSummaryCardsProps {
   accounts: Account[];
   previousBalance: number | null;
+  isJanuary: boolean;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance }) => {
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance, isJanuary }) => {
   // Função para formatar valores em reais brasileiros
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -60,6 +61,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
             <p className="text-xl font-bold text-purple-600">
               {formatCurrency(previousBalance || 0)}
             </p>
+            {isJanuary && !previousBalance && (
+              <p className="text-xs text-slate-500 mt-1">Editar valor inicial</p>
+            )}
           </div>
         </div>
       </div>
