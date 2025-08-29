@@ -16,7 +16,7 @@ import { usePreviousBalance } from '@/hooks/usePreviousBalance';
 
 const Contas: React.FC = () => {
   const { accounts, loading } = useAccounts();
-  const { previousBalance } = usePreviousBalance();
+  const { balance: previousBalance, loading: previousBalanceLoading, isJanuary, updateManualBalance } = usePreviousBalance();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -74,8 +74,12 @@ const Contas: React.FC = () => {
     handleSave(data);
   };
 
+  const handleManualBalanceUpdate = (newAmount: number) => {
+    updateManualBalance(newAmount);
+  };
+
   const renderContent = () => {
-    if (loading) {
+    if (loading || previousBalanceLoading) {
       return (
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-3">
@@ -105,7 +109,11 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards accounts={filteredAccounts} previousBalance={previousBalance} />
+          <AccountsSummaryCards 
+            accounts={filteredAccounts} 
+            previousBalance={previousBalance}
+            isJanuary={isJanuary}
+          />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
