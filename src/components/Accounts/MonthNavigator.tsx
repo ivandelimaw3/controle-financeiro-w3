@@ -4,11 +4,11 @@ import { ChevronLeft, ChevronRight, Calendar, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MonthNavigatorProps {
-  currentMonth: number; // 0-11 (Janeiro = 0)
+  currentMonth: number; // 1-12 (Janeiro = 1)
   currentYear: number;
   onMonthChange: (startDate: Date, endDate: Date, month: number, year: number) => void;
-  onShowAll: () => void; // Nova prop para mostrar todos os meses
-  isShowingAll: boolean; // Nova prop para indicar se está mostrando todos
+  onShowAll: () => void;
+  isShowingAll: boolean;
 }
 
 export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
@@ -19,7 +19,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
   isShowingAll
 }) => {
   const today = new Date();
-  const todayMonth = today.getMonth();
+  const todayMonth = today.getMonth() + 1; // getMonth() retorna 0-11, precisamos 1-12
   const todayYear = today.getFullYear();
 
   const monthNames = [
@@ -28,8 +28,9 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
   ];
 
   const getMonthStartEnd = (month: number, year: number) => {
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0); // Último dia do mês
+    // month já vem como 1-12, mas Date precisa de 0-11
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0); // Último dia do mês
     return { startDate, endDate };
   };
 
@@ -44,14 +45,14 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
 
     if (direction === 'prev') {
       newMonth = currentMonth - 1;
-      if (newMonth < 0) {
-        newMonth = 11;
+      if (newMonth < 1) {
+        newMonth = 12;
         newYear = currentYear - 1;
       }
     } else {
       newMonth = currentMonth + 1;
-      if (newMonth > 11) {
-        newMonth = 0;
+      if (newMonth > 12) {
+        newMonth = 1;
         newYear = currentYear + 1;
       }
     }
@@ -78,7 +79,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
         </Button>
 
         <div className="text-lg font-semibold text-slate-800">
-          2025
+          {currentYear}
         </div>
 
         <Button
@@ -120,15 +121,16 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
       {/* Botões dos meses (Janeiro a Dezembro) */}
       <div className="flex flex-wrap items-center gap-2">
         {monthNames.map((monthName, index) => {
-          const isActive = index === currentMonth && !isShowingAll;
+          const monthNumber = index + 1; // Converter índice 0-11 para 1-12
+          const isActive = monthNumber === currentMonth && !isShowingAll;
           const monthShort = monthName.substring(0, 3);
           
           return (
             <Button
-              key={index}
+              key={monthNumber}
               variant={isActive ? "default" : "outline"}
               size="sm"
-              onClick={() => handleMonthChange(index, currentYear)}
+              onClick={() => handleMonthChange(monthNumber, currentYear)}
               className={`h-8 px-3 text-xs rounded-full transition-colors ${
                 isActive 
                   ? 'bg-blue-600 text-white hover:bg-blue-700' 

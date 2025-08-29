@@ -53,7 +53,7 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
-  // Calcular saldo final baseado nas contas do mês
+  // Função para calcular saldo final baseado nas contas do mês
   const calcularSaldoFinal = (contas: Account[], saldoAnterior: number) => {
     const totalRecebido = contas
       .filter(account => account.type === 'receita' && account.status === 'recebido')
@@ -74,14 +74,17 @@ export const useAccountsData = () => {
       const proximoMes = mesAtual === 12 ? 1 : mesAtual + 1;
       const proximoAno = mesAtual === 12 ? anoAtual + 1 : anoAtual;
 
-      // Usar a função do Supabase para salvar o saldo automático
-      const { error } = await supabase.rpc('save_previous_month_balance', {
-        target_user_id: user.id,
-        target_year: proximoAno,
-        target_month: proximoMes,
-        balance_value: saldoFinal,
-        is_automatic: true
-      });
+      // Usar inserção direta na tabela
+      const { error } = await supabase
+        .from('saldo_mes_anterior')
+        .upsert({
+          user_id: user.id,
+          ano: proximoAno,
+          mes: proximoMes,
+          valor: saldoFinal,
+          automatico: true,
+          updated_at: new Date().toISOString()
+        });
 
       if (error) {
         console.error('Erro ao atualizar saldo automático:', error);
@@ -93,7 +96,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
       setLoading(true);

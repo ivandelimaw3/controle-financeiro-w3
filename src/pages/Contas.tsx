@@ -118,7 +118,7 @@ const Contas: React.FC = () => {
 
           {/* Navegador de mês - logo acima da tabela */}
           <MonthNavigator
-            currentMonth={displayMonth - 1} // MonthNavigator usa índice 0-11
+            currentMonth={displayMonth} // Agora usa 1-12 diretamente
             currentYear={displayYear}
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
