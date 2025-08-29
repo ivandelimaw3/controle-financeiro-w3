@@ -103,11 +103,7 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards
-          accounts={filteredAccounts}
-          month={isShowingAll ? undefined : currentMonth + 1} // +1 porque getMonth() retorna 0-11
-         year={isShowingAll ? undefined : currentYear}
-        />
+          <AccountsSummaryCards accounts={filteredAccounts} />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">

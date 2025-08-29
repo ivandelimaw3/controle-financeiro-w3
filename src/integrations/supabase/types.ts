@@ -29,7 +29,6 @@ export type Database = {
           payment_source: string | null
           payment_source_id: number | null
           payment_source_name: string | null
-          previous_balance: number | null
           recorrente_id: string | null
           status: string
           type: string
@@ -50,7 +49,6 @@ export type Database = {
           payment_source?: string | null
           payment_source_id?: number | null
           payment_source_name?: string | null
-          previous_balance?: number | null
           recorrente_id?: string | null
           status: string
           type: string
@@ -71,7 +69,6 @@ export type Database = {
           payment_source?: string | null
           payment_source_id?: number | null
           payment_source_name?: string | null
-          previous_balance?: number | null
           recorrente_id?: string | null
           status?: string
           type?: string
@@ -485,36 +482,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      monthly_balances: {
-        Row: {
-          balance: number
-          created_at: string
-          id: string
-          month: number
-          updated_at: string
-          user_id: string
-          year: number
-        }
-        Insert: {
-          balance?: number
-          created_at?: string
-          id?: string
-          month: number
-          updated_at?: string
-          user_id: string
-          year: number
-        }
-        Update: {
-          balance?: number
-          created_at?: string
-          id?: string
-          month?: number
-          updated_at?: string
-          user_id?: string
-          year?: number
-        }
-        Relationships: []
       }
       premium_upgrade_requests: {
         Row: {
