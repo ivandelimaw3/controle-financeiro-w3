@@ -8,13 +8,13 @@ import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModa
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2 } from 'lucide-react';
-import { useAccounts } from '@/contexts/AccountsContext';
+import { useAccountsData } from '@/hooks/useAccountsData';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 
 const Contas: React.FC = () => {
-  const { accounts, loading } = useAccounts();
+  const { accounts, loading, saldoMesAnterior, salvarSaldoMesAnterior } = useAccountsData();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -62,6 +62,16 @@ const Contas: React.FC = () => {
     setYearFilter('todos');
   };
 
+  // Função para atualizar o saldo do mês anterior
+  const handleUpdateSaldoMesAnterior = async (valor: number) => {
+    try {
+      const today = new Date();
+      await salvarSaldoMesAnterior(today.getFullYear(), today.getMonth() + 1, valor);
+    } catch (error) {
+      console.error('Erro ao atualizar saldo:', error);
+    }
+  };
+
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
@@ -103,7 +113,11 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards accounts={filteredAccounts} />
+          <AccountsSummaryCards 
+            accounts={filteredAccounts} 
+            saldoMesAnterior={saldoMesAnterior}
+            onUpdateSaldoMesAnterior={handleUpdateSaldoMesAnterior}
+          />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
