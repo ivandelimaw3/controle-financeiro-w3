@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/ contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -25,7 +25,7 @@ export const usePreviousBalance = () => {
       const currentYear = new Date().getFullYear();
       const firstDayOfYear = `${currentYear}-01-01`;
 
-      // Primeiro, tenta buscar o saldo já salvo no previous_balance
+      // Buscar saldo no banco de dados
       const { data, error } = await supabase
         .from('previous_balance')
         .select('amount')
@@ -55,7 +55,7 @@ export const usePreviousBalance = () => {
       const lastDayOfYear = `${lastYear}-12-31`;
 
       // Consultar a tabela account no Supabase para o último dia do ano anterior
-      const { data: oldData, error: oldError } = await supabase
+      const {  oldData, error: oldError } = await supabase
         .from('account')
         .select('amount')
         .eq('date', lastDayOfYear)
