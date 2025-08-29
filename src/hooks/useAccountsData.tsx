@@ -74,17 +74,14 @@ export const useAccountsData = () => {
       const proximoMes = mesAtual === 12 ? 1 : mesAtual + 1;
       const proximoAno = mesAtual === 12 ? anoAtual + 1 : anoAtual;
 
-      // Usar inserção direta na tabela
-      const { error } = await supabase
-        .from('saldo_mes_anterior')
-        .upsert({
-          user_id: user.id,
-          ano: proximoAno,
-          mes: proximoMes,
-          valor: saldoFinal,
-          automatico: true,
-          updated_at: new Date().toISOString()
-        });
+      // Usar RPC para salvar saldo do próximo mês
+      const { error } = await supabase.rpc('save_previous_month_balance', {
+        target_user_id: user.id,
+        target_year: proximoAno,
+        target_month: proximoMes,
+        balance_value: saldoFinal,
+        is_automatic: true
+      });
 
       if (error) {
         console.error('Erro ao atualizar saldo automático:', error);

@@ -18,35 +18,29 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
     return month === 1 && year === currentYear;
   };
 
-  // Buscar saldo do ano anterior para janeiro
+  // Buscar saldo do ano anterior para janeiro usando RPC
   const fetchPreviousYearBalance = async () => {
     if (!user) return 0;
 
     try {
-      // Buscar última conta do ano anterior (dezembro)
-      const { data, error } = await supabase
-        .from('accounts')
-        .select('amount')
-        .eq('user_id', user.id)
-        .like('due_date', `${year - 1}-12-%`)
-        .eq('status', 'recebido')
-        .order('amount', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_previous_year_final_balance', {
+        target_user_id: user.id,
+        target_year: year
+      });
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Erro ao buscar saldo ano anterior:', error);
         return 0;
       }
 
-      return data?.amount || 0;
+      return data || 0;
     } catch (error) {
       console.error('Erro ao buscar saldo ano anterior:', error);
       return 0;
     }
   };
 
-  // Carregar saldo do mês anterior usando consulta direta
+  // Carregar saldo do mês anterior usando RPC
   const loadPreviousBalance = async () => {
     if (!user) return;
 
@@ -54,20 +48,18 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
     try {
       // Para janeiro, verificar se já existe saldo registrado
       if (month === 1) {
-        const { data: existingBalance, error } = await supabase
-          .from('saldo_mes_anterior')
-          .select('valor, automatico')
-          .eq('user_id', user.id)
-          .eq('ano', year)
-          .eq('mes', 1)
-          .maybeSingle();
+        const { data: existingBalance, error } = await supabase.rpc('get_previous_month_balance', {
+          target_user_id: user.id,
+          target_year: year,
+          target_month: 1
+        });
 
         if (error && error.code !== 'PGRST116') {
           console.error('Erro ao buscar saldo existente:', error);
         }
 
-        if (existingBalance && existingBalance.valor !== null) {
-          setPreviousBalance(existingBalance.valor);
+        if (existingBalance && existingBalance.length > 0 && existingBalance[0].valor !== null) {
+          setPreviousBalance(existingBalance[0].valor);
           setCanEdit(checkIfEditable());
           setLoading(false);
           return;
@@ -77,16 +69,14 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
         const previousYearBalance = await fetchPreviousYearBalance();
         
         if (previousYearBalance > 0) {
-          // Registrar automaticamente
-          const { error: saveError } = await supabase
-            .from('saldo_mes_anterior')
-            .insert({
-              user_id: user.id,
-              ano: year,
-              mes: 1,
-              valor: previousYearBalance,
-              automatico: true
-            });
+          // Registrar automaticamente usando RPC
+          const { error: saveError } = await supabase.rpc('save_previous_month_balance', {
+            target_user_id: user.id,
+            target_year: year,
+            target_month: 1,
+            balance_value: previousYearBalance,
+            is_automatic: true
+          });
 
           if (!saveError) {
             setPreviousBalance(previousYearBalance);
@@ -106,19 +96,17 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
         const mesBusca = month === 1 ? 12 : month - 1;
         const anoBusca = month === 1 ? year - 1 : year;
 
-        const { data, error } = await supabase
-          .from('saldo_mes_anterior')
-          .select('valor, automatico')
-          .eq('user_id', user.id)
-          .eq('ano', anoBusca)
-          .eq('mes', mesBusca)
-          .maybeSingle();
+        const { data, error } = await supabase.rpc('get_previous_month_balance', {
+          target_user_id: user.id,
+          target_year: anoBusca,
+          target_month: mesBusca
+        });
 
         if (error && error.code !== 'PGRST116') {
           console.error('Erro ao buscar saldo anterior:', error);
           setPreviousBalance(0);
-        } else if (data) {
-          setPreviousBalance(data.valor || 0);
+        } else if (data && data.length > 0) {
+          setPreviousBalance(data[0].valor || 0);
         } else {
           setPreviousBalance(0);
         }
@@ -133,21 +121,18 @@ export const usePreviousMonthBalance = (year: number, month: number) => {
     }
   };
 
-  // Salvar saldo do mês anterior usando inserção direta
+  // Salvar saldo do mês anterior usando RPC
   const savePreviousBalance = async (value: number, automatic: boolean = false) => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('saldo_mes_anterior')
-        .upsert({
-          user_id: user.id,
-          ano: year,
-          mes: month,
-          valor: value,
-          automatico: automatic,
-          updated_at: new Date().toISOString()
-        });
+      const { error } = await supabase.rpc('save_previous_month_balance', {
+        target_user_id: user.id,
+        target_year: year,
+        target_month: month,
+        balance_value: value,
+        is_automatic: automatic
+      });
 
       if (error) {
         console.error('Erro ao salvar saldo:', error);
