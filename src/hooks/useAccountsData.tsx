@@ -53,46 +53,7 @@ export const useAccountsData = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
 
-  // Função para calcular saldo final baseado nas contas do mês
-  const calcularSaldoFinal = (contas: Account[], saldoAnterior: number) => {
-    const totalRecebido = contas
-      .filter(account => account.type === 'receita' && account.status === 'recebido')
-      .reduce((sum, account) => sum + account.amount, 0);
-
-    const totalPago = contas
-      .filter(account => account.type === 'despesa' && account.status === 'pago')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-
-    return saldoAnterior + totalRecebido - totalPago;
-  };
-
-  // Função para atualizar automaticamente o saldo do próximo mês
-  const atualizarSaldoProximoMesAutomatico = async (anoAtual: number, mesAtual: number, saldoFinal: number) => {
-    try {
-      if (!user) return;
-
-      const proximoMes = mesAtual === 12 ? 1 : mesAtual + 1;
-      const proximoAno = mesAtual === 12 ? anoAtual + 1 : anoAtual;
-
-      // Usar RPC para salvar saldo do próximo mês
-      const { error } = await supabase.rpc('save_previous_month_balance', {
-        target_user_id: user.id,
-        target_year: proximoAno,
-        target_month: proximoMes,
-        balance_value: saldoFinal,
-        is_automatic: true
-      });
-
-      if (error) {
-        console.error('Erro ao atualizar saldo automático:', error);
-      } else {
-        console.log(`Saldo automático atualizado para ${proximoMes}/${proximoAno}: R$ ${saldoFinal}`);
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar saldo automático:', error);
-    }
-  };
-
+  // Carregar contas do Supabase
   const fetchAccounts = async () => {
     try {
       setLoading(true);
@@ -151,6 +112,7 @@ export const useAccountsData = () => {
     }
   };
 
+  // Criar nova conta
   const addAccount = async (accountData: CreateAccountData) => {
     try {
       if (!user) {
@@ -305,6 +267,7 @@ export const useAccountsData = () => {
     }
   };
 
+  // Atualizar conta
   const updateAccount = async (updatedAccount: Account) => {
     try {
       const { error } = await supabase
@@ -361,6 +324,7 @@ export const useAccountsData = () => {
     }
   };
 
+  // Deletar conta
   const deleteAccount = async (accountId: number) => {
     try {
       // Buscar a conta antes de deletar para verificar se precisa reverter saldo
@@ -403,6 +367,7 @@ export const useAccountsData = () => {
     }
   };
 
+  // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
       if (!user) {
