@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -75,30 +74,18 @@ export const useAccountsData = () => {
       const proximoMes = mesAtual === 12 ? 1 : mesAtual + 1;
       const proximoAno = mesAtual === 12 ? anoAtual + 1 : anoAtual;
 
-      // Verifica se já existe um saldo para o próximo mês
-      const { data: saldoExistente } = await supabase
-        .from('saldo_mes_anterior')
-        .select('valor, automatico')
-        .eq('user_id', user.id)
-        .eq('ano', proximoAno)
-        .eq('mes', proximoMes)
-        .maybeSingle();
+      // Usar a função do Supabase para salvar o saldo automático
+      const { error } = await supabase.rpc('save_previous_month_balance', {
+        target_user_id: user.id,
+        target_year: proximoAno,
+        target_month: proximoMes,
+        balance_value: saldoFinal,
+        is_automatic: true
+      });
 
-      // Só atualiza automaticamente se não existir saldo ou se foi calculado automaticamente antes
-      if (!saldoExistente || saldoExistente.automatico) {
-        await supabase
-          .from('saldo_mes_anterior')
-          .upsert({
-            user_id: user.id,
-            ano: proximoAno,
-            mes: proximoMes,
-            valor: saldoFinal,
-            automatico: true,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,ano,mes'
-          });
-        
+      if (error) {
+        console.error('Erro ao atualizar saldo automático:', error);
+      } else {
         console.log(`Saldo automático atualizado para ${proximoMes}/${proximoAno}: R$ ${saldoFinal}`);
       }
     } catch (error) {
@@ -165,7 +152,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Criar nova conta
   const addAccount = async (accountData: CreateAccountData) => {
     try {
       if (!user) {
