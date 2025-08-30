@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -64,7 +65,7 @@ const Contas: React.FC = () => {
 
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter);
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
@@ -128,7 +129,6 @@ const Contas: React.FC = () => {
           key={editingAccount?.id || 'new'}
           isOpen={isModalOpen}
           onClose={handleModalClose}
-          onSave={handleSave}
           account={editingAccount}
           categories={categories}
         />

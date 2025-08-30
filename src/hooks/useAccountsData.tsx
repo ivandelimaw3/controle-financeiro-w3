@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePreviousMonthBalance } from './usePreviousMonthBalance';
 
 export interface Account {
   id: number;
@@ -42,16 +44,33 @@ export interface Transaction {
   payment_source_name?: string;
 }
 
-export const useAccountsData = () => {
+interface UseAccountsDataProps {
+  month?: number;
+  year?: number;
+}
+
+export const useAccountsData = (props?: UseAccountsDataProps) => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { balance: previousBalance, fetchPreviousBalance } = usePreviousMonthBalance();
+
+  const currentDate = new Date();
+  const currentMonth = props?.month ?? currentDate.getMonth() + 1;
+  const currentYear = props?.year ?? currentDate.getFullYear();
 
   const invalidateBanksCache = () => {
     queryClient.invalidateQueries({ queryKey: ['banks'] });
   };
+
+  // Carregar saldo anterior quando mudar mês/ano
+  useEffect(() => {
+    if (user) {
+      fetchPreviousBalance(currentMonth, currentYear);
+    }
+  }, [currentMonth, currentYear, user]);
 
   // Carregar contas do Supabase
   const fetchAccounts = async () => {
@@ -187,7 +206,6 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [...newAccounts, ...prev]);
         
-        // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
         }
@@ -247,7 +265,6 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [newAccount, ...prev]);
         
-        // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
         }
@@ -298,14 +315,12 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Atualizar na lista local
       setAccounts(prev => 
         prev.map(account => 
           account.id === updatedAccount.id ? updatedAccount : account
         )
       );
 
-      // SÓ invalidar cache se a conta for paga/recebida
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
         invalidateBanksCache();
       }
@@ -324,10 +339,8 @@ export const useAccountsData = () => {
     }
   };
 
-  // Deletar conta
   const deleteAccount = async (accountId: number) => {
     try {
-      // Buscar a conta antes de deletar para verificar se precisa reverter saldo
       const accountToDelete = accounts.find(acc => acc.id === accountId);
       
       const { error } = await supabase
@@ -345,10 +358,8 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
 
-      // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
       if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) {
         invalidateBanksCache();
       }
@@ -367,7 +378,6 @@ export const useAccountsData = () => {
     }
   };
 
-  // Atualizar status da conta
   const updateAccountStatus = async (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     try {
       if (!user) {
@@ -394,12 +404,10 @@ export const useAccountsData = () => {
         return;
       }
 
-      // Atualizar na lista local
-     setAccounts(prev => prev.map(acc => 
+      setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
       
-      // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();
         
       toast({
@@ -431,6 +439,7 @@ export const useAccountsData = () => {
     updateAccount,
     deleteAccount,
     updateAccountStatus,
-    refreshAccounts: fetchAccounts
+    refreshAccounts: fetchAccounts,
+    previousBalance: previousBalance || 0,
   };
 };
