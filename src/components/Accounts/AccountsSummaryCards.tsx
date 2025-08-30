@@ -1,3 +1,4 @@
+// src/components/Accounts/AccountsSummaryCards.tsx
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
@@ -8,38 +9,41 @@ interface AccountsSummaryCardsProps {
 }
 
 export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance = 0 }) => {
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  // Somente valores do mês corrente
-  const totalPago = accounts
+  // Remover qualquer registro marcado como "Saldo Anterior" (case-insensitive)
+  const accountsWithoutPrevious = accounts.filter(acc => {
+    const desc = (acc.description || '').toString().trim().toLowerCase();
+    const cat = (acc.category || '').toString().trim().toLowerCase();
+    return !(desc === 'saldo anterior' || cat === 'saldo anterior' || desc.includes('saldo anterior') || cat.includes('saldo anterior'));
+  });
+
+  // Totais apenas com as contas do mês (sem o Saldo Anterior)
+  const totalPago = accountsWithoutPrevious
     .filter(a => a.type === 'despesa' && a.status === 'pago')
     .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
 
-  const totalRecebido = accounts
+  const totalRecebido = accountsWithoutPrevious
     .filter(a => a.type === 'receita' && a.status === 'recebido')
     .reduce((s, a) => s + (a.amount || 0), 0);
 
   const saldoPendente = (() => {
-    const receitasPend = accounts
+    const receitasPend = accountsWithoutPrevious
       .filter(a => a.type === 'receita' && a.status === 'pendente')
       .reduce((s, a) => s + (a.amount || 0), 0);
-    const despesasPend = accounts
+    const despesasPend = accountsWithoutPrevious
       .filter(a => a.type === 'despesa' && a.status === 'pendente')
       .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
     return receitasPend - despesasPend;
   })();
 
-  // Saldo Final = Saldo Anterior + (Receitas - Pagos)
+  // Saldo Final incorpora apenas o Saldo Anterior (previousBalance) + receitas do mês - pagos do mês
   const saldoFinal = previousBalance + totalRecebido - totalPago;
 
   return (
     <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {/* Saldo Anterior */}
+      {/* Saldo Anterior (somente exibição) */}
       <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 rounded-lg">
@@ -54,7 +58,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
         </div>
       </div>
 
-      {/* Total Recebido */}
+      {/* Total Recebido (APENAS receitas do mês, sem Saldo Anterior) */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-green-100 rounded-lg">
@@ -62,14 +66,12 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Recebido</p>
-            <p className="text-xl font-bold text-green-600">
-              {formatCurrency(totalRecebido)}
-            </p>
+            <p className="text-xl font-bold text-green-600">{formatCurrency(totalRecebido)}</p>
           </div>
         </div>
       </div>
 
-      {/* Total Pago */}
+      {/* Total Pago (APENAS despesas do mês, sem Saldo Anterior) */}
       <div className="p-4 bg-red-50 rounded-xl border border-red-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-red-100 rounded-lg">
@@ -77,14 +79,12 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Total Pago</p>
-            <p className="text-xl font-bold text-red-600">
-              {formatCurrency(totalPago)}
-            </p>
+            <p className="text-xl font-bold text-red-600">{formatCurrency(totalPago)}</p>
           </div>
         </div>
       </div>
 
-      {/* Saldo Final */}
+      {/* Saldo Final (incorpora apenas o Saldo Anterior + mês atual) */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
@@ -99,7 +99,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
         </div>
       </div>
 
-      {/* Saldo Pendente */}
+      {/* Saldo Pendente (APENAS pendentes do mês, sem Saldo Anterior) */}
       <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-yellow-100 rounded-lg">
