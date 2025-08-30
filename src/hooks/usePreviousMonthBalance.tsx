@@ -21,70 +21,44 @@ export const usePreviousMonthBalance = () => {
 
       console.log(`Buscando saldo anterior para ${month}/${year}`);
 
-      // Usar a função SQL get_previous_month_balance
-      const { data, error } = await supabase.rpc('get_previous_month_balance', {
-        target_user_id: user.id,
-        target_year: year,
-        target_month: month
-      });
+      // Primeiro, tentar buscar saldo salvo na tabela saldo_mes_anterior
+      const { data: savedBalance, error: savedError } = await supabase
+        .from('saldo_mes_anterior')
+        .select('valor, automatico')
+        .eq('user_id', user.id)
+        .eq('ano', year)
+        .eq('mes', month)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Erro ao buscar saldo anterior:', error);
-        setBalance(null);
+      if (savedError) {
+        console.error('Erro ao buscar saldo salvo:', savedError);
+      }
+
+      if (savedBalance) {
+        setBalance(savedBalance.valor);
+        setIsAutomatic(savedBalance.automatico);
+        console.log(`Saldo anterior encontrado: ${savedBalance.valor}`);
         setLoading(false);
         return;
       }
 
-      if (data && data.length > 0) {
-        const saldoData = data[0];
-        setBalance(saldoData.valor);
-        setIsAutomatic(saldoData.automatico);
-        console.log(`Saldo anterior encontrado: ${saldoData.valor}`);
-        setLoading(false);
-        return;
-      }
+      // Se não encontrou saldo salvo, calcular automaticamente
+      let calculatedBalance = 0;
 
-      // Se não encontrou saldo salvo, tentar buscar do último dia do ano anterior
       if (month === 1) {
+        // Para janeiro, buscar saldo final do ano anterior
         console.log('Janeiro detectado, buscando saldo do ano anterior...');
         
-        const { data: yearEndBalance, error: yearError } = await supabase.rpc('get_previous_year_final_balance', {
-          target_user_id: user.id,
-          target_year: year
-        });
-
-        if (yearError) {
-          console.error('Erro ao buscar saldo final do ano anterior:', yearError);
-          setBalance(0);
-          setIsAutomatic(true);
-        } else {
-          const finalBalance = yearEndBalance || 0;
-          console.log(`Saldo final do ano anterior: ${finalBalance}`);
-          
-          // Salvar automaticamente como saldo anterior de janeiro
-          await savePreviousBalance(month, year, finalBalance, true);
-          setBalance(finalBalance);
-          setIsAutomatic(true);
-        }
-      } else {
-        // Para outros meses, buscar o saldo final do mês anterior
-        const prevMonth = month === 1 ? 12 : month - 1;
-        const prevYear = month === 1 ? year - 1 : year;
+        const lastDayOfPreviousYear = `${year - 1}-12-31`;
         
-        console.log(`Buscando saldo final de ${prevMonth}/${prevYear}`);
-        
-        // Calcular saldo final do mês anterior
         const { data: accountsData, error: accountsError } = await supabase
           .from('accounts')
           .select('amount, type, status')
           .eq('user_id', user.id)
-          .gte('due_date', `${prevYear}-${prevMonth.toString().padStart(2, '0')}-01`)
-          .lt('due_date', `${year}-${month.toString().padStart(2, '0')}-01`);
+          .lte('due_date', lastDayOfPreviousYear);
 
         if (accountsError) {
-          console.error('Erro ao buscar contas do mês anterior:', accountsError);
-          setBalance(0);
-          setIsAutomatic(true);
+          console.error('Erro ao buscar contas do ano anterior:', accountsError);
         } else {
           const receitas = accountsData
             .filter(acc => acc.type === 'receita' && acc.status === 'recebido')
@@ -94,24 +68,61 @@ export const usePreviousMonthBalance = () => {
             .filter(acc => acc.type === 'despesa' && acc.status === 'pago')
             .reduce((sum, acc) => sum + Math.abs(Number(acc.amount)), 0);
 
-          // Buscar saldo anterior do mês anterior
-          const { data: prevBalanceData } = await supabase.rpc('get_previous_month_balance', {
-            target_user_id: user.id,
-            target_year: prevYear,
-            target_month: prevMonth
-          });
+          calculatedBalance = receitas - despesas;
+        }
+      } else {
+        // Para outros meses, buscar o saldo final do mês anterior
+        const prevMonth = month === 1 ? 12 : month - 1;
+        const prevYear = month === 1 ? year - 1 : year;
+        
+        console.log(`Buscando saldo final de ${prevMonth}/${prevYear}`);
+        
+        // Buscar saldo anterior do mês anterior
+        const { data: prevBalanceData } = await supabase
+          .from('saldo_mes_anterior')
+          .select('valor')
+          .eq('user_id', user.id)
+          .eq('ano', prevYear)
+          .eq('mes', prevMonth)
+          .maybeSingle();
 
-          const prevBalance = prevBalanceData && prevBalanceData.length > 0 ? prevBalanceData[0].valor : 0;
-          const finalBalance = prevBalance + receitas - despesas;
+        let prevBalance = prevBalanceData ? prevBalanceData.valor : 0;
+
+        // Calcular movimentação do mês anterior
+        const startDate = `${prevYear}-${prevMonth.toString().padStart(2, '0')}-01`;
+        const endDate = month === 1 
+          ? `${year}-01-01`
+          : `${year}-${month.toString().padStart(2, '0')}-01`;
+
+        const { data: accountsData, error: accountsError } = await supabase
+          .from('accounts')
+          .select('amount, type, status')
+          .eq('user_id', user.id)
+          .gte('due_date', startDate)
+          .lt('due_date', endDate);
+
+        if (accountsError) {
+          console.error('Erro ao buscar contas do mês anterior:', accountsError);
+        } else {
+          const receitas = accountsData
+            .filter(acc => acc.type === 'receita' && acc.status === 'recebido')
+            .reduce((sum, acc) => sum + Number(acc.amount), 0);
           
-          console.log(`Saldo calculado para ${month}/${year}: ${finalBalance}`);
-          
-          // Salvar automaticamente
-          await savePreviousBalance(month, year, finalBalance, true);
-          setBalance(finalBalance);
-          setIsAutomatic(true);
+          const despesas = accountsData
+            .filter(acc => acc.type === 'despesa' && acc.status === 'pago')
+            .reduce((sum, acc) => sum + Math.abs(Number(acc.amount)), 0);
+
+          calculatedBalance = prevBalance + receitas - despesas;
         }
       }
+
+      console.log(`Saldo calculado para ${month}/${year}: ${calculatedBalance}`);
+      
+      // Salvar automaticamente
+      await savePreviousBalance(month, year, calculatedBalance, true);
+      setBalance(calculatedBalance);
+      setIsAutomatic(true);
+
     } catch (err) {
       console.error('Erro ao buscar saldo anterior:', err);
       setBalance(0);
@@ -130,13 +141,17 @@ export const usePreviousMonthBalance = () => {
     try {
       if (!user) return false;
 
-      const { data, error } = await supabase.rpc('save_previous_month_balance', {
-        target_user_id: user.id,
-        target_year: year,
-        target_month: month,
-        balance_value: amount,
-        is_automatic: automatic
-      });
+      const { error } = await supabase
+        .from('saldo_mes_anterior')
+        .upsert({
+          user_id: user.id,
+          ano: year,
+          mes: month,
+          valor: amount,
+          automatico: automatic
+        }, {
+          onConflict: 'user_id,ano,mes'
+        });
 
       if (error) {
         console.error('Erro ao salvar saldo anterior:', error);
