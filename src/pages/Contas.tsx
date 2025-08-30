@@ -4,7 +4,7 @@ import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
-import { AccountModal } from '@/components/Accounts/AccountModal';
+import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2 } from 'lucide-react';
@@ -12,9 +12,13 @@ import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
+import { supabase } from '@/integrations/supabase/client'; // NEW
+import { useAuth } from '@/contexts/AuthContext'; // NEW
 
 const Contas: React.FC = () => {
   const { accounts, loading } = useAccounts();
+  const { user } = useAuth(); // NEW
+  const [previousBalance, setPreviousBalance] = React.useState<number>(0); // NEW
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -68,6 +72,54 @@ const Contas: React.FC = () => {
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
+  // NEW: Buscar Saldo Anterior (dezembro do ano anterior ao ano considerado)
+  React.useEffect(() => {
+    const fetchPreviousBalance = async () => {
+      try {
+        if (!user) {
+          setPreviousBalance(0);
+          return;
+        }
+        const refYear = Number.isNaN(currentYear) ? new Date().getFullYear() : currentYear;
+        const prevYear = refYear - 1;
+        const start = `${prevYear}-12-01`;
+        const end = `${prevYear}-12-31`;
+
+        const { data, error } = await supabase
+          .from('accounts')
+          .select('amount, due_date')
+          .eq('user_id', user.id)
+          .gte('due_date', start)
+          .lte('due_date', end)
+          .order('due_date', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error('Erro ao buscar Saldo Anterior:', error);
+          setPreviousBalance(0);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const raw = (data[0] as any).amount;
+          const amt = typeof raw === 'number' ? raw : parseFloat(String(raw));
+          setPreviousBalance(Number.isFinite(amt) ? amt : 0);
+        } else {
+          setPreviousBalance(0);
+        }
+      } catch (e) {
+        console.error('Erro inesperado ao obter Saldo Anterior:', e);
+        setPreviousBalance(0);
+      }
+    };
+
+    fetchPreviousBalance();
+  }, [user, currentYear]);
+
+  const handleSubmit = (data: AccountFormData) => {
+    handleSave(data);
+  };
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -99,7 +151,7 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards accounts={filteredAccounts} />
+          <AccountsSummaryCards accounts={filteredAccounts} previousBalance={previousBalance} />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
@@ -128,7 +180,7 @@ const Contas: React.FC = () => {
           key={editingAccount?.id || 'new'}
           isOpen={isModalOpen}
           onClose={handleModalClose}
-          onSave={handleSave}
+          onSubmit={handleSubmit}
           account={editingAccount}
           categories={categories}
         />
