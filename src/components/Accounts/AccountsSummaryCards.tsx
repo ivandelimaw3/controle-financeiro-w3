@@ -1,17 +1,12 @@
-
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, Wallet } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
-  previousBalance?: number;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
-  accounts, 
-  previousBalance = 0 
-}) => {
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
   // Função para formatar valores em reais brasileiros
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -32,12 +27,8 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
       .reduce((sum, account) => sum + account.amount, 0);
   };
 
-  const calculateSaldoAtual = () => {
-    return calculateTotalRecebido() - calculateTotalPago();
-  };
-
   const calculateSaldoFinal = () => {
-    return previousBalance + calculateSaldoAtual();
+    return calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
@@ -51,22 +42,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {/* Saldo Anterior */}
-      <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Wallet size={20} className="text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Anterior</p>
-            <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-              {formatCurrency(previousBalance)}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">

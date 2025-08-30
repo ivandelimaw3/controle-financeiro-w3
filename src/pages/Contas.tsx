@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -15,7 +14,7 @@ import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 
 const Contas: React.FC = () => {
-  const { accounts, loading, previousBalance } = useAccounts();
+  const { accounts, loading } = useAccounts();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -52,7 +51,7 @@ const Contas: React.FC = () => {
   // Handler para mudança de mês no navegador
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     console.log('Mudança de mês:', { startDate, endDate, month, year });
-    setMonthFilter((month - 1).toString()); // Converter para 0-11 para compatibilidade
+    setMonthFilter(month.toString());
     setYearFilter(year.toString());
   };
 
@@ -65,7 +64,7 @@ const Contas: React.FC = () => {
 
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter) + 1; // Converter de 0-11 para 1-12
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
@@ -100,10 +99,7 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards 
-            accounts={filteredAccounts} 
-            previousBalance={previousBalance}
-          />
+          <AccountsSummaryCards accounts={filteredAccounts} />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">
@@ -132,7 +128,7 @@ const Contas: React.FC = () => {
           key={editingAccount?.id || 'new'}
           isOpen={isModalOpen}
           onClose={handleModalClose}
-          onSubmit={handleSave}
+          onSave={handleSave}
           account={editingAccount}
           categories={categories}
         />

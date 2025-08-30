@@ -519,39 +519,6 @@ export type Database = {
         }
         Relationships: []
       }
-      saldo_mes_anterior: {
-        Row: {
-          ano: number
-          automatico: boolean
-          created_at: string
-          id: string
-          mes: number
-          updated_at: string
-          user_id: string
-          valor: number
-        }
-        Insert: {
-          ano: number
-          automatico?: boolean
-          created_at?: string
-          id?: string
-          mes: number
-          updated_at?: string
-          user_id: string
-          valor?: number
-        }
-        Update: {
-          ano?: number
-          automatico?: boolean
-          created_at?: string
-          id?: string
-          mes?: number
-          updated_at?: string
-          user_id?: string
-          valor?: number
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string
