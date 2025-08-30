@@ -129,6 +129,7 @@ const Contas: React.FC = () => {
           key={editingAccount?.id || 'new'}
           isOpen={isModalOpen}
           onClose={handleModalClose}
+          onSubmit={handleSave}
           account={editingAccount}
           categories={categories}
         />
