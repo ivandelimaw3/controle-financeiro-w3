@@ -15,7 +15,7 @@ import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 
 const Contas: React.FC = () => {
-  const { accounts, loading } = useAccounts();
+  const { accounts, loading, previousBalance } = useAccounts();
   
   // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
@@ -52,7 +52,7 @@ const Contas: React.FC = () => {
   // Handler para mudança de mês no navegador
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     console.log('Mudança de mês:', { startDate, endDate, month, year });
-    setMonthFilter(month.toString());
+    setMonthFilter((month - 1).toString()); // Converter para 0-11 para compatibilidade
     setYearFilter(year.toString());
   };
 
@@ -65,7 +65,7 @@ const Contas: React.FC = () => {
 
   // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter);
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() + 1 : parseInt(monthFilter) + 1; // Converter de 0-11 para 1-12
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
@@ -100,7 +100,10 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          <AccountsSummaryCards accounts={filteredAccounts} />
+          <AccountsSummaryCards 
+            accounts={filteredAccounts} 
+            previousBalance={previousBalance}
+          />
 
           <div className="mb-4">
             <p className="text-sm text-slate-600 text-center">

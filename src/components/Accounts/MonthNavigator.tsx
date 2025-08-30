@@ -73,8 +73,34 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
-        <div className="text-lg font-semibold text-slate-800">
-          {currentYear}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleMonthChange(todayMonth, todayYear)}
+            className="h-8 px-3 bg-white hover:bg-blue-50 border-blue-200 text-xs"
+          >
+            <Calendar className="h-3 w-3 mr-1" />
+            Hoje
+          </Button>
+
+          <div className="text-xl font-bold text-blue-700">
+            {isShowingAll ? 'Todos os Meses' : `${monthNames[currentMonth - 1]} ${currentYear}`}
+          </div>
+
+          <Button
+            variant={isShowingAll ? "default" : "outline"}
+            size="sm"
+            onClick={onShowAll}
+            className={`h-8 px-3 text-xs ${
+              isShowingAll 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-white hover:bg-blue-50 border-blue-200'
+            }`}
+          >
+            <List className="h-3 w-3 mr-1" />
+            Todos
+          </Button>
         </div>
 
         <Button
@@ -87,39 +113,8 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
         </Button>
       </div>
 
-      {/* Controles Centrais */}
-      <div className="flex items-center justify-center gap-4 mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleMonthChange(todayMonth, todayYear)}
-          className="h-8 px-3 bg-white hover:bg-blue-50 border-blue-200 text-xs"
-        >
-          <Calendar className="h-3 w-3 mr-1" />
-          Hoje
-        </Button>
-
-        <div className="text-xl font-bold text-blue-700">
-          {isShowingAll ? 'Todos os Meses' : monthNames[currentMonth - 1]}
-        </div>
-
-        <Button
-          variant={isShowingAll ? "default" : "outline"}
-          size="sm"
-          onClick={onShowAll}
-          className={`h-8 px-3 text-xs ${
-            isShowingAll 
-              ? 'bg-blue-600 text-white hover:bg-blue-700' 
-              : 'bg-white hover:bg-blue-50 border-blue-200'
-          }`}
-        >
-          <List className="h-3 w-3 mr-1" />
-          Todos
-        </Button>
-      </div>
-
       {/* Botões dos meses (Janeiro a Dezembro) */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-2">
         {monthNames.map((monthName, index) => {
           const monthNumber = index + 1; // Converter índice 0-11 para 1-12
           const isActive = monthNumber === currentMonth && !isShowingAll;
