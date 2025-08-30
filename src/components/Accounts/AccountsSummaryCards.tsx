@@ -1,14 +1,12 @@
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
-import { Account } from '@/ contexts/AccountsContext';
+import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
-  previousBalance: number | null;
-  isJanuary: boolean;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance, isJanuary }) => {
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
   // Função para formatar valores em reais brasileiros
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -30,10 +28,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   };
 
   const calculateSaldoFinal = () => {
-    const totalRecebido = calculateTotalRecebido();
-    const totalPago = calculateTotalPago();
-    const saldoAnterior = previousBalance || 0;
-    return saldoAnterior + totalRecebido - totalPago;
+    return calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
@@ -43,38 +38,11 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
     const despesasPendentes = accounts
       .filter(account => account.type === 'despesa' && account.status === 'pendente')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-    
-    const saldo anterior = previousBalance || 0;
-    return receitasPendentes - despesasPendentes + saldoAnterior;
+    return receitasPendentes - despesasPendentes;
   };
 
-  // Verificação clara para mostrar indicador de edição
-  const shouldShowEditIndicator = isJanuary && previousBalance === null;
-
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {/*Saldo Mês Anterior */}
-      <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
-        <div className=" flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <DollarSign size={20} className="text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Mês Anterior</p>
-            <p className="text-xl font-bold text-purple-600">
-              {formatCurrency(previousBalance || 0)}
-            </p>
-            {/* Indicador claro de edição */}
-            {shouldShowEditIndicador && (
-              <div className="mt-1">
-                <p className="text-xs text-slate-500">Editar valor inicial</p>
-                <p className="text-xs text-blue-600 font-medium">Clique para editar</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
@@ -96,7 +64,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
           <div className="p-2 bg-red-100 rounded-lg">
             <TrendingDown size={20} className="text-red-600" />
           </div>
-          <div className=" flex-1">
+          <div className="flex-1">
             <p className="text-sm text-slate-600">Total Pago</p>
             <p className="text-xl font-bold text-red-600">
               {formatCurrency(calculateTotalPago())}
@@ -105,13 +73,13 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
         </div>
       </div>
 
-      {/*Saldo Final */}
+      {/* Saldo Final */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <div className=" flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
             <DollarSign size={20} className="text-blue-600" />
           </div>
-          <div className=" flex-1">
+          <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Final</p>
             <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(calculateSaldoFinal())}
@@ -120,14 +88,14 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
         </div>
       </div>
 
-      {/*saldo pendente */}
+      {/* Saldo Pendente */}
       <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-        <div className=" flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <div className="p-2 bg-yellow-100 rounded-lg">
             <Clock size={20} className="text-yellow-600" />
           </div>
-          <div className=" flex-1">
-            <p className="text-sm text-slate-600">Saldo pendente</p>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Pendente</p>
             <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(calculateTotalPendente())}
             </p>
