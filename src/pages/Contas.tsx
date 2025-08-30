@@ -4,7 +4,7 @@ import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
-import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
+import { AccountModal } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2 } from 'lucide-react';
@@ -68,10 +68,6 @@ const Contas: React.FC = () => {
   const currentYear = parseInt(yearFilter);
   const isShowingAll = monthFilter === 'todos';
 
-  const handleSubmit = (data: AccountFormData) => {
-    handleSave(data);
-  };
-
   const renderContent = () => {
     if (loading) {
       return (
@@ -132,7 +128,7 @@ const Contas: React.FC = () => {
           key={editingAccount?.id || 'new'}
           isOpen={isModalOpen}
           onClose={handleModalClose}
-          onSubmit={handleSubmit}
+          onSave={handleSave}
           account={editingAccount}
           categories={categories}
         />
