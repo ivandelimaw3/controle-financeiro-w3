@@ -74,51 +74,60 @@ const Contas: React.FC = () => {
         const targetMonth = currentMonth;
         const targetYear = currentYear;
 
-        let prevMonth = targetMonth - 1;
-        let prevYear = targetYear;
-        if (prevMonth < 0) {
-          prevMonth = 11;
-          prevYear = targetYear - 1;
-        }
+        let saldoFinalPrev = 0;
 
-        // saldo anterior do mês anterior (se existir)
-        const saldoAnteriorPrev = (() => {
+        if (targetMonth === 0) {
+          // Janeiro → pega o saldo anterior de dezembro do ano anterior
           const found = accounts.find(acc => {
             if (!acc.dueDate) return false;
             const d = new Date(acc.dueDate + 'T00:00:00');
             return (
               acc.description === 'Saldo Anterior' &&
-              d.getFullYear() === prevYear &&
-              d.getMonth() === prevMonth
+              d.getFullYear() === targetYear - 1 &&
+              d.getMonth() === 11
             );
           });
-          if (!found) return 0;
-          return found.type === 'receita'
-            ? found.amount
-            : -Math.abs(found.amount);
-        })();
+          saldoFinalPrev = found
+            ? (found.type === 'receita' ? found.amount : -Math.abs(found.amount))
+            : 0;
+        } else {
+          // Fevereiro em diante → calcula saldo final do mês anterior
+          const saldoAnteriorPrev = (() => {
+            const found = accounts.find(acc => {
+              if (!acc.dueDate) return false;
+              const d = new Date(acc.dueDate + 'T00:00:00');
+              return (
+                acc.description === 'Saldo Anterior' &&
+                d.getFullYear() === targetYear &&
+                d.getMonth() === targetMonth - 1
+              );
+            });
+            if (!found) return 0;
+            return found.type === 'receita'
+              ? found.amount
+              : -Math.abs(found.amount);
+          })();
 
-        // contas do mês anterior (sem saldo anterior)
-        const prevMonthAccounts = accounts.filter(acc => {
-          if (!acc.dueDate) return false;
-          const d = new Date(acc.dueDate + 'T00:00:00');
-          return (
-            d.getFullYear() === prevYear &&
-            d.getMonth() === prevMonth &&
-            acc.description !== 'Saldo Anterior'
-          );
-        });
+          const prevMonthAccounts = accounts.filter(acc => {
+            if (!acc.dueDate) return false;
+            const d = new Date(acc.dueDate + 'T00:00:00');
+            return (
+              d.getFullYear() === targetYear &&
+              d.getMonth() === targetMonth - 1 &&
+              acc.description !== 'Saldo Anterior'
+            );
+          });
 
-        const totalRecebidoPrev = prevMonthAccounts
-          .filter(a => a.type === 'receita' && a.status === 'recebido')
-          .reduce((s, a) => s + (a.amount || 0), 0);
+          const totalRecebidoPrev = prevMonthAccounts
+            .filter(a => a.type === 'receita' && a.status === 'recebido')
+            .reduce((s, a) => s + (a.amount || 0), 0);
 
-        const totalPagoPrev = prevMonthAccounts
-          .filter(a => a.type === 'despesa' && a.status === 'pago')
-          .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
+          const totalPagoPrev = prevMonthAccounts
+            .filter(a => a.type === 'despesa' && a.status === 'pago')
+            .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
 
-        // ✅ saldo final do mês anterior
-        const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+          saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+        }
 
         // data alvo: dia 01 do mês corrente
         const targetDueDate = `${String(targetYear)}-${String(targetMonth + 1).padStart(2, '0')}-01`;
