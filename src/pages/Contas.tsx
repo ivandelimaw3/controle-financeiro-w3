@@ -16,14 +16,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Contas: React.FC = () => {
-  // agora pegamos também refreshAccounts (se o contexto expõe)
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
   const { user } = useAuth();
 
-  // Ativar sistema de lembretes para contas vencendo hoje
   useAccountsReminder(accounts);
 
-  // Gerenciar filtros
   const {
     searchTerm,
     setSearchTerm,
@@ -38,7 +35,6 @@ const Contas: React.FC = () => {
     filteredAccounts
   } = useAccountFilters(accounts);
 
-  // Gerenciar operações de contas
   const {
     isModalOpen,
     editingAccount,
@@ -52,38 +48,32 @@ const Contas: React.FC = () => {
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
 
-  // Handler para mudança de mês no navegador
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     setMonthFilter(month.toString());
     setYearFilter(year.toString());
   };
 
-  // Handler para mostrar todos os meses
   const handleShowAll = () => {
     setMonthFilter('todos');
     setYearFilter('todos');
   };
 
-  // Obter mês e ano atual - sempre inicializar no mês atual
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
   const currentYear = parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos';
 
-  // --- Garantir "Saldo Anterior" automático quando o usuário navega para um mês ---
+  // --- Garantir "Saldo Anterior" automático ---
   React.useEffect(() => {
-    // só tentar quando accounts carregadas e user existir
     if (!user || loading) return;
 
     const ensureSaldoAnteriorForViewedMonth = async () => {
       try {
         if (Number.isNaN(currentMonth) || Number.isNaN(currentYear)) return;
 
-        // mês/ano que estamos visualizando (target)
-        const targetMonth = currentMonth; // 0..11
+        const targetMonth = currentMonth;
         const targetYear = currentYear;
 
-        // calcular mês/ano anterior
         let prevMonth = targetMonth - 1;
         let prevYear = targetYear;
         if (prevMonth < 0) {
@@ -91,28 +81,49 @@ const Contas: React.FC = () => {
           prevYear = targetYear - 1;
         }
 
-        // filtrar contas do mês anterior EXCLUINDO registros "Saldo Anterior"
+        // saldo anterior do mês anterior (se existir)
+        const saldoAnteriorPrev = (() => {
+          const found = accounts.find(acc => {
+            if (!acc.dueDate) return false;
+            const d = new Date(acc.dueDate + 'T00:00:00');
+            return (
+              acc.description === 'Saldo Anterior' &&
+              d.getFullYear() === prevYear &&
+              d.getMonth() === prevMonth
+            );
+          });
+          if (!found) return 0;
+          return found.type === 'receita'
+            ? found.amount
+            : -Math.abs(found.amount);
+        })();
+
+        // contas do mês anterior (sem saldo anterior)
         const prevMonthAccounts = accounts.filter(acc => {
           if (!acc.dueDate) return false;
-          const d = new Date(acc.dueDate + 'T00:00:00'); // evitar timezone
-          return d.getFullYear() === prevYear && d.getMonth() === prevMonth && acc.description !== 'Saldo Anterior';
+          const d = new Date(acc.dueDate + 'T00:00:00');
+          return (
+            d.getFullYear() === prevYear &&
+            d.getMonth() === prevMonth &&
+            acc.description !== 'Saldo Anterior'
+          );
         });
 
-        // calcular saldo final do mês anterior
-        const totalRecebido = prevMonthAccounts
+        const totalRecebidoPrev = prevMonthAccounts
           .filter(a => a.type === 'receita' && a.status === 'recebido')
           .reduce((s, a) => s + (a.amount || 0), 0);
 
-        const totalPago = prevMonthAccounts
+        const totalPagoPrev = prevMonthAccounts
           .filter(a => a.type === 'despesa' && a.status === 'pago')
           .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
 
-        const saldoFinalPrev = totalRecebido - totalPago;
+        // ✅ saldo final do mês anterior
+        const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
 
-        // data alvo para o registro "Saldo Anterior" (dia 01 do mês visualizado)
+        // data alvo: dia 01 do mês corrente
         const targetDueDate = `${String(targetYear)}-${String(targetMonth + 1).padStart(2, '0')}-01`;
 
-        // verificar se já existe um "Saldo Anterior" para essa data
+        // já existe saldo anterior nesse mês?
         const { data: existing, error: checkError } = await supabase
           .from('accounts')
           .select('id')
@@ -128,14 +139,12 @@ const Contas: React.FC = () => {
 
         const alreadyExists = existing && existing.length > 0;
 
-        // criar apenas se não existir E se houver saldo diferente de zero.
-        // (se preferir criar mesmo quando zero, remova a checagem saldoFinalPrev !== 0)
-        if (!alreadyExists && saldoFinalPrev !== 0) {
+        if (!alreadyExists) {
           const type = saldoFinalPrev >= 0 ? 'receita' : 'despesa';
           const status = saldoFinalPrev >= 0 ? 'recebido' : 'pago';
           const amount = Math.abs(saldoFinalPrev);
 
-          const { data: insertData, error: insertError } = await supabase
+          const { error: insertError } = await supabase
             .from('accounts')
             .insert([{
               description: 'Saldo Anterior',
@@ -147,21 +156,15 @@ const Contas: React.FC = () => {
               status,
               user_id: user.id,
               payment_source: 'bank'
-            }])
-            .select();
+            }]);
 
           if (insertError) {
             console.error('Erro ao inserir Saldo Anterior:', insertError);
             return;
           }
 
-          // Se o contexto expõe refreshAccounts, chamamos para recarregar e refletir o novo registro
           if (typeof refreshAccounts === 'function') {
             await refreshAccounts();
-          } else {
-            // fallback simples: atualizar localmente a lista (se accounts for mutável no contexto)
-            // (se não houver refresh, o novo registro pode não aparecer até uma nova leitura)
-            console.warn('refreshAccounts não disponível no contexto. O novo registro pode não aparecer até um refresh manual.');
           }
         }
       } catch (e) {
@@ -172,17 +175,19 @@ const Contas: React.FC = () => {
     ensureSaldoAnteriorForViewedMonth();
   }, [accounts, currentMonth, currentYear, user, loading, refreshAccounts]);
 
-  // calcular previousBalance a partir de um registro "Saldo Anterior" na lista de contas
+  // saldo anterior do mês atual
   const previousBalance = React.useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
     const found = accounts.find(acc => {
       if (!acc.dueDate) return false;
       const d = new Date(acc.dueDate + 'T00:00:00');
-      return acc.description === 'Saldo Anterior' && d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+      return (
+        acc.description === 'Saldo Anterior' &&
+        d.getFullYear() === currentYear &&
+        d.getMonth() === currentMonth
+      );
     });
-
     if (!found) return 0;
-    // se for receita => valor positivo; se despesa => negativo
     return found.type === 'receita' ? found.amount : -Math.abs(found.amount);
   }, [accounts, currentMonth, currentYear]);
 
@@ -229,7 +234,6 @@ const Contas: React.FC = () => {
             </p>
           </div>
 
-          {/* Navegador de mês - logo acima da tabela */}
           <MonthNavigator
             currentMonth={currentMonth}
             currentYear={currentYear}
@@ -260,9 +264,7 @@ const Contas: React.FC = () => {
 
   return (
     <AccessControlWrapper>
-      <Layout>
-        {renderContent()}
-      </Layout>
+      <Layout>{renderContent()}</Layout>
     </AccessControlWrapper>
   );
 };
