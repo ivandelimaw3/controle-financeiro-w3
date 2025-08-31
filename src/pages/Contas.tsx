@@ -91,7 +91,7 @@ const Contas: React.FC = () => {
             ? (found.type === 'receita' ? found.amount : -Math.abs(found.amount))
             : 0;
         } else {
-          // Fevereiro em diante → calcula saldo final do mês anterior
+          // Fevereiro em diante → calcula Saldo Final do mês anterior
           const saldoAnteriorPrev = (() => {
             const found = accounts.find(acc => {
               if (!acc.dueDate) return false;
@@ -126,6 +126,7 @@ const Contas: React.FC = () => {
             .filter(a => a.type === 'despesa' && a.status === 'pago')
             .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
 
+          // ✅ Agora usa o saldo final real do mês anterior
           saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
         }
 
