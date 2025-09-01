@@ -9,7 +9,7 @@ export const useAccountFilters = (accounts: Account[]) => {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
   
-  // Inicializar sempre no mês atual
+  // Inicializar sempre no mês atual (baseado em 0)
   const today = new Date();
   const [monthFilter, setMonthFilter] = useState(today.getMonth().toString());
   const [yearFilter, setYearFilter] = useState(today.getFullYear().toString());
@@ -18,6 +18,17 @@ export const useAccountFilters = (accounts: Account[]) => {
   useEffect(() => {
     console.log('SearchTerm mudou para:', searchTerm);
   }, [searchTerm]);
+
+  // Log quando monthFilter muda
+  useEffect(() => {
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    if (monthFilter !== 'todos') {
+      const monthIndex = parseInt(monthFilter);
+      console.log(`📅 FILTRO DE MÊS MUDOU: ${monthFilter} (${monthNames[monthIndex]})`);
+    } else {
+      console.log('📅 FILTRO DE MÊS: Todos os meses');
+    }
+  }, [monthFilter]);
 
   // Aplicar filtros da URL ao carregar a página
   useEffect(() => {
@@ -40,7 +51,13 @@ export const useAccountFilters = (accounts: Account[]) => {
     console.log('=== INÍCIO DO FILTRO ===');
     console.log('Total de contas:', accounts.length);
     console.log('Termo de pesquisa:', `"${searchTerm}"`);
-    console.log('Filtros ativos:', { searchTerm, statusFilter, typeFilter, monthFilter, yearFilter });
+    console.log('Filtros ativos:', { 
+      searchTerm, 
+      statusFilter, 
+      typeFilter, 
+      monthFilter: monthFilter === 'todos' ? 'todos' : `${monthFilter} (mês ${parseInt(monthFilter) + 1})`,
+      yearFilter 
+    });
 
     const filtered = accounts
       .filter(account => {
@@ -74,6 +91,15 @@ export const useAccountFilters = (accounts: Account[]) => {
         // Converter monthFilter para número apenas se não for 'todos'
         const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
         const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
+        
+        // Log detalhado do filtro de data para algumas contas
+        if (monthFilter !== 'todos' && Math.random() < 0.1) { // Log apenas 10% para não poluir
+          console.log(`📅 FILTRO DATA - Conta: "${account.description}"`);
+          console.log(`   - Data da conta: ${account.dueDate}`);
+          console.log(`   - Mês da conta: ${accountMonth} | Filtro: ${monthFilter}`);
+          console.log(`   - Ano da conta: ${accountYear} | Filtro: ${yearFilter}`);
+          console.log(`   - Match mês: ${matchesMonth} | Match ano: ${matchesYear}`);
+        }
         
         const finalMatch = matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
         
