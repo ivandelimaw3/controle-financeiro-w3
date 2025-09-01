@@ -62,133 +62,123 @@ const Contas: React.FC = () => {
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
   const currentYear = parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos';
- 
-  // --- Garantir "Saldo Anterior" automático ---
-  React.useEffect(() => {
-    if (!user || loading) return;
 
-    const ensureSaldoAnteriorForViewedMonth = async () => {
-      try {
-        if (Number.isNaN(currentMonth) || Number.isNaN(currentYear)) return;
+  // Função para garantir saldo anterior automático para qualquer mês/ano
+  const ensurePreviousBalance = React.useCallback(async (targetMonth: number, targetYear: number) => {
+    if (!user || isShowingAll) return;
 
-        const targetMonth = currentMonth; // 0..11
-        const targetYear = currentYear;
+    try {
+      // Data do primeiro dia do mês alvo
+      const targetDate = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-01`;
+      
+      // Verificar se já existe saldo anterior para este mês
+      const { data: existingBalance } = await supabase
+        .from('accounts')
+        .select('id, amount, type')
+        .eq('user_id', user.id)
+        .eq('due_date', targetDate)
+        .eq('description', 'Saldo Anterior')
+        .single();
 
-        // calcular mês/ano anterior
-        let prevMonth = targetMonth - 1;
-        let prevYear = targetYear;
-        if (prevMonth < 0) {
-          prevMonth = 11;
-          prevYear = targetYear - 1;
-        }
-
-        // range do mês anterior
-        const prevMonthStr = String(prevMonth).padStart(2, '0');
-        const prevStart = `${prevYear}-${prevMonthStr}-01`;
-        const prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
-        const prevEnd = `${prevYear}-${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`;
-
-        // buscar todos os lançamentos do mês anterior
-        const { data: prevRows, error: prevErr } = await supabase
-          .from('accounts')
-          .select('amount, type, status, description')
-          .eq('user_id', user.id)
-          .gte('due_date', prevStart)
-          .lte('due_date', prevEnd);
-
-        if (prevErr) {
-          console.error('[SaldoAnterior] erro ao buscar contas do mês anterior:', prevErr);
-          return;
-        }
-
-        const allPrevAccounts = (prevRows || []) as any[];
-
-        // saldo anterior do mês anterior
-        let saldoAnteriorPrev = 0;
-        const saldoAnteriorRow = allPrevAccounts.find(a => a.description === 'Saldo Anterior');
-        if (saldoAnteriorRow) {
-          saldoAnteriorPrev =
-            saldoAnteriorRow.type === 'receita'
-              ? saldoAnteriorRow.amount
-              : -Math.abs(saldoAnteriorRow.amount);
-        }
-
-        // contas reais
-        const prevMonthAccounts = allPrevAccounts.filter(a => a.description !== 'Saldo Anterior');
-
-        const totalRecebidoPrev = prevMonthAccounts
-          .filter(a => a.type === 'receita' && a.status === 'recebido')
-          .reduce((s, a) => s + (a.amount || 0), 0);
-
-        const totalPagoPrev = prevMonthAccounts
-          .filter(a => a.type === 'despesa' && a.status === 'pago')
-          .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
-
-        // ✅ saldo final do mês anterior
-        const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
-
-        // data alvo para o "Saldo Anterior" do mês atual
-        const targetMonthStr = String(targetMonth).padStart(2, '0');
-        const targetDueDate = `${targetYear}-${targetMonthStr}-01`;
-
-        const { data: existing, error: checkError } = await supabase
-          .from('accounts')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('due_date', targetDueDate)
-          .eq('description', 'Saldo Anterior')
-          .limit(1);
-
-        if (checkError) {
-          console.error('[SaldoAnterior] erro ao checar existência:', checkError);
-          return;
-        }
-
-        const alreadyExists = existing && existing.length > 0;
-        if (!alreadyExists && saldoFinalPrev !== 0) {
-          const insertPayload = {
-            description: 'Saldo Anterior',
-            amount: Math.abs(saldoFinalPrev),
-            category: 'Saldo Anterior',
-            due_date: targetDueDate,
-            data_conta: targetDueDate,
-            type: saldoFinalPrev >= 0 ? 'receita' : 'despesa',
-            status: saldoFinalPrev >= 0 ? 'recebido' : 'pago',
-            user_id: user.id,
-            payment_source: 'bank'
-          };
-
-          const { error: insertError } = await supabase.from('accounts').insert([insertPayload]);
-
-          if (insertError) {
-            console.error('[SaldoAnterior] erro ao inserir:', insertError);
-            return;
-          }
-
-          if (typeof refreshAccounts === 'function') {
-            await refreshAccounts();
-          }
-        }
-      } catch (err) {
-        console.error('[SaldoAnterior] exceção inesperada:', err);
+      if (existingBalance) {
+        console.log('Saldo anterior já existe para', targetMonth + 1, '/', targetYear);
+        return;
       }
-    };
 
-    ensureSaldoAnteriorForViewedMonth();
-  }, [currentMonth, currentYear, user, loading, refreshAccounts]);
+      // Calcular o saldo do mês anterior
+      let prevMonth = targetMonth - 1;
+      let prevYear = targetYear;
+      if (prevMonth < 0) {
+        prevMonth = 11;
+        prevYear = targetYear - 1;
+      }
+
+      // Buscar todas as contas do mês anterior
+      const prevMonthStart = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-01`;
+      const prevMonthEnd = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-31`;
+
+      const { data: prevMonthAccounts } = await supabase
+        .from('accounts')
+        .select('amount, type, status, description')
+        .eq('user_id', user.id)
+        .gte('due_date', prevMonthStart)
+        .lte('due_date', prevMonthEnd);
+
+      if (!prevMonthAccounts || prevMonthAccounts.length === 0) {
+        console.log('Nenhuma conta encontrada no mês anterior');
+        return;
+      }
+
+      // Separar saldo anterior do mês anterior das contas reais
+      let saldoAnteriorPrev = 0;
+      const contasReais = prevMonthAccounts.filter(account => {
+        if (account.description === 'Saldo Anterior') {
+          saldoAnteriorPrev = account.type === 'receita' ? account.amount : -Math.abs(account.amount);
+          return false;
+        }
+        return true;
+      });
+
+      // Calcular totais do mês anterior
+      const totalRecebido = contasReais
+        .filter(a => a.type === 'receita' && a.status === 'recebido')
+        .reduce((sum, a) => sum + a.amount, 0);
+
+      const totalPago = contasReais
+        .filter(a => a.type === 'despesa' && a.status === 'pago')
+        .reduce((sum, a) => sum + Math.abs(a.amount), 0);
+
+      // Saldo final do mês anterior
+      const saldoFinalPrev = saldoAnteriorPrev + totalRecebido - totalPago;
+
+      // Criar saldo anterior para o mês atual se diferente de zero
+      if (Math.abs(saldoFinalPrev) > 0.01) {
+        const { error } = await supabase.from('accounts').insert({
+          user_id: user.id,
+          description: 'Saldo Anterior',
+          amount: Math.abs(saldoFinalPrev),
+          category: 'Saldo Anterior',
+          due_date: targetDate,
+          data_conta: targetDate,
+          type: saldoFinalPrev >= 0 ? 'receita' : 'despesa',
+          status: saldoFinalPrev >= 0 ? 'recebido' : 'pago',
+          payment_source: 'bank'
+        });
+
+        if (!error) {
+          console.log('Saldo anterior criado:', saldoFinalPrev, 'para', targetDate);
+          await refreshAccounts?.();
+        } else {
+          console.error('Erro ao criar saldo anterior:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao garantir saldo anterior:', error);
+    }
+  }, [user, isShowingAll, refreshAccounts]);
+
+  // Executar verificação quando mês/ano mudar
+  React.useEffect(() => {
+    if (!loading && !isShowingAll) {
+      ensurePreviousBalance(currentMonth, currentYear);
+    }
+  }, [currentMonth, currentYear, loading, ensurePreviousBalance]);
 
   // calcular previousBalance a partir do registro "Saldo Anterior" do mês atual
   const previousBalance = React.useMemo(() => {
-    if (!accounts || accounts.length === 0) return 0;
-    const found = accounts.find(acc => {
-      if (!acc.dueDate) return false;
-      const d = new Date(acc.dueDate + 'T00:00:00');
-      return acc.description === 'Saldo Anterior' && d.getFullYear() === currentYear && d.getMonth() === currentMonth;
-    });
+    if (!accounts || accounts.length === 0 || isShowingAll) return 0;
+    
+    const targetDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+    const saldoAnteriorAccount = accounts.find(acc => 
+      acc.dueDate === targetDate && acc.description === 'Saldo Anterior'
+    );
 
-    if (!found) return 0;
-    return found.type === 'receita' ? found.amount : -Math.abs(found.amount);
-  }, [accounts, currentMonth, currentYear]);
+    if (!saldoAnteriorAccount) return 0;
+    
+    return saldoAnteriorAccount.type === 'receita' 
+      ? saldoAnteriorAccount.amount 
+      : -Math.abs(saldoAnteriorAccount.amount);
+  }, [accounts, currentMonth, currentYear, isShowingAll]);
 
   const handleSubmit = (data: AccountFormData) => {
     handleSave(data);

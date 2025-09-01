@@ -1,20 +1,16 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/ contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
 
 export const usePreviousBalance = () => {
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Verifica se estamos em janeiro
-  const isJanuary = new Date().getMonth() === 0;
-
-  const fetchPreviousBalance = async () => {
+  const fetchPreviousBalance = async (targetYear: number) => {
     try {
       if (!user) {
         setBalance(null);
@@ -22,142 +18,109 @@ export const usePreviousBalance = () => {
         return;
       }
 
-      const currentYear = new Date().getFullYear();
-      const firstDayOfYear = `${currentYear}-01-01`;
-
-      // Buscar saldo no banco de dados
-      const { data, error } = await supabase
-        .from('previous_balance')
-        .select('amount')
-        .eq('date', firstDayOfYear)
+      // Buscar saldo anterior já cadastrado para o ano atual
+      const firstDayOfYear = `${targetYear}-01-01`;
+      
+      const { data: existingBalance, error: existingError } = await supabase
+        .from('accounts')
+        .select('amount, type')
+        .eq('user_id', user.id)
+        .eq('due_date', firstDayOfYear)
+        .eq('description', 'Saldo Anterior')
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar saldo anterior:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar o saldo anterior.",
-          variant: "destructive"
-        });
-        setBalance(null);
+      if (existingError && existingError.code !== 'PGRST116') {
+        console.error('Erro ao buscar saldo anterior existente:', existingError);
+        setBalance(0);
         setLoading(false);
         return;
       }
 
-      if (data) {
-        setBalance(data.amount);
+      if (existingBalance) {
+        const balanceValue = existingBalance.type === 'receita' 
+          ? existingBalance.amount 
+          : -Math.abs(existingBalance.amount);
+        setBalance(balanceValue);
         setLoading(false);
         return;
       }
 
-      // Se não encontrou saldo salvo, verifica o ano anterior
-      const lastYear = currentYear - 1;
-      const lastDayOfYear = `${lastYear}-12-31`;
+      // Se não existe, calcular do ano anterior
+      const lastDayPrevYear = `${targetYear - 1}-12-31`;
 
-      // Consultar a tabela account no Supabase para o último dia do ano anterior
-      const {  oldData, error: oldError } = await supabase
-        .from('account')
-        .select('amount')
-        .eq('date', lastDayOfYear)
-        .single();
+      // Buscar todas as contas até o último dia do ano anterior
+      const { data: prevYearAccounts, error: prevError } = await supabase
+        .from('accounts')
+        .select('amount, type, status')
+        .eq('user_id', user.id)
+        .lte('due_date', lastDayPrevYear)
+        .neq('description', 'Saldo Anterior');
 
-      if (oldError && oldError.code !== 'PGRST116') {
-        console.error('Erro ao buscar saldo antigo:', oldError);
+      if (prevError) {
+        console.error('Erro ao buscar contas do ano anterior:', prevError);
+        setBalance(0);
+        setLoading(false);
+        return;
       }
 
-      if (oldData) {
-        // Se encontrou valor, salva no previous_balance
-        await saveToPreviousBalanceTable(oldData.amount, firstDayOfYear);
-        setBalance(oldData.amount);
-      } else {
-        // Não há saldo anterior
-        setBalance(null);
-      }
-    } catch (err) {
-      console.error('Erro ao buscar saldo anterior:', err);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar o saldo anterior.",
-        variant: "destructive"
+      // Calcular saldo final do ano anterior
+      let totalReceitas = 0;
+      let totalDespesas = 0;
+
+      (prevYearAccounts || []).forEach(account => {
+        if (account.type === 'receita' && account.status === 'recebido') {
+          totalReceitas += account.amount;
+        } else if (account.type === 'despesa' && account.status === 'pago') {
+          totalDespesas += Math.abs(account.amount);
+        }
       });
-      setBalance(null);
+
+      const calculatedBalance = totalReceitas - totalDespesas;
+
+      // Criar conta de saldo anterior se não for zero
+      if (calculatedBalance !== 0) {
+        await createPreviousBalanceAccount(calculatedBalance, firstDayOfYear);
+      }
+
+      setBalance(calculatedBalance);
+    } catch (err) {
+      console.error('Erro ao calcular saldo anterior:', err);
+      setBalance(0);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveToPreviousBalanceTable = async (amount: number, date: string) => {
+  const createPreviousBalanceAccount = async (amount: number, date: string) => {
     try {
-      const { error } = await supabase.from('previous_balance').upsert(
-        {
-          amount,
-          date,
-        },
-        { onConflict: 'date' }
-      );
+      const { error } = await supabase.from('accounts').insert({
+        user_id: user!.id,
+        description: 'Saldo Anterior',
+        amount: Math.abs(amount),
+        category: 'Saldo Anterior',
+        due_date: date,
+        data_conta: date,
+        type: amount >= 0 ? 'receita' : 'despesa',
+        status: amount >= 0 ? 'recebido' : 'pago',
+        payment_source: 'bank'
+      });
 
       if (error) {
-        throw error;
+        console.error('Erro ao criar conta de saldo anterior:', error);
       }
     } catch (err) {
-      console.error('Erro ao salvar saldo inicial:', err);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar o saldo inicial.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const updateManualBalance = async (newAmount: number) => {
-    try {
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Usuário não autenticado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const currentYear = new Date().getFullYear();
-      const firstDayOfYear = `${currentYear}-01-01`;
-
-      const { error } = await supabase.from('previous_balance').upsert(
-        {
-          amount: newAmount,
-          date: firstDayOfYear,
-        },
-        { onConflict: 'date' }
-      );
-
-      if (error) {
-        throw error;
-      }
-
-      setBalance(newAmount);
-      toast({
-        title: "Sucesso",
-        description: "Saldo inicial atualizado com sucesso.",
-      });
-    } catch (err) {
-      console.error('Erro ao atualizar saldo manual:', err);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o saldo inicial.",
-        variant: "destructive"
-      });
+      console.error('Erro ao inserir saldo anterior:', err);
     }
   };
 
   useEffect(() => {
-    fetchPreviousBalance();
+    const currentYear = new Date().getFullYear();
+    fetchPreviousBalance(currentYear);
   }, [user]);
 
   return {
     balance,
     loading,
-    isJanuary,
-    updateManualBalance,
+    fetchPreviousBalance,
   };
 };
