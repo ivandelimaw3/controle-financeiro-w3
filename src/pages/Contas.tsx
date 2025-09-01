@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -83,7 +84,8 @@ const Contas: React.FC = () => {
         .single();
 
       if (existingBalance) {
-        console.log(`Saldo anterior já existe para ${targetMonth + 1}/${targetYear}:`, existingBalance);
+        console.log(`✅ Saldo anterior já existe para ${targetMonth + 1}/${targetYear}:`, existingBalance);
+        console.log(`📊 Valor: ${existingBalance.type === 'receita' ? '+' : '-'}${existingBalance.amount}`);
         return;
       }
 
@@ -95,13 +97,13 @@ const Contas: React.FC = () => {
         prevYear = targetYear - 1;
       }
 
-      console.log(`Calculando saldo do mês anterior: ${prevMonth + 1}/${prevYear}`);
+      console.log(`🔍 Calculando saldo do mês anterior: ${prevMonth + 1}/${prevYear}`);
 
       // Buscar todas as contas do mês anterior
       const prevMonthStart = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-01`;
       const prevMonthEnd = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-31`;
 
-      console.log(`Período de busca: ${prevMonthStart} até ${prevMonthEnd}`);
+      console.log(`📅 Período de busca: ${prevMonthStart} até ${prevMonthEnd}`);
 
       const { data: prevMonthAccounts } = await supabase
         .from('accounts')
@@ -110,10 +112,10 @@ const Contas: React.FC = () => {
         .gte('due_date', prevMonthStart)
         .lte('due_date', prevMonthEnd);
 
-      console.log(`Contas encontradas no mês anterior:`, prevMonthAccounts);
+      console.log(`📋 Contas encontradas no mês ${prevMonth + 1}/${prevYear}:`, prevMonthAccounts?.length || 0);
 
       if (!prevMonthAccounts || prevMonthAccounts.length === 0) {
-        console.log('Nenhuma conta encontrada no mês anterior - saldo anterior será 0');
+        console.log('⚠️ Nenhuma conta encontrada no mês anterior - saldo anterior será 0');
         return;
       }
 
@@ -122,41 +124,41 @@ const Contas: React.FC = () => {
       const contasReais = prevMonthAccounts.filter(account => {
         if (account.description === 'Saldo Anterior') {
           saldoAnteriorPrev = account.type === 'receita' ? account.amount : -Math.abs(account.amount);
-          console.log(`Saldo anterior do mês ${prevMonth + 1}/${prevYear}:`, saldoAnteriorPrev);
+          console.log(`💰 Saldo anterior do mês ${prevMonth + 1}/${prevYear}: ${saldoAnteriorPrev}`);
           return false;
         }
         return true;
       });
 
-      console.log(`Contas reais do mês ${prevMonth + 1}/${prevYear}:`, contasReais);
+      console.log(`📊 Contas reais do mês ${prevMonth + 1}/${prevYear}:`, contasReais.length);
 
       // Calcular totais do mês anterior
       const totalRecebido = contasReais
         .filter(a => a.type === 'receita' && a.status === 'recebido')
         .reduce((sum, a) => {
-          console.log(`Receita recebida: ${a.description} = ${a.amount}`);
+          console.log(`✅ Receita recebida: ${a.description} = ${a.amount} (${a.due_date})`);
           return sum + a.amount;
         }, 0);
 
       const totalPago = contasReais
         .filter(a => a.type === 'despesa' && a.status === 'pago')
         .reduce((sum, a) => {
-          console.log(`Despesa paga: ${a.description} = ${Math.abs(a.amount)}`);
+          console.log(`❌ Despesa paga: ${a.description} = ${Math.abs(a.amount)} (${a.due_date})`);
           return sum + Math.abs(a.amount);
         }, 0);
 
-      console.log(`Totais do mês ${prevMonth + 1}/${prevYear}:`);
-      console.log(`- Saldo anterior: ${saldoAnteriorPrev}`);
-      console.log(`- Total recebido: ${totalRecebido}`);
-      console.log(`- Total pago: ${totalPago}`);
+      console.log(`📊 === RESUMO DO MÊS ${prevMonth + 1}/${prevYear} ===`);
+      console.log(`💰 Saldo anterior: ${saldoAnteriorPrev}`);
+      console.log(`✅ Total recebido: ${totalRecebido}`);
+      console.log(`❌ Total pago: ${totalPago}`);
 
       // Saldo final do mês anterior
       const saldoFinalPrev = saldoAnteriorPrev + totalRecebido - totalPago;
-      console.log(`- Saldo final: ${saldoFinalPrev}`);
+      console.log(`🏁 Saldo final do mês ${prevMonth + 1}/${prevYear}: ${saldoFinalPrev}`);
 
       // Criar saldo anterior para o mês atual se diferente de zero
       if (Math.abs(saldoFinalPrev) > 0.01) {
-        console.log(`Criando saldo anterior de ${saldoFinalPrev} para ${targetDate}`);
+        console.log(`🔄 Criando saldo anterior de ${saldoFinalPrev} para ${targetDate}`);
         
         const { error } = await supabase.from('accounts').insert({
           user_id: user.id,
@@ -177,12 +179,12 @@ const Contas: React.FC = () => {
           console.error('❌ Erro ao criar saldo anterior:', error);
         }
       } else {
-        console.log('Saldo anterior é zero - não será criado');
+        console.log('⚪ Saldo anterior é zero - não será criado');
       }
       
       console.log(`=== FIM VERIFICAÇÃO SALDO ANTERIOR - MÊS ${targetMonth + 1}/${targetYear} ===`);
     } catch (error) {
-      console.error('Erro ao garantir saldo anterior:', error);
+      console.error('❌ Erro ao garantir saldo anterior:', error);
     }
   }, [user, isShowingAll, refreshAccounts]);
 
@@ -202,16 +204,21 @@ const Contas: React.FC = () => {
       acc.dueDate === targetDate && acc.description === 'Saldo Anterior'
     );
 
-    console.log(`Buscando saldo anterior para ${currentMonth + 1}/${currentYear} na data ${targetDate}`);
-    console.log('Conta encontrada:', saldoAnteriorAccount);
+    console.log(`💰 === SALDO ANTERIOR MÊS ${currentMonth + 1}/${currentYear} ===`);
+    console.log(`🎯 Buscando saldo anterior para data: ${targetDate}`);
+    console.log('🔍 Conta encontrada:', saldoAnteriorAccount);
 
-    if (!saldoAnteriorAccount) return 0;
+    if (!saldoAnteriorAccount) {
+      console.log('⚪ Nenhum saldo anterior encontrado - retornando 0');
+      return 0;
+    }
     
     const balance = saldoAnteriorAccount.type === 'receita' 
       ? saldoAnteriorAccount.amount 
       : -Math.abs(saldoAnteriorAccount.amount);
       
-    console.log(`Saldo anterior calculado: ${balance}`);
+    console.log(`💰 Saldo anterior calculado: ${balance}`);
+    console.log(`=== FIM SALDO ANTERIOR ===`);
     
     return balance;
   }, [accounts, currentMonth, currentYear, isShowingAll]);
