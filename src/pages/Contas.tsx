@@ -63,7 +63,6 @@ const Contas: React.FC = () => {
   const currentYear = parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos';
  
-  console.log('[DEBUG] currentMonth =', currentMonth, 'currentYear =', currentYear);
   // --- Garantir "Saldo Anterior" automático ---
   React.useEffect(() => {
     if (!user || loading) return;
@@ -84,9 +83,9 @@ const Contas: React.FC = () => {
         }
 
         // range do mês anterior
-        const prevMonthStr = String(prevMonth + 1).padStart(2, '0');
+        const prevMonthStr = String(prevMonth).padStart(2, '0');
         const prevStart = `${prevYear}-${prevMonthStr}-01`;
-        const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
+        const prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
         const prevEnd = `${prevYear}-${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`;
 
         // buscar todos os lançamentos do mês anterior
@@ -129,7 +128,7 @@ const Contas: React.FC = () => {
         const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
 
         // data alvo para o "Saldo Anterior" do mês atual
-        const targetMonthStr = String(targetMonth + 1).padStart(2, '0');
+        const targetMonthStr = String(targetMonth).padStart(2, '0');
         const targetDueDate = `${targetYear}-${targetMonthStr}-01`;
 
         const { data: existing, error: checkError } = await supabase
