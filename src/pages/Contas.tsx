@@ -62,7 +62,8 @@ const Contas: React.FC = () => {
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
   const currentYear = parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos';
-
+ 
+  console.log('[DEBUG] currentMonth =', currentMonth, 'currentYear =', currentYear);
   // --- Garantir "Saldo Anterior" automático ---
   React.useEffect(() => {
     if (!user || loading) return;
