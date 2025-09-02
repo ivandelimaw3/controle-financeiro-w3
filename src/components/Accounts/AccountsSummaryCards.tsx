@@ -4,7 +4,7 @@ import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
-  previousBalance?: number; // 👈 adicionamos
+  previousBalance?: number;
 }
 
 export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance = 0 }) => {
