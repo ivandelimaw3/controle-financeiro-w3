@@ -6,13 +6,13 @@ import { Account } from '@/contexts/AccountsContext';
 interface AccountsSummaryCardsProps {
   accounts: Account[];
   previousBalance?: number;
-  currentMonthBalance?: number;
+  isJanuary?: boolean;
 }
 
 export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
   accounts, 
   previousBalance = 0,
-  currentMonthBalance = 0
+  isJanuary = false
 }) => {
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
