@@ -1,4 +1,4 @@
-// pages/Contas.tsx (corrigido)
+// pages/Contas.tsx
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
@@ -188,29 +188,6 @@ const Contas: React.FC = () => {
     return found.type === "receita" ? found.amount : -Math.abs(found.amount);
   }, [accounts, currentMonth, currentYear]);
 
-  // Função para calcular o saldo final do mês atual baseado no saldo anterior
-  const calculateCurrentMonthBalance = React.useMemo(() => {
-    if (!accounts || accounts.length === 0) return 0;
-    
-    // Filtrar apenas contas do mês atual (exceto o saldo anterior)
-    const currentMonthAccounts = accounts.filter((acc: any) => {
-      if (!acc.dueDate) return false;
-      const d = new Date(acc.dueDate + "T00:00:00");
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
-             acc.description !== "Saldo Anterior";
-    });
-
-    const totalRecebido = currentMonthAccounts
-      .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
-      .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0);
-
-    const totalPago = currentMonthAccounts
-      .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
-      .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
-
-    return previousBalance + totalRecebido - totalPago;
-  }, [accounts, currentMonth, currentYear, previousBalance]);
-
   // Função para obter o saldo anterior do mês anterior (para meses subsequentes)
   const getPreviousMonthBalance = React.useCallback(() => {
     if (!accounts || accounts.length === 0) return 0;
@@ -235,6 +212,41 @@ const Contas: React.FC = () => {
     if (!found) return 0;
     return found.type === "receita" ? found.amount : -Math.abs(found.amount);
   }, [accounts, currentMonth, currentYear, previousBalance]);
+
+  // Função para calcular o saldo final do mês atual baseado no saldo anterior
+  const calculateCurrentMonthBalance = React.useMemo(() => {
+    if (!accounts || accounts.length === 0) return 0;
+    
+    // Filtrar apenas contas do mês atual (exceto o saldo anterior)
+    const currentMonthAccounts = accounts.filter((acc: any) => {
+      if (!acc.dueDate) return false;
+      const d = new Date(acc.dueDate + "T00:00:00");
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
+             acc.description !== "Saldo Anterior";
+    });
+
+    const totalRecebido = currentMonthAccounts
+      .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
+      .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0);
+
+    const totalPago = currentMonthAccounts
+      .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
+      .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
+
+    return previousBalance + totalRecebido - totalPago;
+  }, [accounts, currentMonth, currentYear, previousBalance]);
+
+  // Função para filtrar contas para cálculos (excluindo o saldo anterior)
+  const getFilteredAccountsForCalculations = React.useCallback(() => {
+    if (!accounts) return [];
+    
+    return accounts.filter((acc: any) => {
+      if (!acc.dueDate) return false;
+      const d = new Date(acc.dueDate + "T00:00:00");
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
+             acc.description !== "Saldo Anterior";
+    });
+  }, [accounts, currentMonth, currentYear]);
 
   const handleSubmit = (data: AccountFormData) => {
     handleSave(data);
@@ -273,9 +285,9 @@ const Contas: React.FC = () => {
 
           {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
           <AccountsSummaryCards 
-            accounts={filteredAccounts} 
+            accounts={getFilteredAccountsForCalculations()} 
             previousBalance={getPreviousMonthBalance()} 
-            currentMonthBalance={calculateCurrentMonthBalance}
+            isJanuary={currentMonth === 0}
           />
 
           <div className="mb-4">
