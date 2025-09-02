@@ -166,13 +166,13 @@ const Contas: React.FC = () => {
             }
           }
         } else {
-          // Para meses diferentes de janeiro, vamos calcular o saldo anterior com base no mês anterior
-          // Primeiro, verificamos se já existe saldo anterior para este mês
+          // Para meses diferentes de janeiro, vamos criar o saldo anterior com base no mês anterior
+          // Primeiro, vamos verificar se já existe saldo anterior para este mês
           const targetDueDate = new Date(targetYear, targetMonth, 1).toISOString().split("T")[0];
 
           const { data: existing, error: checkError } = await supabase
             .from("accounts")
-            .select("id, amount, type")
+            .select("id")
             .eq("user_id", user.id)
             .eq("due_date", targetDueDate)
             .eq("description", "Saldo Anterior")
@@ -183,7 +183,7 @@ const Contas: React.FC = () => {
             return;
           }
 
-          // Se não existe, vamos calcular o saldo final do mês anterior e usar como saldo anterior
+          // Se não existe, vamos calcular o saldo final do mês anterior e criar o saldo anterior
           if (!existing || existing.length === 0) {
             // Calcular o saldo final do mês anterior
             const prevMonth = targetMonth - 1;
