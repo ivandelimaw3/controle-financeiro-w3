@@ -1,3 +1,4 @@
+// components/Accounts/AccountsSummaryCards.tsx
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign, History } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
@@ -5,9 +6,14 @@ import { Account } from '@/contexts/AccountsContext';
 interface AccountsSummaryCardsProps {
   accounts: Account[];
   previousBalance?: number;
+  currentMonthBalance?: number;
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance = 0 }) => {
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ 
+  accounts, 
+  previousBalance = 0,
+  currentMonthBalance = 0
+}) => {
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
