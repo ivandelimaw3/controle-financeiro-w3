@@ -1,13 +1,13 @@
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, DollarSign, History } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
+  previousBalance?: number; // 👈 adicionamos
 }
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts }) => {
-  // Função para formatar valores em reais brasileiros
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance = 0 }) => {
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -28,7 +28,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   };
 
   const calculateSaldoFinal = () => {
-    return calculateTotalRecebido() - calculateTotalPago();
+    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
@@ -42,7 +42,22 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ acco
   };
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Saldo Anterior */}
+      <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <History size={20} className="text-purple-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Anterior</p>
+            <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(previousBalance)}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
         <div className="flex items-center gap-3">
