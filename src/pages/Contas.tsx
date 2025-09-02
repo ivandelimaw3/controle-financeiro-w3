@@ -1,122 +1,270 @@
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, History } from 'lucide-react';
-import { Account } from '@/contexts/AccountsContext';
+import { Layout } from '@/components/Layout';
+import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
+import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
+import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
+import { AccountsTable } from '@/components/Accounts/AccountsTable';
+import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
+import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
+import { AccessControlWrapper } from '@/components/AccessControlWrapper';
+import { Loader2 } from 'lucide-react';
+import { useAccounts } from '@/contexts/AccountsContext';
+import { useAccountsReminder } from '@/hooks/useAccountsReminder';
+import { useAccountFilters } from '@/hooks/useAccountFilters';
+import { useAccountOperations } from '@/hooks/useAccountOperations';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface AccountsSummaryCardsProps {
-  accounts: Account[];
-  previousBalance?: number; // 👈 adicionamos
-}
+const Contas: React.FC = () => {
+  const { accounts, loading, refreshAccounts } = useAccounts() as any;
+  const { user } = useAuth();
 
-export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance = 0 }) => {
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+  useAccountsReminder(accounts);
+
+  const {
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    typeFilter,
+    setTypeFilter,
+    monthFilter,
+    setMonthFilter,
+    yearFilter,
+    setYearFilter,
+    filteredAccounts
+  } = useAccountFilters(accounts);
+
+  const {
+    isModalOpen,
+    editingAccount,
+    handleSave,
+    handleEdit,
+    handleDelete,
+    handleStatusChange,
+    handleNewAccount,
+    handleModalClose
+  } = useAccountOperations();
+
+  const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
+
+  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
+    setMonthFilter(month.toString());
+    setYearFilter(year.toString());
   };
 
-  const calculateTotalPago = () => {
-    return accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pago')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+  const handleShowAll = () => {
+    setMonthFilter('todos');
+    setYearFilter('todos');
   };
 
-  const calculateTotalRecebido = () => {
-    return accounts
-      .filter(account => account.type === 'receita' && account.status === 'recebido')
-      .reduce((sum, account) => sum + account.amount, 0);
+  const today = new Date();
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
+  const currentYear = parseInt(yearFilter, 10);
+  const isShowingAll = monthFilter === 'todos';
+
+  // --- Garantir "Saldo Anterior" automático para qualquer mês ---
+  React.useEffect(() => {
+    if (!user || loading) return;
+
+    const ensureSaldoAnteriorForMonth = async () => {
+      try {
+        if (Number.isNaN(currentMonth) || Number.isNaN(currentYear)) return;
+
+        const targetMonth = currentMonth; // 0..11
+        const targetYear = currentYear;
+
+        // calcular mês/ano anterior
+        let prevMonth = targetMonth - 1;
+        let prevYear = targetYear;
+        if (prevMonth < 0) {
+          prevMonth = 11;
+          prevYear = targetYear - 1;
+        }
+
+        // range do mês anterior
+        const prevStart = new Date(prevYear, prevMonth, 1).toISOString().split("T")[0];
+        const prevEnd = new Date(prevYear, prevMonth + 1, 0).toISOString().split("T")[0];
+
+        // buscar todos os lançamentos do mês anterior
+        const { data: prevRows, error: prevErr } = await supabase
+          .from("accounts")
+          .select("amount, type, status, description, due_date")
+          .eq("user_id", user.id)
+          .gte("due_date", prevStart)
+          .lte("due_date", prevEnd);
+
+        if (prevErr) {
+          console.error("[SaldoAnterior] erro ao buscar contas do mês anterior:", prevErr);
+          return;
+        }
+
+        const allPrevAccounts = (prevRows || []) as any[];
+
+        // saldo anterior já lançado no mês anterior
+        let saldoAnteriorPrev = 0;
+        const saldoAnteriorRow = allPrevAccounts.find(a => a.description === "Saldo Anterior");
+        if (saldoAnteriorRow) {
+          saldoAnteriorPrev =
+            saldoAnteriorRow.type === "receita"
+              ? saldoAnteriorRow.amount
+              : -Math.abs(saldoAnteriorRow.amount);
+        }
+
+        // contas reais
+        const prevMonthAccounts = allPrevAccounts.filter(a => a.description !== "Saldo Anterior");
+
+        const totalRecebidoPrev = prevMonthAccounts
+          .filter(a => a.type === "receita" && a.status === "recebido")
+          .reduce((s, a) => s + (a.amount || 0), 0);
+
+        const totalPagoPrev = prevMonthAccounts
+          .filter(a => a.type === "despesa" && a.status === "pago")
+          .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
+
+        // ✅ saldo final do mês anterior
+        const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+
+        // data alvo para o "Saldo Anterior" do mês atual
+        const targetDueDate = new Date(targetYear, targetMonth, 1).toISOString().split("T")[0];
+
+        const { data: existing, error: checkError } = await supabase
+          .from("accounts")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("due_date", targetDueDate)
+          .eq("description", "Saldo Anterior")
+          .limit(1);
+
+        if (checkError) {
+          console.error("[SaldoAnterior] erro ao checar existência:", checkError);
+          return;
+        }
+
+        const alreadyExists = existing && existing.length > 0;
+        if (!alreadyExists) {
+          const insertPayload = {
+            description: "Saldo Anterior",
+            amount: Math.abs(saldoFinalPrev),
+            category: "Saldo Anterior",
+            due_date: targetDueDate,
+            data_conta: targetDueDate,
+            type: saldoFinalPrev >= 0 ? "receita" : "despesa",
+            status: saldoFinalPrev >= 0 ? "recebido" : "pago",
+            user_id: user.id,
+            payment_source: "bank"
+          };
+
+          const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
+
+          if (insertError) {
+            console.error("[SaldoAnterior] erro ao inserir:", insertError);
+            return;
+          }
+
+          if (typeof refreshAccounts === "function") {
+            await refreshAccounts();
+          }
+        }
+      } catch (err) {
+        console.error("[SaldoAnterior] exceção inesperada:", err);
+      }
+    };
+
+    ensureSaldoAnteriorForMonth();
+  }, [currentMonth, currentYear, user, loading, refreshAccounts]);
+
+  // calcular previousBalance a partir do registro "Saldo Anterior" do mês atual
+  const previousBalance = React.useMemo(() => {
+    if (!accounts || accounts.length === 0) return 0;
+    const found = accounts.find(acc => {
+      if (!acc.dueDate) return false;
+      const d = new Date(acc.dueDate + "T00:00:00");
+      return acc.description === "Saldo Anterior" && d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+    });
+
+    if (!found) return 0;
+    return found.type === "receita" ? found.amount : -Math.abs(found.amount);
+  }, [accounts, currentMonth, currentYear]);
+
+  const handleSubmit = (data: AccountFormData) => {
+    handleSave(data);
   };
 
-  const calculateSaldoFinal = () => {
-    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
-  };
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <span className="text-lg text-slate-600">Carregando contas...</span>
+          </div>
+        </div>
+      );
+    }
 
-  const calculateTotalPendente = () => {
-    const receitasPendentes = accounts
-      .filter(account => account.type === 'receita' && account.status === 'pendente')
-      .reduce((sum, account) => sum + account.amount, 0);
-    const despesasPendentes = accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pendente')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-    return receitasPendentes - despesasPendentes;
+    return (
+      <div className="space-y-6">
+        <AccountsHeader onNewAccount={handleNewAccount} />
+
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+          <AccountsFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            typeFilter={typeFilter}
+            setTypeFilter={setTypeFilter}
+            monthFilter={monthFilter}
+            setMonthFilter={setMonthFilter}
+            yearFilter={yearFilter}
+            setYearFilter={setYearFilter}
+            accounts={accounts}
+          />
+
+          <AccountsSummaryCards accounts={filteredAccounts} previousBalance={previousBalance} />
+
+          <div className="mb-4">
+            <p className="text-sm text-slate-600 text-center">
+              {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
+            </p>
+          </div>
+
+          <MonthNavigator
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onMonthChange={handleMonthChange}
+            onShowAll={handleShowAll}
+            isShowingAll={isShowingAll}
+          />
+
+          <AccountsTable
+            accounts={filteredAccounts}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
+          />
+        </div>
+
+        <AccountModal
+          key={editingAccount?.id || 'new'}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onSubmit={handleSubmit}
+          account={editingAccount}
+          categories={categories}
+        />
+      </div>
+    );
   };
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {/* Saldo Anterior */}
-      <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <History size={20} className="text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Anterior</p>
-            <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(previousBalance)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Total Recebido */}
-      <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <TrendingUp size={20} className="text-green-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Total Recebido</p>
-            <p className="text-xl font-bold text-green-600">
-              {formatCurrency(calculateTotalRecebido())}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Total Pago */}
-      <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-100 rounded-lg">
-            <TrendingDown size={20} className="text-red-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Total Pago</p>
-            <p className="text-xl font-bold text-red-600">
-              {formatCurrency(calculateTotalPago())}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Saldo Final */}
-      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <DollarSign size={20} className="text-blue-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Final</p>
-            <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(calculateSaldoFinal())}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Saldo Pendente */}
-      <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-yellow-100 rounded-lg">
-            <Clock size={20} className="text-yellow-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Pendente</p>
-            <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(calculateTotalPendente())}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AccessControlWrapper>
+      <Layout>
+        {renderContent()}
+      </Layout>
+    </AccessControlWrapper>
   );
 };
+
+export default Contas;
