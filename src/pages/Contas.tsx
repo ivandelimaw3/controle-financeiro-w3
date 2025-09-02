@@ -166,13 +166,13 @@ const Contas: React.FC = () => {
             }
           }
         } else {
-          // Para meses diferentes de janeiro, verificar se já existe saldo anterior para esse mês
-          // Se não existir, criar com valor zero
+          // Para meses diferentes de janeiro, vamos calcular o saldo anterior com base no mês anterior
+          // Primeiro, verificamos se já existe saldo anterior para este mês
           const targetDueDate = new Date(targetYear, targetMonth, 1).toISOString().split("T")[0];
 
           const { data: existing, error: checkError } = await supabase
             .from("accounts")
-            .select("id")
+            .select("id, amount, type")
             .eq("user_id", user.id)
             .eq("due_date", targetDueDate)
             .eq("description", "Saldo Anterior")
@@ -183,17 +183,63 @@ const Contas: React.FC = () => {
             return;
           }
 
-          const alreadyExists = existing && existing.length > 0;
-          if (!alreadyExists) {
-            // Criar saldo anterior com valor zero para meses após janeiro
+          // Se não existe, vamos calcular o saldo final do mês anterior e usar como saldo anterior
+          if (!existing || existing.length === 0) {
+            // Calcular o saldo final do mês anterior
+            const prevMonth = targetMonth - 1;
+            const prevYear = targetYear;
+            
+            // Buscar todas as contas do mês anterior (exceto saldo anterior)
+            const prevStart = new Date(prevYear, prevMonth, 1).toISOString().split("T")[0];
+            const prevEnd = new Date(prevYear, prevMonth + 1, 0).toISOString().split("T")[0];
+
+            const { data: prevRows, error: prevErr } = await supabase
+              .from("accounts")
+              .select("amount, type, status, description")
+              .eq("user_id", user.id)
+              .gte("due_date", prevStart)
+              .lte("due_date", prevEnd);
+
+            if (prevErr) {
+              console.error("[SaldoAnterior] erro ao buscar contas do mês anterior:", prevErr);
+              return;
+            }
+
+            const allPrevAccounts = (prevRows || []) as any[];
+
+            // Calcular o saldo final do mês anterior
+            let saldoAnteriorPrev = 0;
+            const saldoAnteriorRow = allPrevAccounts.find(a => a.description === "Saldo Anterior");
+            if (saldoAnteriorRow) {
+              saldoAnteriorPrev =
+                saldoAnteriorRow.type === "receita"
+                  ? saldoAnteriorRow.amount
+                  : -Math.abs(saldoAnteriorRow.amount);
+            }
+
+            // Contas reais do mês anterior
+            const prevMonthAccounts = allPrevAccounts.filter(a => a.description !== "Saldo Anterior");
+
+            const totalRecebidoPrev = prevMonthAccounts
+              .filter(a => a.type === "receita" && a.status === "recebido")
+              .reduce((s, a) => s + (a.amount || 0), 0);
+
+            const totalPagoPrev = prevMonthAccounts
+              .filter(a => a.type === "despesa" && a.status === "pago")
+              .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
+
+            // Saldo final do mês anterior
+            const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+
+            // Criar saldo anterior com o valor do saldo final do mês anterior
             const insertPayload = {
               description: "Saldo Anterior",
-              amount: 0,
+              amount: Math.abs(saldoFinalPrev),
               category: "Saldo Anterior",
               due_date: targetDueDate,
               data_conta: targetDueDate,
-              type: "receita",
-              status: "recebido",
+              type: saldoFinalPrev >= 0 ? "receita" : "despesa",
+              status: saldoFinalPrev >= 0 ? "recebido" : "pago",
               user_id: user.id,
               payment_source: "bank"
             };
