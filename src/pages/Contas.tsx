@@ -291,7 +291,7 @@ const Contas: React.FC = () => {
     });
   }, [accounts, currentMonth, currentYear]);
 
-  const handleSubmit = ( AccountFormData) => {
+  const handleSubmit = (data: AccountFormData) => {
     handleSave(data);
   };
 
@@ -377,4 +377,3 @@ const Contas: React.FC = () => {
 };
 
 export default Contas;
-```
