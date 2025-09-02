@@ -247,6 +247,9 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [newAccount, ...prev]);
         
+        // Atualizar saldos subsequentes
+        await updateSubsequentBalances(accountData.dueDate);
+        
         // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
@@ -264,6 +267,132 @@ export const useAccountsData = () => {
         description: "Não foi possível criar a conta.",
         variant: "destructive"
       });
+    }
+  };
+
+  // Função para atualizar saldos anteriores em cascata
+  const updateSubsequentBalances = async (fromDate: string) => {
+    try {
+      const accountDate = new Date(fromDate + 'T00:00:00');
+      const startYear = accountDate.getFullYear();
+      const startMonth = accountDate.getMonth();
+      
+      // Buscar todos os meses que têm contas a partir do mês seguinte
+      const { data: nextMonthsData, error } = await supabase
+        .from('accounts')
+        .select('due_date')
+        .eq('user_id', user.id)
+        .gte('due_date', new Date(startYear, startMonth + 1, 1).toISOString().split('T')[0])
+        .order('due_date');
+
+      if (error) {
+        console.error('Erro ao buscar meses subsequentes:', error);
+        return;
+      }
+
+      // Obter lista única de meses que precisam ser atualizados
+      const monthsToUpdate = new Set<string>();
+      nextMonthsData?.forEach(row => {
+        const date = new Date(row.due_date + 'T00:00:00');
+        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+        monthsToUpdate.add(monthKey);
+      });
+
+      // Converter para array ordenado
+      const sortedMonths = Array.from(monthsToUpdate)
+        .map(monthKey => {
+          const [year, month] = monthKey.split('-').map(Number);
+          return { year, month };
+        })
+        .sort((a, b) => a.year - b.year || a.month - b.month);
+
+      // Atualizar cada mês em sequência
+      for (const { year, month } of sortedMonths) {
+        await updatePreviousBalanceForMonth(year, month);
+      }
+
+    } catch (error) {
+      console.error('Erro ao atualizar saldos subsequentes:', error);
+    }
+  };
+
+  // Função para atualizar saldo anterior de um mês específico
+  const updatePreviousBalanceForMonth = async (targetYear: number, targetMonth: number) => {
+    try {
+      // Primeiro remover saldo anterior existente
+      const targetDate = new Date(targetYear, targetMonth, 1).toISOString().split('T')[0];
+      
+      await supabase
+        .from('accounts')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('due_date', targetDate)
+        .eq('description', 'Saldo Anterior');
+
+      // Calcular saldo do mês anterior
+      const prevMonth = targetMonth - 1;
+      const prevYear = targetMonth === 0 ? targetYear - 1 : targetYear;
+      const prevMonthAdjusted = targetMonth === 0 ? 11 : prevMonth;
+
+      const prevStart = new Date(prevYear, prevMonthAdjusted, 1).toISOString().split('T')[0];
+      const prevEnd = new Date(prevYear, prevMonthAdjusted + 1, 0).toISOString().split('T')[0];
+
+      const { data: prevAccounts, error } = await supabase
+        .from('accounts')
+        .select('amount, type, status, description')
+        .eq('user_id', user.id)
+        .gte('due_date', prevStart)
+        .lte('due_date', prevEnd);
+
+      if (error) {
+        console.error('Erro ao buscar contas do mês anterior:', error);
+        return;
+      }
+
+      const allPrevAccounts = (prevAccounts || []) as any[];
+
+      // Calcular saldo anterior
+      let saldoAnteriorPrev = 0;
+      const saldoAnteriorRow = allPrevAccounts.find(a => a.description === "Saldo Anterior");
+      if (saldoAnteriorRow) {
+        saldoAnteriorPrev = saldoAnteriorRow.type === "receita" 
+          ? saldoAnteriorRow.amount 
+          : -Math.abs(saldoAnteriorRow.amount);
+      }
+
+      // Contas reais do mês anterior
+      const prevMonthAccounts = allPrevAccounts.filter(a => a.description !== "Saldo Anterior");
+
+      const totalRecebidoPrev = prevMonthAccounts
+        .filter(a => a.type === "receita" && a.status === "recebido")
+        .reduce((s, a) => s + (a.amount || 0), 0);
+
+      const totalPagoPrev = prevMonthAccounts
+        .filter(a => a.type === "despesa" && a.status === "pago")
+        .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
+
+      // Saldo final do mês anterior
+      const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+
+      // Criar novo saldo anterior se diferente de zero
+      if (saldoFinalPrev !== 0) {
+        const insertPayload = {
+          description: "Saldo Anterior",
+          amount: Math.abs(saldoFinalPrev),
+          category: "Saldo Anterior",
+          due_date: targetDate,
+          data_conta: targetDate,
+          type: saldoFinalPrev >= 0 ? "receita" : "despesa",
+          status: saldoFinalPrev >= 0 ? "recebido" : "pago",
+          user_id: user.id,
+          payment_source: "bank"
+        };
+
+        await supabase.from("accounts").insert([insertPayload]);
+      }
+
+    } catch (error) {
+      console.error('Erro ao atualizar saldo anterior do mês:', error);
     }
   };
 
@@ -304,6 +433,9 @@ export const useAccountsData = () => {
           account.id === updatedAccount.id ? updatedAccount : account
         )
       );
+
+      // Atualizar saldos subsequentes
+      await updateSubsequentBalances(updatedAccount.dueDate);
 
       // SÓ invalidar cache se a conta for paga/recebida
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
@@ -347,6 +479,11 @@ export const useAccountsData = () => {
 
       // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
+
+      // Atualizar saldos subsequentes se não for "Saldo Anterior"
+      if (accountToDelete && accountToDelete.description !== 'Saldo Anterior') {
+        await updateSubsequentBalances(accountToDelete.dueDate);
+      }
 
       // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
       if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) {
@@ -395,9 +532,15 @@ export const useAccountsData = () => {
       }
 
       // Atualizar na lista local
-     setAccounts(prev => prev.map(acc => 
+      const updatedAccount = accounts.find(acc => acc.id === id);
+      setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
+      
+      // Atualizar saldos subsequentes
+      if (updatedAccount) {
+        await updateSubsequentBalances(updatedAccount.dueDate);
+      }
       
       // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();

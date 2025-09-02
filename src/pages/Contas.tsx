@@ -49,9 +49,14 @@ const Contas: React.FC = () => {
 
   const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
 
-  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
+  const handleMonthChange = async (startDate: Date, endDate: Date, month: number, year: number) => {
     setMonthFilter(month.toString());
     setYearFilter(year.toString());
+    
+    // Recarregar dados para garantir que os saldos anteriores estejam atualizados
+    if (typeof refreshAccounts === "function") {
+      await refreshAccounts();
+    }
   };
 
   const handleShowAll = () => {
