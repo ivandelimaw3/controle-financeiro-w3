@@ -1,152 +1,122 @@
 import React from 'react';
-import { Layout } from '@/components/Layout';
-import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
-import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
-import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
-import { AccountsTable } from '@/components/Accounts/AccountsTable';
-import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
-import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
-import { AccessControlWrapper } from '@/components/AccessControlWrapper';
-import { Loader2 } from 'lucide-react';
-import { useAccounts } from '@/contexts/AccountsContext';
-import { useAccountsReminder } from '@/hooks/useAccountsReminder';
-import { useAccountFilters } from '@/hooks/useAccountFilters';
-import { useAccountOperations } from '@/hooks/useAccountOperations';
+import { Clock, TrendingUp, TrendingDown, DollarSign, History } from 'lucide-react';
+import { Account } from '@/contexts/AccountsContext';
 
-const Contas: React.FC = () => {
-  const { accounts, loading } = useAccounts();
-  
-  // Ativar sistema de lembretes para contas vencendo hoje
-  useAccountsReminder(accounts);
-  
-  // Gerenciar filtros
-  const {
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    typeFilter,
-    setTypeFilter,
-    monthFilter,
-    setMonthFilter,
-    yearFilter,
-    setYearFilter,
-    filteredAccounts
-  } = useAccountFilters(accounts);
+interface AccountsSummaryCardsProps {
+  accounts: Account[];
+  previousBalance?: number; // 👈 adicionamos
+}
 
-  // Gerenciar operações de contas
-  const {
-    isModalOpen,
-    editingAccount,
-    handleSave,
-    handleEdit,
-    handleDelete,
-    handleStatusChange,
-    handleNewAccount,
-    handleModalClose
-  } = useAccountOperations();
-
-  const categories = ['Trabalho', 'Moradia', 'Utilidades', 'Alimentação', 'Transporte', 'Lazer'];
-
-  // Handler para mudança de mês no navegador
-  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
-    console.log('Mudança de mês:', { startDate, endDate, month, year });
-    setMonthFilter(month.toString());
-    setYearFilter(year.toString());
+export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({ accounts, previousBalance = 0 }) => {
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
-  // Handler para mostrar todos os meses
-  const handleShowAll = () => {
-    console.log('Mostrando todos os meses');
-    setMonthFilter('todos');
-    setYearFilter('todos');
+  const calculateTotalPago = () => {
+    return accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pago')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
-  // Obter mês e ano atual - sempre inicializar no mês atual
-  const today = new Date();
-  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter);
-  const currentYear = parseInt(yearFilter);
-  const isShowingAll = monthFilter === 'todos';
-
-  const handleSubmit = (data: AccountFormData) => {
-    handleSave(data);
+  const calculateTotalRecebido = () => {
+    return accounts
+      .filter(account => account.type === 'receita' && account.status === 'recebido')
+      .reduce((sum, account) => sum + account.amount, 0);
   };
 
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex items-center gap-3">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-            <span className="text-lg text-slate-600">Carregando contas...</span>
-          </div>
-        </div>
-      );
-    }
+  const calculateSaldoFinal = () => {
+    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
+  };
 
-    return (
-      <div className="space-y-6">
-        <AccountsHeader onNewAccount={handleNewAccount} />
-
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-          <AccountsFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            monthFilter={monthFilter}
-            setMonthFilter={setMonthFilter}
-            yearFilter={yearFilter}
-            setYearFilter={setYearFilter}
-            accounts={accounts}
-          />
-
-          <AccountsSummaryCards accounts={filteredAccounts} />
-
-          <div className="mb-4">
-            <p className="text-sm text-slate-600 text-center">
-              {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
-            </p>
-          </div>
-
-          {/* Navegador de mês - logo acima da tabela */}
-          <MonthNavigator
-            currentMonth={currentMonth}
-            currentYear={currentYear}
-            onMonthChange={handleMonthChange}
-            onShowAll={handleShowAll}
-            isShowingAll={isShowingAll}
-          />
-
-          <AccountsTable
-            accounts={filteredAccounts}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onStatusChange={handleStatusChange}
-          />
-        </div>
-
-        <AccountModal
-          key={editingAccount?.id || 'new'}
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          onSubmit={handleSubmit}
-          account={editingAccount}
-          categories={categories}
-        />
-      </div>
-    );
+  const calculateTotalPendente = () => {
+    const receitasPendentes = accounts
+      .filter(account => account.type === 'receita' && account.status === 'pendente')
+      .reduce((sum, account) => sum + account.amount, 0);
+    const despesasPendentes = accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pendente')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    return receitasPendentes - despesasPendentes;
   };
 
   return (
-    <AccessControlWrapper>
-      <Layout>
-        {renderContent()}
-      </Layout>
-    </AccessControlWrapper>
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Saldo Anterior */}
+      <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <History size={20} className="text-purple-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Anterior</p>
+            <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(previousBalance)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Total Recebido */}
+      <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <TrendingUp size={20} className="text-green-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Total Recebido</p>
+            <p className="text-xl font-bold text-green-600">
+              {formatCurrency(calculateTotalRecebido())}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Total Pago */}
+      <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-red-100 rounded-lg">
+            <TrendingDown size={20} className="text-red-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Total Pago</p>
+            <p className="text-xl font-bold text-red-600">
+              {formatCurrency(calculateTotalPago())}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Saldo Final */}
+      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <DollarSign size={20} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Final</p>
+            <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(calculateSaldoFinal())}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Saldo Pendente */}
+      <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-yellow-100 rounded-lg">
+            <Clock size={20} className="text-yellow-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Saldo Pendente</p>
+            <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(calculateTotalPendente())}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
-
-export default Contas;
