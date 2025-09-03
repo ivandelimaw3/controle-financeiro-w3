@@ -191,11 +191,16 @@ export const useAccountsData = () => {
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
         }
-               
+                
         toast({
           title: "Sucesso",
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
         });
+        
+        // Atualizar saldos subsequentes apenas se as parcelas afetam o saldo (pago/recebido)
+        if (accountData.status === 'pago' || accountData.status === 'recebido') {
+          updateSubsequentBalances(accountData.dueDate);
+        }
       } else {
         // Criar conta única
         const { data, error } = await supabase
@@ -247,9 +252,6 @@ export const useAccountsData = () => {
 
         setAccounts(prev => [newAccount, ...prev]);
         
-        // Atualizar saldos subsequentes
-        await updateSubsequentBalances(accountData.dueDate);
-        
         // SÓ invalidar cache se a conta for paga/recebida
         if (accountData.status === 'pago' || accountData.status === 'recebido') {
           invalidateBanksCache();
@@ -259,6 +261,11 @@ export const useAccountsData = () => {
           title: "Sucesso",
           description: "Conta criada com sucesso.",
         });
+        
+        // Atualizar saldos subsequentes apenas se a conta afeta o saldo (pago/recebido)
+        if (accountData.status === 'pago' || accountData.status === 'recebido') {
+          updateSubsequentBalances(accountData.dueDate);
+        }
       }
     } catch (error) {
       console.error('Erro ao criar conta:', error);
