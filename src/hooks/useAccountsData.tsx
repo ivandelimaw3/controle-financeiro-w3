@@ -10,7 +10,6 @@ export interface Account {
   amount: number;
   category: string;
   dueDate: string;
-  dataConta?: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
@@ -31,7 +30,6 @@ export interface Transaction {
   amount: number;
   category: string;
   dueDate: string;
-  dataConta?: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
@@ -87,7 +85,6 @@ export const useAccountsData = () => {
         amount: parseFloat(account.amount.toString()),
         category: account.category,
         dueDate: account.due_date,
-        dataConta: account.data_conta,
         type: account.type as 'receita' | 'despesa',
         status: account.status as 'pendente' | 'pago' | 'recebido',
         parcela: account.parcela,
@@ -139,7 +136,6 @@ export const useAccountsData = () => {
             amount: valorPorParcela,
             category: accountData.category,
             due_date: data.toISOString().split('T')[0],
-            data_conta: accountData.dataConta,
             type: accountData.type,
             status: accountData.status,
             user_id: user.id,
@@ -174,7 +170,6 @@ export const useAccountsData = () => {
           amount: parseFloat(account.amount.toString()),
           category: account.category,
           dueDate: account.due_date,
-          dataConta: account.data_conta,
           type: account.type as 'receita' | 'despesa',
           status: account.status as 'pendente' | 'pago' | 'recebido',
           parcela: account.parcela,
@@ -210,7 +205,6 @@ export const useAccountsData = () => {
             amount: accountData.amount,
             category: accountData.category,
             due_date: accountData.dueDate,
-            data_conta: accountData.dataConta,
             type: accountData.type,
             status: accountData.status,
             user_id: user.id,
@@ -239,7 +233,6 @@ export const useAccountsData = () => {
           amount: parseFloat(data.amount.toString()),
           category: data.category,
           dueDate: data.due_date,
-          dataConta: data.data_conta,
           type: data.type as 'receita' | 'despesa',
           status: data.status as 'pendente' | 'pago' | 'recebido',
           parcela: data.parcela,
@@ -388,7 +381,6 @@ export const useAccountsData = () => {
           amount: Math.abs(saldoFinalPrev),
           category: "Saldo Anterior",
           due_date: targetDate,
-          data_conta: targetDate,
           type: saldoFinalPrev >= 0 ? "receita" : "despesa",
           status: saldoFinalPrev >= 0 ? "recebido" : "pago",
           user_id: user.id,
@@ -413,7 +405,6 @@ export const useAccountsData = () => {
           amount: updatedAccount.amount,
           category: updatedAccount.category,
           due_date: updatedAccount.dueDate,
-          data_conta: updatedAccount.dataConta,
           type: updatedAccount.type,
           status: updatedAccount.status,
           bank_id: updatedAccount.bank_id,
@@ -422,7 +413,7 @@ export const useAccountsData = () => {
           payment_source_name: updatedAccount.payment_source_name
         })
         .eq('id', updatedAccount.id)
-        .eq('user_id', user.id); 
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Erro ao atualizar conta:', error);

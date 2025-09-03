@@ -14,7 +14,6 @@ interface Account {
   amount: number;
   category: string;
   dueDate: string;
-  dataConta?: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
   parcela?: string;
@@ -83,9 +82,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     setFormData({ ...formData, dueDate: e.target.value });
   };
 
-  const handleDataContaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, dataConta: e.target.value });
-  };
 
   const handleParcellasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, qtd_parcelas: parseInt(e.target.value) || 1 });
@@ -98,6 +94,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       payment_source_id: parseInt(value),
       payment_source_name: bank?.name || ''
     });
+  };
+
+  const handleStatusChange = (value: 'pendente' | 'pago' | 'recebido') => {
+    setFormData({ ...formData, status: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -118,7 +118,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Descrição */}
       <div>
-        <Label htmlFor="description">Descrição</Label>
+        <Label htmlFor="description">Descrição *</Label>
         <Input
           id="description"
           type="text"
@@ -129,28 +129,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         />
       </div>
 
-      {/* Valor e Tipo */}
+      {/* Tipo e Categoria */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="amount">Valor Total</Label>
-          <div className="relative mt-1">
-            <span className="absolute left-3 top-3 text-slate-400">R$</span>
-            <Input
-              id="amount"
-              type="text"
-              value={formatCurrencyInput(formData.amount || 0)}
-              onChange={handleAmountChange}
-              className="pl-10"
-              placeholder="0,00"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="type">Tipo</Label>
+          <Label htmlFor="type">Tipo *</Label>
           <Select value={formData.type || 'despesa'} onValueChange={handleTypeChange}>
-            <SelectTrigger className="mt-1">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -159,64 +143,69 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             </SelectContent>
           </Select>
         </div>
+
+        <div>
+          <Label>Categoria *</Label>
+          <CategorySelect
+            value={formData.category || ''}
+            onValueChange={handleCategoryChange}
+            categories={categories || []}
+            accountType={formData.type || 'despesa'}
+            onRefresh={onRefreshCategories}
+            onAddCategory={onAddCategory}
+          />
+        </div>
       </div>
 
-      {/* Banco */}
-      <div>
-        <Label htmlFor="bank">Banco <span className="text-red-500">*</span></Label>
-        <Select
-          value={formData.payment_source_id?.toString() || ''}
-          onValueChange={handleBankChange}
-          required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione o banco" />
-          </SelectTrigger>
-          <SelectContent>
-            {banksOptions.map((bank) => (
-              <SelectItem key={bank.id} value={bank.id}>
-                {bank.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Nome + saldo */}
-        {formData.payment_source_id && (
-          <div className="mt-2 p-3 bg-slate-50 rounded-lg border">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{formData.payment_source_name}</span>
-              <span className="text-sm text-slate-600">{getSelectedBankBalance()}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Categoria */}
-      <CategorySelect
-        value={formData.category || ''}
-        onValueChange={handleCategoryChange}
-        categories={categories || []}
-        accountType={formData.type || 'despesa'}
-        onRefresh={onRefreshCategories}
-        onAddCategory={onAddCategory}
-      />
-
-      {/* Datas */}
+      {/* Fonte de Pagamento e Banco */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="dataConta">Data da Conta</Label>
-          <Input
-            id="dataConta"
-            type="date"
-            value={formData.dataConta || ''}
-            onChange={handleDataContaChange}
-            required
-          />
+          <Label>Fonte de Pagamento *</Label>
+          <Select value="bank" disabled>
+            <SelectTrigger>
+              <SelectValue placeholder="Banco" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bank">Banco</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <Label htmlFor="dueDate">Vencimento</Label>
+          <Label htmlFor="bank">Banco *</Label>
+          <Select
+            value={formData.payment_source_id?.toString() || ''}
+            onValueChange={handleBankChange}
+            required
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o banco" />
+            </SelectTrigger>
+            <SelectContent>
+              {banksOptions.map((bank) => (
+                <SelectItem key={bank.id} value={bank.id}>
+                  {bank.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Saldo do banco selecionado */}
+          {formData.payment_source_id && (
+            <div className="mt-2 p-2 bg-slate-50 rounded-lg border">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium">{formData.payment_source_name}</span>
+                <span className="text-xs text-slate-600">{getSelectedBankBalance()}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Data de Vencimento e Status */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="dueDate">Data de Vencimento *</Label>
           <Input
             id="dueDate"
             type="date"
@@ -225,21 +214,54 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             required
           />
         </div>
+
+        <div>
+          <Label htmlFor="status">Status</Label>
+          <Select value={formData.status || 'pendente'} onValueChange={handleStatusChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="pago">Pago</SelectItem>
+              <SelectItem value="recebido">Recebido</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Valor */}
+      <div>
+        <Label htmlFor="amount">Valor *</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-3 text-slate-400">R$</span>
+          <Input
+            id="amount"
+            type="text"
+            value={formatCurrencyInput(formData.amount || 0)}
+            onChange={handleAmountChange}
+            className="pl-10"
+            placeholder="0,00"
+            required
+          />
+        </div>
       </div>
 
       {/* Parcelas */}
-      <div>
-        <Label htmlFor="qtd_parcelas">Parcelas</Label>
-        <Input
-          id="qtd_parcelas"
-          type="number"
-          min="1"
-          max="60"
-          value={formData.qtd_parcelas || 1}
-          onChange={handleParcellasChange}
-          placeholder="1"
-        />
-      </div>
+      {!isEditing && (
+        <div>
+          <Label htmlFor="qtd_parcelas">Parcelas</Label>
+          <Input
+            id="qtd_parcelas"
+            type="number"
+            min="1"
+            max="60"
+            value={formData.qtd_parcelas || 1}
+            onChange={handleParcellasChange}
+            placeholder="1"
+          />
+        </div>
+      )}
 
       {/* Botões */}
       <div className="flex gap-3 pt-4">

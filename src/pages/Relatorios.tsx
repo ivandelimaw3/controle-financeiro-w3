@@ -391,7 +391,7 @@ const Relatorios: React.FC = () => {
                         {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                       </span>
                     </TableCell>
-                    <TableCell>{formatDate(account.dataConta || '')}</TableCell>
+                    <TableCell>-</TableCell>
                     <TableCell>{formatDate(account.dueDate)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(account.status)}`}>

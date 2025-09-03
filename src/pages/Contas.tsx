@@ -260,7 +260,6 @@ const Contas: React.FC = () => {
                 amount: Math.abs(saldoFinalPrev),
                 category: "Saldo Anterior",
                 due_date: targetDueDate,
-                data_conta: targetDueDate,
                 type: saldoFinalPrev >= 0 ? "receita" : "despesa",
                 status: saldoFinalPrev >= 0 ? "recebido" : "pago",
                 user_id: user.id,

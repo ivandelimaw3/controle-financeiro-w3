@@ -20,7 +20,6 @@ export interface AccountFormData {
   payment_source: 'bank';  // Fixo como 'bank'
   payment_source_id: number | null;
   payment_source_name: string;
-  dataConta?: string;
 }
 
 interface AccountModalProps {
@@ -52,8 +51,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     status: 'pendente',
     payment_source: 'bank',
     payment_source_id: null,
-    payment_source_name: '',
-    dataConta: ''
+    payment_source_name: ''
   });
 
   const [displayAmount, setDisplayAmount] = useState('');
@@ -69,8 +67,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: account.status as 'pendente' | 'pago' | 'recebido',
         payment_source: 'bank',
         payment_source_id: account.payment_source_id,
-        payment_source_name: account.payment_source_name || '',
-        dataConta: account.dataConta || ''
+        payment_source_name: account.payment_source_name || ''
       });
       setDisplayAmount(formatCurrencyInput(account.amount));
     } else {
@@ -83,8 +80,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         status: 'pendente',
         payment_source: 'bank',
         payment_source_id: null,
-        payment_source_name: '',
-        dataConta: ''
+        payment_source_name: ''
       });
       setDisplayAmount('');
     }
@@ -158,29 +154,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               placeholder="Descrição da conta"
               required
             />
-          </div>
-
-          {/* Data da Conta e Data de Vencimento */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="dataConta">Data da Conta</Label>
-              <Input
-                id="dataConta"
-                type="date"
-                value={formData.dataConta}
-                onChange={e => handleChange('dataConta', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="dueDate">Data de Vencimento *</Label>
-              <Input
-                id="dueDate"
-                type="date"
-                value={formData.dueDate}
-                onChange={e => handleChange('dueDate', e.target.value)}
-                required
-              />
-            </div>
           </div>
 
           {/* Tipo e Categoria */}
@@ -277,8 +250,18 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
           )}
 
-          {/* Status e Valor */}
+          {/* Data de Vencimento e Status */}
           <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="dueDate">Data de Vencimento *</Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={e => handleChange('dueDate', e.target.value)}
+                required
+              />
+            </div>
             <div>
               <Label htmlFor="status">Status</Label>
               <Select 
@@ -310,22 +293,24 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="amount">Valor *</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                  R$
-                </span>
-                <Input
-                  id="amount"
-                  type="text"
-                  value={displayAmount}
-                  onChange={handleAmountChange}
-                  placeholder="0,00"
-                  className="pl-10"
-                  required
-                />
-              </div>
+          </div>
+
+          {/* Valor */}
+          <div>
+            <Label htmlFor="amount">Valor *</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                R$
+              </span>
+              <Input
+                id="amount"
+                type="text"
+                value={displayAmount}
+                onChange={handleAmountChange}
+                placeholder="0,00"
+                className="pl-10"
+                required
+              />
             </div>
           </div>
 

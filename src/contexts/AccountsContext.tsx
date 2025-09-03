@@ -8,7 +8,6 @@ export interface Transaction {
   amount: number;
   category: string;
   dueDate: string;
-  dataConta?: string;
   date: string;
   type: 'receita' | 'despesa';
   status: 'pendente' | 'pago' | 'recebido';
@@ -79,7 +78,6 @@ export const AccountsProvider: React.FC<AccountsProviderProps> = ({ children }) 
         amount: account.amount,
         category: account.category,
         dueDate: account.dueDate,
-        dataConta: account.dataConta,
         date: formattedDate,
         type: account.type,
         status: account.status,
