@@ -138,11 +138,7 @@ const Relatorios: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Relatórios</h1>
-            <p className="text-slate-600">Análise detalhada das suas finanças</p>
-          </div>
+        <div className="flex justify-end items-center">
           <Button 
             onClick={handleExportPDF}
             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
@@ -365,7 +361,6 @@ const Relatorios: React.FC = () => {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
-                  <TableHead>Data da Conta</TableHead>
                   <TableHead>Data de Vencimento</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -391,7 +386,6 @@ const Relatorios: React.FC = () => {
                         {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                       </span>
                     </TableCell>
-                    <TableCell>-</TableCell>
                     <TableCell>{formatDate(account.dueDate)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(account.status)}`}>
