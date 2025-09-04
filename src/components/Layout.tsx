@@ -13,27 +13,40 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const isContasPage = location.pathname === '/contas';
+  
+  const collapsiblePages = [
+    '/contas',
+    '/categorias', 
+    '/relatorios',
+    '/analise',
+    '/bancos',
+    '/cartoes-credito',
+    '/card-accounts',
+    '/investimentos',
+    '/investimentos-vencidos'
+  ];
+  
+  const isCollapsiblePage = collapsiblePages.includes(location.pathname);
 
   useEffect(() => {
-    if (!isContasPage) {
+    if (!isCollapsiblePage) {
       setSidebarCollapsed(false);
     }
-  }, [isContasPage]);
+  }, [isCollapsiblePage]);
 
   const handleMainContentHover = () => {
-    if (isContasPage) {
+    if (isCollapsiblePage) {
       setSidebarCollapsed(true);
     }
   };
 
   const handleSidebarHover = () => {
-    if (isContasPage) {
+    if (isCollapsiblePage) {
       setSidebarCollapsed(false);
     }
   };
 
-  if (isContasPage) {
+  if (isCollapsiblePage) {
     return (
       <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
