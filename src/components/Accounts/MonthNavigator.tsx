@@ -77,7 +77,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
         </Button>
 
         <div className="text-lg font-semibold text-slate-800">
-          2025
+          {currentYear}
         </div>
 
         <Button
