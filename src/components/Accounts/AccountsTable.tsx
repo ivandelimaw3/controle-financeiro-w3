@@ -38,6 +38,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pago':
+        return 'bg-red-100 text-red-800 border-red-200';
       case 'recebido':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'pendente':

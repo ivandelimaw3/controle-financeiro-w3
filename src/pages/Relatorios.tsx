@@ -356,21 +356,25 @@ const Relatorios: React.FC = () => {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Data de Vencimento</TableHead>
-                  <TableHead>Status</TableHead>
+                <TableRow className="bg-slate-50/50">
+                  <TableHead className="font-semibold text-slate-700 py-2 w-[30%]">Descrição</TableHead>
+                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Categoria</TableHead>
+                  <TableHead className="font-semibold text-slate-700 py-2 w-[10%]">Tipo</TableHead>
+                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Valor</TableHead>
+                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Data de Vencimento</TableHead>
+                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAccounts.map((account) => (
-                  <TableRow key={account.id}>
-                    <TableCell className="font-medium">{account.description}</TableCell>
-                    <TableCell>{account.category}</TableCell>
-                    <TableCell>
+                  <TableRow key={account.id} className="hover:bg-slate-50/30 transition-colors h-12">
+                    <TableCell className="font-medium py-2 max-w-0">
+                      <div className="truncate" title={account.description}>
+                        {account.description}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-2">{account.category}</TableCell>
+                    <TableCell className="py-2">
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         account.type === 'receita' 
                           ? 'bg-green-100 text-green-800' 
@@ -379,15 +383,15 @@ const Relatorios: React.FC = () => {
                         {account.type === 'receita' ? 'Receita' : 'Despesa'}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <span className={`font-semibold ${
                         account.type === 'receita' ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                       </span>
                     </TableCell>
-                    <TableCell>{formatDate(account.dueDate)}</TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">{formatDate(account.dueDate)}</TableCell>
+                    <TableCell className="py-2">
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(account.status)}`}>
                         {getStatusLabel(account.status)}
                       </span>
