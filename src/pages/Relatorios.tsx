@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
+import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,15 +16,29 @@ const Relatorios: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
-  const [monthFilter, setMonthFilter] = useState('todos');
-  const [yearFilter, setYearFilter] = useState('todos');
+  
+  // Inicializar com mês atual
+  const today = new Date();
+  const [monthFilter, setMonthFilter] = useState((today.getMonth() + 1).toString());
+  const [yearFilter, setYearFilter] = useState(today.getFullYear().toString());
 
   const { toast } = useToast();
 
-  // Gerar lista de anos disponíveis
-  const availableYears = Array.from(new Set(
-    accounts.map(account => new Date(account.dueDate).getFullYear())
-  )).sort((a, b) => b - a);
+  // Para o MonthNavigator (que usa 0-11 para meses)
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10) - 1;
+  const currentYear = parseInt(yearFilter, 10);
+  const isShowingAll = monthFilter === 'todos';
+
+  // Funções para o MonthNavigator
+  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
+    setMonthFilter((month + 1).toString()); // MonthNavigator usa 0-11, nossos filtros usam 1-12
+    setYearFilter(year.toString());
+  };
+
+  const handleShowAll = () => {
+    setMonthFilter('todos');
+    setYearFilter('todos');
+  };
 
   const handleExportPDF = () => {
     toast({
@@ -238,45 +253,14 @@ const Relatorios: React.FC = () => {
               </Select>
             </div>
 
-            {/* Filtros de Data */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <Calendar size={16} className="mr-2" />
-                  <SelectValue placeholder="Mês" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Meses</SelectItem>
-                  <SelectItem value="1">Janeiro</SelectItem>
-                  <SelectItem value="2">Fevereiro</SelectItem>
-                  <SelectItem value="3">Março</SelectItem>
-                  <SelectItem value="4">Abril</SelectItem>
-                  <SelectItem value="5">Maio</SelectItem>
-                  <SelectItem value="6">Junho</SelectItem>
-                  <SelectItem value="7">Julho</SelectItem>
-                  <SelectItem value="8">Agosto</SelectItem>
-                  <SelectItem value="9">Setembro</SelectItem>
-                  <SelectItem value="10">Outubro</SelectItem>
-                  <SelectItem value="11">Novembro</SelectItem>
-                  <SelectItem value="12">Dezembro</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <Calendar size={16} className="mr-2" />
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Anos</SelectItem>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* MonthNavigator substituindo os filtros de data */}
+            <MonthNavigator
+              currentMonth={currentMonth}
+              currentYear={currentYear}
+              onMonthChange={handleMonthChange}
+              onShowAll={handleShowAll}
+              isShowingAll={isShowingAll}
+            />
 
             {/* Campo de Total por Status */}
             {statusTotal !== null && (
@@ -330,9 +314,7 @@ const Relatorios: React.FC = () => {
                   </span>
                 </div>
                 <div className="mt-2 text-sm text-slate-500">
-                  {monthFilter !== 'todos' && `Mês: ${monthFilter}`}
-                  {monthFilter !== 'todos' && yearFilter !== 'todos' && ' • '}
-                  {yearFilter !== 'todos' && `Ano: ${yearFilter}`}
+                  {!isShowingAll && `Período: ${currentMonth + 1}/${currentYear}`}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">
                   * Saldo calculado apenas com contas pagas/recebidas
