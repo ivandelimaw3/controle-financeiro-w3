@@ -100,25 +100,28 @@ const Relatorios: React.FC = () => {
     return null;
   };
 
-  // Calcular saldo da seleção de mês/ano (apenas para contas pagas/recebidas)
-  const getFilteredBalance = () => {
-    if (monthFilter !== 'todos' || yearFilter !== 'todos') {
-      const receitas = filteredAccounts
-        .filter(account => account.type === 'receita' && account.status === 'recebido')
-        .reduce((sum, account) => sum + account.amount, 0);
-      
-      const despesas = filteredAccounts
-        .filter(account => account.type === 'despesa' && account.status === 'pago')
-        .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-      
-      return receitas - despesas;
-    }
-    return null;
+  // Calcular valores filtrados para os cards
+  const getFilteredReceitas = () => {
+    return filteredAccounts
+      .filter(account => account.type === 'receita' && account.status === 'recebido')
+      .reduce((sum, account) => sum + account.amount, 0);
+  };
+
+  const getFilteredDespesas = () => {
+    return filteredAccounts
+      .filter(account => account.type === 'despesa' && account.status === 'pago')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+  };
+
+  const getFilteredSaldo = () => {
+    return getFilteredReceitas() - getFilteredDespesas();
   };
 
   const filteredTotal = getFilteredTotal();
   const statusTotal = getStatusTotal();
-  const filteredBalance = getFilteredBalance();
+  const filteredReceitas = getFilteredReceitas();
+  const filteredDespesas = getFilteredDespesas();
+  const filteredSaldo = getFilteredSaldo();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -175,7 +178,7 @@ const Relatorios: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-slate-600 text-sm">Total de Receitas</h3>
-                <p className="text-2xl font-bold text-green-600">R$ {getTotalReceitas().toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">R$ {filteredReceitas.toFixed(2)}</p>
               </div>
             </div>
             <p className="text-sm text-slate-500">+12% vs mês anterior</p>
@@ -188,7 +191,7 @@ const Relatorios: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-slate-600 text-sm">Total de Despesas</h3>
-                <p className="text-2xl font-bold text-red-600">R$ {getTotalDespesas().toFixed(2)}</p>
+                <p className="text-2xl font-bold text-red-600">R$ {filteredDespesas.toFixed(2)}</p>
               </div>
             </div>
             <p className="text-sm text-slate-500">+5% vs mês anterior</p>
@@ -201,8 +204,8 @@ const Relatorios: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-slate-600 text-sm">Saldo do Período</h3>
-                <p className={`text-2xl font-bold ${getSaldo() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  R$ {getSaldo().toFixed(2)}
+                <p className={`text-2xl font-bold ${filteredSaldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  R$ {filteredSaldo.toFixed(2)}
                 </p>
               </div>
             </div>
