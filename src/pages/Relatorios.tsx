@@ -300,27 +300,6 @@ const Relatorios: React.FC = () => {
               </div>
             )}
 
-            {/* Campo de Saldo da Seleção de Mês/Ano */}
-            {filteredBalance !== null && (
-              <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600 font-medium">
-                    Saldo do Período Selecionado:
-                  </span>
-                  <span className={`text-xl font-bold ${
-                    filteredBalance >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    R$ {filteredBalance.toFixed(2)}
-                  </span>
-                </div>
-                <div className="mt-2 text-sm text-slate-500">
-                  {!isShowingAll && `Período: ${currentMonth + 1}/${currentYear}`}
-                </div>
-                <div className="mt-1 text-xs text-slate-500">
-                  * Saldo calculado apenas com contas pagas/recebidas
-                </div>
-              </div>
-            )}
 
             {/* Mostrar informação da pesquisa quando há termo de busca */}
             {searchTerm && (
