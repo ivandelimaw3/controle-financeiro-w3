@@ -166,55 +166,33 @@ export const useUserRoles = () => {
         throw new Error('Não é possível deletar sua própria conta');
       }
       
-      console.log('=== CHAMANDO FUNÇÃO RPC ===');
-      console.log('Chamando delete_user_account com parâmetro:', userId);
+      console.log('=== CHAMANDO EDGE FUNCTION ===');
       
-      // Chamar a função RPC
-      const { data, error } = await supabase.rpc('delete_user_account', {
-        target_user_id: userId
+      // Chamar a edge function para deletar usuário
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
       });
 
-      console.log('=== RESPOSTA DA FUNÇÃO RPC ===');
+      console.log('=== RESPOSTA DA EDGE FUNCTION ===');
       console.log('Data retornada:', data);
       console.log('Error retornado:', error);
-      console.log('Tipo de data:', typeof data);
-      console.log('Valor exato de data:', data);
 
-      // Verificar se houve erro na chamada RPC
+      // Verificar se houve erro na chamada
       if (error) {
-        console.error('=== ERRO NA CHAMADA RPC ===');
-        console.error('Código do erro:', error.code);
-        console.error('Mensagem do erro:', error.message);
-        console.error('Detalhes do erro:', error.details);
-        console.error('Hint do erro:', error.hint);
-        throw new Error(`Erro na função RPC: ${error.message}`);
+        console.error('=== ERRO NA CHAMADA DA EDGE FUNCTION ===');
+        console.error('Erro:', error);
+        throw new Error(`Erro ao deletar usuário: ${error.message}`);
       }
 
-      console.log('=== ANÁLISE DO RETORNO ===');
-      
-      if (data === true) {
-        console.log('Data é true (sucesso)');
-      } else if (data === false) {
-        console.log('Data é false (falha)');
-      } else if (data === null || data === undefined) {
-        console.log('Data é null/undefined');
-      } else {
-        console.log('Data tem valor inesperado:', data);
+      // Verificar se a resposta indica erro
+      if (data?.error) {
+        console.error('=== ERRO RETORNADO PELA FUNCTION ===');
+        console.error('Erro:', data.error);
+        throw new Error(data.error);
       }
 
-      // Verificar o resultado da função
-      if (data !== true) {
-        console.log('=== FUNÇÃO RPC NÃO RETORNOU SUCESSO ===');
-        console.log('Valor retornado:', data);
-        
-        // Tentar obter mais informações sobre o erro
-        console.log('=== TENTANDO OBTER LOGS DO POSTGRES ===');
-        
-        // Verificar se o usuário ainda existe
-        const { data: userCheck, error: userCheckError } = await supabase.rpc('get_all_users_with_trial_info');
-        console.log('Verificação de usuários após falha:', userCheck?.some(u => u.user_id === userId));
-        
-        throw new Error(`A operação de exclusão falhou. A função retornou: ${data}`);
+      if (!data?.success) {
+        throw new Error('Falha ao deletar usuário');
       }
 
       console.log('=== USUÁRIO DELETADO COM SUCESSO ===');
@@ -228,7 +206,6 @@ export const useUserRoles = () => {
       console.log('Tipo do erro:', typeof error);
       console.log('Erro completo:', error);
       console.log('Mensagem do erro:', error instanceof Error ? error.message : String(error));
-      console.log('Stack trace:', error instanceof Error ? error.stack : 'Sem stack trace');
       throw error;
     }
   };
