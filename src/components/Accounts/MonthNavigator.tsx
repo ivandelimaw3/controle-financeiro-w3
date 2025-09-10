@@ -121,14 +121,10 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
 
         {onShowReport && (
           <Button
-            variant={isShowingReport ? "default" : "outline"}
+            variant="outline"
             size="sm"
             onClick={onShowReport}
-            className={`flex items-center gap-2 h-9 px-3 rounded-full transition-colors ${
-              isShowingReport 
-                ? 'bg-orange-600 text-white hover:bg-orange-700' 
-                : 'hover:bg-orange-50 hover:border-orange-300 hover:text-orange-700'
-            }`}
+            className="flex items-center gap-2 h-9 px-3 rounded-full bg-orange-200 text-orange-800 border-orange-300 hover:bg-orange-300 hover:text-orange-900"
           >
             <BarChart3 size={14} />
             <span className="hidden sm:inline">Relatório</span>

@@ -108,17 +108,17 @@ const Contas: React.FC = () => {
         ? (saldoAnteriorAccount.type === "receita" ? saldoAnteriorAccount.amount : -Math.abs(saldoAnteriorAccount.amount))
         : 0;
 
-      // Calcular totais do mês
+      // Calcular totais do mês (incluindo saldo anterior no total recebido)
       const totalRecebido = realAccounts
         .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
-        .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0);
+        .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0) + Math.max(0, saldoAnterior);
 
       const totalPago = realAccounts
         .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
         .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
 
       // Saldo final = saldo anterior + recebido - pago
-      const saldoFinal = saldoAnterior + totalRecebido - totalPago;
+      const saldoFinal = saldoAnterior + (totalRecebido - Math.max(0, saldoAnterior)) - totalPago;
 
       monthlyData.push({
         month: monthNames[targetMonth],
