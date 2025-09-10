@@ -63,8 +63,9 @@ const Contas: React.FC = () => {
   };
 
   const handleShowAll = () => {
+    const currentYear = new Date().getFullYear().toString();
     setMonthFilter('todos');
-    setYearFilter('todos');
+    setYearFilter(currentYear); // Definir o ano atual ao invés de 'todos'
     setIsShowingReport(false);
   };
 
@@ -160,7 +161,7 @@ const Contas: React.FC = () => {
 
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
-  const currentYear = parseInt(yearFilter, 10);
+  const currentYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos' && !isShowingReport;
 
   // --- Garantir "Saldo Anterior" automático para qualquer mês ---
