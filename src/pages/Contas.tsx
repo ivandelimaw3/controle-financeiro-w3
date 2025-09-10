@@ -456,9 +456,15 @@ const Contas: React.FC = () => {
       if (!acc.dueDate) return false;
       const d = new Date(acc.dueDate + "T00:00:00");
       
-      // Se está mostrando todos os meses, incluir todo o ano
+      // Se está mostrando todos os meses, incluir apenas de janeiro até o mês atual
       if (isShowingAll) {
-        return d.getFullYear() === currentYear && acc.description !== "Saldo Anterior";
+        const today = new Date();
+        const currentMonthIndex = today.getMonth(); // 0-11
+        const accountMonth = d.getMonth(); // 0-11
+        
+        return d.getFullYear() === currentYear && 
+               accountMonth <= currentMonthIndex && 
+               acc.description !== "Saldo Anterior";
       }
       
       // Caso contrário, filtrar apenas o mês específico
