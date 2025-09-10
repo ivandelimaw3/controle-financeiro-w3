@@ -24,7 +24,8 @@ export const MonthlyReportTable: React.FC<MonthlyReportTableProps> = ({
 }) => {
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-      <h2 className="text-xl font-semibold text-slate-800 mb-4">Relatório dos Últimos 12 Meses</h2>
+  <h2 className="text-xl font-semibold text-slate-800 mb-4 text-center">
+    Relatório dos Últimos 12 Meses </h2>
       
       <div className="overflow-x-auto">
         <div className="border border-slate-300 rounded-lg">
