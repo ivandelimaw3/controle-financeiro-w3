@@ -77,6 +77,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50/50">
+            <TableHead className="font-semibold text-slate-700 w-[50px] h-8 py-1 text-center">#</TableHead>
             <TableHead className="font-semibold text-slate-700 min-w-[200px] h-8 py-1">Descrição</TableHead>
             <TableHead className="font-semibold text-slate-700 h-8 py-1">Tipo</TableHead>
             <TableHead className="font-semibold text-slate-700 h-8 py-1">Valor</TableHead>
@@ -88,8 +89,11 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {accounts.map((account) => (
+          {accounts.map((account, index) => (
             <TableRow key={account.id} className="hover:bg-slate-50/50 transition-colors h-10">
+              <TableCell className="text-center text-slate-600 font-medium py-1">
+                {index + 1}
+              </TableCell>
               <TableCell className="font-medium text-slate-900 min-w-[200px] max-w-[250px] py-1">
                 <div className="truncate" title={account.description}>
                   {account.description}
