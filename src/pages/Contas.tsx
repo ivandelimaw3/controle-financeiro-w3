@@ -152,9 +152,8 @@ const Contas: React.FC = () => {
     const totalReceived = calculateMonthlyData.reduce((sum, data) => sum + data.totalRecebido, 0);
     const totalPaid = calculateMonthlyData.reduce((sum, data) => sum + data.totalPago, 0);
     
-    // Obter o saldo final do mês atual (último mês com dados reais)
-    const currentMonth = new Date().getMonth();
-    const finalBalance = calculateMonthlyData[currentMonth]?.saldoFinal || 0;
+    // O saldo final total é a diferença entre total recebido e total pago (janeiro até mês atual)
+    const finalBalance = totalReceived - totalPaid;
 
     return { totalReceived, totalPaid, finalBalance };
   }, [calculateMonthlyData]);
