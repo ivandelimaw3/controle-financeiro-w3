@@ -383,18 +383,22 @@ const Contas: React.FC = () => {
     ensureSaldoAnteriorForMonth();
   }, [currentMonth, currentYear, user, loading, refreshAccounts]);
 
-  // Calcular previousBalance a partir do registro "Saldo Anterior" do mês atual
+  // Calcular previousBalance a partir do registro "Saldo Anterior"
   const previousBalance = React.useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
+    
+    // Se está mostrando todos os meses, usar o saldo anterior de janeiro
+    const targetMonth = isShowingAll ? 0 : currentMonth;
+    
     const found = accounts.find(acc => {
       if (!acc.dueDate) return false;
       const d = new Date(acc.dueDate + "T00:00:00");
-      return acc.description === "Saldo Anterior" && d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+      return acc.description === "Saldo Anterior" && d.getFullYear() === currentYear && d.getMonth() === targetMonth;
     });
 
     if (!found) return 0;
     return found.type === "receita" ? found.amount : -Math.abs(found.amount);
-  }, [accounts, currentMonth, currentYear]);
+  }, [accounts, currentMonth, currentYear, isShowingAll]);
 
   // Função para obter o saldo anterior do mês anterior (para meses subsequentes)
   const getPreviousMonthBalance = React.useCallback(() => {
@@ -451,10 +455,17 @@ const Contas: React.FC = () => {
     return accounts.filter((acc: any) => {
       if (!acc.dueDate) return false;
       const d = new Date(acc.dueDate + "T00:00:00");
+      
+      // Se está mostrando todos os meses, incluir todo o ano
+      if (isShowingAll) {
+        return d.getFullYear() === currentYear && acc.description !== "Saldo Anterior";
+      }
+      
+      // Caso contrário, filtrar apenas o mês específico
       return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
              acc.description !== "Saldo Anterior";
     });
-  }, [accounts, currentMonth, currentYear]);
+  }, [accounts, currentMonth, currentYear, isShowingAll]);
 
   const handleSubmit = (data: AccountFormData) => {
     handleSave(data);
