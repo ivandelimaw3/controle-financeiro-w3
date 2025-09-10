@@ -7,6 +7,7 @@ import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
+import { MonthlyReportTable } from '@/components/Accounts/MonthlyReportTable';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
@@ -19,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const Contas: React.FC = () => {
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
   const { user } = useAuth();
+  const [isShowingReport, setIsShowingReport] = React.useState(false);
 
   useAccountsReminder(accounts);
 
@@ -52,6 +54,7 @@ const Contas: React.FC = () => {
   const handleMonthChange = async (startDate: Date, endDate: Date, month: number, year: number) => {
     setMonthFilter(month.toString());
     setYearFilter(year.toString());
+    setIsShowingReport(false);
     
     // Recarregar dados para garantir que os saldos anteriores estejam atualizados
     if (typeof refreshAccounts === "function") {
@@ -62,12 +65,89 @@ const Contas: React.FC = () => {
   const handleShowAll = () => {
     setMonthFilter('todos');
     setYearFilter('todos');
+    setIsShowingReport(false);
   };
+
+  const handleShowReport = () => {
+    setIsShowingReport(true);
+    setMonthFilter('todos');
+    setYearFilter('todos');
+  };
+
+  // Calcular dados mensais dos últimos 12 meses para o relatório
+  const calculateMonthlyData = React.useMemo(() => {
+    if (!accounts || accounts.length === 0 || !isShowingReport) return [];
+
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const monthlyData = [];
+
+    // Calcular para os últimos 12 meses
+    for (let i = 0; i < 12; i++) {
+      const targetMonth = i;
+      const targetYear = currentYear;
+      
+      // Filtrar contas do mês específico
+      const monthAccounts = accounts.filter((acc: any) => {
+        if (!acc.dueDate) return false;
+        const d = new Date(acc.dueDate + "T00:00:00");
+        return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
+      });
+
+      // Separar saldo anterior das contas reais
+      const saldoAnteriorAccount = monthAccounts.find((acc: any) => acc.description === "Saldo Anterior");
+      const realAccounts = monthAccounts.filter((acc: any) => acc.description !== "Saldo Anterior");
+
+      // Calcular saldo anterior
+      const saldoAnterior = saldoAnteriorAccount 
+        ? (saldoAnteriorAccount.type === "receita" ? saldoAnteriorAccount.amount : -Math.abs(saldoAnteriorAccount.amount))
+        : 0;
+
+      // Calcular totais do mês
+      const totalRecebido = realAccounts
+        .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
+        .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0);
+
+      const totalPago = realAccounts
+        .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
+        .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
+
+      // Saldo final = saldo anterior + recebido - pago
+      const saldoFinal = saldoAnterior + totalRecebido - totalPago;
+
+      monthlyData.push({
+        month: monthNames[targetMonth],
+        totalRecebido,
+        totalPago,
+        saldoFinal
+      });
+    }
+
+    return monthlyData;
+  }, [accounts, isShowingReport]);
+
+  // Calcular totais gerais dos últimos 12 meses
+  const calculateTotalsReport = React.useMemo(() => {
+    if (calculateMonthlyData.length === 0) {
+      return { totalReceived: 0, totalPaid: 0, finalBalance: 0 };
+    }
+
+    const totalReceived = calculateMonthlyData.reduce((sum, data) => sum + data.totalRecebido, 0);
+    const totalPaid = calculateMonthlyData.reduce((sum, data) => sum + data.totalPago, 0);
+    const finalBalance = calculateMonthlyData[calculateMonthlyData.length - 1]?.saldoFinal || 0;
+
+    return { totalReceived, totalPaid, finalBalance };
+  }, [calculateMonthlyData]);
 
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
   const currentYear = parseInt(yearFilter, 10);
-  const isShowingAll = monthFilter === 'todos';
+  const isShowingAll = monthFilter === 'todos' && !isShowingReport;
 
   // --- Garantir "Saldo Anterior" automático para qualquer mês ---
   React.useEffect(() => {
@@ -396,18 +476,22 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
-          <AccountsSummaryCards 
-            accounts={getFilteredAccountsForCalculations()} 
-            previousBalance={previousBalance} 
-            isJanuary={currentMonth === 0}
-          />
+          {!isShowingReport && (
+            <>
+              {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
+              <AccountsSummaryCards 
+                accounts={getFilteredAccountsForCalculations()} 
+                previousBalance={previousBalance} 
+                isJanuary={currentMonth === 0}
+              />
 
-          <div className="mb-4">
-            <p className="text-sm text-slate-600 text-center">
-              {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
-            </p>
-          </div>
+              <div className="mb-4">
+                <p className="text-sm text-slate-600 text-center">
+                  {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
+                </p>
+              </div>
+            </>
+          )}
 
           <MonthNavigator
             currentMonth={currentMonth}
@@ -415,14 +499,25 @@ const Contas: React.FC = () => {
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
             isShowingAll={isShowingAll}
+            onShowReport={handleShowReport}
+            isShowingReport={isShowingReport}
           />
 
-          <AccountsTable
-            accounts={filteredAccounts}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onStatusChange={handleStatusChange}
-          />
+          {isShowingReport ? (
+            <MonthlyReportTable
+              monthlyData={calculateMonthlyData}
+              totalReceived={calculateTotalsReport.totalReceived}
+              totalPaid={calculateTotalsReport.totalPaid}
+              finalBalance={calculateTotalsReport.finalBalance}
+            />
+          ) : (
+            <AccountsTable
+              accounts={filteredAccounts}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onStatusChange={handleStatusChange}
+            />
+          )}
         </div>
 
         <AccountModal
