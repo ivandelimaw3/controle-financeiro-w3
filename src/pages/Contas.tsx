@@ -387,13 +387,17 @@ const Contas: React.FC = () => {
   const previousBalance = React.useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
     
-    // Se está mostrando todos os meses, usar o saldo anterior de janeiro
+    // Se está mostrando todos os meses, sempre usar o saldo anterior de janeiro
+    // Caso contrário, usar o saldo anterior do mês atual
     const targetMonth = isShowingAll ? 0 : currentMonth;
+    const targetYear = currentYear;
     
     const found = accounts.find(acc => {
       if (!acc.dueDate) return false;
       const d = new Date(acc.dueDate + "T00:00:00");
-      return acc.description === "Saldo Anterior" && d.getFullYear() === currentYear && d.getMonth() === targetMonth;
+      return acc.description === "Saldo Anterior" && 
+             d.getFullYear() === targetYear && 
+             d.getMonth() === targetMonth;
     });
 
     if (!found) return 0;
