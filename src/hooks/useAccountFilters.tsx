@@ -89,7 +89,15 @@ export const useAccountFilters = (accounts: Account[]) => {
         const accountYear = accountDate.getFullYear();
         
         // Converter monthFilter para número apenas se não for 'todos'
-        const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
+        let matchesMonth;
+        if (monthFilter === 'todos') {
+          // Quando "todos" está selecionado, incluir apenas de janeiro até o mês atual
+          const today = new Date();
+          const currentMonthIndex = today.getMonth(); // 0-11
+          matchesMonth = accountMonth <= currentMonthIndex;
+        } else {
+          matchesMonth = accountMonth === parseInt(monthFilter);
+        }
         const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
         
         // Log detalhado do filtro de data para algumas contas
