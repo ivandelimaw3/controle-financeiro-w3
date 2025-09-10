@@ -74,7 +74,7 @@ const Contas: React.FC = () => {
     setYearFilter('todos');
   };
 
-  // Calcular dados mensais dos últimos 12 meses para o relatório
+  // Calcular dados mensais sempre de janeiro a dezembro (12 meses)
   const calculateMonthlyData = React.useMemo(() => {
     if (!accounts || accounts.length === 0 || !isShowingReport) return [];
 
@@ -85,12 +85,24 @@ const Contas: React.FC = () => {
 
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth(); // 0-11 (janeiro=0)
     const monthlyData = [];
 
-    // Calcular para os últimos 12 meses
-    for (let i = 0; i < 12; i++) {
-      const targetMonth = i;
+    // Sempre calcular 12 meses (janeiro a dezembro)
+    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+      const targetMonth = monthIndex;
       const targetYear = currentYear;
+
+      // Se o mês for posterior ao mês atual, preencher com zeros
+      if (monthIndex > currentMonth) {
+        monthlyData.push({
+          month: monthNames[monthIndex],
+          totalRecebido: 0,
+          totalPago: 0,
+          saldoFinal: 0
+        });
+        continue;
+      }
       
       // Filtrar contas do mês específico
       const monthAccounts = accounts.filter((acc: any) => {
