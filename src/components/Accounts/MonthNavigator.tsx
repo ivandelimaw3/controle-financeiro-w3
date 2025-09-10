@@ -131,7 +131,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
             }`}
           >
             <BarChart3 size={14} />
-            <span className="hidden sm:inline">Resumo Geral</span>
+            <span className="hidden sm:inline">Relatório</span>
           </Button>
         )}
       </div>
