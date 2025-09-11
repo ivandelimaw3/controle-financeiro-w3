@@ -7,7 +7,6 @@ import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
-import { MonthlyReportTable } from '@/components/Accounts/MonthlyReportTable';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
@@ -20,7 +19,6 @@ import { useAuth } from '@/contexts/AuthContext';
 const Contas: React.FC = () => {
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
   const { user } = useAuth();
-  const [isShowingReport, setIsShowingReport] = React.useState(false);
 
   useAccountsReminder(accounts);
 
@@ -54,7 +52,6 @@ const Contas: React.FC = () => {
   const handleMonthChange = async (startDate: Date, endDate: Date, month: number, year: number) => {
     setMonthFilter(month.toString());
     setYearFilter(year.toString());
-    setIsShowingReport(false);
     
     // Recarregar dados para garantir que os saldos anteriores estejam atualizados
     if (typeof refreshAccounts === "function") {
@@ -66,103 +63,12 @@ const Contas: React.FC = () => {
     const currentYear = new Date().getFullYear().toString();
     setMonthFilter('todos');
     setYearFilter(currentYear); // Definir o ano atual ao invés de 'todos'
-    setIsShowingReport(false);
   };
-
-  const handleShowReport = () => {
-    setIsShowingReport(true);
-    setMonthFilter('todos');
-    setYearFilter('todos');
-  };
-
-  // Calcular dados mensais sempre de janeiro a dezembro (12 meses)
-  const calculateMonthlyData = React.useMemo(() => {
-    if (!accounts || accounts.length === 0 || !isShowingReport) return [];
-
-    const monthNames = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
-
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth(); // 0-11 (janeiro=0)
-    const monthlyData = [];
-
-    // Sempre calcular 12 meses (janeiro a dezembro)
-    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-      const targetMonth = monthIndex;
-      const targetYear = currentYear;
-
-      // Se o mês for posterior ao mês atual, preencher com zeros
-      if (monthIndex > currentMonth) {
-        monthlyData.push({
-          month: monthNames[monthIndex],
-          totalRecebido: 0,
-          totalPago: 0,
-          saldoFinal: 0
-        });
-        continue;
-      }
-      
-      // Filtrar contas do mês específico
-      const monthAccounts = accounts.filter((acc: any) => {
-        if (!acc.dueDate) return false;
-        const d = new Date(acc.dueDate + "T00:00:00");
-        return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
-      });
-
-      // Separar saldo anterior das contas reais
-      const saldoAnteriorAccount = monthAccounts.find((acc: any) => acc.description === "Saldo Anterior");
-      const realAccounts = monthAccounts.filter((acc: any) => acc.description !== "Saldo Anterior");
-
-      // Calcular saldo anterior
-      const saldoAnterior = saldoAnteriorAccount 
-        ? (saldoAnteriorAccount.type === "receita" ? saldoAnteriorAccount.amount : -Math.abs(saldoAnteriorAccount.amount))
-        : 0;
-
-      // Calcular totais do mês (incluindo saldo anterior no total recebido)
-      const totalRecebido = realAccounts
-        .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
-        .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0) + Math.max(0, saldoAnterior);
-
-      const totalPago = realAccounts
-        .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
-        .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
-
-      // Saldo final = saldo anterior + recebido - pago
-      const saldoFinal = saldoAnterior + (totalRecebido - Math.max(0, saldoAnterior)) - totalPago;
-
-      monthlyData.push({
-        month: monthNames[targetMonth],
-        totalRecebido,
-        totalPago,
-        saldoFinal
-      });
-    }
-
-    return monthlyData;
-  }, [accounts, isShowingReport]);
-
-  // Calcular totais gerais dos últimos 12 meses
-  const calculateTotalsReport = React.useMemo(() => {
-    if (calculateMonthlyData.length === 0) {
-      return { totalReceived: 0, totalPaid: 0, finalBalance: 0 };
-    }
-
-    const totalReceived = calculateMonthlyData.reduce((sum, data) => sum + data.totalRecebido, 0);
-    const totalPaid = calculateMonthlyData.reduce((sum, data) => sum + data.totalPago, 0);
-    
-    // O saldo final total é a diferença entre total recebido e total pago (janeiro até mês atual)
-    const finalBalance = totalReceived - totalPaid;
-
-    return { totalReceived, totalPaid, finalBalance };
-  }, [calculateMonthlyData]);
 
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
   const currentYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter, 10);
-  const isShowingAll = monthFilter === 'todos' && !isShowingReport;
+  const isShowingAll = monthFilter === 'todos';
 
   // --- Garantir "Saldo Anterior" automático para qualquer mês ---
   React.useEffect(() => {
@@ -404,54 +310,6 @@ const Contas: React.FC = () => {
     return found.type === "receita" ? found.amount : -Math.abs(found.amount);
   }, [accounts, currentMonth, currentYear, isShowingAll]);
 
-  // Função para obter o saldo anterior do mês anterior (para meses subsequentes)
-  const getPreviousMonthBalance = React.useCallback(() => {
-    if (!accounts || accounts.length === 0) return 0;
-    
-    // Para janeiro, usar o saldo anterior calculado
-    if (currentMonth === 0) {
-      return previousBalance;
-    }
-    
-    // Para outros meses, buscar o saldo anterior do mês anterior
-    const prevMonth = currentMonth - 1;
-    const prevYear = currentYear;
-    
-    const found = accounts.find((acc: any) => {
-      if (!acc.dueDate) return false;
-      const d = new Date(acc.dueDate + "T00:00:00");
-      return acc.description === "Saldo Anterior" && 
-             d.getFullYear() === prevYear && 
-             d.getMonth() === prevMonth;
-    });
-
-    if (!found) return 0;
-    return found.type === "receita" ? found.amount : -Math.abs(found.amount);
-  }, [accounts, currentMonth, currentYear, previousBalance]);
-
-  // Função para calcular o saldo final do mês atual baseado no saldo anterior
-  const calculateCurrentMonthBalance = React.useMemo(() => {
-    if (!accounts || accounts.length === 0) return 0;
-    
-    // Filtrar apenas contas do mês atual (exceto o saldo anterior)
-    const currentMonthAccounts = accounts.filter((acc: any) => {
-      if (!acc.dueDate) return false;
-      const d = new Date(acc.dueDate + "T00:00:00");
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
-             acc.description !== "Saldo Anterior";
-    });
-
-    const totalRecebido = currentMonthAccounts
-      .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
-      .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0);
-
-    const totalPago = currentMonthAccounts
-      .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
-      .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
-
-    return previousBalance + totalRecebido - totalPago;
-  }, [accounts, currentMonth, currentYear, previousBalance]);
-
   // Função para filtrar contas para cálculos dos cards (usando as mesmas contas da tabela)
   const getFilteredAccountsForCalculations = React.useCallback(() => {
     // Usar exatamente as mesmas contas da tabela, sem excluir "Saldo Anterior"
@@ -493,22 +351,11 @@ const Contas: React.FC = () => {
             accounts={accounts}
           />
 
-          {!isShowingReport && (
-            <>
-              {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
-              <AccountsSummaryCards 
-                accounts={getFilteredAccountsForCalculations()} 
-                previousBalance={previousBalance} 
-                isJanuary={currentMonth === 0}
-              />
-
-              <div className="mb-4">
-                <p className="text-sm text-slate-600 text-center">
-                  {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
-                </p>
-              </div>
-            </>
-          )}
+          {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
+          <AccountsSummaryCards 
+            accounts={getFilteredAccountsForCalculations()} 
+            previousBalance={previousBalance} 
+          />
 
           <MonthNavigator
             currentMonth={currentMonth}
@@ -516,35 +363,23 @@ const Contas: React.FC = () => {
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
             isShowingAll={isShowingAll}
-            onShowReport={handleShowReport}
-            isShowingReport={isShowingReport}
           />
 
-          {isShowingReport ? (
-            <MonthlyReportTable
-              monthlyData={calculateMonthlyData}
-              totalReceived={calculateTotalsReport.totalReceived}
-              totalPaid={calculateTotalsReport.totalPaid}
-              finalBalance={calculateTotalsReport.finalBalance}
-            />
-          ) : (
-            <AccountsTable
-              accounts={filteredAccounts}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onStatusChange={handleStatusChange}
-            />
-          )}
-        </div>
+          <AccountsTable
+            accounts={filteredAccounts}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
+          />
 
-        <AccountModal
-          key={editingAccount?.id || 'new'}
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          onSubmit={handleSubmit}
-          account={editingAccount}
-          categories={categories}
-        />
+          <AccountModal
+            isOpen={isModalOpen}
+            onClose={handleModalClose}
+            onSubmit={handleSubmit}
+            account={editingAccount}
+            categories={categories}
+          />
+        </div>
       </div>
     );
   };
