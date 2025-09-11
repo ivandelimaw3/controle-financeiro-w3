@@ -22,6 +22,7 @@ import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
 import CartoesCredito from "./pages/CartoesCredito";
 import ChangePassword from "./pages/ChangePassword";
+import RelatorioAnual from "./pages/RelatorioAnual";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -113,6 +114,11 @@ const App = () => {
                       <AccessControlWrapper>
                         <Relatorios />
                       </AccessControlWrapper>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/relatorio-anual" element={
+                    <ProtectedRoute>
+                      <RelatorioAnual />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin" element={
