@@ -1,5 +1,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FinancialCard } from '@/components/Dashboard/FinancialCard';
+import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
 interface MonthlyData {
@@ -23,9 +25,34 @@ export const MonthlyReportTable: React.FC<MonthlyReportTableProps> = ({
   finalBalance
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-  <h2 className="text-xl font-semibold text-slate-800 mb-4 text-center">
-    Relatório dos Últimos 12 Meses </h2>
+    <div className="space-y-6">
+      {/* Cards com totais gerais */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <FinancialCard
+          title="Total Recebido"
+          value={formatCurrency(totalReceived)}
+          icon={TrendingUp}
+          bgColor="bg-green-500"
+        />
+        <FinancialCard
+          title="Total Pago"
+          value={formatCurrency(totalPaid)}
+          icon={TrendingDown}
+          bgColor="bg-red-500"
+        />
+        <FinancialCard
+          title="Saldo Final"
+          value={formatCurrency(finalBalance)}
+          icon={Wallet}
+          bgColor={finalBalance >= 0 ? "bg-green-500" : "bg-red-500"}
+        />
+      </div>
+      
+      {/* Tabela detalhada */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+        <h2 className="text-xl font-semibold text-slate-800 mb-4 text-center">
+          Relatório dos Últimos 12 Meses 
+        </h2>
       
       <div className="overflow-x-auto">
         <div className="border border-slate-300 rounded-lg">
@@ -76,5 +103,6 @@ export const MonthlyReportTable: React.FC<MonthlyReportTableProps> = ({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
