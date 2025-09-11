@@ -34,7 +34,7 @@ const RelatorioContas: React.FC = () => {
         const accountDate = new Date(account.dueDate);
         const accountMonth = accountDate.getMonth();
         const accountYear = accountDate.getFullYear();
-        return accountMonth === targetMonth && accountYear === targetYear && account.description !== 'Saldo Anterior';
+        return accountMonth === targetMonth && accountYear === targetYear;
       });
 
       // Calcular receitas do mês (apenas recebidas)
