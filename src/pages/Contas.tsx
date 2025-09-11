@@ -454,8 +454,8 @@ const Contas: React.FC = () => {
 
   // Função para filtrar contas para cálculos dos cards (usando as mesmas contas da tabela)
   const getFilteredAccountsForCalculations = React.useCallback(() => {
-    // Usar exatamente as mesmas contas que aparecem na tabela, excluindo apenas o "Saldo Anterior"
-    return filteredAccounts.filter(acc => acc.description !== "Saldo Anterior");
+    // Usar exatamente as mesmas contas da tabela, sem excluir "Saldo Anterior"
+    return filteredAccounts;
   }, [filteredAccounts]);
 
   const handleSubmit = (data: AccountFormData) => {

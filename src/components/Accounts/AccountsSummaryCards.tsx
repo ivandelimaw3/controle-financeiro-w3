@@ -34,9 +34,17 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   const calculateSaldoFinal = () => {
-    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
-  };
+    // Evitar dupla contagem do "Saldo Anterior" nas somas
+    const totalRecebidoSemSaldoAnterior = accounts
+      .filter(account => account.type === 'receita' && account.status === 'recebido' && account.description !== 'Saldo Anterior')
+      .reduce((sum, account) => sum + account.amount, 0);
 
+    const totalPagoSemSaldoAnterior = accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pago' && account.description !== 'Saldo Anterior')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+
+    return previousBalance + totalRecebidoSemSaldoAnterior - totalPagoSemSaldoAnterior;
+  };
   const calculateTotalPendente = () => {
     const receitasPendentes = accounts
       .filter(account => account.type === 'receita' && account.status === 'pendente')
