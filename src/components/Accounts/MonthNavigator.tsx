@@ -8,6 +8,8 @@ interface MonthNavigatorProps {
   onMonthChange: (startDate: Date, endDate: Date, month: number, year: number) => void;
   onShowAll: () => void; // Nova prop para mostrar todos os meses
   isShowingAll: boolean; // Nova prop para indicar se está mostrando todos
+  onShowReport?: () => void; // Nova prop para mostrar relatório
+  isShowingReport?: boolean; // Nova prop para indicar se está mostrando relatório
 }
 
 export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
@@ -15,7 +17,9 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
   currentYear,
   onMonthChange,
   onShowAll,
-  isShowingAll
+  isShowingAll,
+  onShowReport,
+  isShowingReport
 }) => {
   const today = new Date();
   const todayMonth = today.getMonth();
@@ -71,7 +75,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           size="sm"
           onClick={() => navigateMonth('prev')}
           className="h-9 w-9 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-          disabled={isShowingAll}
+          disabled={isShowingAll || isShowingReport}
         >
           <ChevronLeft size={16} />
         </Button>
@@ -85,7 +89,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           size="sm"
           onClick={() => navigateMonth('next')}
           className="h-9 w-9 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-          disabled={isShowingAll}
+          disabled={isShowingAll || isShowingReport}
         >
           <ChevronRight size={16} />
         </Button>
@@ -95,7 +99,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           size="sm"
           onClick={goToToday}
           className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-green-50 hover:border-green-300 hover:text-green-700"
-          disabled={currentMonth === todayMonth && currentYear === todayYear && !isShowingAll}
+          disabled={currentMonth === todayMonth && currentYear === todayYear && !isShowingAll && !isShowingReport}
         >
           <Calendar size={14} />
           <span className="hidden sm:inline">Hoje</span>
@@ -115,12 +119,23 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           <span className="hidden sm:inline">Todos</span>
         </Button>
 
+        {onShowReport && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onShowReport}
+            className="flex items-center gap-2 h-9 px-3 rounded-full bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 hover:text-orange-800"
+          >
+            <BarChart3 size={14} />
+            <span className="hidden sm:inline">Relatório</span>
+          </Button>
+        )}
       </div>
 
       {/* Botões dos meses (Janeiro a Dezembro) */}
       <div className="flex flex-wrap items-center gap-2">
         {monthNames.map((monthName, index) => {
-          const isActive = index === currentMonth && !isShowingAll;
+          const isActive = index === currentMonth && !isShowingAll && !isShowingReport;
           const monthShort = monthName.substring(0, 3);
           
           return (
@@ -134,7 +149,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
                   ? 'bg-blue-600 text-white hover:bg-blue-700' 
                   : 'hover:bg-blue-50 hover:border-blue-300'
               }`}
-              disabled={isShowingAll}
+              disabled={isShowingAll || isShowingReport}
             >
               {monthShort}
             </Button>

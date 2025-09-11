@@ -22,7 +22,6 @@ import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
 import CartoesCredito from "./pages/CartoesCredito";
 import ChangePassword from "./pages/ChangePassword";
-import RelatorioContas from "./pages/RelatorioContas";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,11 +57,6 @@ const App = () => {
                   <Route path="/contas" element={
                     <ProtectedRoute>
                       <Contas />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/relatorio-contas" element={
-                    <ProtectedRoute>
-                      <RelatorioContas />
                     </ProtectedRoute>
                   } />
                   <Route path="/card-accounts" element={
