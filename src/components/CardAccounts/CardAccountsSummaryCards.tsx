@@ -83,7 +83,7 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
             </div>
             <div className="flex-1">
               <p className="text-sm text-slate-600">Total Pendente</p>
-              <p className="text-xl font-bold text-yellow-600">
+               <p className="text-xl font-bold text-green-600">
                 {formatCurrency(pendingAmount)}
               </p>
             </div>
