@@ -76,14 +76,14 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
         </div>
 
         {/* Contas Pendentes */}
-        <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+        <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <Clock size={20} className="text-red-600" />
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Clock size={20} className="text-yellow-600" />
             </div>
             <div className="flex-1">
               <p className="text-sm text-slate-600">Total Pendente</p>
-              <p className="text-xl font-bold text-red-600">
+              <p className="text-xl font-bold text-yellow-600">
                 {formatCurrency(pendingAmount)}
               </p>
             </div>
@@ -94,7 +94,7 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
         <div className="p-4 bg-red-50 rounded-xl border border-red-200">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-100 rounded-lg">
-              <Clock size={20} className="text-red-600" />
+              <Calendar size={20} className="text-red-600" />
             </div>
             <div className="flex-1">
               <p className="text-sm text-slate-600">Vencendo Esta Semana</p>
