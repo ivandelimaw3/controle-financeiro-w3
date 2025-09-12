@@ -66,17 +66,21 @@ export const useAccountFilters = (accounts: Account[]) => {
         const descriptionLower = account.description.toLowerCase();
         const categoryLower = account.category.toLowerCase();
         const paymentSourceLower = account.payment_source_name?.toLowerCase() || '';
+        const dueDateFormatted = account.dueDate.replace(/-/g, '/'); // Permite busca por 2025/01/15 ou 2025-01-15
         
         const matchesSearch = searchTerm === '' || 
                              descriptionLower.includes(searchLower) ||
                              categoryLower.includes(searchLower) ||
-                             paymentSourceLower.includes(searchLower);
+                             paymentSourceLower.includes(searchLower) ||
+                             dueDateFormatted.includes(searchTerm) ||
+                             account.dueDate.includes(searchTerm);
         
         if (searchTerm && searchTerm.length > 0) {
           console.log(`Testando conta: "${account.description}"`);
           console.log(`- Descrição: "${descriptionLower}" inclui "${searchLower}"? ${descriptionLower.includes(searchLower)}`);
           console.log(`- Categoria: "${categoryLower}" inclui "${searchLower}"? ${categoryLower.includes(searchLower)}`);
           console.log(`- Fonte Pagamento: "${paymentSourceLower}" inclui "${searchLower}"? ${paymentSourceLower.includes(searchLower)}`);
+          console.log(`- Data Vencimento: "${account.dueDate}" inclui "${searchTerm}"? ${account.dueDate.includes(searchTerm) || dueDateFormatted.includes(searchTerm)}`);
           console.log(`- Match pesquisa: ${matchesSearch}`);
         }
         
