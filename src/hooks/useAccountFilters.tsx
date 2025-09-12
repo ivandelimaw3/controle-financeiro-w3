@@ -66,21 +66,44 @@ export const useAccountFilters = (accounts: Account[]) => {
         const descriptionLower = account.description.toLowerCase();
         const categoryLower = account.category.toLowerCase();
         const paymentSourceLower = account.payment_source_name?.toLowerCase() || '';
-        const dueDateFormatted = account.dueDate.replace(/-/g, '/'); // Permite busca por 2025/01/15 ou 2025-01-15
+        
+        // Busca flexível por data (suporte para ano, mês/ano, dia/mês/ano, ou parte da data)
+        const dueDateParts = account.dueDate.split('-'); // [2025, 01, 15]
+        const dueDateFormatted = `${dueDateParts[2]}/${dueDateParts[1]}/${dueDateParts[0]}`; // 15/01/2025
+        const dueDateShort = `${dueDateParts[2]}/${dueDateParts[1]}`; // 15/01
+        const monthYear = `${dueDateParts[1]}/${dueDateParts[0]}`; // 01/2025
+        const yearOnly = dueDateParts[0]; // 2025
+        const monthOnly = dueDateParts[1]; // 01
+        const dayOnly = dueDateParts[2]; // 15
         
         const matchesSearch = searchTerm === '' || 
                              descriptionLower.includes(searchLower) ||
                              categoryLower.includes(searchLower) ||
                              paymentSourceLower.includes(searchLower) ||
+                             // Busca por data original (2025-01-15)
+                             account.dueDate.includes(searchTerm) ||
+                             // Busca por data formatada (15/01/2025)
                              dueDateFormatted.includes(searchTerm) ||
-                             account.dueDate.includes(searchTerm);
+                             // Busca por dia/mês (15/01)
+                             dueDateShort.includes(searchTerm) ||
+                             // Busca por mês/ano (01/2025)
+                             monthYear.includes(searchTerm) ||
+                             // Busca por ano (2025)
+                             yearOnly.includes(searchTerm) ||
+                             // Busca por mês (01)
+                             monthOnly.includes(searchTerm) ||
+                             // Busca por dia (15)
+                             dayOnly.includes(searchTerm);
         
         if (searchTerm && searchTerm.length > 0) {
           console.log(`Testando conta: "${account.description}"`);
           console.log(`- Descrição: "${descriptionLower}" inclui "${searchLower}"? ${descriptionLower.includes(searchLower)}`);
           console.log(`- Categoria: "${categoryLower}" inclui "${searchLower}"? ${categoryLower.includes(searchLower)}`);
           console.log(`- Fonte Pagamento: "${paymentSourceLower}" inclui "${searchLower}"? ${paymentSourceLower.includes(searchLower)}`);
-          console.log(`- Data Vencimento: "${account.dueDate}" inclui "${searchTerm}"? ${account.dueDate.includes(searchTerm) || dueDateFormatted.includes(searchTerm)}`);
+          console.log(`- Data Original: "${account.dueDate}" inclui "${searchTerm}"? ${account.dueDate.includes(searchTerm)}`);
+          console.log(`- Data Formatada: "${dueDateFormatted}" inclui "${searchTerm}"? ${dueDateFormatted.includes(searchTerm)}`);
+          console.log(`- Mês/Ano: "${monthYear}" inclui "${searchTerm}"? ${monthYear.includes(searchTerm)}`);
+          console.log(`- Ano: "${yearOnly}" inclui "${searchTerm}"? ${yearOnly.includes(searchTerm)}`);
           console.log(`- Match pesquisa: ${matchesSearch}`);
         }
         
@@ -147,6 +170,7 @@ export const useAccountFilters = (accounts: Account[]) => {
     setMonthFilter,
     yearFilter,
     setYearFilter,
-    filteredAccounts
+    filteredAccounts,
+    hasActiveSearch: searchTerm.length > 0
   };
 };
