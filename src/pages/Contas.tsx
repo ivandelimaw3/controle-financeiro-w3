@@ -8,6 +8,7 @@ import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { MonthlyReportTable } from '@/components/Accounts/MonthlyReportTable';
+import { ReportsMonthNavigator } from '@/components/Accounts/ReportsMonthNavigator';
 import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
@@ -23,6 +24,8 @@ const Contas: React.FC = () => {
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
   const { user } = useAuth();
   const [isShowingReport, setIsShowingReport] = React.useState(false);
+  const [reportMonth, setReportMonth] = React.useState(new Date().getMonth());
+  const [reportYear, setReportYear] = React.useState(new Date().getFullYear());
 
   useAccountsReminder(accounts);
 
@@ -76,6 +79,15 @@ const Contas: React.FC = () => {
     setIsShowingReport(true);
     setMonthFilter('todos');
     setYearFilter('todos');
+  };
+  
+  const handleBackToAccounts = () => {
+    setIsShowingReport(false);
+  };
+  
+  const handleReportMonthChange = (month: number, year: number) => {
+    setReportMonth(month);
+    setReportYear(year);
   };
 
   // Calcular dados mensais sempre de janeiro a dezembro (12 meses)
@@ -498,11 +510,20 @@ const Contas: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        <AccountsHeader 
-          onNewAccount={handleNewAccount}
-          onReportsToggle={handleShowReport}
-          showReports={isShowingReport}
-        />
+        {isShowingReport ? (
+          <ReportsMonthNavigator
+            currentMonth={reportMonth}
+            currentYear={reportYear}
+            onMonthChange={handleReportMonthChange}
+            onBackToAccounts={handleBackToAccounts}
+          />
+        ) : (
+          <AccountsHeader 
+            onNewAccount={handleNewAccount} 
+            onReportsToggle={handleShowReport}
+            showReports={false}
+          />
+        )}
 
         {isShowingReport ? (
           <>
