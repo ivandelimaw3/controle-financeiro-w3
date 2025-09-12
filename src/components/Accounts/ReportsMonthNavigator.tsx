@@ -3,42 +3,19 @@ import { ChevronLeft, ChevronRight, FileSearch, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ReportsMonthNavigatorProps {
-  currentMonth: number;
   currentYear: number;
-  onMonthChange: (month: number, year: number) => void;
+  onYearChange: (year: number) => void;
   onBackToAccounts: () => void;
 }
 
 export const ReportsMonthNavigator: React.FC<ReportsMonthNavigatorProps> = ({
-  currentMonth,
   currentYear,
-  onMonthChange,
+  onYearChange,
   onBackToAccounts
 }) => {
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    let newMonth = currentMonth;
-    let newYear = currentYear;
-
-    if (direction === 'prev') {
-      newMonth = currentMonth - 1;
-      if (newMonth < 0) {
-        newMonth = 11;
-        newYear = currentYear - 1;
-      }
-    } else {
-      newMonth = currentMonth + 1;
-      if (newMonth > 11) {
-        newMonth = 0;
-        newYear = currentYear + 1;
-      }
-    }
-
-    onMonthChange(newMonth, newYear);
+  const navigateYear = (direction: 'prev' | 'next') => {
+    const newYear = direction === 'prev' ? currentYear - 1 : currentYear + 1;
+    onYearChange(newYear);
   };
 
   return (
@@ -57,20 +34,20 @@ export const ReportsMonthNavigator: React.FC<ReportsMonthNavigatorProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigateMonth('prev')}
+          onClick={() => navigateYear('prev')}
           className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
         >
           <ChevronLeft size={16} />
         </Button>
 
         <div className="text-xl font-bold text-slate-800 min-w-[180px] text-center">
-          {monthNames[currentMonth]} {currentYear}
+          {currentYear}
         </div>
 
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigateMonth('next')}
+          onClick={() => navigateYear('next')}
           className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
         >
           <ChevronRight size={16} />

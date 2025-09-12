@@ -82,15 +82,17 @@ const Contas: React.FC = () => {
   };
   
   const handleBackToAccounts = () => {
+    const now = new Date();
+    setMonthFilter(now.getMonth().toString());
+    setYearFilter(now.getFullYear().toString());
     setIsShowingReport(false);
   };
   
-  const handleReportMonthChange = (month: number, year: number) => {
-    setReportMonth(month);
+  const handleReportYearChange = (year: number) => {
     setReportYear(year);
   };
 
-  // Calcular dados mensais sempre de janeiro a dezembro (12 meses)
+  // Calcular dados mensais para o ano selecionado
   const calculateMonthlyData = React.useMemo(() => {
     if (!accounts || accounts.length === 0 || !isShowingReport) return [];
 
@@ -103,14 +105,14 @@ const Contas: React.FC = () => {
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth(); // 0-11 (janeiro=0)
     const monthlyData = [];
+    const targetYear = reportYear;
 
-    // Sempre calcular 12 meses (janeiro a dezembro)
+    // Calcular 12 meses para o ano selecionado
     for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
       const targetMonth = monthIndex;
-      const targetYear = currentYear;
 
-      // Se o mês for posterior ao mês atual, preencher com zeros
-      if (monthIndex > currentMonth) {
+      // Se o ano for futuro ou se for ano atual mas mês posterior ao atual, preencher com zeros
+      if (targetYear > currentYear || (targetYear === currentYear && monthIndex > currentMonth)) {
         monthlyData.push({
           month: monthNames[monthIndex],
           totalRecebido: 0,
@@ -157,9 +159,9 @@ const Contas: React.FC = () => {
     }
 
     return monthlyData;
-  }, [accounts, isShowingReport]);
+  }, [accounts, isShowingReport, reportYear]);
 
-  // Calcular totais gerais dos últimos 12 meses
+  // Calcular totais gerais do ano selecionado
   const calculateTotalsReport = React.useMemo(() => {
     if (calculateMonthlyData.length === 0) {
       return { totalReceived: 0, totalPaid: 0, finalBalance: 0 };
@@ -168,11 +170,17 @@ const Contas: React.FC = () => {
     const totalReceived = calculateMonthlyData.reduce((sum, data) => sum + data.totalRecebido, 0);
     const totalPaid = calculateMonthlyData.reduce((sum, data) => sum + data.totalPago, 0);
     
-    // O saldo final total é a diferença entre total recebido e total pago (janeiro até mês atual)
-    const finalBalance = totalReceived - totalPaid;
+    // O saldo final deve ser o saldo do último mês com dados (mês atual ou último mês do ano)
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    
+    // Se é o ano atual, usar o mês atual, senão usar dezembro
+    const lastMonthIndex = reportYear === currentYear ? currentMonth : 11;
+    const finalBalance = calculateMonthlyData[lastMonthIndex]?.saldoFinal || 0;
 
     return { totalReceived, totalPaid, finalBalance };
-  }, [calculateMonthlyData]);
+  }, [calculateMonthlyData, reportYear]);
 
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
@@ -512,9 +520,8 @@ const Contas: React.FC = () => {
       <div className="space-y-6">
         {isShowingReport ? (
           <ReportsMonthNavigator
-            currentMonth={reportMonth}
             currentYear={reportYear}
-            onMonthChange={handleReportMonthChange}
+            onYearChange={handleReportYearChange}
             onBackToAccounts={handleBackToAccounts}
           />
         ) : (
