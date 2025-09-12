@@ -8,14 +8,16 @@ import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { MonthlyReportTable } from '@/components/Accounts/MonthlyReportTable';
+import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
-import { Loader2 } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatCurrency } from '@/utils/formatters';
 
 const Contas: React.FC = () => {
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
@@ -496,66 +498,91 @@ const Contas: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        <AccountsHeader onNewAccount={handleNewAccount} />
+        <AccountsHeader 
+          onNewAccount={handleNewAccount}
+          onReportsToggle={handleShowReport}
+          showReports={isShowingReport}
+        />
 
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-          <AccountsFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            monthFilter={monthFilter}
-            setMonthFilter={setMonthFilter}
-            yearFilter={yearFilter}
-            setYearFilter={setYearFilter}
-            accounts={accounts}
-          />
-
-          {!isShowingReport && (
-            <>
-              {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
-              <AccountsSummaryCards 
-                accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
-                previousBalance={hasActiveSearch ? 0 : previousBalance} 
-                isJanuary={currentMonth === 0}
+        {isShowingReport ? (
+          <>
+            {/* Cards de resumo para relatórios */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <FinancialCard
+                title="Total Recebido"
+                value={formatCurrency(calculateTotalsReport.totalReceived)}
+                icon={TrendingUp}
+                bgColor="bg-green-500"
               />
+              <FinancialCard
+                title="Total Pago"
+                value={formatCurrency(calculateTotalsReport.totalPaid)}
+                icon={TrendingDown}
+                bgColor="bg-red-500"
+              />
+              <FinancialCard
+                title="Saldo Final"
+                value={formatCurrency(calculateTotalsReport.finalBalance)}
+                icon={DollarSign}
+                bgColor={calculateTotalsReport.finalBalance >= 0 ? 'bg-green-500' : 'bg-red-500'}
+              />
+            </div>
 
-              <div className="mb-4">
-                <p className="text-sm text-slate-600 text-center">
-                  {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
-                </p>
-              </div>
-            </>
-          )}
-
-          <MonthNavigator
-            currentMonth={currentMonth}
-            currentYear={currentYear}
-            onMonthChange={handleMonthChange}
-            onShowAll={handleShowAll}
-            isShowingAll={isShowingAll}
-            onShowReport={handleShowReport}
-            isShowingReport={isShowingReport}
-          />
-
-          {isShowingReport ? (
+            {/* Tabela de relatório mensal */}
             <MonthlyReportTable
               monthlyData={calculateMonthlyData}
               totalReceived={calculateTotalsReport.totalReceived}
               totalPaid={calculateTotalsReport.totalPaid}
               finalBalance={calculateTotalsReport.finalBalance}
             />
-          ) : (
+          </>
+        ) : (
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+            <AccountsFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              typeFilter={typeFilter}
+              setTypeFilter={setTypeFilter}
+              monthFilter={monthFilter}
+              setMonthFilter={setMonthFilter}
+              yearFilter={yearFilter}
+              setYearFilter={setYearFilter}
+              accounts={accounts}
+            />
+
+            {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
+            <AccountsSummaryCards 
+              accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
+              previousBalance={hasActiveSearch ? 0 : previousBalance} 
+              isJanuary={currentMonth === 0}
+            />
+
+            <div className="mb-4">
+              <p className="text-sm text-slate-600 text-center">
+                {filteredAccounts.length} {filteredAccounts.length === 1 ? 'conta encontrada' : 'contas encontradas'}
+              </p>
+            </div>
+
+            <MonthNavigator
+              currentMonth={currentMonth}
+              currentYear={currentYear}
+              onMonthChange={handleMonthChange}
+              onShowAll={handleShowAll}
+              isShowingAll={isShowingAll}
+              onShowReport={handleShowReport}
+              isShowingReport={isShowingReport}
+            />
+
             <AccountsTable
               accounts={filteredAccounts}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onStatusChange={handleStatusChange}
             />
-          )}
-        </div>
+          </div>
+        )}
 
         <AccountModal
           key={editingAccount?.id || 'new'}
