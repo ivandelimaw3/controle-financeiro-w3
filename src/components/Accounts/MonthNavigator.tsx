@@ -118,18 +118,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           <List size={14} />
           <span className="hidden sm:inline">Todos</span>
         </Button>
-
-        {onShowReport && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onShowReport}
-            className="flex items-center gap-2 h-9 px-3 rounded-full bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 hover:text-orange-800"
-          >
-            <BarChart3 size={14} />
-            <span className="hidden sm:inline">Relatório</span>
-          </Button>
-        )}
+       
       </div>
 
       {/* Botões dos meses (Janeiro a Dezembro) */}
