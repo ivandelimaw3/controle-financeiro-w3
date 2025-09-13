@@ -214,20 +214,24 @@ const Dashboard: React.FC = () => {
             <RecentTransactions transactions={transactions} />
             
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">Resumo Mensal</h3>
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Resumo Financeiro</h3>
               <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                  <span className="text-slate-700 font-medium">Saldo Anterior</span>
+                  <span className="text-slate-700 font-bold">{formatCurrency(previousBalance || 0)}</span>
+                </div>
                 <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
-                  <span className="text-green-700 font-medium">Receitas Previstas</span>
-                  <span className="text-green-700 font-bold">{formatCurrency(receitasPrevistas)}</span>
+                  <span className="text-green-700 font-medium">Receitas</span>
+                  <span className="text-green-700 font-bold">{formatCurrency(receitasComSaldoAnterior)}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
-                  <span className="text-red-700 font-medium">Despesas Previstas</span>
-                  <span className="text-red-700 font-bold">{formatCurrency(despesasPrevistas)}</span>
+                  <span className="text-red-700 font-medium">Despesas</span>
+                  <span className="text-red-700 font-bold">{formatCurrency(totalPagoSeptember)}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
-                  <span className="text-blue-700 font-medium">Saldo Previsto</span>
-                  <span className={`font-bold ${saldoPrevisto >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
-                    {formatCurrency(saldoPrevisto)}
+                  <span className="text-blue-700 font-medium">Saldo do Mês</span>
+                  <span className={`font-bold ${saldoFinal >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                    {formatCurrency(saldoFinal)}
                   </span>
                 </div>
               </div>
