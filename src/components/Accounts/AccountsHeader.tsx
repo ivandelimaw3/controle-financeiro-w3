@@ -29,7 +29,7 @@ export const AccountsHeader: React.FC<AccountsHeaderProps> = ({ onNewAccount, on
           
           <Button
             onClick={onReportsToggle}
-            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 px-4 py-2"
+            className="bg-gradient-to-r from-sky-400 to-blue-400 hover:from-sky-500 hover:to-blue-500 px-4 py-2"
           >
             <FileBarChart size={20} className="mr-2" />
             Relatórios

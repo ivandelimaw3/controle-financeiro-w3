@@ -36,20 +36,20 @@ const Sidebar: React.FC = () => {
     },
     
     { 
+      icon: CreditCard, 
+      label: 'Contas Cartões', 
+      path: '/card-accounts', 
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      hoverBg: 'hover:bg-purple-100'
+    },
+    { 
       icon: Tag, 
       label: 'Categorias', 
       path: '/categorias', 
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
       hoverBg: 'hover:bg-orange-100'
-    },
-    { 
-      icon: FileText, 
-      label: 'Relatórios', 
-      path: '/relatorios', 
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      hoverBg: 'hover:bg-purple-100'
     },
     { 
       icon: PieChart, 
@@ -74,14 +74,6 @@ const Sidebar: React.FC = () => {
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
       hoverBg: 'hover:bg-pink-100'
-    },
-    { 
-      icon: CreditCard, 
-      label: 'Contas Cartões', 
-      path: '/card-accounts', 
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      hoverBg: 'hover:bg-purple-100'
     },
     { 
       icon: TrendingUp, 
