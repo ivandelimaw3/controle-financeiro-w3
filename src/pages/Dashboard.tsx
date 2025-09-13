@@ -48,23 +48,23 @@ const Dashboard: React.FC = () => {
 
   const selectedMonthName = getMonthName(selectedMonth);
 
-  // Calcular receitas e despesas para o mês/ano selecionado
-  const getSelectedMonthReceitas = () => {
+  // Calcular receitas e despesas especificamente para setembro
+  const getSeptemberReceitas = () => {
     return accounts
       .filter(account => {
         if (account.type !== 'receita' || account.status !== 'recebido') return false;
         const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
+        return dueDate.getMonth() === 8 && dueDate.getFullYear() === selectedYear; // September = month 8
       })
       .reduce((sum, account) => sum + account.amount, 0);
   };
 
-  const getSelectedMonthDespesas = () => {
+  const getSeptemberDespesas = () => {
     return accounts
       .filter(account => {
         if (account.type !== 'despesa' || account.status !== 'pago') return false;
         const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
+        return dueDate.getMonth() === 8 && dueDate.getFullYear() === selectedYear; // September = month 8
       })
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
@@ -82,22 +82,22 @@ const Dashboard: React.FC = () => {
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
-  // Calcular valores específicos para o mês/ano selecionado
-  const totalRecebidoSelectedMonth = getSelectedMonthReceitas();
-  const totalPagoSelectedMonth = getSelectedMonthDespesas();
+  // Calcular valores específicos para setembro (como aparece na página de contas)
+  const totalRecebidoSeptember = getSeptemberReceitas();
+  const totalPagoSeptember = getSeptemberDespesas();
   
   // Saldo Final = Saldo Anterior + Total Recebido - Total Pago (fórmula igual ao AccountsSummaryCards)
-  const saldoFinal = (previousBalance || 0) + totalRecebidoSelectedMonth - totalPagoSelectedMonth;
+  const saldoFinal = (previousBalance || 0) + totalRecebidoSeptember - totalPagoSeptember;
   
   // Receitas = Total Recebido + Saldo anterior
-  const receitasComSaldoAnterior = totalRecebidoSelectedMonth + (previousBalance || 0);
+  const receitasComSaldoAnterior = totalRecebidoSeptember + (previousBalance || 0);
   
-  // Contas pendentes para o mês/ano selecionado
-  const contasPendentesSelectedMonth = accounts
+  // Contas pendentes para setembro
+  const contasPendentesSeptember = accounts
     .filter(account => {
       if (account.status !== 'pendente') return false;
       const dueDate = new Date(account.dueDate);
-      return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
+      return dueDate.getMonth() === 8 && dueDate.getFullYear() === selectedYear; // September = month 8 (0-indexed)
     }).length;
   
   const receitasPrevistas = getReceitasPrevistas();
@@ -111,11 +111,11 @@ const Dashboard: React.FC = () => {
     totalDespesas, 
     saldo, 
     contasPendentes,
-    totalRecebidoSelectedMonth,
-    totalPagoSelectedMonth,
+    totalRecebidoSeptember,
+    totalPagoSeptember,
     saldoFinal,
     receitasComSaldoAnterior,
-    contasPendentesSelectedMonth,
+    contasPendentesSeptember,
     previousBalance,
     receitasPrevistas,
     despesasPrevistas,
@@ -174,7 +174,7 @@ const Dashboard: React.FC = () => {
               trend="12%"
               trendUp={saldoFinal > 0}
               bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
-              monthText={selectedMonthName}
+              monthText="Setembro"
               monthColor="text-blue-600"
             />
             <FinancialCard
@@ -185,27 +185,27 @@ const Dashboard: React.FC = () => {
               trendUp={true}
               bgColor="bg-gradient-to-r from-green-500 to-green-600"
               onClick={handleReceitasClick}
-              monthText={selectedMonthName}
+              monthText="Setembro"
               monthColor="text-green-600"
             />
             <FinancialCard
               title="Despesas"
-              value={formatCurrency(totalPagoSelectedMonth)}
+              value={formatCurrency(totalPagoSeptember)}
               icon={TrendingDown}
               trend="3%"
               trendUp={false}
               bgColor="bg-gradient-to-r from-red-500 to-red-600"
               onClick={handleDespesasClick}
-              monthText={selectedMonthName}
+              monthText="Setembro"
               monthColor="text-red-600"
             />
             <FinancialCard
               title="Contas Pendentes"
-              value={contasPendentesSelectedMonth.toString()}
+              value={contasPendentesSeptember.toString()}
               icon={CreditCard}
               bgColor="bg-gradient-to-r from-orange-500 to-orange-600"
               onClick={handleContasPendentesClick}
-              monthText={selectedMonthName}
+              monthText="Setembro"
               monthColor="text-orange-600"
             />
           </div>
@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
                   <span className="text-red-700 font-medium">Despesas</span>
-                  <span className="text-red-700 font-bold">{formatCurrency(totalPagoSelectedMonth)}</span>
+                  <span className="text-red-700 font-bold">{formatCurrency(totalPagoSeptember)}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
                   <span className="text-blue-700 font-medium">Saldo do Mês</span>
