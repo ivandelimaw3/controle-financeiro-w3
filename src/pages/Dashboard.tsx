@@ -7,6 +7,7 @@ import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
 import { DashboardMonthNavigator } from '@/components/Dashboard/DashboardMonthNavigator';
 import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
+import { usePreviousBalance } from '@/hooks/usePreviousBalance';
 import { formatCurrency } from '@/utils/formatters';
 
 const Dashboard: React.FC = () => {
@@ -22,6 +23,8 @@ const Dashboard: React.FC = () => {
     getContasPendentes,
     accounts
   } = useAccounts();
+
+  const { balance: previousBalance, loading: balanceLoading } = usePreviousBalance();
 
   // Estado para controlar o mês/ano selecionado
   const today = new Date();
@@ -79,9 +82,23 @@ const Dashboard: React.FC = () => {
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
-  const receitasDoMes = getSelectedMonthReceitas();
-  const despesasDoMes = getSelectedMonthDespesas();
-  const saldoDoMes = receitasDoMes - despesasDoMes;
+  const totalRecebidoDoMes = getSelectedMonthReceitas();
+  const totalPagoDoMes = getSelectedMonthDespesas();
+  
+  // Saldo do Mês = Saldo Final (Total Recebido + Saldo Anterior - Total Pago)
+  const saldoFinal = (totalRecebidoDoMes + (previousBalance || 0)) - totalPagoDoMes;
+  
+  // Receitas = Total Recebido + Saldo anterior
+  const receitasComSaldoAnterior = totalRecebidoDoMes + (previousBalance || 0);
+  
+  // Contas pendentes para setembro
+  const contasPendentesSeptember = accounts
+    .filter(account => {
+      if (account.status !== 'pendente') return false;
+      const dueDate = new Date(account.dueDate);
+      return dueDate.getMonth() === 8; // September is month 8 (0-indexed)
+    }).length;
+  
   const receitasPrevistas = getReceitasPrevistas();
   const despesasPrevistas = getDespesasPrevistas();
   const saldoPrevisto = receitasPrevistas - despesasPrevistas;
@@ -93,8 +110,12 @@ const Dashboard: React.FC = () => {
     totalDespesas, 
     saldo, 
     contasPendentes,
-    receitasDoMes,
-    despesasDoMes,
+    totalRecebidoDoMes,
+    totalPagoDoMes,
+    saldoFinal,
+    receitasComSaldoAnterior,
+    contasPendentesSeptember,
+    previousBalance,
     receitasPrevistas,
     despesasPrevistas,
     selectedMonth,
@@ -118,7 +139,7 @@ const Dashboard: React.FC = () => {
     setSelectedYear(year);
   };
 
-  if (loading) {
+  if (loading || balanceLoading) {
     console.log('Dashboard: showing loading state');
     return (
       <Layout>
@@ -147,17 +168,17 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FinancialCard
               title="Saldo do Mês"
-              value={formatCurrency(saldoDoMes)}
+              value={formatCurrency(saldoFinal)}
               icon={DollarSign}
               trend="12%"
-              trendUp={saldoDoMes > 0}
+              trendUp={saldoFinal > 0}
               bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
               monthText={selectedMonthName}
               monthColor="text-blue-600"
             />
             <FinancialCard
               title="Receitas"
-              value={formatCurrency(receitasDoMes)}
+              value={formatCurrency(receitasComSaldoAnterior)}
               icon={TrendingUp}
               trend="8%"
               trendUp={true}
@@ -168,7 +189,7 @@ const Dashboard: React.FC = () => {
             />
             <FinancialCard
               title="Despesas"
-              value={formatCurrency(despesasDoMes)}
+              value={formatCurrency(totalPagoDoMes)}
               icon={TrendingDown}
               trend="3%"
               trendUp={false}
@@ -179,11 +200,11 @@ const Dashboard: React.FC = () => {
             />
             <FinancialCard
               title="Contas Pendentes"
-              value={contasPendentes.toString()}
+              value={contasPendentesSeptember.toString()}
               icon={CreditCard}
               bgColor="bg-gradient-to-r from-orange-500 to-orange-600"
               onClick={handleContasPendentesClick}
-              monthText="Todas"
+              monthText="Setembro"
               monthColor="text-orange-600"
             />
           </div>
