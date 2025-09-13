@@ -48,23 +48,23 @@ const Dashboard: React.FC = () => {
 
   const selectedMonthName = getMonthName(selectedMonth);
 
-  // Calcular receitas e despesas do mês selecionado
-  const getSelectedMonthReceitas = () => {
+  // Calcular receitas e despesas especificamente para setembro
+  const getSeptemberReceitas = () => {
     return accounts
       .filter(account => {
         if (account.type !== 'receita' || account.status !== 'recebido') return false;
         const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
+        return dueDate.getMonth() === 8 && dueDate.getFullYear() === selectedYear; // September = month 8
       })
       .reduce((sum, account) => sum + account.amount, 0);
   };
 
-  const getSelectedMonthDespesas = () => {
+  const getSeptemberDespesas = () => {
     return accounts
       .filter(account => {
         if (account.type !== 'despesa' || account.status !== 'pago') return false;
         const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
+        return dueDate.getMonth() === 8 && dueDate.getFullYear() === selectedYear; // September = month 8
       })
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
@@ -82,21 +82,22 @@ const Dashboard: React.FC = () => {
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
-  const totalRecebidoDoMes = getSelectedMonthReceitas();
-  const totalPagoDoMes = getSelectedMonthDespesas();
+  // Calcular valores específicos para setembro (como aparece na página de contas)
+  const totalRecebidoSeptember = getSeptemberReceitas();
+  const totalPagoSeptember = getSeptemberDespesas();
   
-  // Saldo do Mês = Saldo Final (Total Recebido + Saldo Anterior - Total Pago)
-  const saldoFinal = (totalRecebidoDoMes + (previousBalance || 0)) - totalPagoDoMes;
+  // Saldo Final = Saldo Anterior + Total Recebido - Total Pago (fórmula igual ao AccountsSummaryCards)
+  const saldoFinal = (previousBalance || 0) + totalRecebidoSeptember - totalPagoSeptember;
   
   // Receitas = Total Recebido + Saldo anterior
-  const receitasComSaldoAnterior = totalRecebidoDoMes + (previousBalance || 0);
+  const receitasComSaldoAnterior = totalRecebidoSeptember + (previousBalance || 0);
   
   // Contas pendentes para setembro
   const contasPendentesSeptember = accounts
     .filter(account => {
       if (account.status !== 'pendente') return false;
       const dueDate = new Date(account.dueDate);
-      return dueDate.getMonth() === 8; // September is month 8 (0-indexed)
+      return dueDate.getMonth() === 8 && dueDate.getFullYear() === selectedYear; // September = month 8 (0-indexed)
     }).length;
   
   const receitasPrevistas = getReceitasPrevistas();
@@ -110,8 +111,8 @@ const Dashboard: React.FC = () => {
     totalDespesas, 
     saldo, 
     contasPendentes,
-    totalRecebidoDoMes,
-    totalPagoDoMes,
+    totalRecebidoSeptember,
+    totalPagoSeptember,
     saldoFinal,
     receitasComSaldoAnterior,
     contasPendentesSeptember,
@@ -173,7 +174,7 @@ const Dashboard: React.FC = () => {
               trend="12%"
               trendUp={saldoFinal > 0}
               bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
-              monthText={selectedMonthName}
+              monthText="Setembro"
               monthColor="text-blue-600"
             />
             <FinancialCard
@@ -184,18 +185,18 @@ const Dashboard: React.FC = () => {
               trendUp={true}
               bgColor="bg-gradient-to-r from-green-500 to-green-600"
               onClick={handleReceitasClick}
-              monthText={selectedMonthName}
+              monthText="Setembro"
               monthColor="text-green-600"
             />
             <FinancialCard
               title="Despesas"
-              value={formatCurrency(totalPagoDoMes)}
+              value={formatCurrency(totalPagoSeptember)}
               icon={TrendingDown}
               trend="3%"
               trendUp={false}
               bgColor="bg-gradient-to-r from-red-500 to-red-600"
               onClick={handleDespesasClick}
-              monthText={selectedMonthName}
+              monthText="Setembro"
               monthColor="text-red-600"
             />
             <FinancialCard
