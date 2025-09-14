@@ -81,14 +81,6 @@ const menuItems = [
     hoverBg: 'hover:bg-indigo-100'
   },
   { 
-    icon: CreditCard, 
-    label: 'Contas Cartões', 
-    path: '/card-accounts', 
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    hoverBg: 'hover:bg-purple-100'
-  },
-  { 
     icon: TrendingUp, 
     label: 'Investimentos', 
     path: '/investimentos', 

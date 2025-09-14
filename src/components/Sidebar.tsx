@@ -51,6 +51,14 @@ const Sidebar: React.FC = () => {
       hoverBg: 'hover:bg-orange-100'
     },
     { 
+      icon: FileText, 
+      label: 'Relatórios', 
+      path: '/relatorios', 
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      hoverBg: 'hover:bg-purple-100'
+    },
+    { 
       icon: PieChart, 
       label: 'Análise Gráfica', 
       path: '/analise', 
