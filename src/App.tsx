@@ -58,6 +58,7 @@ const App = () => {
                     <ProtectedRoute>
                     <AccessControlWrapper>
                     <Contas />
+                    </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
                   <Route path="/card-accounts" element={
