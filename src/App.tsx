@@ -56,7 +56,8 @@ const App = () => {
                   } />
                   <Route path="/contas" element={
                     <ProtectedRoute>
-                      <Contas />
+                    <AccessControlWrapper>
+                    <Contas />
                     </ProtectedRoute>
                   } />
                   <Route path="/card-accounts" element={
