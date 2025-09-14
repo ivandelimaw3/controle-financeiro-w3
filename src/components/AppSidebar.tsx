@@ -41,6 +41,14 @@ const menuItems = [
     hoverBg: 'hover:bg-green-100'
   },
   { 
+    icon: CreditCard, 
+    label: 'Contas Cartões', 
+    path: '/card-accounts', 
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    hoverBg: 'hover:bg-purple-100'
+  },  
+  { 
     icon: Tag, 
     label: 'Categorias', 
     path: '/categorias', 
@@ -71,14 +79,6 @@ const menuItems = [
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50',
     hoverBg: 'hover:bg-indigo-100'
-  },
-  { 
-    icon: CreditCard, 
-    label: 'Cartões', 
-    path: '/cartoes-credito', 
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-50',
-    hoverBg: 'hover:bg-pink-100'
   },
   { 
     icon: CreditCard, 
