@@ -34,7 +34,6 @@ const Sidebar: React.FC = () => {
       bgColor: 'bg-green-50',
       hoverBg: 'hover:bg-green-100'
     },
-    
     { 
       icon: CreditCard, 
       label: 'Contas Cartões', 
