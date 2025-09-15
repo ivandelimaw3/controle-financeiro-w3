@@ -60,8 +60,26 @@ const Dashboard: React.FC = () => {
 
   // --- Saldo Final
   const getMonthSaldoFinal = () => {
-    return getPreviousBalance() + getMonthReceitas() - getMonthDespesas();
-  };
+  // 1️⃣ Saldo anterior do mês
+  const previous = accounts.find(acc => {
+    if (!acc.dueDate) return false;
+    const d = new Date(acc.dueDate + "T00:00:00");
+    return acc.description === "Saldo Anterior" &&
+           d.getMonth() === selectedMonth &&
+           d.getFullYear() === selectedYear;
+  });
+  
+  const previousBalance = previous
+    ? (previous.type === "receita" ? previous.amount : -Math.abs(previous.amount))
+    : 0;
+
+  // 2️⃣ Total Recebido e Total Pago
+  const totalRecebido = getMonthReceitas();
+  const totalPago = getMonthDespesas();
+
+  // 3️⃣ Saldo final
+  return previousBalance + totalRecebido - totalPago;
+};
 
   // Obter nome do mês
   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho','Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
