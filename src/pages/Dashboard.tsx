@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
     const monthAccounts = getFilteredAccountsForCalculations();
     return monthAccounts
       .filter((acc) => acc.type === "despesa" && acc.status === "pago")
-      .reduce((sum, acc) => sum + Math.abs(acc.amount || 0), 0);
+       .reduce((sum, acc) => sum + (acc.amount || 0), 0);
   };
 
   // --- Saldo Final
