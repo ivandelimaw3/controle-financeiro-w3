@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
     const totalRecebidoMes = getMonthTotal('receita', 'recebido');
     const totalPagoMes = getMonthTotal('despesa', 'pago');
 
-    const saldoFinalMes = (previousBalance || 0) + totalRecebidoMes - totalPagoMes;
+    const saldoFinalMes = totalRecebidoMes;
 
     const contasPendentesMes = accounts.filter(account => {
       if (account.status !== 'pendente') return false;
