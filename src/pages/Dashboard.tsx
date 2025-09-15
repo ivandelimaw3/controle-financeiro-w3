@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
@@ -7,101 +7,76 @@ import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
 import { DashboardMonthNavigator } from '@/components/Dashboard/DashboardMonthNavigator';
 import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
-import { usePreviousBalance } from '@/hooks/usePreviousBalance';
 import { formatCurrency } from '@/utils/formatters';
 
 const Dashboard: React.FC = () => {
-  console.log('Dashboard: component rendering');
-
   const navigate = useNavigate();
-  const { 
-    loading,
-    getTransactions, 
-    getContasPendentes,
-    accounts
-  } = useAccounts();
+  const { loading, accounts, getTransactions } = useAccounts();
 
-  const { balance: previousBalance, loading: balanceLoading } = usePreviousBalance();
-
-  // Estado para controlar o mês/ano selecionado
   const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
 
-  const transactions = getTransactions();
-
-  // Obter o nome do mês selecionado
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-  const selectedMonthName = monthNames[selectedMonth];
-
-  // Função genérica para calcular totais de receitas/despesas por mês
-  const getMonthTotal = (
-    type: 'receita' | 'despesa', 
-    status: 'recebido' | 'pago'
-  ) => {
-    return accounts
-      .filter(account => 
-        account.type === type && 
-        account.status === status &&
-        new Date(account.dueDate).getMonth() === selectedMonth &&
-        new Date(account.dueDate).getFullYear() === selectedYear
-      )
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+  // --- Função auxiliar: filtra contas do mês/ano selecionado (sem Saldo Anterior)
+  const getFilteredAccountsForCalculations = () => {
+    return accounts.filter((account) => {
+      const dueDate = new Date(account.dueDate);
+      return (
+        dueDate.getMonth() === selectedMonth &&
+        dueDate.getFullYear() === selectedYear &&
+        account.description !== "Saldo Anterior"
+      );
+    });
   };
 
-  // Usar useMemo para evitar recalcular em cada render
-  const { totalRecebidoMes, totalPagoMes, saldoFinalMes, contasPendentesMes, receitasPrevistas, despesasPrevistas, saldoPrevisto } = useMemo(() => {
-    const totalRecebidoMes = getMonthTotal('receita', 'recebido');
-    const totalPagoMes = getMonthTotal('despesa', 'pago');
+  // --- Pega saldo anterior do mês (se existir conta "Saldo Anterior")
+  const getPreviousBalance = () => {
+    const saldoAnterior = accounts.find(
+      (acc) =>
+        acc.description === "Saldo Anterior" &&
+        new Date(acc.dueDate).getMonth() === selectedMonth &&
+        new Date(acc.dueDate).getFullYear() === selectedYear
+    );
+    return saldoAnterior ? saldoAnterior.type === 'receita' ? saldoAnterior.amount : -Math.abs(saldoAnterior.amount) : 0;
+  };
 
-    const saldoFinalMes = totalRecebidoMes;
+  // --- Total Recebido
+  const getMonthReceitas = () => {
+    const monthAccounts = getFilteredAccountsForCalculations();
+    return monthAccounts
+      .filter((acc) => acc.type === "receita" && acc.status === "recebido")
+      .reduce((sum, acc) => sum + (acc.amount || 0), 0);
+  };
 
-    const contasPendentesMes = accounts.filter(account => {
-      if (account.status !== 'pendente') return false;
-      const dueDate = new Date(account.dueDate);
-      return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
-    }).length;
+  // --- Total Pago
+  const getMonthDespesas = () => {
+    const monthAccounts = getFilteredAccountsForCalculations();
+    return monthAccounts
+      .filter((acc) => acc.type === "despesa" && acc.status === "pago")
+      .reduce((sum, acc) => sum + Math.abs(acc.amount || 0), 0);
+  };
 
-    const receitasPrevistas = accounts
-      .filter(a => a.type === 'receita' && a.status === 'pendente')
-      .reduce((sum, a) => sum + a.amount, 0);
+  // --- Saldo Final
+  const getMonthSaldoFinal = () => {
+    return getPreviousBalance() + getMonthReceitas() - getMonthDespesas();
+  };
 
-    const despesasPrevistas = accounts
-      .filter(a => a.type === 'despesa' && a.status === 'pendente')
-      .reduce((sum, a) => sum + Math.abs(a.amount), 0);
+  // Obter nome do mês
+  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho','Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const selectedMonthName = monthNames[selectedMonth];
 
-    const saldoPrevisto = receitasPrevistas - despesasPrevistas;
+  const transactions = getTransactions();
 
-    return { totalRecebidoMes, totalPagoMes, saldoFinalMes, contasPendentesMes, receitasPrevistas, despesasPrevistas, saldoPrevisto };
-  }, [accounts, selectedMonth, selectedYear, previousBalance]);
-
-  console.log('Dashboard: accounts data', { 
-    loading, 
-    transactionsCount: transactions.length, 
-    totalRecebidoMes,
-    totalPagoMes,
-    saldoFinalMes,
-    contasPendentesMes,
-    previousBalance,
-    receitasPrevistas,
-    despesasPrevistas,
-    selectedMonth,
-    selectedYear
-  });
-
-  const handleReceitasClick = () => navigate('/contas?type=receita');
-  const handleDespesasClick = () => navigate('/contas?type=despesa');
-  const handleContasPendentesClick = () => navigate('/contas?status=pendente');
   const handleMonthChange = (month: number, year: number) => {
     setSelectedMonth(month);
     setSelectedYear(year);
   };
 
-  if (loading || balanceLoading) {
-    console.log('Dashboard: showing loading state');
+  const handleReceitasClick = () => navigate('/contas?type=receita');
+  const handleDespesasClick = () => navigate('/contas?type=despesa');
+  const handleContasPendentesClick = () => navigate('/contas?status=pendente');
+
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -114,8 +89,6 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  console.log('Dashboard: rendering main content');
-
   return (
     <AccessControlWrapper>
       <Layout>
@@ -126,78 +99,46 @@ const Dashboard: React.FC = () => {
             onMonthChange={handleMonthChange}
           />
 
-          {/* Cards principais */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FinancialCard
               title="Saldo do Mês"
-              value={formatCurrency(saldoFinalMes)}
+              value={formatCurrency(getMonthSaldoFinal())}
               icon={DollarSign}
-              trend="12%"
-              trendUp={saldoFinalMes > 0}
-              bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
+              bgColor={getMonthSaldoFinal() >= 0 ? "bg-gradient-to-r from-blue-500 to-blue-600" : "bg-gradient-to-r from-red-500 to-red-600"}
               monthText={selectedMonthName}
               monthColor="text-blue-600"
             />
             <FinancialCard
               title="Total Recebido"
-              value={formatCurrency(totalRecebidoMes)}
+              value={formatCurrency(getMonthReceitas())}
               icon={TrendingUp}
-              trend="8%"
-              trendUp={true}
-              bgColor="bg-gradient-to-r from-green-500 to-green-600"
               onClick={handleReceitasClick}
+              bgColor="bg-gradient-to-r from-green-500 to-green-600"
               monthText={selectedMonthName}
               monthColor="text-green-600"
             />
             <FinancialCard
               title="Total Pago"
-              value={formatCurrency(totalPagoMes)}
+              value={formatCurrency(getMonthDespesas())}
               icon={TrendingDown}
-              trend="3%"
-              trendUp={false}
-              bgColor="bg-gradient-to-r from-red-500 to-red-600"
               onClick={handleDespesasClick}
+              bgColor="bg-gradient-to-r from-red-500 to-red-600"
               monthText={selectedMonthName}
               monthColor="text-red-600"
             />
             <FinancialCard
               title="Contas Pendentes"
-              value={contasPendentesMes.toString()}
+              value={accounts.filter(acc => acc.status === "pendente" && new Date(acc.dueDate).getMonth() === selectedMonth && new Date(acc.dueDate).getFullYear() === selectedYear).length.toString()}
               icon={CreditCard}
-              bgColor="bg-gradient-to-r from-orange-500 to-orange-600"
               onClick={handleContasPendentesClick}
+              bgColor="bg-gradient-to-r from-orange-500 to-orange-600"
               monthText={selectedMonthName}
               monthColor="text-orange-600"
             />
           </div>
 
-          {/* Resumo + Transações */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <RecentTransactions transactions={transactions} />
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">Resumo Financeiro</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-700 font-medium">Saldo Anterior</span>
-                  <span className="text-slate-700 font-bold">{formatCurrency(previousBalance || 0)}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
-                  <span className="text-green-700 font-medium">Total Recebido</span>
-                  <span className="text-green-700 font-bold">{formatCurrency(totalRecebidoMes)}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
-                  <span className="text-red-700 font-medium">Total Pago</span>
-                  <span className="text-red-700 font-bold">{formatCurrency(totalPagoMes)}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
-                  <span className="text-blue-700 font-medium">Saldo do Mês</span>
-                  <span className={`font-bold ${saldoFinalMes >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
-                    {formatCurrency(saldoFinalMes)}
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </Layout>
