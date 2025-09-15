@@ -165,17 +165,17 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FinancialCard
               title="Saldo do Mês"
-              value={formatCurrency(saldoFinalMes)}
+              value={formatCurrency(totalRecebidoMes)}
               icon={DollarSign}
               trend="12%"
-              trendUp={saldoFinalMes > 0}
+              trendUp={totalRecebidoMes > 0}
               bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
               monthText={selectedMonthName}
               monthColor="text-blue-600"
             />
             <FinancialCard
               title="Total Recebido"
-              value={formatCurrency(totalRecebidoMes)}
+              value={formatCurrency(saldoFinalMes)}
               icon={TrendingUp}
               trend="8%"
               trendUp={true}
