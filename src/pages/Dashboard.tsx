@@ -41,12 +41,15 @@ const Dashboard: React.FC = () => {
   };
 
   // --- Total Recebido
-  const getMonthReceitas = () => {
-    const monthAccounts = getFilteredAccountsForCalculations();
-    return monthAccounts
-      .filter((acc) => acc.type === "receita" && acc.status === "recebido")
-      .reduce((sum, acc) => sum + (acc.amount || 0), 0);
-  };
+ const getMonthReceitas = () => {
+  return accounts
+    .filter(account => {
+      if (account.type !== 'receita' || account.status.toLowerCase() !== 'recebido') return false;
+      const dueDate = new Date(account.dueDate + "T00:00:00");
+      return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
+    })
+    .reduce((sum, account) => sum + (account.amount || 0), 0);
+};
 
  const getMonthDespesas = () => {
   return accounts
