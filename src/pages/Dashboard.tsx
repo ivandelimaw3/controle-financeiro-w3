@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
@@ -12,14 +12,11 @@ import { formatCurrency } from '@/utils/formatters';
 
 const Dashboard: React.FC = () => {
   console.log('Dashboard: component rendering');
-  
+
   const navigate = useNavigate();
   const { 
     loading,
     getTransactions, 
-    getTotalReceitas, 
-    getTotalDespesas, 
-    getSaldo, 
     getContasPendentes,
     accounts
   } = useAccounts();
@@ -32,82 +29,58 @@ const Dashboard: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
 
   const transactions = getTransactions();
-  const totalReceitas = getTotalReceitas();
-  const totalDespesas = getTotalDespesas();
-  const saldo = getSaldo();
-  const contasPendentes = getContasPendentes();
 
   // Obter o nome do mês selecionado
-  const getMonthName = (month: number) => {
-    const monthNames = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
-    return monthNames[month];
-  };
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  const selectedMonthName = monthNames[selectedMonth];
 
-  const selectedMonthName = getMonthName(selectedMonth);
-
-  // Calcular receitas e despesas para o mês selecionado
-  const getMonthReceitas = () => {
+  // Função genérica para calcular totais de receitas/despesas por mês
+  const getMonthTotal = (
+    type: 'receita' | 'despesa', 
+    status: 'recebido' | 'pago'
+  ) => {
     return accounts
-      .filter(account => {
-        if (account.type !== 'receita' || account.status !== 'recebido') return false;
-        const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
-      })
-      .reduce((sum, account) => sum + account.amount, 0);
-  };
-
-  const getMonthDespesas = () => {
-    return accounts
-      .filter(account => {
-        if (account.type !== 'despesa' || account.status !== 'pago') return false;
-        const dueDate = new Date(account.dueDate);
-        return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
-      })
+      .filter(account => 
+        account.type === type && 
+        account.status === status &&
+        new Date(account.dueDate).getMonth() === selectedMonth &&
+        new Date(account.dueDate).getFullYear() === selectedYear
+      )
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
-  // Calcular receitas e despesas previstas (pendentes)
-  const getReceitasPrevistas = () => {
-    return accounts
-      .filter(account => account.type === 'receita' && account.status === 'pendente')
-      .reduce((sum, account) => sum + account.amount, 0);
-  };
+  // Usar useMemo para evitar recalcular em cada render
+  const { totalRecebidoMes, totalPagoMes, saldoFinalMes, contasPendentesMes, receitasPrevistas, despesasPrevistas, saldoPrevisto } = useMemo(() => {
+    const totalRecebidoMes = getMonthTotal('receita', 'recebido');
+    const totalPagoMes = getMonthTotal('despesa', 'pago');
 
-  const getDespesasPrevistas = () => {
-    return accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pendente')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
-  };
+    const saldoFinalMes = (previousBalance || 0) + totalRecebidoMes - totalPagoMes;
 
-  // Calcular valores específicos para o mês selecionado
-  const totalRecebidoMes = getMonthReceitas();
-  const totalPagoMes = getMonthDespesas();
-  
-  // Saldo Final = Saldo Anterior + Total Recebido - Total Pago (fórmula igual ao AccountsSummaryCards)
-  const saldoFinalMes = (previousBalance || 0) + totalRecebidoMes - totalPagoMes;
-  
-  // Contas pendentes para o mês selecionado
-  const contasPendentesMes = accounts
-    .filter(account => {
+    const contasPendentesMes = accounts.filter(account => {
       if (account.status !== 'pendente') return false;
       const dueDate = new Date(account.dueDate);
       return dueDate.getMonth() === selectedMonth && dueDate.getFullYear() === selectedYear;
     }).length;
-  
-  const receitasPrevistas = getReceitasPrevistas();
-  const despesasPrevistas = getDespesasPrevistas();
-  const saldoPrevisto = receitasPrevistas - despesasPrevistas;
+
+    const receitasPrevistas = accounts
+      .filter(a => a.type === 'receita' && a.status === 'pendente')
+      .reduce((sum, a) => sum + a.amount, 0);
+
+    const despesasPrevistas = accounts
+      .filter(a => a.type === 'despesa' && a.status === 'pendente')
+      .reduce((sum, a) => sum + Math.abs(a.amount), 0);
+
+    const saldoPrevisto = receitasPrevistas - despesasPrevistas;
+
+    return { totalRecebidoMes, totalPagoMes, saldoFinalMes, contasPendentesMes, receitasPrevistas, despesasPrevistas, saldoPrevisto };
+  }, [accounts, selectedMonth, selectedYear, previousBalance]);
 
   console.log('Dashboard: accounts data', { 
     loading, 
     transactionsCount: transactions.length, 
-    totalReceitas, 
-    totalDespesas, 
-    saldo, 
-    contasPendentes,
     totalRecebidoMes,
     totalPagoMes,
     saldoFinalMes,
@@ -119,18 +92,9 @@ const Dashboard: React.FC = () => {
     selectedYear
   });
 
-  const handleReceitasClick = () => {
-    navigate('/contas?type=receita');
-  };
-
-  const handleDespesasClick = () => {
-    navigate('/contas?type=despesa');
-  };
-
-  const handleContasPendentesClick = () => {
-    navigate('/contas?status=pendente');
-  };
-
+  const handleReceitasClick = () => navigate('/contas?type=receita');
+  const handleDespesasClick = () => navigate('/contas?type=despesa');
+  const handleContasPendentesClick = () => navigate('/contas?status=pendente');
   const handleMonthChange = (month: number, year: number) => {
     setSelectedMonth(month);
     setSelectedYear(year);
@@ -162,20 +126,21 @@ const Dashboard: React.FC = () => {
             onMonthChange={handleMonthChange}
           />
 
+          {/* Cards principais */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FinancialCard
               title="Saldo do Mês"
-              value={formatCurrency(totalRecebidoMes)}
+              value={formatCurrency(saldoFinalMes)}
               icon={DollarSign}
               trend="12%"
-              trendUp={totalRecebidoMes > 0}
+              trendUp={saldoFinalMes > 0}
               bgColor="bg-gradient-to-r from-blue-500 to-blue-600"
               monthText={selectedMonthName}
               monthColor="text-blue-600"
             />
             <FinancialCard
               title="Total Recebido"
-              value={formatCurrency(saldoFinalMes)}
+              value={formatCurrency(totalRecebidoMes)}
               icon={TrendingUp}
               trend="8%"
               trendUp={true}
@@ -206,9 +171,10 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
+          {/* Resumo + Transações */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <RecentTransactions transactions={transactions} />
-            
+
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
               <h3 className="text-lg font-semibold text-slate-800 mb-4">Resumo Financeiro</h3>
               <div className="space-y-4">
