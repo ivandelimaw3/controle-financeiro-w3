@@ -48,13 +48,21 @@ const Dashboard: React.FC = () => {
       .reduce((sum, acc) => sum + (acc.amount || 0), 0);
   };
 
-  // --- Total Pago
   const getMonthDespesas = () => {
-    const monthAccounts = getFilteredAccountsForCalculations();
-    return monthAccounts
-      .filter((acc) => acc.type === "despesa" && acc.status === "pago")
-       .reduce((sum, acc) => sum + (acc.amount || 0), 0);
-  };
+  const monthAccounts = accounts.filter((acc) => {
+    if (!acc.dueDate) return false;
+    const d = new Date(acc.dueDate);
+    return (
+      d.getMonth() === selectedMonth &&
+      d.getFullYear() === selectedYear &&
+      acc.description !== "Saldo Anterior"
+    );
+  });
+
+  return monthAccounts
+    .filter((acc) => acc.type === "despesa" && acc.status === "pago")
+    .reduce((sum, acc) => sum + (acc.amount ? Math.abs(acc.amount) : 0), 0);
+};
 
   // --- Saldo Final
   const getMonthSaldoFinal = () => {
