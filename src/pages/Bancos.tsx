@@ -37,15 +37,15 @@ const Bancos = () => {
 
   const { createDeposit, isCreating: isCreatingDeposit } = useDepositsData();
 
-  // Funções de formatação
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
+  // Funções utilitárias
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
-  };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '--/--/----';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -64,15 +64,12 @@ const Bancos = () => {
     return types[type] || type;
   };
 
-  const getStatusLabel = (balance: number) => {
-    return balance >= 0 ? 'Ativo' : 'Negativo';
-  };
+  const getStatusLabel = (balance: number) => (balance >= 0 ? 'Ativo' : 'Negativo');
 
-  const getStatusColor = (balance: number) => {
-    return balance >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-  };
+  const getStatusColor = (balance: number) =>
+    balance >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 
-  // Cálculos para os cards de resumo
+  // Resumos
   const totalBanks = banks.length;
   const activeBanks = banks.filter(bank => bank.balance >= 0).length;
   const totalBalance = banks.reduce((sum, bank) => sum + bank.balance, 0);
@@ -80,26 +77,26 @@ const Bancos = () => {
 
   // Filtros
   const filteredBanks = banks.filter(bank => {
-    const matchesSearch = bank.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         bank.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         bank.account_number.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && bank.balance >= 0) ||
-                         (statusFilter === 'negative' && bank.balance < 0);
-    
+    const matchesSearch =
+      bank.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bank.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bank.account_number.includes(searchTerm);
+
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && bank.balance >= 0) ||
+      (statusFilter === 'negative' && bank.balance < 0);
+
     const matchesType = typeFilter === 'all' || bank.account_type === typeFilter;
-    
+
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  // Handlers
   const handleCreateBank = (bankData: BankInput) => {
     createBank(bankData);
     setShowBankForm(false);
-    toast({
-      title: "Banco criado com sucesso!",
-      duration: 2000,
-    });
+    toast({ title: 'Banco criado com sucesso!', duration: 2000 });
   };
 
   const handleUpdateBank = (bankData: BankInput) => {
@@ -107,20 +104,14 @@ const Bancos = () => {
       updateBank({ id: editingBank.id, ...bankData });
       setEditingBank(undefined);
       setShowBankForm(false);
-      toast({
-        title: "Banco atualizado com sucesso!",
-        duration: 2000,
-      });
+      toast({ title: 'Banco atualizado com sucesso!', duration: 2000 });
     }
   };
 
   const handleDeleteBank = (id: number) => {
     if (confirm('Tem certeza que deseja excluir este banco?')) {
       deleteBank(id);
-      toast({
-        title: "Banco excluído com sucesso!",
-        duration: 2000,
-      });
+      toast({ title: 'Banco excluído com sucesso!', duration: 2000 });
     }
   };
 
@@ -138,10 +129,7 @@ const Bancos = () => {
     createDeposit(depositData);
     setShowDepositForm(false);
     setSelectedBankForDeposit(undefined);
-    toast({
-      title: "Depósito registrado com sucesso!",
-      duration: 2000,
-    });
+    toast({ title: 'Depósito registrado com sucesso!', duration: 2000 });
   };
 
   const closeBankForm = () => {
@@ -154,6 +142,7 @@ const Bancos = () => {
     setSelectedBankForDeposit(undefined);
   };
 
+  // Carregando
   if (isLoading) {
     return (
       <Layout>
@@ -167,14 +156,13 @@ const Bancos = () => {
     );
   }
 
+  // Erro
   if (error) {
     return (
       <Layout>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Erro ao carregar bancos. Tente novamente.
-          </AlertDescription>
+          <AlertDescription>Erro ao carregar bancos. Tente novamente.</AlertDescription>
         </Alert>
       </Layout>
     );
@@ -202,9 +190,9 @@ const Bancos = () => {
           </div>
         </div>
 
-        {/* Cards Padronizados - Resumo e Bancos */}
+        {/* Resumo Geral */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card 1 - Total de Bancos */}
+          {/* Total de Bancos */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -212,14 +200,12 @@ const Bancos = () => {
               </div>
               <div className="w-3 h-3 rounded-full bg-blue-500"></div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600 mb-1">Resumo Geral</p>
-              <p className="text-lg font-bold text-slate-800 mb-1">Total de Bancos: {totalBanks}</p>
-              <p className="text-xs text-slate-500">Contas cadastradas no sistema</p>
-            </div>
+            <p className="text-sm font-medium text-slate-600 mb-1">Resumo Geral</p>
+            <p className="text-lg font-bold text-slate-800 mb-1">Total de Bancos: {totalBanks}</p>
+            <p className="text-xs text-slate-500">Contas cadastradas no sistema</p>
           </div>
 
-          {/* Card 2 - Bancos Ativos */}
+          {/* Bancos Ativos */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-green-100 rounded-lg">
@@ -227,14 +213,12 @@ const Bancos = () => {
               </div>
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600 mb-1">Status Ativo</p>
-              <p className="text-lg font-bold text-green-600 mb-1">Bancos Ativos: {activeBanks}</p>
-              <p className="text-xs text-slate-500">Contas com saldo positivo</p>
-            </div>
+            <p className="text-sm font-medium text-slate-600 mb-1">Status Ativo</p>
+            <p className="text-lg font-bold text-green-600 mb-1">Bancos Ativos: {activeBanks}</p>
+            <p className="text-xs text-slate-500">Contas com saldo positivo</p>
           </div>
 
-          {/* Card 3 - Instituições */}
+          {/* Instituições */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-purple-100 rounded-lg">
@@ -242,79 +226,93 @@ const Bancos = () => {
               </div>
               <div className="w-3 h-3 rounded-full bg-purple-500"></div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600 mb-1">Diversificação</p>
-              <p className="text-lg font-bold text-purple-600 mb-1">Instituições: {uniqueBanks}</p>
-              <p className="text-xs text-slate-500">Bancos únicos cadastrados</p>
-            </div>
+            <p className="text-sm font-medium text-slate-600 mb-1">Diversificação</p>
+            <p className="text-lg font-bold text-purple-600 mb-1">Instituições: {uniqueBanks}</p>
+            <p className="text-xs text-slate-500">Bancos únicos cadastrados</p>
           </div>
 
-          {/* Card 4 - Saldo Total */}
+          {/* Saldo Total */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-amber-100 rounded-lg">
                 <Wallet className="h-6 w-6 text-amber-600" />
               </div>
-              <div className={`w-3 h-3 rounded-full ${totalBalance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <div
+                className={`w-3 h-3 rounded-full ${
+                  totalBalance >= 0 ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              ></div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600 mb-1">Patrimônio Total</p>
-              <p className={`text-lg font-bold mb-1 ${totalBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                Saldo Disponível: {formatCurrency(totalBalance)}
-              </p>
-              <p className="text-xs text-slate-500">Soma de todos os saldos</p>
-            </div>
+            <p className="text-sm font-medium text-slate-600 mb-1">Patrimônio Total</p>
+            <p
+              className={`text-lg font-bold mb-1 ${
+                totalBalance >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              Saldo Disponível: {formatCurrency(totalBalance)}
+            </p>
+            <p className="text-xs text-slate-500">Soma de todos os saldos</p>
           </div>
         </div>
 
-        {/* Cards dos Bancos - Layout Padronizado */}
+        {/* Cards Individuais dos Bancos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {banks.slice(0, 8).map((bank, index) => (
-            <div key={bank.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-              {/* Ícone e Status */}
+          {banks.slice(0, 8).map(bank => (
+            <div
+              key={bank.id}
+              className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="p-3 bg-blue-100 rounded-lg">
                   <Building2 className="h-6 w-6 text-blue-600" />
                 </div>
-                <div className={`w-3 h-3 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <div
+                  className={`w-3 h-3 rounded-full ${
+                    bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                ></div>
               </div>
-              
-              {/* Saldo Disponível - Destaque Principal */}
-              <div className="mb-4">
-                <p className={`text-xl font-bold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  Saldo Disponível: {formatCurrency(bank.balance)}
-                </p>
-              </div>
-              
-              {/* Informações do Banco */}
+
+              <p
+                className={`text-xl font-bold mb-4 ${
+                  bank.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
+                Saldo Disponível: {formatCurrency(bank.balance)}
+              </p>
+
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-slate-800">{bank.name}</h3>
-                <p className="text-sm font-medium text-slate-600">{bank.nickname || 'Principal'}</p>
-                <p className="text-sm text-slate-500">{getAccountTypeLabel(bank.account_type)} • {bank.account_number}</p>
-                <p className="text-xs text-slate-400">Última atualização: {formatDate(bank.updated_at)}</p>
+                <p className="text-sm font-medium text-slate-600">
+                  {bank.nickname || 'Principal'}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {getAccountTypeLabel(bank.account_type)} • {bank.account_number}
+                </p>
+                <p className="text-xs text-slate-400">
+                  Última atualização: {formatDate(bank.updated_at)}
+                </p>
               </div>
             </div>
           ))}
-          
-          {/* Cards vazios para completar 8 */}
+
+          {/* Placeholders para completar 8 */}
           {Array.from({ length: Math.max(0, 8 - banks.length) }).map((_, index) => (
-            <div key={`empty-${index}`} className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-6 hover:shadow-md transition-shadow">
-              {/* Ícone e Status */}
+            <div
+              key={`empty-${index}`}
+              className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-6 hover:shadow-md transition-shadow"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="p-3 bg-gray-100 rounded-lg">
                   <Building2 className="h-6 w-6 text-gray-400" />
                 </div>
                 <div className="w-3 h-3 rounded-full bg-gray-300"></div>
               </div>
-              
-              {/* Saldo Disponível */}
-              <div className="mb-4">
-                <p className="text-xl font-bold text-slate-300">
-                  Saldo Disponível: R$ 0,00
-                </p>
-              </div>
-              
-              {/* Informações Vazias */}
+
+              <p className="text-xl font-bold text-slate-300 mb-4">
+                Saldo Disponível: R$ 0,00
+              </p>
+
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-slate-300">Banco Não Cadastrado</h3>
                 <p className="text-sm font-medium text-slate-400">Conta Vazia</p>
@@ -325,7 +323,7 @@ const Bancos = () => {
           ))}
         </div>
 
-        {/* Barra de Pesquisa e Filtros */}
+        {/* Filtros */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
@@ -333,7 +331,7 @@ const Bancos = () => {
               <Input
                 placeholder="Buscar bancos..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -362,7 +360,7 @@ const Bancos = () => {
           </div>
         </div>
 
-        {/* Tabela de Bancos */}
+        {/* Tabela */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -379,14 +377,21 @@ const Bancos = () => {
               </thead>
               <tbody>
                 {filteredBanks.map((bank, index) => (
-                  <tr key={bank.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
+                  <tr
+                    key={bank.id}
+                    className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
+                    }`}
+                  >
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                           <Building2 className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-slate-800">{bank.nickname || bank.name}</p>
+                          <p className="font-medium text-slate-800">
+                            {bank.nickname || bank.name}
+                          </p>
                           <p className="text-sm text-slate-500">{bank.name}</p>
                         </div>
                       </div>
@@ -451,13 +456,13 @@ const Bancos = () => {
               </tbody>
             </table>
           </div>
-          
+
           {filteredBanks.length === 0 && (
             <div className="p-8 text-center text-slate-500">
               <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-4" />
               <p className="text-lg font-medium text-slate-600 mb-2">
-                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all' 
-                  ? 'Nenhum banco encontrado' 
+                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+                  ? 'Nenhum banco encontrado'
                   : 'Nenhum banco cadastrado'}
               </p>
               <p className="text-slate-500 mb-4">
