@@ -267,56 +267,59 @@ const Bancos = () => {
           </div>
         </div>
 
-        {/* Cards Individuais dos Bancos */}
+        {/* Cards dos Bancos - Layout Padronizado */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {banks.slice(0, 4).map((bank, index) => {
-            const bgColors = ['bg-emerald-100', 'bg-blue-100', 'bg-purple-100', 'bg-orange-100'];
-            const textColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600', 'text-orange-600'];
-            
-            return (
-              <div key={bank.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 ${bgColors[index]} rounded-lg`}>
-                    <Building2 className={`h-6 w-6 ${textColors[index]}`} />
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          {banks.slice(0, 8).map((bank, index) => (
+            <div key={bank.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+              {/* Ícone e Status */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <Building2 className="h-6 w-6 text-blue-600" />
                 </div>
-                <div>
-                  <p className={`text-lg font-bold mb-2 ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    Saldo Disponível: {formatCurrency(bank.balance)}
-                  </p>
-                  <p className="text-lg font-bold text-slate-800 mb-1">
-                    {bank.name}
-                  </p>
-                  <p className="text-sm font-medium text-slate-600 mb-1">
-                    {bank.nickname || 'Principal'}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {getAccountTypeLabel(bank.account_type)} • {bank.account_number}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Última atualização: {formatDate(bank.updated_at)}
-                  </p>
-                </div>
+                <div className={`w-3 h-3 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
               </div>
-            );
-          })}
+              
+              {/* Saldo Disponível - Destaque Principal */}
+              <div className="mb-4">
+                <p className={`text-xl font-bold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  Saldo Disponível: {formatCurrency(bank.balance)}
+                </p>
+              </div>
+              
+              {/* Informações do Banco */}
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-slate-800">{bank.name}</h3>
+                <p className="text-sm font-medium text-slate-600">{bank.nickname || 'Principal'}</p>
+                <p className="text-sm text-slate-500">{getAccountTypeLabel(bank.account_type)} • {bank.account_number}</p>
+                <p className="text-xs text-slate-400">Última atualização: {formatDate(bank.updated_at)}</p>
+              </div>
+            </div>
+          ))}
           
-          {/* Cards vazios para completar 8 cards */}
-          {Array.from({ length: Math.max(0, 4 - banks.length) }).map((_, index) => (
+          {/* Cards vazios para completar 8 */}
+          {Array.from({ length: Math.max(0, 8 - banks.length) }).map((_, index) => (
             <div key={`empty-${index}`} className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
+              {/* Ícone e Status */}
+              <div className="flex items-center justify-between mb-3">
                 <div className="p-3 bg-gray-100 rounded-lg">
                   <Building2 className="h-6 w-6 text-gray-400" />
                 </div>
                 <div className="w-3 h-3 rounded-full bg-gray-300"></div>
               </div>
-              <div>
-                <p className="text-lg font-bold text-slate-300 mb-2">Saldo Disponível: R$ 0,00</p>
-                <p className="text-lg font-bold text-slate-300 mb-1">Banco_Não_Cadastrado</p>
-                <p className="text-sm font-medium text-slate-400 mb-1">Conta Vazia</p>
-                <p className="text-xs text-slate-400">Nenhuma • 00000000-0</p>
-                <p className="text-xs text-slate-300 mt-1">Última atualização: --/--/----</p>
+              
+              {/* Saldo Disponível */}
+              <div className="mb-4">
+                <p className="text-xl font-bold text-slate-300">
+                  Saldo Disponível: R$ 0,00
+                </p>
+              </div>
+              
+              {/* Informações Vazias */}
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-slate-300">Banco Não Cadastrado</h3>
+                <p className="text-sm font-medium text-slate-400">Conta Vazia</p>
+                <p className="text-sm text-slate-400">Nenhuma • 00000000-0</p>
+                <p className="text-xs text-slate-300">Última atualização: --/--/----</p>
               </div>
             </div>
           ))}
