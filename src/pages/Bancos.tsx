@@ -202,66 +202,80 @@ const Bancos = () => {
           </div>
         </div>
 
-        {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Total de Bancos</p>
-                <p className="text-2xl font-bold text-slate-800">{totalBanks}</p>
-              </div>
+        {/* Cards Padronizados - Resumo e Bancos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Card 1 - Total de Bancos */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-100 rounded-lg">
                 <Building2 className="h-6 w-6 text-blue-600" />
               </div>
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600 mb-1">Resumo Geral</p>
+              <p className="text-lg font-bold text-slate-800 mb-1">Total de Bancos: {totalBanks}</p>
+              <p className="text-xs text-slate-500">Contas cadastradas no sistema</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Bancos Ativos</p>
-                <p className="text-2xl font-bold text-slate-800">{activeBanks}</p>
-              </div>
+          {/* Card 2 - Bancos Ativos */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-green-100 rounded-lg">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600 mb-1">Status Ativo</p>
+              <p className="text-lg font-bold text-green-600 mb-1">Bancos Ativos: {activeBanks}</p>
+              <p className="text-xs text-slate-500">Contas com saldo positivo</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Instituições</p>
-                <p className="text-2xl font-bold text-slate-800">{uniqueBanks}</p>
-              </div>
+          {/* Card 3 - Instituições */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-purple-100 rounded-lg">
                 <Users className="h-6 w-6 text-purple-600" />
               </div>
+              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600 mb-1">Diversificação</p>
+              <p className="text-lg font-bold text-purple-600 mb-1">Instituições: {uniqueBanks}</p>
+              <p className="text-xs text-slate-500">Bancos únicos cadastrados</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Saldo Total</p>
-                <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalBalance)}</p>
+          {/* Card 4 - Saldo Total */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-amber-100 rounded-lg">
+                <Wallet className="h-6 w-6 text-amber-600" />
               </div>
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <Wallet className="h-6 w-6 text-yellow-600" />
-              </div>
+              <div className={`w-3 h-3 rounded-full ${totalBalance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600 mb-1">Patrimônio Total</p>
+              <p className={`text-lg font-bold mb-1 ${totalBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                Saldo Disponível: {formatCurrency(totalBalance)}
+              </p>
+              <p className="text-xs text-slate-500">Soma de todos os saldos</p>
             </div>
           </div>
         </div>
 
-        {/* Cards de Saldo por Banco */}
+        {/* Cards Individuais dos Bancos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {banks.slice(0, 4).map((bank, index) => {
-            const bgColors = ['bg-emerald-100', 'bg-blue-100', 'bg-purple-100', 'bg-amber-100'];
-            const textColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600', 'text-amber-600'];
+            const bgColors = ['bg-emerald-100', 'bg-blue-100', 'bg-purple-100', 'bg-orange-100'];
+            const textColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600', 'text-orange-600'];
             
             return (
-              <div key={bank.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between mb-3">
+              <div key={bank.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 ${bgColors[index]} rounded-lg`}>
                     <Building2 className={`h-6 w-6 ${textColors[index]}`} />
                   </div>
@@ -269,30 +283,40 @@ const Bancos = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-slate-600 mb-1">
-                    {bank.nickname || bank.name}
+                    Conta {bank.nickname?.replace(/[^0-9]/g, '') || bank.account_number.slice(-2)}
                   </p>
-                  <p className={`text-2xl font-bold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'} mb-1`}>
-                    {formatCurrency(bank.balance)}
+                  <p className="text-lg font-bold text-slate-800 mb-1">
+                    {bank.name}_{bank.nickname?.replace(/\s/g, '_') || 'Principal'}
+                  </p>
+                  <p className={`text-lg font-bold mb-2 ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    Saldo Disponível: {formatCurrency(bank.balance)}
                   </p>
                   <p className="text-xs text-slate-500">
                     {getAccountTypeLabel(bank.account_type)} • {bank.account_number}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Última atualização: {formatDate(bank.updated_at)}
                   </p>
                 </div>
               </div>
             );
           })}
           
-          {/* Cards vazios para completar 8 cards quando houver menos de 4 bancos */}
+          {/* Cards vazios para completar 8 cards */}
           {Array.from({ length: Math.max(0, 4 - banks.length) }).map((_, index) => (
-            <div key={`empty-${index}`} className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-6">
-              <div className="flex items-center justify-center h-full text-center">
-                <div>
-                  <div className="p-3 bg-gray-100 rounded-lg mb-3 mx-auto w-fit">
-                    <Building2 className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <p className="text-sm text-slate-400">Banco não cadastrado</p>
-                  <p className="text-xl font-bold text-slate-300">R$ 0,00</p>
+            <div key={`empty-${index}`} className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-gray-100 rounded-lg">
+                  <Building2 className="h-6 w-6 text-gray-400" />
                 </div>
+                <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Conta Vazia</p>
+                <p className="text-lg font-bold text-slate-300 mb-1">Banco_Não_Cadastrado</p>
+                <p className="text-lg font-bold text-slate-300 mb-2">Saldo Disponível: R$ 0,00</p>
+                <p className="text-xs text-slate-400">Nenhuma • 00000000-0</p>
+                <p className="text-xs text-slate-300 mt-1">Última atualização: --/--/----</p>
               </div>
             </div>
           ))}
