@@ -203,7 +203,7 @@ const Bancos = () => {
         </div>
 
         {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -251,6 +251,51 @@ const Bancos = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Cards de Saldo por Banco */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {banks.slice(0, 4).map((bank, index) => {
+            const bgColors = ['bg-emerald-100', 'bg-blue-100', 'bg-purple-100', 'bg-amber-100'];
+            const textColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600', 'text-amber-600'];
+            
+            return (
+              <div key={bank.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`p-3 ${bgColors[index]} rounded-lg`}>
+                    <Building2 className={`h-6 w-6 ${textColors[index]}`} />
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-600 mb-1">
+                    {bank.nickname || bank.name}
+                  </p>
+                  <p className={`text-2xl font-bold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'} mb-1`}>
+                    {formatCurrency(bank.balance)}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {getAccountTypeLabel(bank.account_type)} • {bank.account_number}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          
+          {/* Cards vazios para completar 8 cards quando houver menos de 4 bancos */}
+          {Array.from({ length: Math.max(0, 4 - banks.length) }).map((_, index) => (
+            <div key={`empty-${index}`} className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-6">
+              <div className="flex items-center justify-center h-full text-center">
+                <div>
+                  <div className="p-3 bg-gray-100 rounded-lg mb-3 mx-auto w-fit">
+                    <Building2 className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-slate-400">Banco não cadastrado</p>
+                  <p className="text-xl font-bold text-slate-300">R$ 0,00</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Barra de Pesquisa e Filtros */}
