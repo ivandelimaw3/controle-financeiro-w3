@@ -282,14 +282,14 @@ const Bancos = () => {
                   <div className={`w-3 h-3 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-600 mb-1">
-                    Conta {bank.nickname?.replace(/[^0-9]/g, '') || bank.account_number.slice(-2)}
-                  </p>
-                  <p className="text-lg font-bold text-slate-800 mb-1">
-                    {bank.name}_{bank.nickname?.replace(/\s/g, '_') || 'Principal'}
-                  </p>
                   <p className={`text-lg font-bold mb-2 ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     Saldo Disponível: {formatCurrency(bank.balance)}
+                  </p>
+                  <p className="text-lg font-bold text-slate-800 mb-1">
+                    {bank.name}
+                  </p>
+                  <p className="text-sm font-medium text-slate-600 mb-1">
+                    {bank.nickname || 'Principal'}
                   </p>
                   <p className="text-xs text-slate-500">
                     {getAccountTypeLabel(bank.account_type)} • {bank.account_number}
@@ -312,9 +312,9 @@ const Bancos = () => {
                 <div className="w-3 h-3 rounded-full bg-gray-300"></div>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-400 mb-1">Conta Vazia</p>
-                <p className="text-lg font-bold text-slate-300 mb-1">Banco_Não_Cadastrado</p>
                 <p className="text-lg font-bold text-slate-300 mb-2">Saldo Disponível: R$ 0,00</p>
+                <p className="text-lg font-bold text-slate-300 mb-1">Banco_Não_Cadastrado</p>
+                <p className="text-sm font-medium text-slate-400 mb-1">Conta Vazia</p>
                 <p className="text-xs text-slate-400">Nenhuma • 00000000-0</p>
                 <p className="text-xs text-slate-300 mt-1">Última atualização: --/--/----</p>
               </div>
