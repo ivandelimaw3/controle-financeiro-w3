@@ -189,72 +189,7 @@ const Bancos = () => {
             </Button>
           </div>
         </div>
-
-        {/* Resumo Geral */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total de Bancos */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Building2 className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            </div>
-            <p className="text-sm font-medium text-slate-600 mb-1">Resumo Geral</p>
-            <p className="text-lg font-bold text-slate-800 mb-1">Total de Bancos: {totalBanks}</p>
-            <p className="text-xs text-slate-500">Contas cadastradas no sistema</p>
-          </div>
-
-          {/* Bancos Ativos */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            </div>
-            <p className="text-sm font-medium text-slate-600 mb-1">Status Ativo</p>
-            <p className="text-lg font-bold text-green-600 mb-1">Bancos Ativos: {activeBanks}</p>
-            <p className="text-xs text-slate-500">Contas com saldo positivo</p>
-          </div>
-
-          {/* Instituições */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Users className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-            </div>
-            <p className="text-sm font-medium text-slate-600 mb-1">Diversificação</p>
-            <p className="text-lg font-bold text-purple-600 mb-1">Instituições: {uniqueBanks}</p>
-            <p className="text-xs text-slate-500">Bancos únicos cadastrados</p>
-          </div>
-
-          {/* Saldo Total */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-amber-100 rounded-lg">
-                <Wallet className="h-6 w-6 text-amber-600" />
-              </div>
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  totalBalance >= 0 ? 'bg-green-500' : 'bg-red-500'
-                }`}
-              ></div>
-            </div>
-            <p className="text-sm font-medium text-slate-600 mb-1">Patrimônio Total</p>
-            <p
-              className={`text-lg font-bold mb-1 ${
-                totalBalance >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              Saldo Disponível: {formatCurrency(totalBalance)}
-            </p>
-            <p className="text-xs text-slate-500">Soma de todos os saldos</p>
-          </div>
-        </div>
-
+      
         {/* Cards Individuais dos Bancos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {banks.slice(0, 8).map(bank => (
