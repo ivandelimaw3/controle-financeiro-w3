@@ -47,6 +47,14 @@ const menuItems = [
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
     hoverBg: 'hover:bg-purple-100'
+  },
+  { 
+    icon: CreditCard, 
+    label: 'Cartões de Crédito', 
+    path: '/cartoes-credito', 
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    hoverBg: 'hover:bg-red-100'
   },  
   { 
     icon: Tag, 
