@@ -30,6 +30,27 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
     return masked;
   };
 
+  const formatExpiryDate = (expiry: string) => {
+    if (!expiry) return "00/00";
+    
+    // Se vier no formato MM/AAAA, converte para MM/AA
+    if (expiry.includes('/')) {
+      const [month, year] = expiry.split('/');
+      if (year && year.length === 4) {
+        return `${month}/${year.slice(-2)}`;
+      }
+      return expiry;
+    }
+    
+    // Se for apenas números, formata como MM/AA
+    const numbers = expiry.replace(/\D/g, '');
+    if (numbers.length >= 4) {
+      return `${numbers.slice(0, 2)}/${numbers.slice(-2)}`;
+    }
+    
+    return expiry;
+  };
+
   const getBrandGradient = (cardBrand: string) => {
     switch (cardBrand?.toLowerCase()) {
       case 'visa':
@@ -97,7 +118,7 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
           </div>
           <div className="text-right ml-4">
             <div className="text-xs opacity-75 mb-1">VÁLIDO ATÉ</div>
-            <div className="font-mono text-sm">{expiry}</div>
+            <div className="font-mono text-sm">{formatExpiryDate(expiry)}</div>
           </div>
         </div>
       </div>

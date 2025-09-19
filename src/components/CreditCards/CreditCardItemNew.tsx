@@ -18,6 +18,12 @@ export const CreditCardItemNew: React.FC<CreditCardItemNewProps> = ({
   onEdit,
   onDelete
 }) => {
+  // Debug dos dados do cartão
+  console.log('CreditCardItemNew - Dados do cartão:', {
+    holder_name: card.holder_name,
+    expiry_date: card.expiry_date,
+    card_brand: card.card_brand
+  });
   const getStatusLabel = (currentValue: number, creditLimit: number) => {
     const utilization = creditLimit > 0 ? (currentValue / creditLimit) * 100 : 0;
     if (utilization > 80) return 'Limite Alto';
@@ -44,8 +50,8 @@ export const CreditCardItemNew: React.FC<CreditCardItemNewProps> = ({
         <CreditCardUI
           bankName={card.card_brand || "BANCO"}
           cardNumber={card.card_number}
-          holderName={card.holder_name}
-          expiry={card.expiry_date}
+          holderName={card.holder_name || "TITULAR DO CARTÃO"}
+          expiry={card.expiry_date || "00/00"}
           brand={card.card_brand}
         />
       </div>
