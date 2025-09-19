@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { Building2, Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bank } from '@/hooks/useBanksData';
+import { BankUI } from './BankUI';
+import { formatCurrency } from '@/utils/formatters';
 
 interface BankCardProps {
   bank: Bank;
@@ -18,13 +20,6 @@ export const BankCard: React.FC<BankCardProps> = ({
   onDelete,
   onAddDeposit
 }) => {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('pt-BR', {
@@ -46,109 +41,73 @@ export const BankCard: React.FC<BankCardProps> = ({
     return types[type] || type;
   };
 
-  const getBankGradient = (type: string) => {
-    switch (type) {
-      case 'corrente':
-        return 'bg-gradient-to-r from-blue-600 to-blue-800';
-      case 'poupanca':
-        return 'bg-gradient-to-r from-green-600 to-green-800';
-      case 'salario':
-        return 'bg-gradient-to-r from-purple-600 to-purple-800';
-      case 'investimento':
-        return 'bg-gradient-to-r from-orange-600 to-red-600';
-      default:
-        return 'bg-gradient-to-r from-slate-600 to-slate-800';
-    }
+  const getStatusLabel = (balance: number) => {
+    if (balance >= 10000) return 'Saldo Alto';
+    if (balance >= 1000) return 'Saldo Médio';
+    if (balance >= 0) return 'Saldo OK';
+    return 'Saldo Negativo';
+  };
+
+  const getStatusColor = (balance: number) => {
+    if (balance >= 10000) return 'bg-green-100 text-green-800';
+    if (balance >= 1000) return 'bg-blue-100 text-blue-800';
+    if (balance >= 0) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
   };
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
+    <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
       {/* Visual Bank Card */}
-      <div className="relative w-full max-w-xs mx-auto mb-4">
-        <div className={`
-          ${getBankGradient(bank.account_type)}
-          rounded-xl p-4 text-white shadow-lg
-          aspect-[1.6/1] flex flex-col justify-between
-          transform transition-transform hover:scale-105
-          relative overflow-hidden text-xs
-        `}>
-          
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute -right-16 -top-16 w-32 h-32 rounded-full bg-white/20" />
-            <div className="absolute -left-8 -bottom-8 w-24 h-24 rounded-full bg-white/10" />
-          </div>
-
-          {/* Card Header */}
-          <div className="flex justify-between items-start relative z-10">
-            <div className="text-xs font-medium opacity-90">
-              {bank.name.toUpperCase()}
-            </div>
-            <Badge variant="outline" className="bg-white/20 text-white border-white/30">
-              {getAccountTypeLabel(bank.account_type)}
-            </Badge>
-          </div>
-
-          {/* Bank Icon */}
-          <div className="flex items-center space-x-2 relative z-10">
-            <Building2 className="w-8 h-6 text-white" />
-          </div>
-
-          {/* Account Info */}
-          <div className="relative z-10">
-            <div className="font-mono text-sm tracking-wider mb-1">
-              AG: {bank.agency} • CC: {bank.account_number}
-            </div>
-          </div>
-
-          {/* Card Footer */}
-          <div className="flex justify-between items-end relative z-10">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs opacity-75 mb-1">TITULAR</div>
-              <div className="font-medium text-xs truncate">
-                {(bank.nickname || bank.name).toUpperCase()}
-              </div>
-            </div>
-            <div className="text-right ml-2 flex-shrink-0">
-              <div className="text-xs opacity-75 mb-1">SALDO</div>
-              <div className="font-mono text-xs">{formatCurrency(bank.balance)}</div>
-            </div>
-          </div>
-        </div>
+      <div className="p-4">
+        <BankUI
+          bankName={bank.name}
+          accountNumber={bank.account_number}
+          agency={bank.agency}
+          accountType={bank.account_type}
+          holderName={bank.nickname}
+          balance={bank.balance}
+        />
       </div>
 
-      {/* Card Details */}
-      <div className="space-y-3">
-        <div className="text-center">
-          <h3 className="font-semibold text-gray-800">
+      {/* Bank Information */}
+      <div className="p-4 pt-0 space-y-4">
+        {/* Status Badge */}
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-card-foreground">
             {bank.nickname || bank.name}
           </h3>
-          {bank.nickname && (
-            <p className="text-sm text-gray-600">{bank.name}</p>
-          )}
+          <Badge className={getStatusColor(bank.balance)}>
+            {getStatusLabel(bank.balance)}
+          </Badge>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="text-center">
-            <p className="text-gray-500">Agência</p>
-            <p className="font-medium">{bank.agency}</p>
+        {/* Account Details */}
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Tipo de Conta:</span>
+            <span className="font-medium">{getAccountTypeLabel(bank.account_type)}</span>
           </div>
-          <div className="text-center">
-            <p className="text-gray-500">Conta</p>
-            <p className="font-medium">{bank.account_number}</p>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Agência:</span>
+            <span className="font-medium">{bank.agency}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Conta:</span>
+            <span className="font-medium">{bank.account_number}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Saldo Atual:</span>
+            <span className={`font-medium ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(bank.balance)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Atualizado:</span>
+            <span className="font-medium text-xs">{formatDate(bank.updated_at)}</span>
           </div>
         </div>
 
-        <div className="text-center pt-2 border-t">
-          <p className="text-sm text-gray-500">Saldo Atual</p>
-          <p className={`text-2xl font-bold ${bank.balance < 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {formatCurrency(bank.balance)}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Atualizado: {formatDate(bank.updated_at)}
-          </p>
-        </div>
-
+        {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
           <Button
             variant="outline"
@@ -156,23 +115,26 @@ export const BankCard: React.FC<BankCardProps> = ({
             onClick={() => onAddDeposit(bank)}
             className="flex-1"
           >
-            <Plus className="h-4 w-4 mr-1" />
+            <Plus className="h-4 w-4 mr-2" />
             Depósito
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(bank)}
+            className="flex-1"
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-4 w-4 mr-2" />
+            Editar
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onDelete(bank.id)}
-            className="text-red-600 hover:text-red-700"
+            className="flex-1 text-destructive border-destructive/20 hover:bg-destructive/5"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-4 w-4 mr-2" />
+            Excluir
           </Button>
         </div>
       </div>

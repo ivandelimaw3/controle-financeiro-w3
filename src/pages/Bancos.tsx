@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { BankForm } from '@/components/Banks/BankForm';
 import { DepositForm } from '@/components/Banks/DepositForm';
+import { BanksList } from '@/components/Banks/BanksList';
 import { useBanksData, Bank, BankInput } from '@/hooks/useBanksData';
 import { useDepositsData } from '@/hooks/useDepositsData';
 import { useToast } from '@/hooks/use-toast';
@@ -190,77 +191,13 @@ const Bancos = () => {
           </div>
         </div>
       
-       {/* Cards Individuais dos Bancos */}
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-  {banks.slice(0, 8).map((bank) => (
-    <div
-      key={bank.id}
-      className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition-shadow flex flex-col justify-between"
-    >
-      {/* Informações do banco */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <Building2 className="h-5 w-5 text-blue-600" />
-        </div>
-        <div className="flex flex-col">
-          <span className="font-semibold text-slate-800">{bank.name}</span>
-          <span className="text-sm text-slate-600">
-            {bank.nickname || "Principal"}
-          </span>
-          <span className="text-sm text-slate-500">
-            Conta • {bank.account_number}
-          </span>
-          <span className="text-xs text-slate-400">
-            Última atualização: {formatDate(bank.updated_at)}
-          </span>
-        </div>
-      </div>
-
-      {/* Saldo em destaque no rodapé */}
-      <p>
-        <span className="text-sm font-semibold text-slate-600">
-          Saldo Disponível:
-        </span>{" "}
-        <span
-          className={`text-lg font-bold ${
-            bank.balance >= 0 ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {formatCurrency(bank.balance)}
-        </span>
-      </p>
-    </div>
-  ))}
-
-  {/* Cards vazios para completar até 8 */}
-  {Array.from({ length: Math.max(0, 8 - banks.length) }).map((_, index) => (
-    <div
-      key={`empty-${index}`}
-      className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-4 hover:shadow-md transition-shadow flex flex-col justify-between"
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-2 bg-gray-100 rounded-lg">
-          <Building2 className="h-5 w-5 text-gray-400" />
-        </div>
-        <div className="flex flex-col">
-          <span className="font-semibold text-slate-400">Conta Vazia</span>
-          <span className="text-sm text-slate-400">Banco_Não_Cadastrado</span>
-          <span className="text-sm text-slate-300">Conta • 00000000-0</span>
-          <span className="text-xs text-slate-300">
-            Última atualização: --/--/----
-          </span>
-        </div>
-      </div>
-
-      <p>
-        <span className="text-sm font-semibold text-slate-400">
-          Saldo Disponível:
-        </span>{" "}
-        <span className="text-lg font-bold text-slate-300">R$ 0,00</span>
-      </p>
-    </div>
-  ))}
-</div>
+        {/* Banks Cards Grid */}
+        <BanksList
+          banks={filteredBanks}
+          onEdit={handleEditBank}
+          onDelete={handleDeleteBank}
+          onAddDeposit={handleAddDeposit}
+        />
 
         {/* Filtros */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
