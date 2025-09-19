@@ -18,13 +18,6 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
   color = "bg-gradient-to-r from-slate-600 to-slate-800",
   brand = "CREDIT"
 }) => {
-  // Debug para ver os props recebidos
-  console.log('CreditCardUI - Props recebidos:', {
-    holderName,
-    expiry,
-    bankName,
-    brand
-  });
   const formatCardNumber = (number: string) => {
     const cleaned = number.replace(/\D/g, '');
     const masked = cleaned.replace(/(.{4})/g, '$1 ').trim();
@@ -75,25 +68,25 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
   };
 
   return (
-    <div className="relative w-full max-w-sm mx-auto">
+    <div className="relative w-full max-w-xs mx-auto">
       {/* Card Container */}
       <div className={`
         ${getBrandGradient(brand)}
-        rounded-2xl p-6 text-white shadow-2xl
+        rounded-xl p-4 text-white shadow-lg
         aspect-[1.6/1] flex flex-col justify-between
         transform transition-transform hover:scale-105
-        relative overflow-hidden
+        relative overflow-hidden text-xs
       `}>
         
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute -right-20 -top-20 w-40 h-40 rounded-full bg-white/20" />
-          <div className="absolute -left-10 -bottom-10 w-32 h-32 rounded-full bg-white/10" />
+          <div className="absolute -right-16 -top-16 w-32 h-32 rounded-full bg-white/20" />
+          <div className="absolute -left-8 -bottom-8 w-24 h-24 rounded-full bg-white/10" />
         </div>
 
         {/* Card Header */}
         <div className="flex justify-between items-start relative z-10">
-          <div className="text-sm font-medium opacity-90">
+          <div className="text-xs font-medium opacity-90">
             {bankName.toUpperCase()}
           </div>
           <div className="text-right">
@@ -102,30 +95,30 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
         </div>
 
         {/* Chip */}
-        <div className="flex items-center space-x-4 relative z-10">
-          <div className="w-12 h-9 rounded-md bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center border-2 border-yellow-300">
-            <div className="w-6 h-4 rounded-sm bg-yellow-600 opacity-80" />
+        <div className="flex items-center space-x-2 relative z-10">
+          <div className="w-8 h-6 rounded bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center border border-yellow-300">
+            <div className="w-4 h-3 rounded-sm bg-yellow-600 opacity-80" />
           </div>
         </div>
 
         {/* Card Number */}
         <div className="relative z-10">
-          <div className="font-mono text-lg tracking-wider mb-1">
+          <div className="font-mono text-sm tracking-wider mb-1">
             {formatCardNumber(cardNumber)}
           </div>
         </div>
 
         {/* Card Footer */}
         <div className="flex justify-between items-end relative z-10">
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="text-xs opacity-75 mb-1">TITULAR</div>
-            <div className="font-medium text-sm truncate">
-              {holderName.toUpperCase()}
+            <div className="font-medium text-xs truncate">
+              {(holderName || "NOME DO TITULAR").toUpperCase()}
             </div>
           </div>
-          <div className="text-right ml-4">
+          <div className="text-right ml-2 flex-shrink-0">
             <div className="text-xs opacity-75 mb-1">VÁLIDO ATÉ</div>
-            <div className="font-mono text-sm">{formatExpiryDate(expiry)}</div>
+            <div className="font-mono text-xs">{formatExpiryDate(expiry)}</div>
           </div>
         </div>
       </div>
