@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CreditCardItem } from './CreditCardItem';
+import { CreditCardItemNew } from './CreditCardItemNew';
 import { CreditCardData } from '@/hooks/useCreditCardsData';
 
 interface CreditCardsListProps {
@@ -24,9 +24,9 @@ export const CreditCardsList: React.FC<CreditCardsListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {cards.map((card) => (
-        <CreditCardItem
+        <CreditCardItemNew
           key={card.id}
           card={card}
           onEdit={onEdit}
