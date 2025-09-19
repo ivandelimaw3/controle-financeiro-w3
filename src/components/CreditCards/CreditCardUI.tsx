@@ -18,6 +18,13 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
   color = "bg-gradient-to-r from-slate-600 to-slate-800",
   brand = "CREDIT"
 }) => {
+  // Debug para ver os props recebidos
+  console.log('CreditCardUI - Props recebidos:', {
+    holderName,
+    expiry,
+    bankName,
+    brand
+  });
   const formatCardNumber = (number: string) => {
     const cleaned = number.replace(/\D/g, '');
     const masked = cleaned.replace(/(.{4})/g, '$1 ').trim();

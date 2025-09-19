@@ -50,10 +50,17 @@ export const CreditCardItemNew: React.FC<CreditCardItemNewProps> = ({
         <CreditCardUI
           bankName={card.card_brand || "BANCO"}
           cardNumber={card.card_number}
-          holderName={card.holder_name || "TITULAR DO CARTÃO"}
+          holderName={card.holder_name || "NOME DO TITULAR"}
           expiry={card.expiry_date || "00/00"}
           brand={card.card_brand}
         />
+        
+        {/* Debug info para ver os dados */}
+        <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
+          <div>Titular: {card.holder_name || 'N/A'}</div>
+          <div>Validade: {card.expiry_date || 'N/A'}</div>
+          <div>Bandeira: {card.card_brand || 'N/A'}</div>
+        </div>
       </div>
 
       {/* Card Information */}
