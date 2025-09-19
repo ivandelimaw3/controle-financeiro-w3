@@ -1,5 +1,6 @@
 import React from 'react';
 import { CreditCard } from 'lucide-react';
+import { CardBrandIcon } from './CardBrandIcons';
 
 interface CreditCardUIProps {
   bankName?: string;
@@ -94,11 +95,9 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
           </div>
         </div>
 
-        {/* Chip */}
+        {/* Brand Icon */}
         <div className="flex items-center space-x-2 relative z-10">
-          <div className="w-8 h-6 rounded bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center border border-yellow-300">
-            <div className="w-4 h-3 rounded-sm bg-yellow-600 opacity-80" />
-          </div>
+          <CardBrandIcon brand={brand} className="w-8 h-6" />
         </div>
 
         {/* Card Number */}

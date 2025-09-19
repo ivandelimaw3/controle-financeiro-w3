@@ -4,6 +4,7 @@ import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreditCardData, CreditCardFormData } from '@/hooks/useCreditCardsData';
 
 interface CreditCardFormModalProps {
@@ -119,6 +120,24 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
           placeholder="1234 5678 9012 3456"
           required
         />
+      </div>
+
+      <div>
+        <Label htmlFor="card_brand">Bandeira do Cartão *</Label>
+        <Select
+          value={formData.card_brand}
+          onValueChange={(value) => handleChange('card_brand', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione a bandeira" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="visa">Visa</SelectItem>
+            <SelectItem value="mastercard">MasterCard</SelectItem>
+            <SelectItem value="elo">Elo</SelectItem>
+            <SelectItem value="amex">American Express</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
