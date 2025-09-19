@@ -55,7 +55,15 @@ const menuItems = [
     color: 'text-red-600',
     bgColor: 'bg-red-50',
     hoverBg: 'hover:bg-red-100'
-  },  
+  },
+  { 
+    icon: Building2, 
+    label: 'Bancos', 
+    path: '/bancos', 
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50',
+    hoverBg: 'hover:bg-indigo-100'
+  },
   { 
     icon: Tag, 
     label: 'Categorias', 
@@ -79,14 +87,6 @@ const menuItems = [
     color: 'text-cyan-600',
     bgColor: 'bg-cyan-50',
     hoverBg: 'hover:bg-cyan-100'
-  },
-  { 
-    icon: Building2, 
-    label: 'Bancos', 
-    path: '/bancos', 
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50',
-    hoverBg: 'hover:bg-indigo-100'
   },
   { 
     icon: TrendingUp, 
