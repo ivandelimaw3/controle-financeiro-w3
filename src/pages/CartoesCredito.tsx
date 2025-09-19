@@ -207,27 +207,6 @@ const CartoesCredito = () => {
           onDelete={handleDeleteCard}
         />
 
-        {/* Cards vazios para completar até 8 */}
-        {creditCards.length < 8 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
-            {Array.from({ length: Math.max(0, 8 - creditCards.length) }).map((_, index) => (
-              <div
-                key={`empty-${index}`}
-                className="bg-card rounded-lg border border-dashed p-4 hover:shadow-sm transition-shadow flex flex-col justify-center items-center min-h-[200px]"
-              >
-                <div className="p-2 bg-muted rounded-lg mb-3">
-                  <CreditCard className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <span className="font-medium text-muted-foreground text-center">
-                  Slot para Novo Cartão
-                </span>
-                <span className="text-sm text-muted-foreground/70 text-center mt-1">
-                  Clique em "Novo Cartão" para adicionar
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Filtros */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
