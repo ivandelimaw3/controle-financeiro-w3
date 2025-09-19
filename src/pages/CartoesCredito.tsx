@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { CreditCardFormModal } from '@/components/CreditCards/CreditCardFormModal';
+import { CreditCardsList } from '@/components/CreditCards/CreditCardsList';
 import { useCreditCardsData, CreditCardData, CreditCardFormData } from '@/hooks/useCreditCardsData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -199,80 +200,34 @@ const CartoesCredito = () => {
           </div>
         </div>
       
-        {/* Cards Individuais dos Cartões */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {creditCards.slice(0, 8).map((card) => {
-            const available = card.credit_limit - card.current_value;
-            return (
+        {/* Cards Visuais dos Cartões */}
+        <CreditCardsList
+          cards={creditCards.slice(0, 8)}
+          onEdit={handleEditCard}
+          onDelete={handleDeleteCard}
+        />
+
+        {/* Cards vazios para completar até 8 */}
+        {creditCards.length < 8 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+            {Array.from({ length: Math.max(0, 8 - creditCards.length) }).map((_, index) => (
               <div
-                key={card.id}
-                className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition-shadow flex flex-col justify-between"
+                key={`empty-${index}`}
+                className="bg-card rounded-lg border border-dashed p-4 hover:shadow-sm transition-shadow flex flex-col justify-center items-center min-h-[200px]"
               >
-                {/* Informações do cartão */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <CreditCard className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-slate-800">{card.card_name}</span>
-                    <span className="text-sm text-slate-600">
-                      {card.bank_name || "Banco não informado"}
-                    </span>
-                    <span className="text-sm text-slate-500">
-                      Cartão • {formatCardNumber(card.card_number)}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      Última atualização: {formatDate(card.updated_at)}
-                    </span>
-                  </div>
+                <div className="p-2 bg-muted rounded-lg mb-3">
+                  <CreditCard className="h-8 w-8 text-muted-foreground" />
                 </div>
-
-                {/* Limite disponível em destaque no rodapé */}
-                <p>
-                  <span className="text-sm font-semibold text-slate-600">
-                    Limite Disponível:
-                  </span>{" "}
-                  <span
-                    className={`text-lg font-bold ${
-                      available >= 0 ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {formatCurrency(available)}
-                  </span>
-                </p>
+                <span className="font-medium text-muted-foreground text-center">
+                  Slot para Novo Cartão
+                </span>
+                <span className="text-sm text-muted-foreground/70 text-center mt-1">
+                  Clique em "Novo Cartão" para adicionar
+                </span>
               </div>
-            );
-          })}
-
-          {/* Cards vazios para completar até 8 */}
-          {Array.from({ length: Math.max(0, 8 - creditCards.length) }).map((_, index) => (
-            <div
-              key={`empty-${index}`}
-              className="bg-white rounded-xl shadow-sm border border-slate-200 border-dashed p-4 hover:shadow-md transition-shadow flex flex-col justify-between"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 bg-gray-100 rounded-lg">
-                  <CreditCard className="h-5 w-5 text-gray-400" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-slate-400">Cartão Vazio</span>
-                  <span className="text-sm text-slate-400">Banco_Não_Cadastrado</span>
-                  <span className="text-sm text-slate-300">Cartão • ****0000</span>
-                  <span className="text-xs text-slate-300">
-                    Última atualização: --/--/----
-                  </span>
-                </div>
-              </div>
-
-              <p>
-                <span className="text-sm font-semibold text-slate-400">
-                  Limite Disponível:
-                </span>{" "}
-                <span className="text-lg font-bold text-slate-300">R$ 0,00</span>
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Filtros */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
