@@ -108,32 +108,32 @@ export const BankCard: React.FC<BankCardProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-1 pt-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => onAddDeposit(bank)}
-            className="flex-1"
+            className="flex-1 text-xs px-2 py-1 h-8"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-3 w-3 mr-1" />
             Depósito
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(bank)}
-            className="flex-1"
+            className="flex-1 text-xs px-2 py-1 h-8"
           >
-            <Edit className="h-4 w-4 mr-2" />
+            <Edit className="h-3 w-3 mr-1" />
             Editar
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onDelete(bank.id)}
-            className="flex-1 text-destructive border-destructive/20 hover:bg-destructive/5"
+            className="flex-1 text-xs px-2 py-1 h-8 text-destructive border-destructive/20 hover:bg-destructive/5"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-3 w-3 mr-1" />
             Excluir
           </Button>
         </div>
