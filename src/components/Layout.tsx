@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,7 +11,6 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const isMobile = useIsMobile();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const collapsiblePages = [
@@ -55,10 +53,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <AppSidebar />
           </div>
           <div className="flex-1 flex flex-col">
-            {!isMobile && <Header />}
-            <SidebarTrigger className={`fixed ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} z-50 ${isMobile ? 'bg-white/90 backdrop-blur-sm shadow-lg' : ''}`} />
+            <Header />
+            <SidebarTrigger className="fixed top-4 left-4 z-50" />
             <main 
-              className={`flex-1 ${isMobile ? 'p-4 pt-12' : 'p-6'}`}
+              className="flex-1 p-6"
               onMouseEnter={handleMainContentHover}
             >
               {children}
@@ -74,8 +72,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          {!isMobile && <Header />}
-          <main className={`flex-1 ${isMobile ? 'p-4' : 'p-6'}`}>
+          <Header />
+          <main className="flex-1 p-6">
             {children}
           </main>
         </div>
