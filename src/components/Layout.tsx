@@ -29,6 +29,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(!isMobile);
   
   const collapsiblePages = [
+    '/',
     '/contas',
     '/categorias', 
     '/relatorios',
