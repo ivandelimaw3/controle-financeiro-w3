@@ -1,17 +1,21 @@
 import React from 'react';
-import { Layout } from '@/components/Layout';
+import { Layout, useSidebarControl } from '@/components/Layout';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileSearch, Receipt, CreditCard, Building2, TrendingUp } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 
-interface HomeProps {
-  onToggleSidebar?: () => void;
-}
-
-const Home: React.FC<HomeProps> = ({ onToggleSidebar }) => {
+const Home: React.FC = () => {
   const isMobile = useIsMobile();
+  
+  let toggleSidebar: (() => void) | undefined;
+  try {
+    const sidebarControl = useSidebarControl();
+    toggleSidebar = sidebarControl.toggleSidebar;
+  } catch {
+    // Not in sidebar context, which is fine for non-collapsible pages
+  }
 
   const quickActions = [
     { 
@@ -94,7 +98,7 @@ const Home: React.FC<HomeProps> = ({ onToggleSidebar }) => {
             <div className="text-center py-8">
               <div 
                 className="text-6xl mb-4 cursor-pointer hover:scale-110 transition-transform" 
-                onClick={onToggleSidebar}
+                onClick={toggleSidebar}
               >
                 👈
               </div>

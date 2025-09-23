@@ -1,17 +1,29 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+// Create context for sidebar control
+const SidebarControlContext = createContext<{
+  toggleSidebar: () => void;
+} | null>(null);
+
+export const useSidebarControl = () => {
+  const context = useContext(SidebarControlContext);
+  if (!context) {
+    throw new Error('useSidebarControl must be used within SidebarControlContext');
+  }
+  return context;
+};
+
 interface LayoutProps {
   children: React.ReactNode;
-  onToggleSidebar?: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, onToggleSidebar }) => {
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(!isMobile);
@@ -50,43 +62,46 @@ export const Layout: React.FC<LayoutProps> = ({ children, onToggleSidebar }) => 
     }
   };
 
-  const handleToggleSidebar = () => {
+  const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
-    onToggleSidebar?.();
   };
 
   if (isCollapsiblePage) {
     return (
       <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
-          <div onMouseEnter={handleSidebarHover}>
-            <AppSidebar />
+        <SidebarControlContext.Provider value={{ toggleSidebar }}>
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
+            <div onMouseEnter={handleSidebarHover}>
+              <AppSidebar />
+            </div>
+            <div className="flex-1 flex flex-col">
+              <Header />
+              <main 
+                className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}
+                onMouseEnter={handleMainContentHover}
+              >
+                {children}
+              </main>
+            </div>
           </div>
-          <div className="flex-1 flex flex-col">
-          <Header />
-            <main 
-              className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}
-              onMouseEnter={handleMainContentHover}
-            >
-              {React.cloneElement(children as React.ReactElement, { onToggleSidebar: handleToggleSidebar })}
-            </main>
-          </div>
-        </div>
+        </SidebarControlContext.Provider>
       </SidebarProvider>
     );
   }
 
   return (
     <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col">
-          <Header />
-          <main className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}>
-            {React.cloneElement(children as React.ReactElement, { onToggleSidebar: handleToggleSidebar })}
-          </main>
+      <SidebarControlContext.Provider value={{ toggleSidebar }}>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col">
+            <Header />
+            <main className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}>
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
+      </SidebarControlContext.Provider>
     </SidebarProvider>
   );
 };
