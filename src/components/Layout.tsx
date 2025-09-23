@@ -8,9 +8,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LayoutProps {
   children: React.ReactNode;
+  onToggleSidebar?: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, onToggleSidebar }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(!isMobile);
@@ -49,6 +50,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
+  const handleToggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+    onToggleSidebar?.();
+  };
+
   if (isCollapsiblePage) {
     return (
       <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
@@ -58,11 +64,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <div className="flex-1 flex flex-col">
           <Header />
-            <main
+            <main 
               className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}
               onMouseEnter={handleMainContentHover}
             >
-              {children}
+              {React.cloneElement(children as React.ReactElement, { onToggleSidebar: handleToggleSidebar })}
             </main>
           </div>
         </div>
@@ -77,7 +83,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="flex-1 flex flex-col">
           <Header />
           <main className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}>
-            {children}
+            {React.cloneElement(children as React.ReactElement, { onToggleSidebar: handleToggleSidebar })}
           </main>
         </div>
       </div>

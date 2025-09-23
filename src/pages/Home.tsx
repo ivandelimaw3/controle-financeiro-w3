@@ -4,12 +4,14 @@ import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileSearch, Receipt, CreditCard, Building2, TrendingUp } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useSidebar } from '@/components/ui/sidebar';
 import { Link } from 'react-router-dom';
 
-const Home: React.FC = () => {
+interface HomeProps {
+  onToggleSidebar?: () => void;
+}
+
+const Home: React.FC<HomeProps> = ({ onToggleSidebar }) => {
   const isMobile = useIsMobile();
-  const { toggleSidebar } = useSidebar();
 
   const quickActions = [
     { 
@@ -92,7 +94,7 @@ const Home: React.FC = () => {
             <div className="text-center py-8">
               <div 
                 className="text-6xl mb-4 cursor-pointer hover:scale-110 transition-transform" 
-                onClick={toggleSidebar}
+                onClick={onToggleSidebar}
               >
                 👈
               </div>
