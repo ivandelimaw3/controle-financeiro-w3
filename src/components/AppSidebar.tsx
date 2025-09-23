@@ -22,6 +22,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const menuItems = [
   { 
@@ -117,13 +118,22 @@ const menuItems = [
 export function AppSidebar() {
   const location = useLocation();
   const { open } = useSidebar();
+  const isMobile = useIsMobile();
 
   return (
     <Sidebar 
-      className={`transition-all duration-300 ${open ? 'w-64' : 'w-16'} bg-gradient-to-b from-slate-50 to-white shadow-lg border-r h-screen`}
+      className={`transition-all duration-300 ${open ? (isMobile ? 'w-72' : 'w-64') : 'w-16'} bg-gradient-to-b from-slate-50 to-white shadow-lg border-r h-screen ${isMobile ? 'z-40' : ''}`}
       collapsible="icon"
     >
-      <SidebarContent className="mt-6 px-4">
+      <SidebarContent className={`${isMobile ? 'mt-2' : 'mt-6'} px-4`}>
+        {isMobile && open && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+            <h2 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              Controle Financeiro W3
+            </h2>
+            <p className="text-xs text-slate-500">Gestão Financeira</p>
+          </div>
+        )}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
@@ -136,14 +146,14 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <Link
                         to={item.path}
-                        className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                        className={`flex items-center ${isMobile ? 'px-3 py-4' : 'px-4 py-3'} text-sm font-medium rounded-xl transition-all duration-200 ${
                           isActive
                             ? `${item.bgColor} ${item.color} shadow-sm border-l-4 border-current`
                             : `text-gray-600 ${item.hoverBg} hover:text-gray-900 hover:shadow-sm`
                         }`}
                       >
                         <Icon className={`h-5 w-5 ${open ? 'mr-3' : 'mx-auto'} ${isActive ? item.color : 'text-gray-500'}`} />
-                        {open && <span>{item.label}</span>}
+                        {open && <span className={isMobile ? 'text-base' : ''}>{item.label}</span>}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
