@@ -13,7 +13,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(!isMobile);
   
   const collapsiblePages = [
     '/contas',
@@ -31,9 +31,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   useEffect(() => {
     if (!isCollapsiblePage) {
-      setSidebarCollapsed(isMobile);
+      setSidebarCollapsed(!isMobile);
     } else {
-      setSidebarCollapsed(isMobile);
+      setSidebarCollapsed(!isMobile);
     }
   }, [isCollapsiblePage, isMobile]);
 
@@ -58,9 +58,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <div className="flex-1 flex flex-col">
             <Header />
-            <SidebarTrigger className="fixed top-4 left-4 z-50" />
+            {!isMobile && <SidebarTrigger className="fixed top-4 left-4 z-50" />}
             <main 
-              className="flex-1 p-6"
+              className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}
               onMouseEnter={handleMainContentHover}
             >
               {children}
@@ -72,12 +72,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          <main className="flex-1 p-6">
+          {isMobile && <SidebarTrigger className="fixed top-4 left-4 z-50" />}
+          <main className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}>
             {children}
           </main>
         </div>
