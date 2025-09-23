@@ -57,9 +57,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <AppSidebar />
           </div>
           <div className="flex-1 flex flex-col">
-            <Header />
-            {!isMobile && <SidebarTrigger className="fixed top-4 left-4 z-50" />}
-            <main 
+          <Header />
+            <main
               className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}
               onMouseEnter={handleMainContentHover}
             >
@@ -77,7 +76,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          {isMobile && <SidebarTrigger className="fixed top-4 left-4 z-50" />}
           <main className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}>
             {children}
           </main>
