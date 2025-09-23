@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,7 +12,8 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
   
   const collapsiblePages = [
     '/contas',
@@ -29,18 +31,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   useEffect(() => {
     if (!isCollapsiblePage) {
-      setSidebarCollapsed(false);
+      setSidebarCollapsed(isMobile);
+    } else {
+      setSidebarCollapsed(isMobile);
     }
-  }, [isCollapsiblePage]);
+  }, [isCollapsiblePage, isMobile]);
 
   const handleMainContentHover = () => {
-    if (isCollapsiblePage) {
+    if (isCollapsiblePage && !isMobile) {
       setSidebarCollapsed(true);
     }
   };
 
   const handleSidebarHover = () => {
-    if (isCollapsiblePage) {
+    if (isCollapsiblePage && !isMobile) {
       setSidebarCollapsed(false);
     }
   };

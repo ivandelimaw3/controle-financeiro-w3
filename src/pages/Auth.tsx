@@ -19,7 +19,7 @@ const Auth: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -117,7 +117,7 @@ const Auth: React.FC = () => {
             description: "Bem-vindo de volta! Redirecionando para seu painel de controle...",
             className: "bg-green-50 border-green-200"
           });
-          setTimeout(() => navigate('/'), 1200);
+          setTimeout(() => navigate('/dashboard'), 1200);
         }
       } else {
         const { error } = await signUp(email, password);
