@@ -9,6 +9,7 @@ import { AccountsProvider } from "./contexts/AccountsContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AccessControlWrapper } from "./components/AccessControlWrapper";
 import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Contas from "./pages/Contas";
 import CardAccounts from "./pages/CardAccounts";
 import Categorias from "./pages/Categorias";
@@ -50,7 +51,7 @@ const App = () => {
                   <Route path="/" element={
                     <ProtectedRoute>
                       <AccessControlWrapper requiresAccess={false}>
-                        <Dashboard />
+                        <Home />
                       </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
