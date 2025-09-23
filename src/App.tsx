@@ -54,6 +54,13 @@ const App = () => {
                       </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <AccessControlWrapper requiresAccess={false}>
+                        <Dashboard />
+                      </AccessControlWrapper>
+                    </ProtectedRoute>
+                  } />
                   <Route path="/contas" element={
                     <ProtectedRoute>
                     <AccessControlWrapper>
