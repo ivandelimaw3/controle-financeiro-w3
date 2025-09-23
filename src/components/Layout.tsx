@@ -1,23 +1,10 @@
 
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-// Create context for sidebar control
-const SidebarControlContext = createContext<{
-  toggleSidebar: () => void;
-} | null>(null);
-
-export const useSidebarControl = () => {
-  const context = useContext(SidebarControlContext);
-  if (!context) {
-    throw new Error('useSidebarControl must be used within SidebarControlContext');
-  }
-  return context;
-};
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,10 +13,9 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(!isMobile);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
   
   const collapsiblePages = [
-    '/',
     '/contas',
     '/categorias', 
     '/relatorios',
@@ -45,9 +31,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   useEffect(() => {
     if (!isCollapsiblePage) {
-      setSidebarCollapsed(!isMobile);
+      setSidebarCollapsed(isMobile);
     } else {
-      setSidebarCollapsed(!isMobile);
+      setSidebarCollapsed(isMobile);
     }
   }, [isCollapsiblePage, isMobile]);
 
@@ -63,46 +49,39 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
   if (isCollapsiblePage) {
     return (
       <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
-        <SidebarControlContext.Provider value={{ toggleSidebar }}>
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
-            <div onMouseEnter={handleSidebarHover}>
-              <AppSidebar />
-            </div>
-            <div className="flex-1 flex flex-col">
-              <Header />
-              <main 
-                className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}
-                onMouseEnter={handleMainContentHover}
-              >
-                {children}
-              </main>
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
+          <div onMouseEnter={handleSidebarHover}>
+            <AppSidebar />
           </div>
-        </SidebarControlContext.Provider>
+          <div className="flex-1 flex flex-col">
+            <Header />
+            <SidebarTrigger className="fixed top-4 left-4 z-50" />
+            <main 
+              className="flex-1 p-6"
+              onMouseEnter={handleMainContentHover}
+            >
+              {children}
+            </main>
+          </div>
+        </div>
       </SidebarProvider>
     );
   }
 
   return (
-    <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
-      <SidebarControlContext.Provider value={{ toggleSidebar }}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col">
-            <Header />
-            <main className={`flex-1 p-6 ${isMobile && !sidebarCollapsed ? 'opacity-50 pointer-events-none' : ''}`}>
-              {children}
-            </main>
-          </div>
+    <SidebarProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full flex">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col">
+          <Header />
+          <main className="flex-1 p-6">
+            {children}
+          </main>
         </div>
-      </SidebarControlContext.Provider>
+      </div>
     </SidebarProvider>
   );
 };
