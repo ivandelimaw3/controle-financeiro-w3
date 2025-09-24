@@ -96,7 +96,7 @@ export const BankUI: React.FC<BankUIProps> = ({
           </div>
           <div className="text-right ml-1 flex-shrink-0">
             <div className="text-[9px] opacity-75 mb-0.5">SALDO</div>
-            <div className="font-mono text-[15px]">{formatCurrency(balance)}</div>
+            <div className="font-mono text-[12px]">{formatCurrency(balance)}</div>
           </div>
         </div>
       </div>
