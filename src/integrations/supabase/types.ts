@@ -91,6 +91,7 @@ export type Database = {
           account_type: string | null
           agency: string
           balance: number | null
+          color: string | null
           created_at: string | null
           id: number
           name: string
@@ -103,6 +104,7 @@ export type Database = {
           account_type?: string | null
           agency: string
           balance?: number | null
+          color?: string | null
           created_at?: string | null
           id?: number
           name: string
@@ -115,6 +117,7 @@ export type Database = {
           account_type?: string | null
           agency?: string
           balance?: number | null
+          color?: string | null
           created_at?: string | null
           id?: number
           name?: string
