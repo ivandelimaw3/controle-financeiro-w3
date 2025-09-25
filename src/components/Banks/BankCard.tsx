@@ -66,7 +66,6 @@ export const BankCard: React.FC<BankCardProps> = ({
           accountType={bank.account_type}
           holderName={bank.nickname}
           balance={bank.balance}
-          color={bank.color}
         />
       </div>
 
@@ -112,30 +111,30 @@ export const BankCard: React.FC<BankCardProps> = ({
         <div className="flex gap-1 pt-2">
           <Button
             variant="outline"
-            size="icon"
+            size="sm"
             onClick={() => onAddDeposit(bank)}
-            className="h-8 w-8"
-            title="Adicionar Depósito"
+            className="flex-1 text-xs px-2 py-1 h-8"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3 w-3 mr-1" />
+            Depósito
           </Button>
           <Button
             variant="outline"
-            size="icon"
+            size="sm"
             onClick={() => onEdit(bank)}
-            className="h-8 w-8"
-            title="Editar Banco"
+            className="flex-1 text-xs px-2 py-1 h-8"
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-3 w-3 mr-1" />
+            Editar
           </Button>
           <Button
             variant="outline"
-            size="icon"
+            size="sm"
             onClick={() => onDelete(bank.id)}
-            className="h-8 w-8 text-destructive border-destructive/20 hover:bg-destructive/5"
-            title="Excluir Banco"
+            className="flex-1 text-xs px-2 py-1 h-8 text-destructive border-destructive/20 hover:bg-destructive/5"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3 w-3 mr-1" />
+            Excluir
           </Button>
         </div>
       </div>

@@ -11,7 +11,6 @@ export interface Bank {
   account_type: string;
   nickname?: string;
   balance: number;
-  color?: string;
   created_at: string;
   updated_at: string;
 }
@@ -22,7 +21,6 @@ export interface BankInput {
   account_number: string;
   account_type: string;
   nickname?: string;
-  color?: string;
 }
 
 export function useBanksData() {
