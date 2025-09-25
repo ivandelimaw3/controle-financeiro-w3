@@ -39,6 +39,9 @@ export const BankUI: React.FC<BankUIProps> = ({
       'cyan': 'bg-gradient-to-br from-cyan-600 to-cyan-800',
       'emerald': 'bg-gradient-to-br from-emerald-600 to-emerald-800',
       'violet': 'bg-gradient-to-br from-violet-600 to-violet-800',
+      'black': 'bg-gradient-to-br from-gray-800 to-black',
+      'silver': 'bg-gradient-to-br from-gray-400 to-gray-600',
+      'gold': 'bg-gradient-to-br from-yellow-400 to-yellow-600',
     };
     
     return colorMap[selectedColor] || colorMap['blue'];
