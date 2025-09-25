@@ -14,6 +14,19 @@ interface BankFormProps {
   isLoading?: boolean;
 }
 
+const colorOptions = [
+  { value: 'blue', label: 'Azul', gradient: 'bg-gradient-to-br from-blue-600 to-blue-800' },
+  { value: 'green', label: 'Verde', gradient: 'bg-gradient-to-br from-green-600 to-green-800' },
+  { value: 'purple', label: 'Roxo', gradient: 'bg-gradient-to-br from-purple-600 to-purple-800' },
+  { value: 'orange', label: 'Laranja', gradient: 'bg-gradient-to-br from-orange-600 to-red-600' },
+  { value: 'teal', label: 'Verde Azulado', gradient: 'bg-gradient-to-br from-teal-600 to-teal-800' },
+  { value: 'indigo', label: 'Índigo', gradient: 'bg-gradient-to-br from-indigo-600 to-indigo-800' },
+  { value: 'pink', label: 'Rosa', gradient: 'bg-gradient-to-br from-pink-600 to-pink-800' },
+  { value: 'cyan', label: 'Ciano', gradient: 'bg-gradient-to-br from-cyan-600 to-cyan-800' },
+  { value: 'emerald', label: 'Esmeralda', gradient: 'bg-gradient-to-br from-emerald-600 to-emerald-800' },
+  { value: 'violet', label: 'Violeta', gradient: 'bg-gradient-to-br from-violet-600 to-violet-800' },
+];
+
 export const BankForm: React.FC<BankFormProps> = ({
   bank,
   onSubmit,
@@ -26,7 +39,8 @@ export const BankForm: React.FC<BankFormProps> = ({
     account_number: '',
     account_type: 'corrente',
     nickname: '',
-    balance: 0
+    balance: 0,
+    color: 'blue'
   });
 
   useEffect(() => {
@@ -37,7 +51,8 @@ export const BankForm: React.FC<BankFormProps> = ({
         account_number: bank.account_number,
         account_type: bank.account_type,
         nickname: bank.nickname || '',
-        balance: bank.balance
+        balance: bank.balance,
+        color: bank.color || 'blue'
       });
     }
   }, [bank]);
@@ -49,6 +64,11 @@ export const BankForm: React.FC<BankFormProps> = ({
 
   const handleChange = (field: keyof (BankInput & { balance: number }), value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const getSelectedColorGradient = () => {
+    const selectedColor = colorOptions.find(color => color.value === formData.color);
+    return selectedColor?.gradient || colorOptions[0].gradient;
   };
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -142,6 +162,35 @@ const formatCurrency = (value: number) => {
               <SelectItem value="investimento">Conta Investimento</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="color" className="text-slate-700">
+            Cor do Cartão
+          </Label>
+          <Select
+            value={formData.color}
+            onValueChange={(value) => handleChange('color', value)}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {colorOptions.map((colorOption) => (
+                <SelectItem key={colorOption.value} value={colorOption.value}>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-4 h-4 rounded ${colorOption.gradient}`} />
+                    {colorOption.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="mt-2">
+            <div className={`w-full h-8 rounded ${getSelectedColorGradient()} flex items-center justify-center text-white text-xs font-medium`}>
+              Prévia da Cor
+            </div>
+          </div>
         </div>
 
         {bank && (

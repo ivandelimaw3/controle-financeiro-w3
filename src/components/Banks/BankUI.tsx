@@ -8,6 +8,7 @@ interface BankUIProps {
   accountType: string;
   holderName?: string;
   balance: number;
+  color?: string;
 }
 
 export const BankUI: React.FC<BankUIProps> = ({
@@ -16,7 +17,8 @@ export const BankUI: React.FC<BankUIProps> = ({
   agency,
   accountType,
   holderName,
-  balance
+  balance,
+  color = 'blue'
 }) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -25,33 +27,27 @@ export const BankUI: React.FC<BankUIProps> = ({
     }).format(value);
   };
 
-  const getBankGradient = (bankName: string, type: string) => {
-    // Hash simples baseado no nome do banco para cores consistentes
-    const hash = bankName.toLowerCase().split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
+  const getBankGradient = (selectedColor: string) => {
+    const colorMap: { [key: string]: string } = {
+      'blue': 'bg-gradient-to-br from-blue-600 to-blue-800',
+      'green': 'bg-gradient-to-br from-green-600 to-green-800',
+      'purple': 'bg-gradient-to-br from-purple-600 to-purple-800',
+      'orange': 'bg-gradient-to-br from-orange-600 to-red-600',
+      'teal': 'bg-gradient-to-br from-teal-600 to-teal-800',
+      'indigo': 'bg-gradient-to-br from-indigo-600 to-indigo-800',
+      'pink': 'bg-gradient-to-br from-pink-600 to-pink-800',
+      'cyan': 'bg-gradient-to-br from-cyan-600 to-cyan-800',
+      'emerald': 'bg-gradient-to-br from-emerald-600 to-emerald-800',
+      'violet': 'bg-gradient-to-br from-violet-600 to-violet-800',
+    };
     
-    const colors = [
-      'bg-gradient-to-br from-blue-600 to-blue-800',
-      'bg-gradient-to-br from-green-600 to-green-800', 
-      'bg-gradient-to-br from-purple-600 to-purple-800',
-      'bg-gradient-to-br from-orange-600 to-red-600',
-      'bg-gradient-to-br from-teal-600 to-teal-800',
-      'bg-gradient-to-br from-indigo-600 to-indigo-800',
-      'bg-gradient-to-br from-pink-600 to-pink-800',
-      'bg-gradient-to-br from-cyan-600 to-cyan-800',
-      'bg-gradient-to-br from-emerald-600 to-emerald-800',
-      'bg-gradient-to-br from-violet-600 to-violet-800',
-    ];
-    
-    return colors[Math.abs(hash) % colors.length];
+    return colorMap[selectedColor] || colorMap['blue'];
   };
 
   return (
     <div className="relative w-full max-w-[280px] mx-auto">
       <div className={`
-        ${getBankGradient(bankName, accountType)}
+        ${getBankGradient(color)}
         rounded-lg p-3 text-white shadow-md
         aspect-[1.6/1] flex flex-col justify-between
         transform transition-transform hover:scale-102
