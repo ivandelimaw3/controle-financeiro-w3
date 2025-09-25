@@ -26,6 +26,7 @@ export const BankForm: React.FC<BankFormProps> = ({
     account_number: '',
     account_type: 'corrente',
     nickname: '',
+    color: '#3B82F6',
     balance: 0
   });
 
@@ -37,6 +38,7 @@ export const BankForm: React.FC<BankFormProps> = ({
         account_number: bank.account_number,
         account_type: bank.account_type,
         nickname: bank.nickname || '',
+        color: bank.color || '#3B82F6',
         balance: bank.balance
       });
     }
@@ -142,6 +144,33 @@ const formatCurrency = (value: number) => {
               <SelectItem value="investimento">Conta Investimento</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="color" className="text-slate-700">
+            Cor do Cartão
+          </Label>
+          <div className="flex items-center gap-3 mt-1">
+            <input
+              id="color"
+              type="color"
+              value={formData.color}
+              onChange={(e) => handleChange('color', e.target.value)}
+              className="w-12 h-10 rounded border border-input cursor-pointer"
+            />
+            <div className="flex-1">
+              <Input
+                type="text"
+                value={formData.color}
+                onChange={(e) => handleChange('color', e.target.value)}
+                placeholder="#3B82F6"
+                className="font-mono"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Escolha a cor que será exibida no cartão do banco
+          </p>
         </div>
 
         {bank && (
