@@ -47,10 +47,24 @@ export const useAccountFilters = (accounts: Account[]) => {
     }
   }, [location.search]);
 
+  // Detectar se a pesquisa é por fonte de pagamento específica
+  const isSearchingForPaymentSource = useMemo(() => {
+    if (!searchTerm || searchTerm.trim() === '') return false;
+    
+    const searchLower = searchTerm.toLowerCase().trim();
+    
+    // Verificar se alguma conta tem essa fonte de pagamento
+    return accounts.some(account => {
+      const paymentSourceLower = account.payment_source_name?.toLowerCase() || '';
+      return paymentSourceLower.includes(searchLower) || paymentSourceLower === searchLower;
+    });
+  }, [searchTerm, accounts]);
+
   const filteredAccounts = useMemo(() => {
     console.log('=== INÍCIO DO FILTRO ===');
     console.log('Total de contas:', accounts.length);
     console.log('Termo de pesquisa:', `"${searchTerm}"`);
+    console.log('É pesquisa por fonte de pagamento:', isSearchingForPaymentSource);
     console.log('Filtros ativos:', { 
       searchTerm, 
       statusFilter, 
@@ -171,6 +185,7 @@ export const useAccountFilters = (accounts: Account[]) => {
     yearFilter,
     setYearFilter,
     filteredAccounts,
-    hasActiveSearch: searchTerm.length > 0
+    hasActiveSearch: searchTerm.length > 0,
+    isSearchingForPaymentSource
   };
 };

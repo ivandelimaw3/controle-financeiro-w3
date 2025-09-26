@@ -15,6 +15,7 @@ import { Loader2, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
+import { usePaymentSourcePreviousBalance } from '@/hooks/usePaymentSourcePreviousBalance';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,7 +42,8 @@ const Contas: React.FC = () => {
     yearFilter,
     setYearFilter,
     filteredAccounts,
-    hasActiveSearch
+    hasActiveSearch,
+    isSearchingForPaymentSource
   } = useAccountFilters(accounts);
 
   const {
@@ -406,9 +408,23 @@ const Contas: React.FC = () => {
     ensureSaldoAnteriorForMonth();
   }, [currentMonth, currentYear, user, loading, refreshAccounts]);
 
-  // Calcular previousBalance a partir do registro "Saldo Anterior"
+  // Usar o hook para saldo anterior por fonte de pagamento
+  const paymentSourcePreviousBalance = usePaymentSourcePreviousBalance({
+    accounts,
+    searchTerm,
+    currentMonth,
+    currentYear,
+    isSearchingForPaymentSource
+  });
+
+  // Calcular previousBalance a partir do registro "Saldo Anterior" ou da fonte específica
   const previousBalance = React.useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
+    
+    // Se está pesquisando por fonte específica, usar o saldo calculado dessa fonte
+    if (isSearchingForPaymentSource) {
+      return paymentSourcePreviousBalance;
+    }
     
     // Se está mostrando todos os meses, sempre usar o saldo anterior de janeiro
     // Caso contrário, usar o saldo anterior do mês atual
@@ -425,7 +441,7 @@ const Contas: React.FC = () => {
 
     if (!found) return 0;
     return found.type === "receita" ? found.amount : -Math.abs(found.amount);
-  }, [accounts, currentMonth, currentYear, isShowingAll]);
+  }, [accounts, currentMonth, currentYear, isShowingAll, isSearchingForPaymentSource, paymentSourcePreviousBalance]);
 
   // Função para obter o saldo anterior do mês anterior (para meses subsequentes)
   const getPreviousMonthBalance = React.useCallback(() => {
@@ -583,7 +599,7 @@ const Contas: React.FC = () => {
             {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
             <AccountsSummaryCards 
               accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
-              previousBalance={hasActiveSearch ? 0 : previousBalance} 
+              previousBalance={hasActiveSearch ? (isSearchingForPaymentSource ? previousBalance : 0) : previousBalance} 
               isJanuary={currentMonth === 0}
             />
 
