@@ -28,9 +28,10 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   const calculateTotalRecebido = () => {
-    return accounts
+    const receitasRecebidas = accounts
       .filter(account => account.type === 'receita' && account.status === 'recebido')
       .reduce((sum, account) => sum + account.amount, 0);
+    return previousBalance + receitasRecebidas;
   };
 
   const calculateSaldoFinal = () => {
@@ -38,11 +39,11 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     const totalPago = calculateTotalPago();
     console.log(`💳 CÁLCULO SALDO FINAL:`, {
       previousBalance,
-      totalRecebido,
+      receitasRecebidas: totalRecebido - previousBalance,
       totalPago,
-      saldoFinal: previousBalance + totalRecebido - totalPago
+      saldoFinal: totalRecebido - totalPago
     });
-    return previousBalance + totalRecebido - totalPago;
+    return totalRecebido - totalPago;
   };
 
   const calculateTotalPendente = () => {
