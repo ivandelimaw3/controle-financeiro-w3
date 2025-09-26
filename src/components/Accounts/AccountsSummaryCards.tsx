@@ -34,7 +34,15 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   const calculateSaldoFinal = () => {
-    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
+    const totalRecebido = calculateTotalRecebido();
+    const totalPago = calculateTotalPago();
+    console.log(`💳 CÁLCULO SALDO FINAL:`, {
+      previousBalance,
+      totalRecebido,
+      totalPago,
+      saldoFinal: previousBalance + totalRecebido - totalPago
+    });
+    return previousBalance + totalRecebido - totalPago;
   };
 
   const calculateTotalPendente = () => {
