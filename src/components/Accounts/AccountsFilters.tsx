@@ -3,8 +3,6 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter } from 'lucide-react';
-import { useBanksData } from '@/hooks/useBanksData';
-import { useCreditCards } from '@/hooks/useCreditCards';
 
 interface AccountsFiltersProps {
   searchTerm: string;
@@ -13,8 +11,6 @@ interface AccountsFiltersProps {
   setStatusFilter: (value: string) => void;
   typeFilter: string;
   setTypeFilter: (value: string) => void;
-  paymentSourceFilter: string;
-  setPaymentSourceFilter: (value: string) => void;
   monthFilter: string;
   setMonthFilter: (value: string) => void;
   yearFilter: string;
@@ -29,17 +25,12 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
   setStatusFilter,
   typeFilter,
   setTypeFilter,
-  paymentSourceFilter,
-  setPaymentSourceFilter,
   monthFilter,
   setMonthFilter,
   yearFilter,
   setYearFilter,
   accounts
 }) => {
-  const { banks } = useBanksData();
-  const { creditCards } = useCreditCards();
-  
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
   
@@ -102,26 +93,6 @@ export const AccountsFilters: React.FC<AccountsFiltersProps> = ({
             {years.map((year) => (
               <SelectItem key={year} value={year.toString()}>
                 {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={paymentSourceFilter} onValueChange={setPaymentSourceFilter}>
-          <SelectTrigger className="w-full sm:w-48">
-            <Filter size={16} className="mr-2" />
-            <SelectValue placeholder="Filtrar por fonte" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todas as Fontes</SelectItem>
-            {banks.map((bank) => (
-              <SelectItem key={`bank_${bank.id}`} value={`bank_${bank.id}`}>
-                {bank.nickname || bank.name}
-              </SelectItem>
-            ))}
-            {creditCards.map((card) => (
-              <SelectItem key={`card_${card.id}`} value={`card_${card.id}`}>
-                {card.card_name}
               </SelectItem>
             ))}
           </SelectContent>

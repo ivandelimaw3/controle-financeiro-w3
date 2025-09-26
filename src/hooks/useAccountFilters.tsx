@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Account } from '@/contexts/AccountsContext';
@@ -7,7 +8,6 @@ export const useAccountFilters = (accounts: Account[]) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
-  const [paymentSourceFilter, setPaymentSourceFilter] = useState('todos');
   
   // Inicializar sempre no mês atual (baseado em 0)
   const today = new Date();
@@ -54,8 +54,7 @@ export const useAccountFilters = (accounts: Account[]) => {
     console.log('Filtros ativos:', { 
       searchTerm, 
       statusFilter, 
-      typeFilter,
-      paymentSourceFilter,
+      typeFilter, 
       monthFilter: monthFilter === 'todos' ? 'todos' : `${monthFilter} (mês ${parseInt(monthFilter) + 1})`,
       yearFilter 
     });
@@ -111,20 +110,6 @@ export const useAccountFilters = (accounts: Account[]) => {
         const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
         const matchesType = typeFilter === 'todos' || account.type === typeFilter;
         
-        // Filtrar por fonte de pagamento
-        let matchesPaymentSource = true;
-        if (paymentSourceFilter !== 'todos') {
-          if (paymentSourceFilter.startsWith('bank_')) {
-            const bankId = paymentSourceFilter.replace('bank_', '');
-            matchesPaymentSource = account.payment_source === 'bank' && account.payment_source_id?.toString() === bankId;
-          } else if (paymentSourceFilter.startsWith('card_')) {
-            const cardId = paymentSourceFilter.replace('card_', '');
-            matchesPaymentSource = account.payment_source === 'card' && account.payment_source_id?.toString() === cardId;
-          } else {
-            matchesPaymentSource = false;
-          }
-        }
-        
         // Filtrar por mês e ano - usar dueDate que é o campo correto
         const accountDate = new Date(account.dueDate + 'T12:00:00');
         const accountMonth = accountDate.getMonth(); // getMonth() retorna 0-11
@@ -151,7 +136,7 @@ export const useAccountFilters = (accounts: Account[]) => {
           console.log(`   - Match mês: ${matchesMonth} | Match ano: ${matchesYear}`);
         }
         
-        const finalMatch = matchesSearch && matchesStatus && matchesType && matchesPaymentSource && matchesMonth && matchesYear;
+        const finalMatch = matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
         
         if (searchTerm && searchTerm.length > 0) {
           console.log(`- Resultado final para "${account.description}": ${finalMatch}`);
@@ -172,7 +157,7 @@ export const useAccountFilters = (accounts: Account[]) => {
     console.log('=== FIM DO FILTRO ===');
     
     return filtered;
-  }, [accounts, searchTerm, statusFilter, typeFilter, paymentSourceFilter, monthFilter, yearFilter]);
+  }, [accounts, searchTerm, statusFilter, typeFilter, monthFilter, yearFilter]);
 
   return {
     searchTerm,
@@ -181,8 +166,6 @@ export const useAccountFilters = (accounts: Account[]) => {
     setStatusFilter,
     typeFilter,
     setTypeFilter,
-    paymentSourceFilter,
-    setPaymentSourceFilter,
     monthFilter,
     setMonthFilter,
     yearFilter,
