@@ -15,7 +15,7 @@ export interface Account {
   parcela?: string;
   recorrente_id?: string;
   bank_id?: number;
-  payment_source: 'bank';
+  payment_source: 'bank' | 'card';
   payment_source_id?: number;
   payment_source_name?: string;
 }
