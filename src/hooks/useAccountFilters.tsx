@@ -75,6 +75,12 @@ export const useAccountFilters = (accounts: Account[]) => {
 
     const filtered = accounts
       .filter(account => {
+        // SEMPRE EXCLUIR "Saldo Anterior" da lista de contas exibidas
+        // (O saldo anterior será usado nos cálculos separadamente)
+        if (account.description === "Saldo Anterior") {
+          return false;
+        }
+
         // Log detalhado da pesquisa
         const searchLower = searchTerm.toLowerCase().trim();
         const descriptionLower = account.description.toLowerCase();
@@ -164,7 +170,7 @@ export const useAccountFilters = (accounts: Account[]) => {
         return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
       });
 
-    console.log('Contas filtradas:', filtered.length);
+    console.log('Contas filtradas (sem saldo anterior):', filtered.length);
     if (searchTerm) {
       console.log('Contas que passaram no filtro de pesquisa:', filtered.map(a => a.description));
     }

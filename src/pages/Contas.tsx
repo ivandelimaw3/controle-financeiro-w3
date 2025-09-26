@@ -417,31 +417,39 @@ const Contas: React.FC = () => {
     isSearchingForPaymentSource
   });
 
-  // Calcular previousBalance a partir do registro "Saldo Anterior" ou da fonte específica
+  // Calcular previousBalance sempre correto para o mês/ano selecionado
   const previousBalance = React.useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
     
+    console.log(`💰 CALCULANDO PREVIOUS BALANCE FINAL:`);
+    console.log(`   Mês: ${currentMonth + 1}/${currentYear}`);
+    console.log(`   É pesquisa por fonte: ${isSearchingForPaymentSource}`);
+    console.log(`   Termo pesquisa: "${searchTerm}"`);
+    
     // Se está pesquisando por fonte específica, usar o saldo calculado dessa fonte
     if (isSearchingForPaymentSource) {
+      console.log(`   Usando saldo da fonte específica: ${paymentSourcePreviousBalance}`);
       return paymentSourcePreviousBalance;
     }
     
-    // Se está mostrando todos os meses, sempre usar o saldo anterior de janeiro
-    // Caso contrário, usar o saldo anterior do mês atual
-    const targetMonth = isShowingAll ? 0 : currentMonth;
+    // Caso contrário, buscar o saldo anterior do mês selecionado
+    const targetMonth = currentMonth;
     const targetYear = currentYear;
     
-    const found = accounts.find(acc => {
-      if (!acc.dueDate) return false;
-      const d = new Date(acc.dueDate + "T00:00:00");
-      return acc.description === "Saldo Anterior" && 
-             d.getFullYear() === targetYear && 
-             d.getMonth() === targetMonth;
+    const saldoAnteriorAccount = accounts.find(acc => {
+      if (!acc.dueDate || acc.description !== "Saldo Anterior") return false;
+      const accDate = new Date(acc.dueDate + "T00:00:00");
+      return accDate.getFullYear() === targetYear && 
+             accDate.getMonth() === targetMonth;
     });
 
-    if (!found) return 0;
-    return found.type === "receita" ? found.amount : -Math.abs(found.amount);
-  }, [accounts, currentMonth, currentYear, isShowingAll, isSearchingForPaymentSource, paymentSourcePreviousBalance]);
+    const balance = saldoAnteriorAccount 
+      ? (saldoAnteriorAccount.type === "receita" ? saldoAnteriorAccount.amount : -Math.abs(saldoAnteriorAccount.amount))
+      : 0;
+      
+    console.log(`   Saldo anterior geral encontrado: ${balance}`);
+    return balance;
+  }, [accounts, currentMonth, currentYear, isSearchingForPaymentSource, paymentSourcePreviousBalance, searchTerm]);
 
   // Função para obter o saldo anterior do mês anterior (para meses subsequentes)
   const getPreviousMonthBalance = React.useCallback(() => {
@@ -490,31 +498,6 @@ const Contas: React.FC = () => {
 
     return previousBalance + totalRecebido - totalPago;
   }, [accounts, currentMonth, currentYear, previousBalance]);
-
-  // Função para filtrar contas para cálculos (excluindo o saldo anterior)
-  const getFilteredAccountsForCalculations = React.useCallback(() => {
-    if (!accounts) return [];
-    
-    return accounts.filter((acc: any) => {
-      if (!acc.dueDate) return false;
-      const d = new Date(acc.dueDate + "T00:00:00");
-      
-      // Se está mostrando todos os meses, incluir apenas de janeiro até o mês atual
-      if (isShowingAll) {
-        const today = new Date();
-        const currentMonthIndex = today.getMonth(); // 0-11
-        const accountMonth = d.getMonth(); // 0-11
-        
-        return d.getFullYear() === currentYear && 
-               accountMonth <= currentMonthIndex && 
-               acc.description !== "Saldo Anterior";
-      }
-      
-      // Caso contrário, filtrar apenas o mês específico
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
-             acc.description !== "Saldo Anterior";
-    });
-  }, [accounts, currentMonth, currentYear, isShowingAll]);
 
   const handleSubmit = (data: AccountFormData) => {
     handleSave(data);
@@ -596,10 +579,10 @@ const Contas: React.FC = () => {
               accounts={accounts}
             />
 
-            {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
+            {/* Cards de resumo sempre com valores corretos */}
             <AccountsSummaryCards 
-              accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
-              previousBalance={hasActiveSearch ? (isSearchingForPaymentSource ? previousBalance : 0) : previousBalance} 
+              accounts={filteredAccounts} 
+              previousBalance={previousBalance}
               isJanuary={currentMonth === 0}
             />
 

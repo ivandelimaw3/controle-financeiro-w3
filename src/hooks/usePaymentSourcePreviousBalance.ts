@@ -20,22 +20,30 @@ export const usePaymentSourcePreviousBalance = ({
   const paymentSourcePreviousBalance = useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
     
-    // Se não está pesquisando por fonte específica, usar o saldo anterior geral
+    console.log(`💰 CALCULANDO SALDO ANTERIOR - Mês: ${currentMonth + 1}/${currentYear}`);
+    console.log(`💰 É pesquisa por fonte específica: ${isSearchingForPaymentSource}`);
+    
+    // Se não está pesquisando por fonte específica, buscar o saldo anterior geral
     if (!isSearchingForPaymentSource) {
-      const found = accounts.find(acc => {
-        if (!acc.dueDate) return false;
-        const d = new Date(acc.dueDate + "T00:00:00");
-        return acc.description === "Saldo Anterior" && 
-               d.getFullYear() === currentYear && 
-               d.getMonth() === currentMonth;
+      const targetDate = new Date(currentYear, currentMonth, 1);
+      const saldoAnteriorAccount = accounts.find(acc => {
+        if (!acc.dueDate || acc.description !== "Saldo Anterior") return false;
+        const accDate = new Date(acc.dueDate + "T00:00:00");
+        return accDate.getFullYear() === currentYear && 
+               accDate.getMonth() === currentMonth;
       });
 
-      if (!found) return 0;
-      return found.type === "receita" ? found.amount : -Math.abs(found.amount);
+      const balance = saldoAnteriorAccount 
+        ? (saldoAnteriorAccount.type === "receita" ? saldoAnteriorAccount.amount : -Math.abs(saldoAnteriorAccount.amount))
+        : 0;
+        
+      console.log(`💰 Saldo anterior geral encontrado: ${balance}`);
+      return balance;
     }
     
     // Pesquisa por fonte específica - calcular saldo apenas dessa fonte
     const searchLower = searchTerm.toLowerCase().trim();
+    console.log(`💰 Calculando saldo para fonte específica: "${searchTerm}"`);
     
     // Encontrar todas as contas da fonte de pagamento específica até o mês anterior
     const targetDate = new Date(currentYear, currentMonth, 1);
@@ -53,6 +61,8 @@ export const usePaymentSourcePreviousBalance = ({
              acc.description !== "Saldo Anterior"; // Excluir registros de saldo anterior
     });
     
+    console.log(`💰 Contas encontradas da fonte "${searchTerm}":`, paymentSourceAccounts.length);
+    
     // Calcular saldo final dessa fonte específica
     let totalReceived = 0;
     let totalPaid = 0;
@@ -67,7 +77,7 @@ export const usePaymentSourcePreviousBalance = ({
     
     const finalBalance = totalReceived - totalPaid;
     
-    console.log(`💰 Saldo anterior da fonte "${searchTerm}":`, {
+    console.log(`💰 Resultado do saldo da fonte "${searchTerm}":`, {
       totalReceived,
       totalPaid,
       finalBalance,
