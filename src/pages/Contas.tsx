@@ -192,9 +192,140 @@ const Contas: React.FC = () => {
   const currentYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos' && !isShowingReport;
 
-  // Lógica automática de saldo anterior DESATIVADA
-  // Os saldos anteriores devem ser cadastrados manualmente pelo usuário
-  // para cada fonte de pagamento (banco), permitindo múltiplos saldos iniciais
+  // --- Atualizar automaticamente o saldo anterior do próximo mês ---
+  React.useEffect(() => {
+    if (!user || loading) return;
+
+    const updateNextMonthBalance = async () => {
+      try {
+        if (Number.isNaN(currentMonth) || Number.isNaN(currentYear)) return;
+
+        // Calcular o próximo mês
+        const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+        const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+
+        // Não atualizar meses futuros além do próximo
+        const now = new Date();
+        const targetDate = new Date(nextYear, nextMonth, 1);
+        if (targetDate > new Date(now.getFullYear(), now.getMonth() + 1, 1)) {
+          return;
+        }
+
+        // Buscar todas as contas do mês atual
+        const currentStart = new Date(currentYear, currentMonth, 1).toISOString().split("T")[0];
+        const currentEnd = new Date(currentYear, currentMonth + 1, 0).toISOString().split("T")[0];
+
+        const { data: currentRows, error: currentErr } = await supabase
+          .from("accounts")
+          .select("amount, type, status, description, payment_source, payment_source_name")
+          .eq("user_id", user.id)
+          .gte("due_date", currentStart)
+          .lte("due_date", currentEnd);
+
+        if (currentErr) {
+          console.error("[SaldoAnterior] erro ao buscar contas do mês atual:", currentErr);
+          return;
+        }
+
+        const allCurrentAccounts = (currentRows || []) as any[];
+
+        // Separar saldos anteriores e contas reais
+        const saldosAnteriores = allCurrentAccounts.filter(a => 
+          a.description === "Saldo Anterior" && 
+          a.payment_source === "bank" &&
+          (a.status === "pago" || a.status === "recebido")
+        );
+        
+        const realAccounts = allCurrentAccounts.filter(a => a.description !== "Saldo Anterior");
+
+        // Calcular saldo anterior total
+        const saldoAnteriorTotal = saldosAnteriores.reduce((total, acc) => {
+          const value = acc.type === "receita" ? acc.amount : -Math.abs(acc.amount);
+          return total + value;
+        }, 0);
+
+        // Calcular receitas e despesas do mês
+        const totalRecebido = realAccounts
+          .filter(a => a.type === "receita" && a.status === "recebido")
+          .reduce((s, a) => s + (a.amount || 0), 0);
+
+        const totalPago = realAccounts
+          .filter(a => a.type === "despesa" && a.status === "pago")
+          .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
+
+        // Calcular saldo final do mês atual
+        const saldoFinalAtual = saldoAnteriorTotal + totalRecebido - totalPago;
+
+        // Data do próximo mês (sempre dia 1)
+        const nextMonthDate = new Date(nextYear, nextMonth, 1).toISOString().split("T")[0];
+
+        // Verificar se já existe saldo anterior AUTOMÁTICO para o próximo mês
+        const { data: existing, error: checkError } = await supabase
+          .from("accounts")
+          .select("id, amount, type, payment_source_name")
+          .eq("user_id", user.id)
+          .eq("due_date", nextMonthDate)
+          .eq("description", "Saldo Anterior")
+          .eq("payment_source", "bank")
+          .is("payment_source_name", null); // Apenas saldos automáticos (sem nome de fonte específica)
+
+        if (checkError) {
+          console.error("[SaldoAnterior] erro ao checar existência:", checkError);
+          return;
+        }
+
+        const existingBalance = existing && existing.length > 0 ? existing[0] : null;
+        const currentStoredBalance = existingBalance 
+          ? (existingBalance.type === "receita" ? existingBalance.amount : -Math.abs(existingBalance.amount))
+          : 0;
+
+        // Se o saldo calculado é diferente do armazenado, atualizar
+        if (Math.abs(saldoFinalAtual - currentStoredBalance) > 0.01) {
+          console.log(`🔄 Atualizando saldo anterior de ${nextMonth + 1}/${nextYear}: ${currentStoredBalance} → ${saldoFinalAtual}`);
+          
+          // Remover saldo anterior automático existente se houver
+          if (existingBalance) {
+            await supabase
+              .from("accounts")
+              .delete()
+              .eq("id", existingBalance.id);
+          }
+
+          // Criar novo saldo anterior com valor correto (se não for zero)
+          if (Math.abs(saldoFinalAtual) > 0.01) {
+            const insertPayload = {
+              description: "Saldo Anterior",
+              amount: Math.abs(saldoFinalAtual),
+              category: "Saldo Anterior",
+              due_date: nextMonthDate,
+              data_conta: nextMonthDate,
+              type: saldoFinalAtual >= 0 ? "receita" : "despesa",
+              status: saldoFinalAtual >= 0 ? "recebido" : "pago",
+              user_id: user.id,
+              payment_source: "bank",
+              payment_source_name: null // Marca como automático
+            };
+
+            const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
+
+            if (insertError) {
+              console.error("[SaldoAnterior] erro ao inserir:", insertError);
+              return;
+            }
+
+            // Recarregar dados
+            if (typeof refreshAccounts === "function") {
+              await refreshAccounts();
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[SaldoAnterior] exceção inesperada:", err);
+      }
+    };
+
+    updateNextMonthBalance();
+  }, [currentMonth, currentYear, user, loading, refreshAccounts, accounts]);
 
   // Calcular previousBalance a partir do registro "Saldo Anterior"
   const previousBalance = React.useMemo(() => {
