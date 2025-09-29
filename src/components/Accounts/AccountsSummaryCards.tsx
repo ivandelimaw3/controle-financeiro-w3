@@ -2,7 +2,6 @@
 import React from 'react';
 import { Clock, TrendingUp, TrendingDown, DollarSign, History } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
-import { useBanksOptions } from '@/hooks/useBanksOptions';
 
 interface AccountsSummaryCardsProps {
   accounts: Account[];
@@ -15,19 +14,11 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   previousBalance = 0,
   isJanuary = false
 }) => {
-  const { banks, loading } = useBanksOptions();
-
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
-  };
-
-  // Somar os saldos iniciais de todos os bancos
-  const calculateBankBalances = () => {
-    if (loading) return 0;
-    return banks.reduce((sum, bank) => sum + (bank.balance || 0), 0);
   };
 
   const calculateTotalPago = () => {
@@ -43,8 +34,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   const calculateSaldoFinal = () => {
-    const bankBalances = calculateBankBalances();
-    return previousBalance + bankBalances + calculateTotalRecebido() - calculateTotalPago();
+    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
@@ -67,8 +57,8 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Anterior</p>
-            <p className={`text-xl font-bold ${(previousBalance + calculateBankBalances()) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(previousBalance + calculateBankBalances())}
+            <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(previousBalance)}
             </p>
           </div>
         </div>
