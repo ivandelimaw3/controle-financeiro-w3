@@ -194,7 +194,7 @@ const Contas: React.FC = () => {
 
   // --- Atualizar automaticamente o saldo anterior dos próximos meses ---
   React.useEffect(() => {
-    if (!user || loading || !accounts) return;
+    if (!user || loading) return;
 
     const updateNextMonthsBalance = async () => {
       try {
@@ -312,16 +312,12 @@ const Contas: React.FC = () => {
                 payment_source_name: null
               };
 
-              const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
-
-              if (insertError) {
-                console.error("[SaldoAnterior] erro ao inserir:", insertError);
-              }
+              await supabase.from("accounts").insert([insertPayload]);
             }
           }
         }
 
-        // Recarregar dados após todas as atualizações
+        // Recarregar dados apenas uma vez após todas as atualizações
         if (typeof refreshAccounts === "function") {
           await refreshAccounts();
         }
@@ -331,9 +327,9 @@ const Contas: React.FC = () => {
     };
 
     // Debounce para evitar múltiplas execuções
-    const timeoutId = setTimeout(updateNextMonthsBalance, 500);
+    const timeoutId = setTimeout(updateNextMonthsBalance, 1000);
     return () => clearTimeout(timeoutId);
-  }, [accounts, currentMonth, currentYear, user, loading, refreshAccounts]);
+  }, [currentMonth, currentYear, user, loading]);
 
   // Calcular previousBalance a partir do registro "Saldo Anterior"
   const previousBalance = React.useMemo(() => {
