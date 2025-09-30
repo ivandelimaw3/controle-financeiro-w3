@@ -21,44 +21,31 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     }).format(value);
   };
 
-  // Calcular saldo anterior total (soma de todos os saldos anteriores por fonte)
-  const calculateTotalPreviousBalance = () => {
-    return accounts
-      .filter(account => account.description === 'Saldo Anterior')
-      .reduce((sum, account) => {
-        const value = account.type === 'receita' ? account.amount : -Math.abs(account.amount);
-        return sum + value;
-      }, 0);
-  };
-
   const calculateTotalPago = () => {
     return accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pago' && account.description !== 'Saldo Anterior')
+      .filter(account => account.type === 'despesa' && account.status === 'pago')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
   const calculateTotalRecebido = () => {
     return accounts
-      .filter(account => account.type === 'receita' && account.status === 'recebido' && account.description !== 'Saldo Anterior')
+      .filter(account => account.type === 'receita' && account.status === 'recebido')
       .reduce((sum, account) => sum + account.amount, 0);
   };
 
   const calculateSaldoFinal = () => {
-    const saldoAnteriorTotal = calculateTotalPreviousBalance();
-    return saldoAnteriorTotal + calculateTotalRecebido() - calculateTotalPago();
+    return previousBalance + calculateTotalRecebido() - calculateTotalPago();
   };
 
   const calculateTotalPendente = () => {
     const receitasPendentes = accounts
-      .filter(account => account.type === 'receita' && account.status === 'pendente' && account.description !== 'Saldo Anterior')
+      .filter(account => account.type === 'receita' && account.status === 'pendente')
       .reduce((sum, account) => sum + account.amount, 0);
     const despesasPendentes = accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pendente' && account.description !== 'Saldo Anterior')
+      .filter(account => account.type === 'despesa' && account.status === 'pendente')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
     return receitasPendentes - despesasPendentes;
   };
-
-  const totalPreviousBalance = calculateTotalPreviousBalance();
 
   return (
     <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -70,8 +57,8 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           </div>
           <div className="flex-1">
             <p className="text-sm text-slate-600">Saldo Anterior</p>
-            <p className={`text-xl font-bold ${totalPreviousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(totalPreviousBalance)}
+            <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(previousBalance)}
             </p>
           </div>
         </div>
