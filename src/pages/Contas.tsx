@@ -243,7 +243,23 @@ const Contas: React.FC = () => {
 
         console.log('🔍 [SaldoAnterior] Fontes encontradas:', fontes.size);
 
-        // Para cada fonte, calcular saldo final do mês anterior
+        // Primeiro, limpar TODOS os saldos anteriores do mês atual
+        const targetDueDate = new Date(targetYear, targetMonth, 1).toISOString().split("T")[0];
+        
+        const { error: deleteError } = await supabase
+          .from("accounts")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("due_date", targetDueDate)
+          .eq("description", "Saldo Anterior");
+
+        if (deleteError) {
+          console.error("[SaldoAnteriorPorFonte] erro ao limpar saldos anteriores:", deleteError);
+        } else {
+          console.log('🧹 [SaldoAnterior] Limpou todos os saldos anteriores do mês atual');
+        }
+
+        // Para cada fonte, calcular saldo final do mês anterior e inserir
         for (const [fonteKey, fonte] of fontes.entries()) {
           // Buscar saldo anterior da fonte no mês anterior
           const saldoAnteriorPrevRow = allPrevAccounts.find(
@@ -283,94 +299,39 @@ const Contas: React.FC = () => {
             continue;
           }
 
-          // Verificar se já existe saldo anterior desta fonte no mês atual
-          const targetDueDate = new Date(targetYear, targetMonth, 1).toISOString().split("T")[0];
+          // Criar novo saldo anterior com valor correto
+          const insertPayload: any = {
+            description: "Saldo Anterior",
+            amount: Math.abs(saldoFinalFonte),
+            category: "Saldo Anterior",
+            due_date: targetDueDate,
+            data_conta: targetDueDate,
+            type: saldoFinalFonte >= 0 ? "receita" : "despesa",
+            status: saldoFinalFonte >= 0 ? "recebido" : "pago",
+            user_id: user.id,
+            payment_source: "bank"
+          };
 
-          let existing, checkError;
-          
           if (fonte.id) {
-            const result = await supabase
-              .from("accounts")
-              .select("id, amount, type")
-              .eq("user_id", user.id)
-              .eq("due_date", targetDueDate)
-              .eq("description", "Saldo Anterior")
-              .eq("payment_source_id", fonte.id)
-              .limit(1);
-            existing = result.data;
-            checkError = result.error;
-          } else {
-            const result = await supabase
-              .from("accounts")
-              .select("id, amount, type")
-              .eq("user_id", user.id)
-              .eq("due_date", targetDueDate)
-              .eq("description", "Saldo Anterior")
-              .is("payment_source_id", null)
-              .limit(1);
-            existing = result.data;
-            checkError = result.error;
+            insertPayload.payment_source_id = fonte.id;
+            insertPayload.payment_source_name = fonte.name;
           }
 
-          if (checkError) {
-            console.error("[SaldoAnteriorPorFonte] erro ao checar existência:", checkError);
+          const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
+
+          if (insertError) {
+            console.error("[SaldoAnteriorPorFonte] erro ao inserir:", insertError);
             continue;
           }
 
-          const existingBalance = existing && existing.length > 0 ? existing[0] : null;
-          const currentStoredBalance = existingBalance
-            ? (existingBalance.type === 'receita' ? existingBalance.amount : -Math.abs(existingBalance.amount))
-            : 0;
+          const fonteName = fonte.name || 'Sem fonte';
+          console.log(`✅ [SaldoAnterior] Inserido: ${fonteName} = ${saldoFinalFonte}`);
+        }
 
-          // Se o saldo calculado é diferente do armazenado, atualizar
-          if (Math.abs(saldoFinalFonte - currentStoredBalance) > 0.01) {
-            const fonteName = fonte.name || 'Sem fonte';
-            console.log(`🔄 Atualizando saldo anterior de ${fonteName} em ${targetMonth + 1}/${targetYear}: ${currentStoredBalance} → ${saldoFinalFonte}`);
-
-            // Remover saldo anterior existente se houver
-            if (existingBalance) {
-              await supabase
-                .from("accounts")
-                .delete()
-                .eq("id", existingBalance.id);
-            }
-
-            // Criar novo saldo anterior com valor correto
-            const insertPayload: any = {
-              description: "Saldo Anterior",
-              amount: Math.abs(saldoFinalFonte),
-              category: "Saldo Anterior",
-              due_date: targetDueDate,
-              data_conta: targetDueDate,
-              type: saldoFinalFonte >= 0 ? "receita" : "despesa",
-              status: saldoFinalFonte >= 0 ? "recebido" : "pago",
-              user_id: user.id,
-              payment_source: "bank"
-            };
-
-            if (fonte.id) {
-              insertPayload.payment_source_id = fonte.id;
-              insertPayload.payment_source_name = fonte.name;
-            }
-
-            const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
-
-            if (insertError) {
-              console.error("[SaldoAnteriorPorFonte] erro ao inserir:", insertError);
-              continue;
-            }
-
-            console.log('✅ [SaldoAnterior] Inserido com sucesso:', insertPayload);
-
-            // Recarregar dados
-            console.log('🔄 [SaldoAnterior] Recarregando accounts...');
-            if (typeof refreshAccounts === "function") {
-              await refreshAccounts();
-            }
-          } else {
-            const fonteName = fonte.name || 'Sem fonte';
-            console.log(`✓ [SaldoAnterior] Fonte ${fonteName} já está correta (${currentStoredBalance})`);
-          }
+        // Recarregar dados após todas as inserções
+        console.log('🔄 [SaldoAnterior] Recarregando accounts...');
+        if (typeof refreshAccounts === "function") {
+          await refreshAccounts();
         }
       } catch (err) {
         console.error("[SaldoAnteriorPorFonte] exceção inesperada:", err);
