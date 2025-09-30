@@ -189,7 +189,7 @@ const Contas: React.FC = () => {
 
   // --- Garantir "Saldo Anterior" automático por fonte de pagamento ---
   React.useEffect(() => {
-    if (!user || loading) return;
+    if (!user || loading || !accounts) return;
 
     const ensureSaldoAnteriorPorFonte = async () => {
       try {
@@ -277,6 +277,12 @@ const Contas: React.FC = () => {
 
           console.log(`🔍 [SaldoAnterior] Fonte ${fonte.name || 'Sem fonte'}: saldoFinal=${saldoFinalFonte}`);
 
+          // Pular se o saldo for zero
+          if (Math.abs(saldoFinalFonte) < 0.01) {
+            console.log(`⏭️ [SaldoAnterior] Pulando fonte ${fonte.name || 'Sem fonte'} (saldo zero)`);
+            continue;
+          }
+
           // Verificar se já existe saldo anterior desta fonte no mês atual
           const targetDueDate = new Date(targetYear, targetMonth, 1).toISOString().split("T")[0];
 
@@ -329,40 +335,41 @@ const Contas: React.FC = () => {
                 .eq("id", existingBalance.id);
             }
 
-            // Criar novo saldo anterior com valor correto (se não for zero)
-            if (Math.abs(saldoFinalFonte) > 0.01) {
-              const insertPayload: any = {
-                description: "Saldo Anterior",
-                amount: Math.abs(saldoFinalFonte),
-                category: "Saldo Anterior",
-                due_date: targetDueDate,
-                data_conta: targetDueDate,
-                type: saldoFinalFonte >= 0 ? "receita" : "despesa",
-                status: saldoFinalFonte >= 0 ? "recebido" : "pago",
-                user_id: user.id,
-                payment_source: "bank"
-              };
+            // Criar novo saldo anterior com valor correto
+            const insertPayload: any = {
+              description: "Saldo Anterior",
+              amount: Math.abs(saldoFinalFonte),
+              category: "Saldo Anterior",
+              due_date: targetDueDate,
+              data_conta: targetDueDate,
+              type: saldoFinalFonte >= 0 ? "receita" : "despesa",
+              status: saldoFinalFonte >= 0 ? "recebido" : "pago",
+              user_id: user.id,
+              payment_source: "bank"
+            };
 
-              if (fonte.id) {
-                insertPayload.payment_source_id = fonte.id;
-                insertPayload.payment_source_name = fonte.name;
-              }
-
-              const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
-
-              if (insertError) {
-                console.error("[SaldoAnteriorPorFonte] erro ao inserir:", insertError);
-                continue;
-              }
-
-              console.log('✅ [SaldoAnterior] Inserido com sucesso:', insertPayload);
+            if (fonte.id) {
+              insertPayload.payment_source_id = fonte.id;
+              insertPayload.payment_source_name = fonte.name;
             }
+
+            const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
+
+            if (insertError) {
+              console.error("[SaldoAnteriorPorFonte] erro ao inserir:", insertError);
+              continue;
+            }
+
+            console.log('✅ [SaldoAnterior] Inserido com sucesso:', insertPayload);
 
             // Recarregar dados
             console.log('🔄 [SaldoAnterior] Recarregando accounts...');
             if (typeof refreshAccounts === "function") {
               await refreshAccounts();
             }
+          } else {
+            const fonteName = fonte.name || 'Sem fonte';
+            console.log(`✓ [SaldoAnterior] Fonte ${fonteName} já está correta (${currentStoredBalance})`);
           }
         }
       } catch (err) {
@@ -370,11 +377,8 @@ const Contas: React.FC = () => {
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      ensureSaldoAnteriorPorFonte();
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
+    // Executar imediatamente, sem timeout
+    ensureSaldoAnteriorPorFonte();
   }, [currentMonth, currentYear, user, loading]);
 
   // Calcular previousBalance a partir dos registros "Saldo Anterior" (soma de todas as fontes)
