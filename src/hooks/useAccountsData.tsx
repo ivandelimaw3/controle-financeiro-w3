@@ -316,18 +316,10 @@ export const useAccountsData = () => {
     }
   };
 
-  // Função para atualizar saldo anterior de um mês específico
+  // Função para atualizar saldo anterior de um mês específico por fonte
   const updatePreviousBalanceForMonth = async (targetYear: number, targetMonth: number) => {
     try {
-      // Primeiro remover saldo anterior existente
       const targetDate = new Date(targetYear, targetMonth, 1).toISOString().split('T')[0];
-      
-      await supabase
-        .from('accounts')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('due_date', targetDate)
-        .eq('description', 'Saldo Anterior');
 
       // Calcular saldo do mês anterior
       const prevMonth = targetMonth - 1;
@@ -339,7 +331,7 @@ export const useAccountsData = () => {
 
       const { data: prevAccounts, error } = await supabase
         .from('accounts')
-        .select('amount, type, status, description')
+        .select('amount, type, status, description, payment_source_id, payment_source_name')
         .eq('user_id', user.id)
         .gte('due_date', prevStart)
         .lte('due_date', prevEnd);
@@ -351,43 +343,92 @@ export const useAccountsData = () => {
 
       const allPrevAccounts = (prevAccounts || []) as any[];
 
-      // Calcular saldo anterior
-      let saldoAnteriorPrev = 0;
-      const saldoAnteriorRow = allPrevAccounts.find(a => a.description === "Saldo Anterior");
-      if (saldoAnteriorRow) {
-        saldoAnteriorPrev = saldoAnteriorRow.type === "receita" 
-          ? saldoAnteriorRow.amount 
-          : -Math.abs(saldoAnteriorRow.amount);
-      }
+      // Agrupar por fonte de pagamento (incluindo null para contas sem fonte)
+      const fontes = new Map<string, { id: number | null; name: string | null }>();
+      allPrevAccounts.forEach(acc => {
+        if (acc.description !== 'Saldo Anterior') {
+          const key = acc.payment_source_id ? `${acc.payment_source_id}` : 'null';
+          if (!fontes.has(key)) {
+            fontes.set(key, { 
+              id: acc.payment_source_id || null, 
+              name: acc.payment_source_name || null 
+            });
+          }
+        }
+      });
 
-      // Contas reais do mês anterior
-      const prevMonthAccounts = allPrevAccounts.filter(a => a.description !== "Saldo Anterior");
+      // Para cada fonte, calcular e atualizar saldo
+      for (const [fonteKey, fonte] of fontes.entries()) {
+        // Buscar saldo anterior da fonte no mês anterior
+        const saldoAnteriorPrevRow = allPrevAccounts.find(
+          a => a.description === 'Saldo Anterior' && 
+          (fonte.id ? a.payment_source_id === fonte.id : !a.payment_source_id)
+        );
 
-      const totalRecebidoPrev = prevMonthAccounts
-        .filter(a => a.type === "receita" && a.status === "recebido")
-        .reduce((s, a) => s + (a.amount || 0), 0);
+        let saldoAnteriorPrev = 0;
+        if (saldoAnteriorPrevRow) {
+          saldoAnteriorPrev = saldoAnteriorPrevRow.type === 'receita'
+            ? saldoAnteriorPrevRow.amount
+            : -Math.abs(saldoAnteriorPrevRow.amount);
+        }
 
-      const totalPagoPrev = prevMonthAccounts
-        .filter(a => a.type === "despesa" && a.status === "pago")
-        .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
+        // Contas reais da fonte no mês anterior
+        const prevMonthAccountsFonte = allPrevAccounts.filter(
+          a => a.description !== 'Saldo Anterior' && 
+          (fonte.id ? a.payment_source_id === fonte.id : !a.payment_source_id)
+        );
 
-      // Saldo final do mês anterior
-      const saldoFinalPrev = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+        const totalRecebidoPrev = prevMonthAccountsFonte
+          .filter(a => a.type === 'receita' && a.status === 'recebido')
+          .reduce((s, a) => s + (a.amount || 0), 0);
 
-      // Criar novo saldo anterior se diferente de zero
-      if (saldoFinalPrev !== 0) {
-        const insertPayload = {
-          description: "Saldo Anterior",
-          amount: Math.abs(saldoFinalPrev),
-          category: "Saldo Anterior",
-          due_date: targetDate,
-          type: saldoFinalPrev >= 0 ? "receita" : "despesa",
-          status: saldoFinalPrev >= 0 ? "recebido" : "pago",
-          user_id: user.id,
-          payment_source: "bank"
-        };
+        const totalPagoPrev = prevMonthAccountsFonte
+          .filter(a => a.type === 'despesa' && a.status === 'pago')
+          .reduce((s, a) => s + Math.abs(a.amount || 0), 0);
 
-        await supabase.from("accounts").insert([insertPayload]);
+        // Saldo final desta fonte no mês anterior
+        const saldoFinalFonte = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+
+        // Remover saldo anterior existente desta fonte
+        if (fonte.id) {
+          await supabase
+            .from('accounts')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('due_date', targetDate)
+            .eq('description', 'Saldo Anterior')
+            .eq('payment_source_id', fonte.id);
+        } else {
+          await supabase
+            .from('accounts')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('due_date', targetDate)
+            .eq('description', 'Saldo Anterior')
+            .is('payment_source_id', null);
+        }
+
+        // Criar novo saldo anterior se diferente de zero
+        if (Math.abs(saldoFinalFonte) > 0.01) {
+          const insertPayload: any = {
+            description: "Saldo Anterior",
+            amount: Math.abs(saldoFinalFonte),
+            category: "Saldo Anterior",
+            due_date: targetDate,
+            data_conta: targetDate,
+            type: saldoFinalFonte >= 0 ? "receita" : "despesa",
+            status: saldoFinalFonte >= 0 ? "recebido" : "pago",
+            user_id: user.id,
+            payment_source: "bank"
+          };
+
+          if (fonte.id) {
+            insertPayload.payment_source_id = fonte.id;
+            insertPayload.payment_source_name = fonte.name;
+          }
+
+          await supabase.from("accounts").insert([insertPayload]);
+        }
       }
 
     } catch (error) {
