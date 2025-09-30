@@ -198,9 +198,13 @@ const Contas: React.FC = () => {
         const targetMonth = currentMonth;
         const targetYear = currentYear;
 
+        console.log('🔍 [SaldoAnterior] Iniciando verificação para:', { targetMonth: targetMonth + 1, targetYear });
+
         // Calcular mês/ano anterior
         const prevMonth = targetMonth === 0 ? 11 : targetMonth - 1;
         const prevYear = targetMonth === 0 ? targetYear - 1 : targetYear;
+
+        console.log('🔍 [SaldoAnterior] Mês anterior:', { prevMonth: prevMonth + 1, prevYear });
 
         // Range do mês anterior
         const prevStart = new Date(prevYear, prevMonth, 1).toISOString().split("T")[0];
@@ -221,6 +225,8 @@ const Contas: React.FC = () => {
 
         const allPrevAccounts = (prevRows || []) as any[];
 
+        console.log('🔍 [SaldoAnterior] Contas do mês anterior:', allPrevAccounts.length);
+
         // Agrupar por fonte de pagamento (incluindo null para contas sem fonte)
         const fontes = new Map<string, { id: number | null; name: string | null }>();
         allPrevAccounts.forEach(acc => {
@@ -234,6 +240,8 @@ const Contas: React.FC = () => {
             }
           }
         });
+
+        console.log('🔍 [SaldoAnterior] Fontes encontradas:', fontes.size);
 
         // Para cada fonte, calcular saldo final do mês anterior
         for (const [fonteKey, fonte] of fontes.entries()) {
@@ -266,6 +274,8 @@ const Contas: React.FC = () => {
 
           // Saldo final desta fonte no mês anterior
           const saldoFinalFonte = saldoAnteriorPrev + totalRecebidoPrev - totalPagoPrev;
+
+          console.log(`🔍 [SaldoAnterior] Fonte ${fonte.name || 'Sem fonte'}: saldoFinal=${saldoFinalFonte}`);
 
           // Verificar se já existe saldo anterior desta fonte no mês atual
           const targetDueDate = new Date(targetYear, targetMonth, 1).toISOString().split("T")[0];
@@ -344,9 +354,12 @@ const Contas: React.FC = () => {
                 console.error("[SaldoAnteriorPorFonte] erro ao inserir:", insertError);
                 continue;
               }
+
+              console.log('✅ [SaldoAnterior] Inserido com sucesso:', insertPayload);
             }
 
             // Recarregar dados
+            console.log('🔄 [SaldoAnterior] Recarregando accounts...');
             if (typeof refreshAccounts === "function") {
               await refreshAccounts();
             }
@@ -382,11 +395,20 @@ const Contas: React.FC = () => {
              d.getMonth() === targetMonth;
     });
 
+    console.log(`💰 [PreviousBalance] Mês ${targetMonth + 1}/${targetYear}: ${saldosAnteriores.length} registros de Saldo Anterior`);
+    saldosAnteriores.forEach(acc => {
+      console.log(`  - ${acc.payment_source_name || 'Sem fonte'}: ${acc.type} ${acc.amount}`);
+    });
+
     // Somar todos os saldos anteriores (cada fonte tem seu próprio registro)
-    return saldosAnteriores.reduce((sum, acc) => {
+    const total = saldosAnteriores.reduce((sum, acc) => {
       const value = acc.type === "receita" ? acc.amount : -Math.abs(acc.amount);
       return sum + value;
     }, 0);
+
+    console.log(`💰 [PreviousBalance] Total: ${total}`);
+
+    return total;
   }, [accounts, currentMonth, currentYear, isShowingAll]);
 
   // Função para obter o saldo anterior do mês anterior (para meses subsequentes)
