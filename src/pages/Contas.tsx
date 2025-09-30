@@ -427,7 +427,7 @@ const Contas: React.FC = () => {
     return previousBalance + totalRecebido - totalPago;
   }, [accounts, currentMonth, currentYear, previousBalance]);
 
-  // Função para filtrar contas para cálculos (excluindo o saldo anterior)
+  // Função para filtrar contas para cálculos (INCLUINDO o saldo anterior)
   const getFilteredAccountsForCalculations = React.useCallback(() => {
     if (!accounts) return [];
     
@@ -442,13 +442,11 @@ const Contas: React.FC = () => {
         const accountMonth = d.getMonth(); // 0-11
         
         return d.getFullYear() === currentYear && 
-               accountMonth <= currentMonthIndex && 
-               acc.description !== "Saldo Anterior";
+               accountMonth <= currentMonthIndex;
       }
       
-      // Caso contrário, filtrar apenas o mês específico
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
-             acc.description !== "Saldo Anterior";
+      // Caso contrário, filtrar apenas o mês específico (incluindo Saldo Anterior)
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
     });
   }, [accounts, currentMonth, currentYear, isShowingAll]);
 
