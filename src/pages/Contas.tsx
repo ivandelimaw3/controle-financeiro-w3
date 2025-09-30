@@ -364,7 +364,7 @@ const Contas: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [currentMonth, currentYear, user, loading]);
 
-  // Calcular previousBalance a partir do registro "Saldo Anterior"
+  // Calcular previousBalance a partir dos registros "Saldo Anterior" (soma de todas as fontes)
   const previousBalance = React.useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
     
@@ -373,7 +373,8 @@ const Contas: React.FC = () => {
     const targetMonth = isShowingAll ? 0 : currentMonth;
     const targetYear = currentYear;
     
-    const found = accounts.find(acc => {
+    // Buscar TODOS os registros de "Saldo Anterior" do mês/ano alvo
+    const saldosAnteriores = accounts.filter(acc => {
       if (!acc.dueDate) return false;
       const d = new Date(acc.dueDate + "T00:00:00");
       return acc.description === "Saldo Anterior" && 
@@ -381,8 +382,11 @@ const Contas: React.FC = () => {
              d.getMonth() === targetMonth;
     });
 
-    if (!found) return 0;
-    return found.type === "receita" ? found.amount : -Math.abs(found.amount);
+    // Somar todos os saldos anteriores (cada fonte tem seu próprio registro)
+    return saldosAnteriores.reduce((sum, acc) => {
+      const value = acc.type === "receita" ? acc.amount : -Math.abs(acc.amount);
+      return sum + value;
+    }, 0);
   }, [accounts, currentMonth, currentYear, isShowingAll]);
 
   // Função para obter o saldo anterior do mês anterior (para meses subsequentes)
@@ -394,11 +398,11 @@ const Contas: React.FC = () => {
       return previousBalance;
     }
     
-    // Para outros meses, buscar o saldo anterior do mês anterior
+    // Para outros meses, buscar TODOS os saldos anteriores do mês anterior (uma entrada por fonte)
     const prevMonth = currentMonth - 1;
     const prevYear = currentYear;
     
-    const found = accounts.find((acc: any) => {
+    const saldosAnteriores = accounts.filter((acc: any) => {
       if (!acc.dueDate) return false;
       const d = new Date(acc.dueDate + "T00:00:00");
       return acc.description === "Saldo Anterior" && 
@@ -406,8 +410,11 @@ const Contas: React.FC = () => {
              d.getMonth() === prevMonth;
     });
 
-    if (!found) return 0;
-    return found.type === "receita" ? found.amount : -Math.abs(found.amount);
+    // Somar todos os saldos anteriores
+    return saldosAnteriores.reduce((sum, acc) => {
+      const value = acc.type === "receita" ? acc.amount : -Math.abs(acc.amount);
+      return sum + value;
+    }, 0);
   }, [accounts, currentMonth, currentYear, previousBalance]);
 
   // Função para calcular o saldo final do mês atual baseado no saldo anterior
