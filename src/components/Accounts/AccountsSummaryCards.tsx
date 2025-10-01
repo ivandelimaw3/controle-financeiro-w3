@@ -37,11 +37,8 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     return previousBalance + calculateTotalRecebido() - calculateTotalPago();
   };
 
-  const calculateTotalPendente = () => {
-    const contasReceitasPendentes = accounts.filter(account => account.type === 'receita' && account.status === 'pendente');
+  const calculateDespesasPendentes = () => {
     const contasDespesasPendentes = accounts.filter(account => account.type === 'despesa' && account.status === 'pendente');
-    
-    const receitasPendentes = contasReceitasPendentes.reduce((sum, account) => sum + account.amount, 0);
     const despesasPendentes = contasDespesasPendentes.reduce((sum, account) => sum + Math.abs(account.amount), 0);
     
     console.log('=== DEBUG DESPESAS PENDENTES ===');
@@ -54,12 +51,10 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
       status: a.status,
       type: a.type
     })));
-    console.log('Total receitas pendentes:', receitasPendentes);
     console.log('Total despesas pendentes:', despesasPendentes);
-    console.log('Saldo pendente (receitas - despesas):', receitasPendentes - despesasPendentes);
     console.log('================================');
     
-    return receitasPendentes - despesasPendentes;
+    return despesasPendentes;
   };
 
   return (
@@ -124,16 +119,16 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
         </div>
       </div>
 
-      {/* Saldo Pendente */}
+      {/* Despesas Pendentes */}
       <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-yellow-100 rounded-lg">
             <Clock size={20} className="text-yellow-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-slate-600">Saldo Pendente</p>
-            <p className={`text-xl font-bold ${calculateTotalPendente() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(calculateTotalPendente())}
+            <p className="text-sm text-slate-600">Despesas Pendentes</p>
+            <p className="text-xl font-bold text-red-600">
+              {formatCurrency(calculateDespesasPendentes())}
             </p>
           </div>
         </div>
