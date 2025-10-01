@@ -38,12 +38,27 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   };
 
   const calculateTotalPendente = () => {
-    const receitasPendentes = accounts
-      .filter(account => account.type === 'receita' && account.status === 'pendente')
-      .reduce((sum, account) => sum + account.amount, 0);
-    const despesasPendentes = accounts
-      .filter(account => account.type === 'despesa' && account.status === 'pendente')
-      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    const contasReceitasPendentes = accounts.filter(account => account.type === 'receita' && account.status === 'pendente');
+    const contasDespesasPendentes = accounts.filter(account => account.type === 'despesa' && account.status === 'pendente');
+    
+    const receitasPendentes = contasReceitasPendentes.reduce((sum, account) => sum + account.amount, 0);
+    const despesasPendentes = contasDespesasPendentes.reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    
+    console.log('=== DEBUG DESPESAS PENDENTES ===');
+    console.log('Total de contas no array:', accounts.length);
+    console.log('Contas de despesas pendentes:', contasDespesasPendentes.length);
+    console.log('Despesas pendentes (detalhes):', contasDespesasPendentes.map(a => ({
+      description: a.description,
+      amount: a.amount,
+      absAmount: Math.abs(a.amount),
+      status: a.status,
+      type: a.type
+    })));
+    console.log('Total receitas pendentes:', receitasPendentes);
+    console.log('Total despesas pendentes:', despesasPendentes);
+    console.log('Saldo pendente (receitas - despesas):', receitasPendentes - despesasPendentes);
+    console.log('================================');
+    
     return receitasPendentes - despesasPendentes;
   };
 
