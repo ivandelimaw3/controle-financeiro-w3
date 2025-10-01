@@ -187,18 +187,27 @@ const Contas: React.FC = () => {
   const currentYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos' && !isShowingReport;
 
-  // --- Garantir "Saldo Anterior" automático para qualquer mês ---
+  // --- Garantir "Saldo Anterior" automático APENAS para o mês atual ou futuros ---
   React.useEffect(() => {
     if (!user || loading) return;
     
-    // Não recriar Saldo Anterior se o usuário acabou de deletar um
-    // Verificamos se há outras contas no mês para evitar recriar após deleção manual
     const ensureSaldoAnteriorForMonth = async () => {
       try {
         if (Number.isNaN(currentMonth) || Number.isNaN(currentYear)) return;
 
         const targetMonth = currentMonth; // 0..11
         const targetYear = currentYear;
+        
+        // Só criar automaticamente para o mês atual ou futuros
+        const today = new Date();
+        const currentActualMonth = today.getMonth();
+        const currentActualYear = today.getFullYear();
+        
+        // Se é um mês passado, não recriar automaticamente
+        if (targetYear < currentActualYear || (targetYear === currentActualYear && targetMonth < currentActualMonth)) {
+          console.log(`⏭️ Pulando criação automática de Saldo Anterior para ${targetMonth + 1}/${targetYear} (mês passado)`);
+          return;
+        }
 
         // Para janeiro, vamos verificar se já existe saldo anterior do ano anterior
         if (targetMonth === 0) {
