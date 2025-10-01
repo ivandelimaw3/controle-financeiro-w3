@@ -190,7 +190,9 @@ const Contas: React.FC = () => {
   // --- Garantir "Saldo Anterior" automático para qualquer mês ---
   React.useEffect(() => {
     if (!user || loading) return;
-
+    
+    // Não recriar Saldo Anterior se o usuário acabou de deletar um
+    // Verificamos se há outras contas no mês para evitar recriar após deleção manual
     const ensureSaldoAnteriorForMonth = async () => {
       try {
         if (Number.isNaN(currentMonth) || Number.isNaN(currentYear)) return;
@@ -264,6 +266,9 @@ const Contas: React.FC = () => {
           }
 
           const alreadyExists = existing && existing.length > 0;
+          
+          console.log(`📊 Saldo Anterior para ${targetMonth + 1}/${targetYear}: existe=${alreadyExists}`);
+          
           if (!alreadyExists) {
             const insertPayload = {
               description: "Saldo Anterior",
@@ -357,8 +362,11 @@ const Contas: React.FC = () => {
             ? (existingBalance.type === "receita" ? existingBalance.amount : -Math.abs(existingBalance.amount))
             : 0;
 
+          console.log(`📊 Saldo Anterior para ${targetMonth + 1}/${targetYear}: existe=${!!existingBalance}, valor=${currentStoredBalance}, calculado=${saldoFinalPrev}`);
+
           // Se não existe saldo anterior, criar com o valor calculado
-          if (!existingBalance && Math.abs(saldoFinalPrev) > 0.01) {
+          // Mas APENAS se houver contas no mês anterior (para evitar criar em meses vazios)
+          if (!existingBalance && Math.abs(saldoFinalPrev) > 0.01 && prevMonthAccounts.length > 0) {
             console.log(`✨ Criando saldo anterior para ${targetMonth + 1}/${targetYear}: ${saldoFinalPrev}`);
 
             const insertPayload = {

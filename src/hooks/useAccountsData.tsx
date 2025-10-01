@@ -460,20 +460,25 @@ export const useAccountsData = () => {
       // Buscar a conta antes de deletar para verificar se precisa reverter saldo
       const accountToDelete = accounts.find(acc => acc.id === accountId);
       
+      console.log('🗑️ Tentando deletar conta:', accountToDelete);
+      
       const { error } = await supabase
         .from('accounts')
         .delete()
-        .eq('id', accountId);
+        .eq('id', accountId)
+        .eq('user_id', user.id);
 
       if (error) {
-        console.error('Erro ao deletar conta:', error);
+        console.error('❌ Erro ao deletar conta:', error);
         toast({
           title: "Erro",
-          description: "Não foi possível deletar a conta.",
+          description: `Não foi possível deletar a conta: ${error.message}`,
           variant: "destructive"
         });
         return;
       }
+      
+      console.log('✅ Conta deletada com sucesso do banco de dados');
 
       // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
