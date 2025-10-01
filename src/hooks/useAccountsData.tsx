@@ -384,7 +384,9 @@ export const useAccountsData = () => {
           type: saldoFinalPrev >= 0 ? "receita" : "despesa",
           status: saldoFinalPrev >= 0 ? "recebido" : "pago",
           user_id: user.id,
-          payment_source: "bank"
+          payment_source: null,
+          payment_source_id: null,
+          payment_source_name: null
         };
 
         await supabase.from("accounts").insert([insertPayload]);

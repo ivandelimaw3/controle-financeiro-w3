@@ -279,7 +279,9 @@ const Contas: React.FC = () => {
               type: saldoFinalPrev >= 0 ? "receita" : "despesa",
               status: saldoFinalPrev >= 0 ? "recebido" : "pago",
               user_id: user.id,
-              payment_source: "bank"
+              payment_source: null,
+              payment_source_id: null,
+              payment_source_name: null
             };
 
             const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
@@ -378,7 +380,9 @@ const Contas: React.FC = () => {
               type: saldoFinalPrev >= 0 ? "receita" : "despesa",
               status: saldoFinalPrev >= 0 ? "recebido" : "pago",
               user_id: user.id,
-              payment_source: "bank"
+              payment_source: null,
+              payment_source_id: null,
+              payment_source_name: null
             };
 
             const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
