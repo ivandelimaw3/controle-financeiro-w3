@@ -357,39 +357,27 @@ const Contas: React.FC = () => {
             ? (existingBalance.type === "receita" ? existingBalance.amount : -Math.abs(existingBalance.amount))
             : 0;
 
-          // Se o saldo calculado é diferente do armazenado, atualizar
-          if (Math.abs(saldoFinalPrev - currentStoredBalance) > 0.01) {
-            console.log(`🔄 Atualizando saldo anterior de ${targetMonth + 1}/${targetYear}: ${currentStoredBalance} → ${saldoFinalPrev}`);
-            
-            // Remover saldo anterior existente se houver
-            if (existingBalance) {
-              await supabase
-                .from("accounts")
-                .delete()
-                .eq("user_id", user.id)
-                .eq("due_date", targetDueDate)
-                .eq("description", "Saldo Anterior");
-            }
+          // Se não existe saldo anterior, criar com o valor calculado
+          if (!existingBalance && Math.abs(saldoFinalPrev) > 0.01) {
+            console.log(`✨ Criando saldo anterior para ${targetMonth + 1}/${targetYear}: ${saldoFinalPrev}`);
 
-            // Criar novo saldo anterior com valor correto (se não for zero)
-            if (Math.abs(saldoFinalPrev) > 0.01) {
-              const insertPayload = {
-                description: "Saldo Anterior",
-                amount: Math.abs(saldoFinalPrev),
-                category: "Saldo Anterior",
-                due_date: targetDueDate,
-                type: saldoFinalPrev >= 0 ? "receita" : "despesa",
-                status: saldoFinalPrev >= 0 ? "recebido" : "pago",
-                user_id: user.id,
-                payment_source: "bank"
-              };
+            const insertPayload = {
+              description: "Saldo Anterior",
+              amount: Math.abs(saldoFinalPrev),
+              category: "Saldo Anterior",
+              due_date: targetDueDate,
+              data_conta: targetDueDate,
+              type: saldoFinalPrev >= 0 ? "receita" : "despesa",
+              status: saldoFinalPrev >= 0 ? "recebido" : "pago",
+              user_id: user.id,
+              payment_source: "bank"
+            };
 
-              const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
+            const { error: insertError } = await supabase.from("accounts").insert([insertPayload]);
 
-              if (insertError) {
-                console.error("[SaldoAnterior] erro ao inserir:", insertError);
-                return;
-              }
+            if (insertError) {
+              console.error("[SaldoAnterior] erro ao inserir:", insertError);
+              return;
             }
 
             // Recarregar dados
