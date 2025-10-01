@@ -44,6 +44,15 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     const despesasPendentes = accounts
       .filter(account => account.type === 'despesa' && account.status === 'pendente')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+    
+    console.log('🔍 Cálculo Pendentes:', {
+      totalReceitas: receitasPendentes,
+      totalDespesas: despesasPendentes,
+      saldoPendente: receitasPendentes - despesasPendentes,
+      qtdReceitasPendentes: accounts.filter(a => a.type === 'receita' && a.status === 'pendente').length,
+      qtdDespesasPendentes: accounts.filter(a => a.type === 'despesa' && a.status === 'pendente').length
+    });
+    
     return receitasPendentes - despesasPendentes;
   };
 
