@@ -181,18 +181,10 @@ const Contas: React.FC = () => {
 
     const totalReceived = calculateMonthlyData.reduce((sum, data) => sum + data.totalRecebido, 0);
     const totalPaid = calculateMonthlyData.reduce((sum, data) => sum + data.totalPago, 0);
-    
-    // O saldo final deve ser o saldo do último mês com dados (mês atual ou último mês do ano)
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    
-    // Se é o ano atual, usar o mês atual, senão usar dezembro
-    const lastMonthIndex = reportYear === currentYear ? currentMonth : 11;
-    const finalBalance = calculateMonthlyData[lastMonthIndex]?.saldoFinal || 0;
+    const finalBalance = calculateMonthlyData.reduce((sum, data) => sum + data.saldoFinal, 0);
 
     return { totalReceived, totalPaid, finalBalance };
-  }, [calculateMonthlyData, reportYear]);
+  }, [calculateMonthlyData]);
 
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
