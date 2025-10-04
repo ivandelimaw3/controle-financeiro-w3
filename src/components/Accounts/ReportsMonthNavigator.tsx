@@ -19,17 +19,17 @@ export const ReportsMonthNavigator: React.FC<ReportsMonthNavigatorProps> = ({
   };
 
   return (
-    <div className="mb-6 space-y-4">
+    <div className="mb-6">
       <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="text-left flex items-center gap-3">
           <Button
             onClick={onBackToAccounts}
             variant="outline"
             size="sm"
-            className="h-9 w-9 p-0 rounded-lg hover:bg-slate-100 border-slate-300"
-            title="Voltar para Contas"
+            className="flex items-center gap-2 h-9 px-3 rounded-lg hover:bg-slate-100 border-slate-300"
           >
             <ArrowLeft size={18} />
+            <span className="text-sm font-medium">Voltar</span>
           </Button>
           <div className="p-2 bg-blue-50 rounded-lg">
             <FileSearch className="h-6 w-6 text-blue-600" />
@@ -39,30 +39,30 @@ export const ReportsMonthNavigator: React.FC<ReportsMonthNavigatorProps> = ({
             <p className="text-sm text-slate-600">Resumo da sua situação financeira dos Últimos 12 Meses</p>
           </div>
         </div>
-      </div>
+        
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigateYear('prev')}
+            className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+          >
+            <ChevronLeft size={16} />
+          </Button>
 
-      <div className="flex items-center justify-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigateYear('prev')}
-          className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-        >
-          <ChevronLeft size={16} />
-        </Button>
+          <div className="text-xl font-bold text-slate-800 min-w-[100px] text-center">
+            {currentYear}
+          </div>
 
-        <div className="text-xl font-bold text-slate-800 min-w-[180px] text-center">
-          {currentYear}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigateYear('next')}
+            className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+          >
+            <ChevronRight size={16} />
+          </Button>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigateYear('next')}
-          className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-        >
-          <ChevronRight size={16} />
-        </Button>
       </div>
     </div>
   );
