@@ -191,11 +191,6 @@ export const useAccountsData = () => {
           title: "Sucesso",
           description: `${accountData.qtd_parcelas} parcelas criadas com sucesso.`,
         });
-        
-        // Atualizar saldos subsequentes apenas se as parcelas afetam o saldo (pago/recebido)
-        if (accountData.status === 'pago' || accountData.status === 'recebido') {
-          updateSubsequentBalances(accountData.dueDate);
-        }
       } else {
         // Criar conta única
         const { data, error } = await supabase
@@ -254,11 +249,6 @@ export const useAccountsData = () => {
           title: "Sucesso",
           description: "Conta criada com sucesso.",
         });
-        
-        // Atualizar saldos subsequentes apenas se a conta afeta o saldo (pago/recebido)
-        if (accountData.status === 'pago' || accountData.status === 'recebido') {
-          updateSubsequentBalances(accountData.dueDate);
-        }
       }
     } catch (error) {
       console.error('Erro ao criar conta:', error);
@@ -434,9 +424,6 @@ export const useAccountsData = () => {
         )
       );
 
-      // Atualizar saldos subsequentes
-      await updateSubsequentBalances(updatedAccount.dueDate);
-
       // SÓ invalidar cache se a conta for paga/recebida
       if (updatedAccount.status === 'pago' || updatedAccount.status === 'recebido') {
         invalidateBanksCache();
@@ -484,11 +471,6 @@ export const useAccountsData = () => {
 
       // Remover da lista local
       setAccounts(prev => prev.filter(account => account.id !== accountId));
-
-      // Atualizar saldos subsequentes se não for "Saldo Anterior"
-      if (accountToDelete && accountToDelete.description !== 'Saldo Anterior') {
-        await updateSubsequentBalances(accountToDelete.dueDate);
-      }
 
       // Se a conta deletada era paga/recebida, invalidar cache para reverter saldo
       if (accountToDelete && (accountToDelete.status === 'pago' || accountToDelete.status === 'recebido')) {
