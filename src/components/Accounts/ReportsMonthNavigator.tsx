@@ -22,6 +22,15 @@ export const ReportsMonthNavigator: React.FC<ReportsMonthNavigatorProps> = ({
     <div className="mb-6 space-y-4">
       <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="text-left flex items-center gap-3">
+          <Button
+            onClick={onBackToAccounts}
+            variant="outline"
+            size="sm"
+            className="h-9 w-9 p-0 rounded-lg hover:bg-slate-100 border-slate-300"
+            title="Voltar para Contas"
+          >
+            <ArrowLeft size={18} />
+          </Button>
           <div className="p-2 bg-blue-50 rounded-lg">
             <FileSearch className="h-6 w-6 text-blue-600" />
           </div>
@@ -30,15 +39,6 @@ export const ReportsMonthNavigator: React.FC<ReportsMonthNavigatorProps> = ({
             <p className="text-sm text-slate-600">Resumo da sua situação financeira dos Últimos 12 Meses</p>
           </div>
         </div>
-        
-        <Button
-          onClick={onBackToAccounts}
-          variant="outline"
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 border-slate-300 hover:border-slate-400 transition-all duration-200"
-        >
-          <ArrowLeft size={16} />
-          Voltar para Contas
-        </Button>
       </div>
 
       <div className="flex items-center justify-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
