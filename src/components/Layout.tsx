@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Header } from './Header';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
@@ -11,6 +11,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const collapsiblePages = [
@@ -32,6 +33,27 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       setSidebarCollapsed(false);
     }
   }, [isCollapsiblePage]);
+
+  // Detectar tecla ESC e redirecionar para página inicial
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && location.pathname !== '/') {
+        navigate('/');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [location.pathname, navigate]);
+
+  // Detectar refresh e redirecionar para página inicial
+  useEffect(() => {
+    const navigationEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    
+    if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload' && location.pathname !== '/') {
+      navigate('/', { replace: true });
+    }
+  }, [location.pathname, navigate]);
 
   const handleMainContentHover = () => {
     if (isCollapsiblePage) {
