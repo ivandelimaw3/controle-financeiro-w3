@@ -186,8 +186,7 @@ const Contas: React.FC = () => {
 
     const totalReceived = calculateMonthlyData.reduce((sum, data) => sum + data.totalRecebido, 0);
     const totalPaid = calculateMonthlyData.reduce((sum, data) => sum + data.totalPago, 0);
-    // O saldo final deve ser o último saldo acumulado, não a soma de todos
-    const finalBalance = totalReceived === 0 && totalPaid === 0 ? 0 : calculateMonthlyData[calculateMonthlyData.length - 1]?.saldoFinal || 0;
+    const finalBalance = calculateMonthlyData.reduce((sum, data) => sum + data.saldoFinal, 0);
 
     return { totalReceived, totalPaid, finalBalance };
   }, [calculateMonthlyData]);
