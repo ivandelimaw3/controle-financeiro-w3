@@ -159,8 +159,13 @@ const Contas: React.FC = () => {
         .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
         .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
 
-      // Saldo final = saldo acumulado até este mês
-      const saldoFinal = calcAccumUntil(targetMonth, targetYear);
+      // Saldo final = saldo acumulado até este mês, mas se totalRecebido e totalPago são 0, então saldoFinal = 0
+      let saldoFinal = 0;
+      if (totalRecebido === 0 && totalPago === 0) {
+        saldoFinal = 0;
+      } else {
+        saldoFinal = calcAccumUntil(targetMonth, targetYear);
+      }
 
       monthlyData.push({
         month: monthNames[targetMonth],
@@ -181,7 +186,8 @@ const Contas: React.FC = () => {
 
     const totalReceived = calculateMonthlyData.reduce((sum, data) => sum + data.totalRecebido, 0);
     const totalPaid = calculateMonthlyData.reduce((sum, data) => sum + data.totalPago, 0);
-    const finalBalance = calculateMonthlyData.reduce((sum, data) => sum + data.saldoFinal, 0);
+    // O saldo final deve ser o último saldo acumulado, não a soma de todos
+    const finalBalance = totalReceived === 0 && totalPaid === 0 ? 0 : calculateMonthlyData[calculateMonthlyData.length - 1]?.saldoFinal || 0;
 
     return { totalReceived, totalPaid, finalBalance };
   }, [calculateMonthlyData]);
@@ -328,8 +334,6 @@ const Contas: React.FC = () => {
       <div className="space-y-6">
         {isShowingReport ? (
           <ReportsMonthNavigator
-            currentYear={reportYear}
-            onYearChange={handleReportYearChange}
             onBackToAccounts={handleBackToAccounts}
           />
         ) : (
@@ -370,6 +374,8 @@ const Contas: React.FC = () => {
               totalReceived={calculateTotalsReport.totalReceived}
               totalPaid={calculateTotalsReport.totalPaid}
               finalBalance={calculateTotalsReport.finalBalance}
+              currentYear={reportYear}
+              onYearChange={handleReportYearChange}
             />
           </>
         ) : (

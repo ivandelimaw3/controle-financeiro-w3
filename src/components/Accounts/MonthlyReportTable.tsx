@@ -1,4 +1,6 @@
 import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -14,18 +16,48 @@ interface MonthlyReportTableProps {
   totalReceived: number;
   totalPaid: number;
   finalBalance: number;
+  currentYear: number;
+  onYearChange: (year: number) => void;
 }
 
 export const MonthlyReportTable: React.FC<MonthlyReportTableProps> = ({
   monthlyData,
   totalReceived,
   totalPaid,
-  finalBalance
+  finalBalance,
+  currentYear,
+  onYearChange
 }) => {
+  const navigateYear = (direction: 'prev' | 'next') => {
+    const newYear = direction === 'prev' ? currentYear - 1 : currentYear + 1;
+    onYearChange(newYear);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-  <h2 className="text-xl font-semibold text-slate-800 mb-4 text-center">
-    Relatório dos Últimos 12 Meses </h2>
+      <div className="flex items-center justify-center gap-4 mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigateYear('prev')}
+          className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+        >
+          <ChevronLeft size={16} />
+        </Button>
+
+        <h2 className="text-xl font-semibold text-slate-800">
+          Relatório dos Últimos 12 Meses - {currentYear}
+        </h2>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigateYear('next')}
+          className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+        >
+          <ChevronRight size={16} />
+        </Button>
+      </div>
       
       <div className="overflow-x-auto">
         <div className="border border-slate-300 rounded-lg">
