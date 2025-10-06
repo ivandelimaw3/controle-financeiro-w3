@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Account } from '@/contexts/AccountsContext';
+import { useBanksData } from '@/hooks/useBanksData';
 
 interface AccountsTableProps {
   accounts: Account[];
@@ -21,6 +22,14 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   onStatusChange,
   isDeleting = false
 }) => {
+  const { banks } = useBanksData();
+  
+  // Criar mapeamento de bank_id para cor
+  const getBankColor = (bankId: number | null) => {
+    if (!bankId) return undefined;
+    const bank = banks.find(b => b.id === bankId);
+    return bank?.color;
+  };
   const formatDate = (date: string) => {
   if (!date) return "";
   // Garante que pega apenas YYYY-MM-DD sem timezone
@@ -118,7 +127,12 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
               <TableCell className="py-1">
                 <div className="flex items-center gap-2">
                   {getPaymentSourceIcon(account.payment_source || '')}
-                  <span className="text-slate-700 font-medium">
+                  <span 
+                    className="font-medium"
+                    style={{ 
+                      color: getBankColor(account.bank_id || null) || '#475569'
+                    }}
+                  >
                     {account.payment_source_name || 'Não definido'}
                   </span>
                 </div>
