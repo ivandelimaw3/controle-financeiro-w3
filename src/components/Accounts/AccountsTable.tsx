@@ -33,12 +33,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
     return map;
   }, [banks]);
   
-  const getBankColor = (account: Account) => {
-    // Se a fonte de pagamento for banco, usa payment_source_id, senão usa bank_id
-    const bankId = account.payment_source === 'bank' 
-      ? account.payment_source_id 
-      : account.bank_id;
-    
+  const getBankColor = (bankId: number | null) => {
     if (!bankId) return '#475569';
     return bankColorMap.get(bankId) || '#475569';
   };
@@ -142,7 +137,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                   <span 
                     className="font-medium"
                     style={{ 
-                      color: getBankColor(account)
+                      color: getBankColor(account.bank_id || null) || '#475569'
                     }}
                   >
                     {account.payment_source_name || 'Não definido'}
