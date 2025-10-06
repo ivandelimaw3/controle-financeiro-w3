@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
@@ -29,16 +29,46 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  // --- Pega saldo anterior do mês (se existir conta "Saldo Anterior")
-  const getPreviousBalance = () => {
-    const saldoAnterior = accounts.find(
-      (acc) =>
-        acc.description === "Saldo Anterior" &&
-        new Date(acc.dueDate).getMonth() === selectedMonth &&
-        new Date(acc.dueDate).getFullYear() === selectedYear
-    );
-    return saldoAnterior ? saldoAnterior.type === 'receita' ? saldoAnterior.amount : -Math.abs(saldoAnterior.amount) : 0;
-  };
+  // --- Calcular saldo acumulado até um determinado mês/ano (ignorando registros "Saldo Anterior")
+  const calculateAccumulatedBalance = React.useCallback((untilMonth: number, untilYear: number) => {
+    if (!accounts || accounts.length === 0) return 0;
+    
+    // Filtrar todas as contas até o mês/ano especificado (EXCLUINDO "Saldo Anterior")
+    const accountsUntilDate = accounts.filter(acc => {
+      if (!acc.dueDate || acc.description === "Saldo Anterior") return false;
+      const d = new Date(acc.dueDate + "T00:00:00");
+      const accYear = d.getFullYear();
+      const accMonth = d.getMonth();
+      
+      // Incluir se for ano anterior OU se for mesmo ano mas mês anterior ou igual
+      return accYear < untilYear || (accYear === untilYear && accMonth <= untilMonth);
+    });
+    
+    // Calcular total de receitas recebidas
+    const totalRecebido = accountsUntilDate
+      .filter(acc => acc.type === "receita" && acc.status === "recebido")
+      .reduce((sum, acc) => sum + acc.amount, 0);
+    
+    // Calcular total de despesas pagas
+    const totalPago = accountsUntilDate
+      .filter(acc => acc.type === "despesa" && acc.status === "pago")
+      .reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
+    
+    return totalRecebido - totalPago;
+  }, [accounts]);
+
+  // --- Calcular previousBalance dinamicamente baseado no saldo final do mês anterior
+  const getPreviousBalance = React.useMemo(() => {
+    if (!accounts || accounts.length === 0) return 0;
+    
+    // Para janeiro, calcular baseado em dezembro do ano anterior
+    if (selectedMonth === 0) {
+      return calculateAccumulatedBalance(11, selectedYear - 1);
+    }
+    
+    // Para outros meses, calcular baseado no mês anterior do mesmo ano
+    return calculateAccumulatedBalance(selectedMonth - 1, selectedYear);
+  }, [accounts, selectedMonth, selectedYear, calculateAccumulatedBalance]);
 
   // --- Total Recebido
  const getMonthReceitas = () => {
@@ -60,26 +90,13 @@ const Dashboard: React.FC = () => {
 
   // --- Saldo Final
   const getMonthSaldoFinal = () => {
-  // 1️⃣ Saldo anterior do mês
-  const previous = accounts.find(acc => {
-    if (!acc.dueDate) return false;
-    const d = new Date(acc.dueDate + "T00:00:00");
-    return acc.description === "Saldo Anterior" &&
-           d.getMonth() === selectedMonth &&
-           d.getFullYear() === selectedYear;
-  });
-  
-  const previousBalance = previous
-    ? (previous.type === "receita" ? previous.amount : -Math.abs(previous.amount))
-    : 0;
+    // Total Recebido e Total Pago
+    const totalRecebido = getMonthReceitas();
+    const totalPago = getMonthDespesas();
 
-  // 2️⃣ Total Recebido e Total Pago
-  const totalRecebido = getMonthReceitas();
-  const totalPago = getMonthDespesas();
-
-  // 3️⃣ Saldo final
-  return previousBalance + totalRecebido - totalPago;
-};
+    // Saldo final = previousBalance + totalRecebido - totalPago
+    return getPreviousBalance + totalRecebido - totalPago;
+  };
 
   // Obter nome do mês
   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho','Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
