@@ -24,21 +24,18 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
 }) => {
   const { banks } = useBanksData();
   
-  // Debug: verificar dados
-  React.useEffect(() => {
-    console.log('Banks disponíveis:', banks);
-    console.log('Primeira conta:', accounts[0]);
-  }, [banks, accounts]);
+  // Criar mapeamento de bank_id para cor (memoizado para performance)
+  const bankColorMap = React.useMemo(() => {
+    const map = new Map<number, string>();
+    banks.forEach(bank => {
+      map.set(bank.id, bank.color || '#475569');
+    });
+    return map;
+  }, [banks]);
   
-  // Criar mapeamento de bank_id para cor
   const getBankColor = (bankId: number | null) => {
-    if (!bankId) {
-      console.log('Sem bank_id');
-      return undefined;
-    }
-    const bank = banks.find(b => b.id === bankId);
-    console.log(`Buscando bank_id ${bankId}, encontrado:`, bank);
-    return bank?.color;
+    if (!bankId) return '#475569';
+    return bankColorMap.get(bankId) || '#475569';
   };
   const formatDate = (date: string) => {
   if (!date) return "";

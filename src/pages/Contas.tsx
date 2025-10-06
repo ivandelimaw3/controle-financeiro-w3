@@ -92,7 +92,7 @@ const Contas: React.FC = () => {
     setReportYear(year);
   };
 
-  // Calcular dados mensais para o ano selecionado
+  // Calcular dados mensais para o ano selecionado (OTIMIZADO)
   const calculateMonthlyData = React.useMemo(() => {
     if (!accounts || accounts.length === 0 || !isShowingReport) return [];
 
@@ -103,36 +103,38 @@ const Contas: React.FC = () => {
 
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth(); // 0-11 (janeiro=0)
-    const monthlyData = [];
+    const currentMonth = currentDate.getMonth();
     const targetYear = reportYear;
 
-    // Função auxiliar para calcular saldo acumulado até um mês
-    const calcAccumUntil = (month: number, year: number) => {
-      const filtered = accounts.filter((acc: any) => {
-        if (!acc.dueDate || acc.description === "Saldo Anterior") return false;
+    // Pré-processar contas válidas uma única vez
+    const validAccounts = accounts
+      .filter((acc: any) => acc.dueDate && acc.description !== "Saldo Anterior")
+      .map((acc: any) => {
         const d = new Date(acc.dueDate + "T00:00:00");
-        const accYear = d.getFullYear();
-        const accMonth = d.getMonth();
-        return accYear < year || (accYear === year && accMonth <= month);
-      });
-      
-      const totalRec = filtered
-        .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
-        .reduce((sum: number, acc: any) => sum + acc.amount, 0);
-      
-      const totalPg = filtered
-        .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
-        .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount), 0);
-      
-      return totalRec - totalPg;
-    };
+        return {
+          ...acc,
+          year: d.getFullYear(),
+          month: d.getMonth()
+        };
+      })
+      .filter((acc: any) => acc.year <= targetYear);
 
-    // Calcular 12 meses para o ano selecionado
+    // Agrupar contas por mês para evitar múltiplas filtragens
+    const accountsByMonth: Record<number, any[]> = {};
+    for (let i = 0; i < 12; i++) accountsByMonth[i] = [];
+    
+    validAccounts.forEach((acc: any) => {
+      if (acc.year === targetYear && acc.month >= 0 && acc.month < 12) {
+        accountsByMonth[acc.month].push(acc);
+      }
+    });
+
+    // Calcular saldos acumulados progressivamente
+    let accumulatedBalance = 0;
+    const monthlyData = [];
+
     for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-      const targetMonth = monthIndex;
-
-      // Se o ano for futuro ou se for ano atual mas mês posterior ao atual, preencher com zeros
+      // Se é mês futuro, preencher com zeros
       if (targetYear > currentYear || (targetYear === currentYear && monthIndex > currentMonth)) {
         monthlyData.push({
           month: monthNames[monthIndex],
@@ -142,15 +144,9 @@ const Contas: React.FC = () => {
         });
         continue;
       }
-      
-      // Filtrar contas do mês específico (excluindo Saldo Anterior)
-      const monthAccounts = accounts.filter((acc: any) => {
-        if (!acc.dueDate || acc.description === "Saldo Anterior") return false;
-        const d = new Date(acc.dueDate + "T00:00:00");
-        return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
-      });
 
-      // Calcular totais do mês
+      const monthAccounts = accountsByMonth[monthIndex] || [];
+      
       const totalRecebido = monthAccounts
         .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
         .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0);
@@ -159,16 +155,15 @@ const Contas: React.FC = () => {
         .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
         .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
 
-      // Saldo final = saldo acumulado até este mês, mas se totalRecebido e totalPago são 0, então saldoFinal = 0
-      let saldoFinal = 0;
-      if (totalRecebido === 0 && totalPago === 0) {
-        saldoFinal = 0;
-      } else {
-        saldoFinal = calcAccumUntil(targetMonth, targetYear);
+      // Atualizar saldo acumulado
+      if (totalRecebido !== 0 || totalPago !== 0) {
+        accumulatedBalance += (totalRecebido - totalPago);
       }
 
+      const saldoFinal = (totalRecebido === 0 && totalPago === 0) ? 0 : accumulatedBalance;
+
       monthlyData.push({
-        month: monthNames[targetMonth],
+        month: monthNames[monthIndex],
         totalRecebido,
         totalPago,
         saldoFinal
@@ -196,30 +191,30 @@ const Contas: React.FC = () => {
   const currentYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter, 10);
   const isShowingAll = monthFilter === 'todos' && !isShowingReport;
 
-  // Calcular saldo acumulado até um determinado mês/ano (ignorando registros "Saldo Anterior")
+  // Calcular saldo acumulado até um determinado mês/ano (OTIMIZADO)
   const calculateAccumulatedBalance = React.useCallback((untilMonth: number, untilYear: number) => {
     if (!accounts || accounts.length === 0) return 0;
     
-    // Filtrar todas as contas até o mês/ano especificado (EXCLUINDO "Saldo Anterior")
-    const accountsUntilDate = accounts.filter(acc => {
-      if (!acc.dueDate || acc.description === "Saldo Anterior") return false;
+    let totalRecebido = 0;
+    let totalPago = 0;
+    
+    // Uma única iteração sobre as contas
+    for (const acc of accounts) {
+      if (!acc.dueDate || acc.description === "Saldo Anterior") continue;
+      
       const d = new Date(acc.dueDate + "T00:00:00");
       const accYear = d.getFullYear();
       const accMonth = d.getMonth();
       
-      // Incluir se for ano anterior OU se for mesmo ano mas mês anterior ou igual
-      return accYear < untilYear || (accYear === untilYear && accMonth <= untilMonth);
-    });
-    
-    // Calcular total de receitas recebidas
-    const totalRecebido = accountsUntilDate
-      .filter(acc => acc.type === "receita" && acc.status === "recebido")
-      .reduce((sum, acc) => sum + acc.amount, 0);
-    
-    // Calcular total de despesas pagas
-    const totalPago = accountsUntilDate
-      .filter(acc => acc.type === "despesa" && acc.status === "pago")
-      .reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
+      // Verificar se está dentro do período
+      if (accYear < untilYear || (accYear === untilYear && accMonth <= untilMonth)) {
+        if (acc.type === "receita" && acc.status === "recebido") {
+          totalRecebido += acc.amount;
+        } else if (acc.type === "despesa" && acc.status === "pago") {
+          totalPago += Math.abs(acc.amount);
+        }
+      }
+    }
     
     return totalRecebido - totalPago;
   }, [accounts]);
@@ -265,25 +260,26 @@ const Contas: React.FC = () => {
     return found.type === "receita" ? found.amount : -Math.abs(found.amount);
   }, [accounts, currentMonth, currentYear, previousBalance]);
 
-  // Função para calcular o saldo final do mês atual baseado no saldo anterior
+  // Função para calcular o saldo final do mês atual baseado no saldo anterior (OTIMIZADO)
   const calculateCurrentMonthBalance = React.useMemo(() => {
     if (!accounts || accounts.length === 0) return 0;
     
-    // Filtrar apenas contas do mês atual (exceto o saldo anterior)
-    const currentMonthAccounts = accounts.filter((acc: any) => {
-      if (!acc.dueDate) return false;
+    let totalRecebido = 0;
+    let totalPago = 0;
+    
+    // Uma única iteração
+    for (const acc of accounts) {
+      if (!acc.dueDate || acc.description === "Saldo Anterior") continue;
+      
       const d = new Date(acc.dueDate + "T00:00:00");
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && 
-             acc.description !== "Saldo Anterior";
-    });
-
-    const totalRecebido = currentMonthAccounts
-      .filter((acc: any) => acc.type === "receita" && acc.status === "recebido")
-      .reduce((sum: number, acc: any) => sum + (acc.amount || 0), 0);
-
-    const totalPago = currentMonthAccounts
-      .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
-      .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
+      if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+        if (acc.type === "receita" && acc.status === "recebido") {
+          totalRecebido += acc.amount || 0;
+        } else if (acc.type === "despesa" && acc.status === "pago") {
+          totalPago += Math.abs(acc.amount || 0);
+        }
+      }
+    }
 
     return previousBalance + totalRecebido - totalPago;
   }, [accounts, currentMonth, currentYear, previousBalance]);
