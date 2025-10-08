@@ -5,6 +5,7 @@ import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
 import { DashboardMonthNavigator } from '@/components/Dashboard/DashboardMonthNavigator';
+import { CreditCardPendingSummary } from '@/components/Dashboard/CreditCardPendingSummary';
 import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { formatCurrency } from '@/utils/formatters';
@@ -176,6 +177,7 @@ const Dashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <RecentTransactions transactions={transactions} />
+            <CreditCardPendingSummary />
           </div>
         </div>
       </Layout>
