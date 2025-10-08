@@ -65,29 +65,29 @@ export const MonthlyReportTable: React.FC<MonthlyReportTableProps> = ({
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-slate-100 border-b border-slate-300">
-                <th className="text-left font-semibold text-slate-700 px-3 py-2 border-r border-slate-300 text-sm">Mês</th>
-                <th className="text-right font-semibold text-blue-600 px-3 py-2 border-r border-slate-300 text-sm">Saldo Anterior</th>
-                <th className="text-right font-semibold text-green-600 px-3 py-2 border-r border-slate-300 text-sm">Total Recebido</th>
-                <th className="text-right font-semibold text-red-600 px-3 py-2 border-r border-slate-300 text-sm">Total Pago</th>
-                <th className="text-right font-semibold text-slate-700 px-3 py-2 text-sm">Saldo Final</th>
+                <th className="text-left font-semibold text-slate-700 px-4 py-2 border-r border-slate-300 text-sm">Mês</th>
+                <th className="text-left font-semibold text-blue-600 px-4 py-2 border-r border-slate-300 text-sm">Saldo Anterior</th>
+                <th className="text-left font-semibold text-green-600 px-4 py-2 border-r border-slate-300 text-sm">Total Recebido</th>
+                <th className="text-left font-semibold text-red-600 px-4 py-2 border-r border-slate-300 text-sm">Total Pago</th>
+                <th className="text-left font-semibold text-slate-700 px-4 py-2 text-sm">Saldo Final</th>
               </tr>
             </thead>
             <tbody>
               {monthlyData.map((data, index) => (
                 <tr key={index} className="hover:bg-slate-50 border-b border-slate-200">
-                  <td className="font-medium text-slate-700 px-3 py-1.5 border-r border-slate-200 text-sm">{data.month}</td>
-                  <td className={`text-right font-medium px-3 py-1.5 border-r border-slate-200 text-sm ${
+                  <td className="font-medium text-slate-700 px-4 py-1.5 border-r border-slate-200 text-sm">{data.month}</td>
+                  <td className={`text-left font-medium px-4 py-1.5 border-r border-slate-200 text-sm ${
                     data.saldoAnterior >= 0 ? 'text-blue-600' : 'text-red-600'
                   }`}>
                     {formatCurrency(data.saldoAnterior)}
                   </td>
-                  <td className="text-right text-green-600 font-medium px-3 py-1.5 border-r border-slate-200 text-sm">
+                  <td className="text-left text-green-600 font-medium px-4 py-1.5 border-r border-slate-200 text-sm">
                     {formatCurrency(data.totalRecebido)}
                   </td>
-                  <td className="text-right text-red-600 font-medium px-3 py-1.5 border-r border-slate-200 text-sm">
+                  <td className="text-left text-red-600 font-medium px-4 py-1.5 border-r border-slate-200 text-sm">
                     {formatCurrency(data.totalPago)}
                   </td>
-                  <td className={`text-right font-semibold px-3 py-1.5 text-sm ${
+                  <td className={`text-left font-semibold px-4 py-1.5 text-sm ${
                     data.saldoFinal >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {formatCurrency(data.saldoFinal)}
@@ -97,15 +97,15 @@ export const MonthlyReportTable: React.FC<MonthlyReportTableProps> = ({
               
               {/* Linha de totais */}
               <tr className="border-t-2 border-slate-400 bg-slate-100">
-                <td className="font-bold text-slate-800 px-3 py-2 border-r border-slate-300 text-sm">TOTAIS GERAIS</td>
-                <td className="px-3 py-2 border-r border-slate-300 text-sm"></td>
-                <td className="text-right text-green-600 font-bold px-3 py-2 border-r border-slate-300 text-sm">
+                <td className="font-bold text-slate-800 px-4 py-2 border-r border-slate-300 text-sm">TOTAIS GERAIS</td>
+                <td className="px-4 py-2 border-r border-slate-300 text-sm"></td>
+                <td className="text-left text-green-600 font-bold px-4 py-2 border-r border-slate-300 text-sm">
                   {formatCurrency(totalReceived)}
                 </td>
-                <td className="text-right text-red-600 font-bold px-3 py-2 border-r border-slate-300 text-sm">
+                <td className="text-left text-red-600 font-bold px-4 py-2 border-r border-slate-300 text-sm">
                   {formatCurrency(totalPaid)}
                 </td>
-                <td className={`text-right font-bold px-3 py-2 text-sm ${
+                <td className={`text-left font-bold px-4 py-2 text-sm ${
                   finalBalance >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {formatCurrency(finalBalance)}
