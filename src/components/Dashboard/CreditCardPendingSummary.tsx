@@ -1,8 +1,10 @@
 import React from 'react';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, Calendar } from 'lucide-react';
 import { useCardAccounts } from '@/hooks/useCardAccounts';
 import { formatCurrency } from '@/utils/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export const CreditCardPendingSummary: React.FC = () => {
   const { cardAccounts, loading } = useCardAccounts();
@@ -18,15 +20,21 @@ export const CreditCardPendingSummary: React.FC = () => {
         acc[cardName] = {
           cardName,
           total: 0,
-          count: 0
+          count: 0,
+          nearestDueDate: account.due_date
         };
       }
       
       acc[cardName].total += account.amount;
       acc[cardName].count += 1;
       
+      // Atualizar para a data de vencimento mais próxima
+      if (new Date(account.due_date) < new Date(acc[cardName].nearestDueDate)) {
+        acc[cardName].nearestDueDate = account.due_date;
+      }
+      
       return acc;
-    }, {} as Record<string, { cardName: string; total: number; count: number }>);
+    }, {} as Record<string, { cardName: string; total: number; count: number; nearestDueDate: string }>);
     
     return Object.values(summary).sort((a, b) => b.total - a.total);
   }, [cardAccounts]);
@@ -75,29 +83,42 @@ export const CreditCardPendingSummary: React.FC = () => {
       </CardHeader>
       <CardContent className="pt-6">
         <div className="space-y-4">
-          {cardSummary.map((card) => (
-            <div
-              key={card.cardName}
-              className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <CreditCard className="h-5 w-5 text-blue-600" />
+          {cardSummary.map((card) => {
+            const dueDate = new Date(card.nearestDueDate);
+            const today = new Date();
+            const isOverdue = dueDate < today;
+            
+            return (
+              <div
+                key={card.cardName}
+                className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-800">{card.cardName}</p>
+                    <p className="text-sm text-slate-600">
+                      {card.count} {card.count === 1 ? 'conta' : 'contas'}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                      <p className={`text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-slate-600'}`}>
+                        Venc: {format(dueDate, 'dd/MM/yyyy', { locale: ptBR })}
+                        {isOverdue && ' (Vencida)'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-slate-800">{card.cardName}</p>
-                  <p className="text-sm text-slate-600">
-                    {card.count} {card.count === 1 ? 'conta' : 'contas'}
+                <div className="text-right">
+                  <p className="text-lg font-bold text-red-600">
+                    {formatCurrency(card.total)}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-bold text-red-600">
-                  {formatCurrency(card.total)}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           
           <div className="pt-4 mt-4 border-t-2 border-slate-300">
             <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
