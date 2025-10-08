@@ -129,8 +129,23 @@ const Contas: React.FC = () => {
       }
     });
 
-    // Calcular saldos acumulados progressivamente
-    let accumulatedBalance = 0;
+    // Calcular saldo anterior de janeiro (saldo acumulado até dezembro do ano anterior)
+    const calculatePreviousYearBalance = () => {
+      let total = 0;
+      for (const acc of validAccounts) {
+        if (acc.year < targetYear) {
+          if (acc.type === "receita" && acc.status === "recebido") {
+            total += acc.amount || 0;
+          } else if (acc.type === "despesa" && acc.status === "pago") {
+            total -= Math.abs(acc.amount || 0);
+          }
+        }
+      }
+      return total;
+    };
+
+    // Calcular saldos mensais com saldo anterior
+    let saldoAnterior = calculatePreviousYearBalance();
     const monthlyData = [];
 
     for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
@@ -138,6 +153,7 @@ const Contas: React.FC = () => {
       if (targetYear > currentYear || (targetYear === currentYear && monthIndex > currentMonth)) {
         monthlyData.push({
           month: monthNames[monthIndex],
+          saldoAnterior: 0,
           totalRecebido: 0,
           totalPago: 0,
           saldoFinal: 0
@@ -155,19 +171,18 @@ const Contas: React.FC = () => {
         .filter((acc: any) => acc.type === "despesa" && acc.status === "pago")
         .reduce((sum: number, acc: any) => sum + Math.abs(acc.amount || 0), 0);
 
-      // Atualizar saldo acumulado
-      if (totalRecebido !== 0 || totalPago !== 0) {
-        accumulatedBalance += (totalRecebido - totalPago);
-      }
-
-      const saldoFinal = (totalRecebido === 0 && totalPago === 0) ? 0 : accumulatedBalance;
+      const saldoFinal = saldoAnterior + totalRecebido - totalPago;
 
       monthlyData.push({
         month: monthNames[monthIndex],
+        saldoAnterior,
         totalRecebido,
         totalPago,
         saldoFinal
       });
+
+      // Saldo anterior do próximo mês é o saldo final deste mês
+      saldoAnterior = saldoFinal;
     }
 
     return monthlyData;
