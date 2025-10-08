@@ -11,7 +11,14 @@ export const CreditCardPendingSummary: React.FC = () => {
 
   // Agrupar contas pendentes por cartão e calcular totais
   const cardSummary = React.useMemo(() => {
-    const pendingAccounts = cardAccounts.filter(acc => acc.status === 'pendente');
+    const today = new Date();
+    const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    // Filtrar contas pendentes com vencimento do mês atual em diante
+    const pendingAccounts = cardAccounts.filter(acc => {
+      const dueDate = new Date(acc.due_date);
+      return acc.status === 'pendente' && dueDate >= startOfCurrentMonth;
+    });
     
     const summary = pendingAccounts.reduce((acc, account) => {
       const cardName = account.card_name || 'Cartão sem nome';
