@@ -91,6 +91,7 @@ export type Database = {
           account_type: string | null
           agency: string
           balance: number | null
+          color: string | null
           created_at: string | null
           id: number
           name: string
@@ -103,6 +104,7 @@ export type Database = {
           account_type?: string | null
           agency: string
           balance?: number | null
+          color?: string | null
           created_at?: string | null
           id?: number
           name: string
@@ -115,6 +117,7 @@ export type Database = {
           account_type?: string | null
           agency?: string
           balance?: number | null
+          color?: string | null
           created_at?: string | null
           id?: number
           name?: string
@@ -226,6 +229,7 @@ export type Database = {
           card_brand: string | null
           card_name: string
           card_number: string
+          color: string | null
           created_at: string | null
           credit_limit: number | null
           current_value: number | null
@@ -242,6 +246,7 @@ export type Database = {
           card_brand?: string | null
           card_name: string
           card_number: string
+          color?: string | null
           created_at?: string | null
           credit_limit?: number | null
           current_value?: number | null
@@ -258,6 +263,7 @@ export type Database = {
           card_brand?: string | null
           card_name?: string
           card_number?: string
+          color?: string | null
           created_at?: string | null
           credit_limit?: number | null
           current_value?: number | null

@@ -52,7 +52,48 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
     return expiry;
   };
 
+  const getColorGradient = (colorValue?: string) => {
+    if (!colorValue) return 'bg-gradient-to-br from-blue-600 to-blue-800';
+    
+    switch (colorValue) {
+      case 'blue':
+        return 'bg-gradient-to-br from-blue-600 to-blue-800';
+      case 'green':
+        return 'bg-gradient-to-br from-green-600 to-green-800';
+      case 'purple':
+        return 'bg-gradient-to-br from-purple-600 to-purple-800';
+      case 'orange':
+        return 'bg-gradient-to-br from-orange-600 to-red-600';
+      case 'teal':
+        return 'bg-gradient-to-br from-teal-600 to-teal-800';
+      case 'indigo':
+        return 'bg-gradient-to-br from-indigo-600 to-indigo-800';
+      case 'pink':
+        return 'bg-gradient-to-br from-pink-600 to-pink-800';
+      case 'cyan':
+        return 'bg-gradient-to-br from-cyan-600 to-cyan-800';
+      case 'emerald':
+        return 'bg-gradient-to-br from-emerald-600 to-emerald-800';
+      case 'violet':
+        return 'bg-gradient-to-br from-violet-600 to-violet-800';
+      case 'black':
+        return 'bg-gradient-to-br from-gray-800 to-black';
+      case 'silver':
+        return 'bg-gradient-to-br from-gray-400 to-gray-600';
+      case 'gold':
+        return 'bg-gradient-to-br from-yellow-400 to-yellow-600';
+      default:
+        return 'bg-gradient-to-br from-blue-600 to-blue-800';
+    }
+  };
+
   const getBrandGradient = (cardBrand: string) => {
+    // Se houver uma cor personalizada definida, usa ela
+    if (color && color !== 'bg-gradient-to-r from-slate-600 to-slate-800') {
+      return getColorGradient(color);
+    }
+    
+    // Caso contrário, usa a cor padrão da bandeira
     switch (cardBrand?.toLowerCase()) {
       case 'visa':
         return 'bg-gradient-to-r from-blue-600 to-blue-800';
@@ -64,7 +105,7 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
       case 'american express':
         return 'bg-gradient-to-r from-green-600 to-teal-700';
       default:
-        return color;
+        return getColorGradient(color);
     }
   };
 

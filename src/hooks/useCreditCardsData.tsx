@@ -18,6 +18,7 @@ export interface CreditCardData {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  color?: string;
 }
 
 export interface CreditCardFormData {
@@ -30,6 +31,7 @@ export interface CreditCardFormData {
   current_value: number;
   bank_name?: string;
   card_brand?: string;
+  color?: string;
 }
 
 export function useCreditCardsData() {

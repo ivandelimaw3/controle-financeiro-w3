@@ -47,6 +47,7 @@ export const CreditCardItemNew: React.FC<CreditCardItemNewProps> = ({
           holderName={card.holder_name || "NOME DO TITULAR"}
           expiry={card.expiry_date || "00/00"}
           brand={card.card_brand}
+          color={card.color}
         />
       </div>
 
