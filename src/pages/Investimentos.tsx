@@ -382,19 +382,19 @@ const Investimentos = () => {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             {/* Tabela de Investimentos */}
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+              <table className="w-full border-collapse border border-slate-300">
+                <thead className="bg-slate-100 border-b-2 border-slate-300">
                   <tr>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Investimento</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Instituição</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Tipo</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Investido</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Valor Atual</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Rendimento</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Status</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Compra</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Vencimento</th>
-                    <th className="text-left py-2 px-4 font-semibold text-slate-700">Ações</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Investimento</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Instituição</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Tipo</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Investido</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Valor Atual</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Rendimento</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Status</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Compra</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Vencimento</th>
+                    <th className="text-left py-2 px-4 font-semibold text-slate-800">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -405,8 +405,8 @@ const Investimentos = () => {
                     const gainPercentage = investedAmount > 0 ? (gain / investedAmount) * 100 : 0;
                     
                     return (
-                      <tr key={investment.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
-                        <td className="py-1 px-4">
+                      <tr key={investment.id} className={`border-b border-slate-200 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
+                        <td className="py-1 px-4 border-r border-slate-200">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                               <TrendingUp className="h-4 w-4 text-blue-600" />
@@ -417,10 +417,10 @@ const Investimentos = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="py-1 px-4">
+                        <td className="py-1 px-4 border-r border-slate-200">
                           <span className="font-medium text-slate-800">{investment.institution?.name}</span>
                         </td>
-                        <td className="py-1 px-4">
+                        <td className="py-1 px-4 border-r border-slate-200">
                           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                             {investment.type?.name}
                           </Badge>
@@ -428,17 +428,17 @@ const Investimentos = () => {
                             {getCategoryLabel(investment.type?.category || '')}
                           </p>
                         </td>
-                        <td className="py-1 px-4">
+                        <td className="py-1 px-4 border-r border-slate-200">
                           <span className="font-semibold text-slate-800">
                             {formatCurrency(investedAmount)}
                           </span>
                         </td>
-                        <td className="py-1 px-4">
+                        <td className="py-1 px-4 border-r border-slate-200">
                           <span className="font-semibold text-slate-800">
                             {formatCurrency(currentValue)}
                           </span>
                         </td>
-                        <td className="py-1 px-4">
+                        <td className="py-1 px-4 border-r border-slate-200">
                           <div className="flex flex-col">
                             <span className={`font-semibold ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {formatCurrency(Math.abs(gain))}
@@ -448,7 +448,7 @@ const Investimentos = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="py-1 px-4">
+                        <td className="py-1 px-4 border-r border-slate-200">
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${gain >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
                             <span className={`text-sm ${getStatusColor(investedAmount, currentValue)}`}>
@@ -456,10 +456,10 @@ const Investimentos = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="py-1 px-4 text-sm text-slate-600">
+                        <td className="py-1 px-4 text-sm text-slate-600 border-r border-slate-200">
                           {formatDate(investment.purchase_date)}
                         </td>
-                        <td className="py-1 px-4 text-sm text-slate-600">
+                        <td className="py-1 px-4 text-sm text-slate-600 border-r border-slate-200">
                           {formatDate(investment.maturity_date || '')}
                         </td>
                         <td className="py-1 px-4">

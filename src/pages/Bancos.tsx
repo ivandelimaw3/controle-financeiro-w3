@@ -239,16 +239,16 @@ const Bancos = () => {
         {/* Tabela */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
+            <table className="w-full border-collapse border border-slate-300">
+              <thead className="bg-slate-100 border-b-2 border-slate-300">
                 <tr>
-                  <th className="text-left p-4 font-semibold text-slate-700">Banco</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Conta</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Tipo</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Saldo</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Status</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Criado em</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Banco</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Conta</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Tipo</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Saldo</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Status</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Criado em</th>
+                  <th className="text-left p-4 font-semibold text-slate-800">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -259,7 +259,7 @@ const Bancos = () => {
                       index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
                     }`}
                   >
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 border-r border-slate-200">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                           <Building2 className="h-5 w-5 text-blue-600" />
@@ -272,23 +272,23 @@ const Bancos = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 border-r border-slate-200">
                       <div>
                         <p className="font-medium text-slate-800">{bank.account_number}</p>
                         <p className="text-sm text-slate-500">Agência: {bank.agency}</p>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 border-r border-slate-200">
                       <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                         {getAccountTypeLabel(bank.account_type)}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 border-r border-slate-200">
                       <span className={`font-semibold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(bank.balance)}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 border-r border-slate-200">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
                         <span className={`text-sm ${getStatusColor(bank.balance)}`}>
@@ -296,7 +296,7 @@ const Bancos = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
+                    <td className="py-3 px-4 text-sm text-slate-600 border-r border-slate-200">
                       {formatDate(bank.created_at)}
                     </td>
                     <td className="py-3 px-4">

@@ -250,17 +250,17 @@ const CartoesCredito = () => {
         {/* Tabela */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
+            <table className="w-full border-collapse border border-slate-300">
+              <thead className="bg-slate-100 border-b-2 border-slate-300">
                 <tr>
-                  <th className="text-left p-4 font-semibold text-slate-700">Cartão</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Número</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Bandeira</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Limite</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Usado</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Disponível</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Status</th>
-                  <th className="text-left p-4 font-semibold text-slate-700">Ações</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Cartão</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Número</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Bandeira</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Limite</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Usado</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Disponível</th>
+                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Status</th>
+                  <th className="text-left p-4 font-semibold text-slate-800">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -269,13 +269,13 @@ const CartoesCredito = () => {
                   const utilization = card.credit_limit > 0 ? (card.current_value / card.credit_limit) * 100 : 0;
                   
                   return (
-                    <tr
+                      <tr
                       key={card.id}
-                      className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                      className={`border-b border-slate-200 hover:bg-slate-50 transition-colors ${
                         index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
                       }`}
                     >
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 border-r border-slate-200">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                             <CreditCard className="h-5 w-5 text-blue-600" />
@@ -286,33 +286,33 @@ const CartoesCredito = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 border-r border-slate-200">
                         <div>
                           <p className="font-mono text-slate-800">{formatCardNumber(card.card_number)}</p>
                           <p className="text-sm text-slate-500">Val: {card.expiry_date}</p>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 border-r border-slate-200">
                         <Badge variant="secondary" className="bg-purple-100 text-purple-800">
                           {getBrandLabel(card.card_brand)}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 border-r border-slate-200">
                         <span className="font-semibold text-slate-800">
                           {formatCurrency(card.credit_limit)}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 border-r border-slate-200">
                         <span className="font-semibold text-red-600">
                           {formatCurrency(card.current_value)}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 border-r border-slate-200">
                         <span className={`font-semibold ${available >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(available)}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 border-r border-slate-200">
                         <div className="flex items-center gap-2">
                           <div className={`w-2 h-2 rounded-full ${
                             utilization > 80 ? 'bg-red-500' : 

@@ -50,43 +50,43 @@ export const ExpiredInvestmentsTable: React.FC<ExpiredInvestmentsTableProps> = (
       
       <div className="bg-white border-2 border-red-200 rounded-lg overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-yellow-400 border-b-2 border-red-200">
+          <table className="w-full border-collapse">
+            <thead className="bg-yellow-400 border-b-2 border-red-300">
               <tr>
-                <th className="text-left py-2 px-4 font-bold text-black">Status</th>
-                <th className="text-left py-2 px-4 font-bold text-black">Investidor</th>
-                <th className="text-left py-2 px-4 font-bold text-black">Investimento</th>
-                <th className="text-left py-2 px-4 font-bold text-black">Instituição</th>
-                <th className="text-right py-2 px-4 font-bold text-black">Valor Atual</th>
-                <th className="text-right py-2 px-4 font-bold text-black">Data Vencimento</th>
+                <th className="text-left py-2 px-4 font-bold text-black border-r border-red-300">Status</th>
+                <th className="text-left py-2 px-4 font-bold text-black border-r border-red-300">Investidor</th>
+                <th className="text-left py-2 px-4 font-bold text-black border-r border-red-300">Investimento</th>
+                <th className="text-left py-2 px-4 font-bold text-black border-r border-red-300">Instituição</th>
+                <th className="text-right py-2 px-4 font-bold text-black border-r border-red-300">Valor Atual</th>
+                <th className="text-right py-2 px-4 font-bold text-black border-r border-red-300">Data Vencimento</th>
                 <th className="text-center py-2 px-4 font-bold text-black">Ação</th>
               </tr>
             </thead>
             <tbody>
               {expiredInvestments.map((investment, index) => (
-                <tr key={investment.id} className={`border-b border-red-100 hover:bg-red-25 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-red-25'}`}>
-                  <td className="py-1 px-4">
+                <tr key={investment.id} className={`border-b border-red-200 hover:bg-red-25 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-red-25'}`}>
+                  <td className="py-1 px-4 border-r border-red-200">
                     <Badge className="bg-red-500 text-white text-xs font-bold px-2 py-1">
                       ⚠️ VENCIDA
                     </Badge>
                   </td>
-                  <td className="py-1 px-4">
+                  <td className="py-1 px-4 border-r border-red-200">
                     <span className="font-medium text-slate-800">
                       {investment.investor_name || 'Sem investidor'}
                     </span>
                   </td>
-                  <td className="py-1 px-4">
+                  <td className="py-1 px-4 border-r border-red-200">
                     <span className="font-medium text-slate-800">{investment.name}</span>
                   </td>
-                  <td className="py-1 px-4">
+                  <td className="py-1 px-4 border-r border-red-200">
                     <span className="text-slate-700">{investment.institution?.name}</span>
                   </td>
-                  <td className="text-right py-1 px-4">
+                  <td className="text-right py-1 px-4 border-r border-red-200">
                     <span className="font-bold text-slate-800">
                       {formatCurrency(Number(investment.current_value))}
                     </span>
                   </td>
-                  <td className="text-right py-1 px-4">
+                  <td className="text-right py-1 px-4 border-r border-red-200">
                     <div className="flex items-center justify-end gap-2">
                       <span className="font-bold text-red-700 bg-red-100 px-2 py-1 rounded text-sm">
                         {formatDate(investment.maturity_date)}
