@@ -32,10 +32,10 @@ export const CreditCardItemNew: React.FC<CreditCardItemNewProps> = ({
     return 'bg-green-100 text-green-800';
   };
 
-  const utilization = card.credit_limit && card.credit_limit > 0 
-    ? (card.current_value / card.credit_limit) * 100 
-    : 0;
-  const available = (card.credit_limit || 0) - card.current_value;
+  const creditLimit = card.credit_limit || 0;
+  const currentValue = card.current_value || 0;
+  const available = Math.max(0, creditLimit - currentValue);
+  const utilization = creditLimit > 0 ? (currentValue / creditLimit) * 100 : 0;
 
   return (
     <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
