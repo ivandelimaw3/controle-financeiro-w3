@@ -99,6 +99,7 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
               </TableCell>
               <TableCell className="py-1">
                 <Select
+                  key={`${account.id}-${account.status}`}
                   value={account.status}
                   onValueChange={(value) => onStatusChange(account.id, value as 'pendente' | 'pago')}
                 >
