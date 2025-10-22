@@ -34,8 +34,14 @@ export const CreditCardItemNew: React.FC<CreditCardItemNewProps> = ({
 
   const creditLimit = card.credit_limit || 0;
   const currentValue = card.current_value || 0;
-  const available = Math.max(0, creditLimit - currentValue);
+  const available = creditLimit - currentValue;
   const utilization = creditLimit > 0 ? (currentValue / creditLimit) * 100 : 0;
+
+  console.log(`Cartão: ${card.card_name}`);
+  console.log(`Limite Total: ${creditLimit}`);
+  console.log(`Valor Usado: ${currentValue}`);
+  console.log(`Disponível (calculado): ${available}`);
+  console.log(`Fórmula: ${creditLimit} - ${currentValue} = ${available}`);
 
   return (
     <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
