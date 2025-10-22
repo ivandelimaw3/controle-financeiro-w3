@@ -42,12 +42,13 @@ export const CreditCardItemNew: React.FC<CreditCardItemNewProps> = ({
       {/* Visual Credit Card */}
       <div className="p-4">
         <CreditCardUI
-          bankName={card.card_brand || "BANCO"}
+          bankName={card.bank_name || card.card_brand || "BANCO"}
           cardNumber={card.card_number}
           holderName={card.holder_name || "NOME DO TITULAR"}
           expiry={card.expiry_date || "00/00"}
           brand={card.card_brand}
           color={card.color}
+          cardName={card.card_name}
         />
       </div>
 

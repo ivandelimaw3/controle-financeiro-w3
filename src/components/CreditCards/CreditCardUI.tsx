@@ -9,6 +9,7 @@ interface CreditCardUIProps {
   expiry?: string;
   color?: string;
   brand?: string;
+  cardName?: string;
 }
 
 export const CreditCardUI: React.FC<CreditCardUIProps> = ({
@@ -17,7 +18,8 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
   holderName = "NOME DO TITULAR", 
   expiry = "00/00",
   color = "bg-gradient-to-r from-slate-600 to-slate-800",
-  brand = "CREDIT"
+  brand = "CREDIT",
+  cardName
 }) => {
   const formatCardNumber = (number: string) => {
     const cleaned = number.replace(/\D/g, '');
@@ -132,6 +134,9 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
             {bankName.toUpperCase()}
           </div>
           <div className="text-right">
+            {cardName && (
+              <div className="text-xs font-semibold mb-1">{cardName.toUpperCase()}</div>
+            )}
             <div className="text-xs opacity-75">{brand.toUpperCase()}</div>
           </div>
         </div>
