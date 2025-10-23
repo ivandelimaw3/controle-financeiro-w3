@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Relatorios: React.FC = () => {
   const { accounts, getTotalReceitas, getTotalDespesas, getSaldo } = useAccounts();
@@ -41,11 +43,117 @@ const Relatorios: React.FC = () => {
   };
 
   const handleExportPDF = () => {
-    toast({
-      title: "Exportação de PDF em desenvolvimento",
-      description: "Esta funcionalidade será implementada em breve.",
-      duration: 2000,
-    });
+    try {
+      const doc = new jsPDF();
+      
+      // Título
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Relatório Financeiro', 105, 15, { align: 'center' });
+      
+      // Período
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      const periodo = monthFilter === 'todos' 
+        ? 'Todos os períodos' 
+        : `${monthFilter}/${yearFilter}`;
+      doc.text(`Período: ${periodo}`, 105, 22, { align: 'center' });
+      
+      // Data de geração
+      const dataGeracao = new Date().toLocaleDateString('pt-BR');
+      doc.setFontSize(9);
+      doc.text(`Gerado em: ${dataGeracao}`, 105, 28, { align: 'center' });
+      
+      // Resumo Financeiro
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Resumo do Período', 14, 38);
+      
+      // Cards de resumo
+      const resumoData = [
+        ['Total de Receitas', `R$ ${filteredReceitas.toFixed(2)}`],
+        ['Total de Despesas', `R$ ${filteredDespesas.toFixed(2)}`],
+        ['Saldo do Período', `R$ ${filteredSaldo.toFixed(2)}`]
+      ];
+      
+      autoTable(doc, {
+        startY: 42,
+        head: [['Descrição', 'Valor']],
+        body: resumoData,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], fontSize: 10, fontStyle: 'bold' },
+        styles: { fontSize: 10 },
+        columnStyles: {
+          0: { cellWidth: 100 },
+          1: { cellWidth: 80, halign: 'right', fontStyle: 'bold' }
+        }
+      });
+      
+      // Detalhamento das Contas
+      const finalY = (doc as any).lastAutoTable.finalY || 42;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detalhamento das Contas', 14, finalY + 10);
+      
+      // Preparar dados da tabela
+      const tableData = filteredAccounts.map(account => [
+        account.description,
+        account.category,
+        account.type === 'receita' ? 'Receita' : 'Despesa',
+        `${account.type === 'receita' ? '+' : '-'}R$ ${Math.abs(account.amount).toFixed(2)}`,
+        formatDate(account.dueDate),
+        getStatusLabel(account.status)
+      ]);
+      
+      autoTable(doc, {
+        startY: finalY + 14,
+        head: [['Descrição', 'Categoria', 'Tipo', 'Valor', 'Vencimento', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [59, 130, 246],
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 30, halign: 'right' },
+          4: { cellWidth: 25 },
+          5: { cellWidth: 22 }
+        },
+        didParseCell: function(data) {
+          // Colorir valores
+          if (data.column.index === 3 && data.section === 'body') {
+            const valor = tableData[data.row.index][3];
+            if (valor.startsWith('+')) {
+              data.cell.styles.textColor = [34, 197, 94]; // verde
+            } else {
+              data.cell.styles.textColor = [239, 68, 68]; // vermelho
+            }
+          }
+        }
+      });
+      
+      // Salvar PDF
+      const nomeArquivo = `relatorio-financeiro-${periodo.replace(/\//g, '-')}.pdf`;
+      doc.save(nomeArquivo);
+      
+      toast({
+        title: "PDF exportado com sucesso!",
+        description: `Arquivo ${nomeArquivo} baixado.`,
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao exportar PDF",
+        description: "Ocorreu um erro ao gerar o arquivo PDF.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
   };
 
   // Filtrar contas baseado nos filtros
