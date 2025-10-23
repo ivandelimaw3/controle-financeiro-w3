@@ -264,7 +264,7 @@ const Relatorios: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex justify-end items-center">
+        <div className="flex justify-start items-center">
           <Button 
             onClick={handleExportPDF}
             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
