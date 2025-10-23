@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive } from 'lucide-react';
+import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive, FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -254,6 +256,95 @@ const Investimentos = () => {
     }
   };
 
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Título
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Relatório de Investimentos', 14, 20);
+      
+      // Data de geração
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 28);
+      
+      // Resumo
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Resumo da Carteira', 14, 38);
+      
+      autoTable(doc, {
+        startY: 42,
+        head: [['Métrica', 'Valor']],
+        body: [
+          ['Total Investido', formatCurrency(totalInvested)],
+          ['Valor Atual', formatCurrency(totalCurrent)],
+          ['Rentabilidade', `${gainPercentage.toFixed(2)}%`],
+          ['Ganho/Perda', formatCurrency(totalGain)],
+          ['Total de Investimentos', totalInvestments.toString()],
+          ['Investimentos Lucrativos', profitableInvestments.toString()],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] },
+      });
+      
+      // Detalhamento dos Investimentos
+      const finalY = (doc as any).lastAutoTable.finalY || 42;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detalhamento dos Investimentos', 14, finalY + 10);
+      
+      const tableData = filteredInvestments.map(investment => {
+        const investedAmount = Number(investment.invested_amount);
+        const currentValue = Number(investment.current_value);
+        const gain = currentValue - investedAmount;
+        const gainPerc = investedAmount > 0 ? (gain / investedAmount) * 100 : 0;
+        
+        return [
+          investment.name,
+          investment.institution?.name || '-',
+          investment.type?.name || '-',
+          formatCurrency(investedAmount),
+          formatCurrency(currentValue),
+          `${gainPerc.toFixed(2)}%`,
+          formatDate(investment.purchase_date),
+          formatDate(investment.maturity_date || ''),
+        ];
+      });
+      
+      autoTable(doc, {
+        startY: finalY + 14,
+        head: [['Nome', 'Instituição', 'Tipo', 'Investido', 'Atual', 'Rendimento', 'Compra', 'Vencimento']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] },
+        styles: { fontSize: 8 },
+        columnStyles: {
+          3: { halign: 'right' },
+          4: { halign: 'right' },
+          5: { halign: 'right' },
+        },
+      });
+      
+      // Salvar PDF
+      doc.save(`investimentos-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`);
+      
+      toast({
+        title: "PDF exportado com sucesso!",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      toast({
+        title: "Erro ao exportar PDF",
+        description: "Ocorreu um erro ao gerar o arquivo PDF.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Layout>
   <div className="bg-white min-h-screen">
@@ -267,13 +358,23 @@ const Investimentos = () => {
        </div>
 
           <div className="flex justify-between items-center">
-            <Button
-              onClick={() => setShowInvestmentForm(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Investimento
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowInvestmentForm(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Investimento
+              </Button>
+              
+              <Button
+                onClick={handleExportPDF}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </Button>
+            </div>
             
             {expiredInvestments.length > 0 && (
               <Button 
