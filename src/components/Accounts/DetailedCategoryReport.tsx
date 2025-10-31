@@ -1,16 +1,19 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+interface CategoryItem {
+  description: string;
+  amount: number;
+}
 
 interface CategoryData {
   category: string;
   color: string;
-  totalReceived: number;
-  totalPaid: number;
-  balance: number;
-  receivedCount: number;
-  paidCount: number;
+  items: CategoryItem[];
+  total: number;
 }
 
 interface DetailedCategoryReportProps {
@@ -19,189 +22,237 @@ interface DetailedCategoryReportProps {
 }
 
 export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ accounts, categories }) => {
-  // Agrupar dados por categoria
-  const categoryData = React.useMemo(() => {
+  // Obter informações do mês atual
+  const currentDate = new Date();
+  const monthYear = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
+  const startOfMonth = format(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1), "dd/MM/yyyy");
+  const endOfMonth = format(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0), "dd/MM/yyyy");
+  const generationDate = format(currentDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+
+  // Agrupar RECEITAS por categoria
+  const incomeByCategory = React.useMemo(() => {
     const dataMap = new Map<string, CategoryData>();
 
-    // Inicializar todas as categorias
-    categories.forEach(cat => {
-      dataMap.set(cat.name, {
-        category: cat.name,
-        color: cat.color || '#3B82F6',
-        totalReceived: 0,
-        totalPaid: 0,
-        balance: 0,
-        receivedCount: 0,
-        paidCount: 0
-      });
-    });
-
-    // Processar contas
     accounts.forEach(acc => {
-      if (acc.description === "Saldo Anterior") return;
+      if (acc.description === "Saldo Anterior" || acc.type !== 'receita' || acc.status !== 'recebido') return;
       
-      if (!dataMap.has(acc.category)) {
-        dataMap.set(acc.category, {
-          category: acc.category,
-          color: '#94A3B8',
-          totalReceived: 0,
-          totalPaid: 0,
-          balance: 0,
-          receivedCount: 0,
-          paidCount: 0
+      const categoryName = acc.category || 'Sem Categoria';
+      const categoryColor = categories.find(c => c.name === categoryName)?.color || '#94A3B8';
+      
+      if (!dataMap.has(categoryName)) {
+        dataMap.set(categoryName, {
+          category: categoryName,
+          color: categoryColor,
+          items: [],
+          total: 0
         });
       }
 
-      const data = dataMap.get(acc.category)!;
-      
-      if (acc.type === 'receita' && acc.status === 'recebido') {
-        data.totalReceived += acc.amount || 0;
-        data.receivedCount++;
-        data.balance += acc.amount || 0;
-      } else if (acc.type === 'despesa' && acc.status === 'pago') {
-        data.totalPaid += Math.abs(acc.amount || 0);
-        data.paidCount++;
-        data.balance -= Math.abs(acc.amount || 0);
-      }
+      const data = dataMap.get(categoryName)!;
+      data.items.push({
+        description: acc.description,
+        amount: acc.amount || 0
+      });
+      data.total += acc.amount || 0;
     });
 
-    return Array.from(dataMap.values())
-      .filter(data => data.totalReceived > 0 || data.totalPaid > 0)
-      .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
+    return Array.from(dataMap.values()).sort((a, b) => b.total - a.total);
   }, [accounts, categories]);
 
-  // Calcular totais gerais
-  const totals = React.useMemo(() => {
-    return categoryData.reduce((acc, data) => ({
-      totalReceived: acc.totalReceived + data.totalReceived,
-      totalPaid: acc.totalPaid + data.totalPaid,
-      balance: acc.balance + data.balance,
-      receivedCount: acc.receivedCount + data.receivedCount,
-      paidCount: acc.paidCount + data.paidCount
-    }), {
-      totalReceived: 0,
-      totalPaid: 0,
-      balance: 0,
-      receivedCount: 0,
-      paidCount: 0
+  // Agrupar DESPESAS por categoria
+  const expensesByCategory = React.useMemo(() => {
+    const dataMap = new Map<string, CategoryData>();
+
+    accounts.forEach(acc => {
+      if (acc.description === "Saldo Anterior" || acc.type !== 'despesa' || acc.status !== 'pago') return;
+      
+      const categoryName = acc.category || 'Sem Categoria';
+      const categoryColor = categories.find(c => c.name === categoryName)?.color || '#94A3B8';
+      
+      if (!dataMap.has(categoryName)) {
+        dataMap.set(categoryName, {
+          category: categoryName,
+          color: categoryColor,
+          items: [],
+          total: 0
+        });
+      }
+
+      const data = dataMap.get(categoryName)!;
+      data.items.push({
+        description: acc.description,
+        amount: Math.abs(acc.amount || 0)
+      });
+      data.total += Math.abs(acc.amount || 0);
     });
-  }, [categoryData]);
+
+    return Array.from(dataMap.values()).sort((a, b) => b.total - a.total);
+  }, [accounts, categories]);
+
+  // Calcular totais
+  const totalIncome = incomeByCategory.reduce((sum, cat) => sum + cat.total, 0);
+  const totalExpenses = expensesByCategory.reduce((sum, cat) => sum + cat.total, 0);
+  const balance = totalIncome - totalExpenses;
+
+  // TOP 3 categorias de despesa
+  const top3Expenses = expensesByCategory.slice(0, 3).map(cat => ({
+    category: cat.category,
+    amount: cat.total,
+    percentage: totalExpenses > 0 ? (cat.total / totalExpenses * 100).toFixed(1) : '0.0'
+  }));
 
   return (
     <div className="space-y-6">
-      {/* Cards de Resumo Geral */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 bg-gradient-to-br from-green-500 to-green-600 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-90 mb-1">Total Recebido</p>
-              <p className="text-3xl font-bold">{formatCurrency(totals.totalReceived)}</p>
-              <p className="text-xs opacity-75 mt-2">{totals.receivedCount} transações</p>
-            </div>
-            <TrendingUp size={40} className="opacity-80" />
+      {/* CABEÇALHO */}
+      <Card className="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-purple-900 uppercase tracking-wide">Relatório Financeiro Mensal</h2>
+          <div className="flex justify-center gap-8 text-sm text-slate-700">
+            <div><span className="font-semibold">Mês/Ano:</span> {monthYear}</div>
+            <div><span className="font-semibold">Período:</span> {startOfMonth} a {endOfMonth}</div>
+            <div><span className="font-semibold">Gerado em:</span> {generationDate}</div>
           </div>
-        </Card>
+        </div>
+      </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-red-500 to-red-600 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-90 mb-1">Total Pago</p>
-              <p className="text-3xl font-bold">{formatCurrency(totals.totalPaid)}</p>
-              <p className="text-xs opacity-75 mt-2">{totals.paidCount} transações</p>
-            </div>
-            <TrendingDown size={40} className="opacity-80" />
-          </div>
-        </Card>
-
-        <Card className={`p-6 bg-gradient-to-br ${totals.balance >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'} text-white`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-90 mb-1">Saldo Total</p>
-              <p className="text-3xl font-bold">{formatCurrency(totals.balance)}</p>
-              <p className="text-xs opacity-75 mt-2">{totals.receivedCount + totals.paidCount} transações</p>
-            </div>
-            <div className="text-4xl opacity-80">{totals.balance >= 0 ? '📈' : '📉'}</div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Tabela Detalhada por Categoria */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold text-slate-800 mb-6">Detalhamento por Categoria</h2>
+      {/* SEÇÃO DE RECEITAS */}
+      <Card className="p-6 border-2 border-green-200">
+        <h2 className="text-2xl font-bold text-green-700 mb-6 pb-3 border-b-2 border-green-300 uppercase tracking-wide">
+          📈 Receitas do Mês
+        </h2>
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-slate-200">
-                <th className="text-left py-4 px-4 font-semibold text-slate-700">Categoria</th>
-                <th className="text-right py-4 px-4 font-semibold text-slate-700">Recebido</th>
-                <th className="text-right py-4 px-4 font-semibold text-slate-700">Pago</th>
-                <th className="text-right py-4 px-4 font-semibold text-slate-700">Saldo</th>
-                <th className="text-center py-4 px-4 font-semibold text-slate-700">Transações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categoryData.map((data, index) => (
-                <tr 
-                  key={data.category}
-                  className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
-                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
-                  }`}
-                >
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: data.color }}
-                      />
-                      <span className="font-medium text-slate-800">{data.category}</span>
+        {incomeByCategory.length === 0 ? (
+          <p className="text-slate-500 text-center py-8">Nenhuma receita registrada neste mês</p>
+        ) : (
+          <div className="space-y-6">
+            {incomeByCategory.map((catData) => (
+              <div key={catData.category} className="border-2 border-green-100 rounded-lg overflow-hidden">
+                <div className="bg-green-50 p-4 border-b-2 border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: catData.color }}
+                    />
+                    <h3 className="text-lg font-bold text-green-800 uppercase">
+                      Categoria: {catData.category}
+                    </h3>
+                  </div>
+                </div>
+                
+                <div className="p-4 space-y-2">
+                  {catData.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center py-2 border-b border-green-50 last:border-0">
+                      <span className="text-slate-700">• {item.description}</span>
+                      <span className="font-semibold text-green-700">{formatCurrency(item.amount)}</span>
                     </div>
-                  </td>
-                  <td className="text-right py-4 px-4">
-                    <span className="text-green-600 font-semibold">
-                      {formatCurrency(data.totalReceived)}
-                    </span>
-                    <span className="text-xs text-slate-500 ml-2">({data.receivedCount})</span>
-                  </td>
-                  <td className="text-right py-4 px-4">
-                    <span className="text-red-600 font-semibold">
-                      {formatCurrency(data.totalPaid)}
-                    </span>
-                    <span className="text-xs text-slate-500 ml-2">({data.paidCount})</span>
-                  </td>
-                  <td className="text-right py-4 px-4">
-                    <span className={`font-bold ${data.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                      {formatCurrency(data.balance)}
-                    </span>
-                  </td>
-                  <td className="text-center py-4 px-4">
-                    <span className="text-slate-600 font-medium">
-                      {data.receivedCount + data.paidCount}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold">
-                <td className="py-4 px-4 text-slate-800">TOTAL</td>
-                <td className="text-right py-4 px-4 text-green-700">
-                  {formatCurrency(totals.totalReceived)}
-                </td>
-                <td className="text-right py-4 px-4 text-red-700">
-                  {formatCurrency(totals.totalPaid)}
-                </td>
-                <td className="text-right py-4 px-4">
-                  <span className={totals.balance >= 0 ? 'text-blue-700' : 'text-orange-700'}>
-                    {formatCurrency(totals.balance)}
-                  </span>
-                </td>
-                <td className="text-center py-4 px-4 text-slate-800">
-                  {totals.receivedCount + totals.paidCount}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+                  ))}
+                </div>
+                
+                <div className="bg-green-100 p-4 border-t-2 border-green-200">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-green-900 uppercase">Total {catData.category}:</span>
+                    <span className="text-xl font-bold text-green-700">{formatCurrency(catData.total)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* SEÇÃO DE DESPESAS */}
+      <Card className="p-6 border-2 border-red-200">
+        <h2 className="text-2xl font-bold text-red-700 mb-6 pb-3 border-b-2 border-red-300 uppercase tracking-wide">
+          📉 Despesas do Mês
+        </h2>
+        
+        {expensesByCategory.length === 0 ? (
+          <p className="text-slate-500 text-center py-8">Nenhuma despesa registrada neste mês</p>
+        ) : (
+          <div className="space-y-6">
+            {expensesByCategory.map((catData) => (
+              <div key={catData.category} className="border-2 border-red-100 rounded-lg overflow-hidden">
+                <div className="bg-red-50 p-4 border-b-2 border-red-200">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: catData.color }}
+                    />
+                    <h3 className="text-lg font-bold text-red-800 uppercase">
+                      Categoria: {catData.category}
+                    </h3>
+                  </div>
+                </div>
+                
+                <div className="p-4 space-y-2">
+                  {catData.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center py-2 border-b border-red-50 last:border-0">
+                      <span className="text-slate-700">• {item.description}</span>
+                      <span className="font-semibold text-red-700">{formatCurrency(item.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="bg-red-100 p-4 border-t-2 border-red-200">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-red-900 uppercase">Total {catData.category}:</span>
+                    <span className="text-xl font-bold text-red-700">{formatCurrency(catData.total)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* RESUMO FINAL */}
+      <Card className="p-6 border-2 border-slate-300 bg-slate-50">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center uppercase tracking-wide">
+          Resumo Financeiro - {monthYear}
+        </h2>
+        
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div className="border-2 border-slate-300 rounded-lg overflow-hidden">
+            <div className="bg-white">
+              <div className="flex justify-between items-center p-4 border-b-2 border-slate-200">
+                <span className="font-bold text-slate-700 uppercase">Receitas Totais</span>
+                <span className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</span>
+              </div>
+              <div className="flex justify-between items-center p-4 border-b-2 border-slate-200">
+                <span className="font-bold text-slate-700 uppercase">Despesas Totais</span>
+                <span className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</span>
+              </div>
+              <div className={`flex justify-between items-center p-4 ${balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+                <span className="font-bold text-slate-800 uppercase">Saldo do Mês</span>
+                <span className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                  {formatCurrency(balance)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* TOP 3 CATEGORIAS */}
+          {top3Expenses.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-bold text-slate-800 mb-4 uppercase tracking-wide">
+                Top 3 Categorias de Despesa:
+              </h3>
+              <div className="space-y-3">
+                {top3Expenses.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center p-3 bg-white border-2 border-slate-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl font-bold text-slate-400">{idx + 1}.</span>
+                      <span className="font-semibold text-slate-700">{item.category}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-red-600">{formatCurrency(item.amount)}</div>
+                      <div className="text-sm text-slate-500">({item.percentage}%)</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
     </div>
