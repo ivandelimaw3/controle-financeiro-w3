@@ -6,10 +6,11 @@ import { Plus, FileBarChart, ArrowLeft, FileSearch } from 'lucide-react';
 interface AccountsHeaderProps {
   onNewAccount: () => void;
   onReportsToggle: () => void;
+  onDetailedReportToggle: () => void;
   showReports: boolean;
 }
 
-export const AccountsHeader: React.FC<AccountsHeaderProps> = ({ onNewAccount, onReportsToggle, showReports }) => {
+export const AccountsHeader: React.FC<AccountsHeaderProps> = ({ onNewAccount, onReportsToggle, onDetailedReportToggle, showReports }) => {
   // Reports view is now handled by ReportsMonthNavigator component
   if (showReports) {
     return null;
@@ -32,7 +33,15 @@ export const AccountsHeader: React.FC<AccountsHeaderProps> = ({ onNewAccount, on
             className="bg-gradient-to-r from-sky-400 to-blue-400 hover:from-sky-500 hover:to-blue-500 px-4 py-2"
           >
             <FileBarChart size={20} className="mr-2" />
-            Relatórios
+            Relatório Anual
+          </Button>
+          
+          <Button
+            onClick={onDetailedReportToggle}
+            className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 px-4 py-2"
+          >
+            <FileSearch size={20} className="mr-2" />
+            Relatório Detalhado
           </Button>
         </div>
         

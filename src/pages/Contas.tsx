@@ -9,9 +9,12 @@ import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModa
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { MonthlyReportTable } from '@/components/Accounts/MonthlyReportTable';
 import { ReportsMonthNavigator } from '@/components/Accounts/ReportsMonthNavigator';
+import { DetailedReportNavigator } from '@/components/Accounts/DetailedReportNavigator';
+import { DetailedCategoryReport } from '@/components/Accounts/DetailedCategoryReport';
 import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
@@ -23,7 +26,9 @@ import { formatCurrency } from '@/utils/formatters';
 const Contas: React.FC = () => {
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
   const { user } = useAuth();
+  const { categories: categoriesData } = useCategoriesData();
   const [isShowingReport, setIsShowingReport] = React.useState(false);
+  const [isShowingDetailedReport, setIsShowingDetailedReport] = React.useState(false);
   const [reportMonth, setReportMonth] = React.useState(new Date().getMonth());
   const [reportYear, setReportYear] = React.useState(new Date().getFullYear());
 
@@ -77,8 +82,17 @@ const Contas: React.FC = () => {
 
   const handleShowReport = () => {
     setIsShowingReport(true);
+    setIsShowingDetailedReport(false);
     setMonthFilter('todos');
     setYearFilter('todos');
+  };
+
+  const handleShowDetailedReport = () => {
+    setIsShowingDetailedReport(true);
+    setIsShowingReport(false);
+    const now = new Date();
+    setMonthFilter(now.getMonth().toString());
+    setYearFilter(now.getFullYear().toString());
   };
   
   const handleBackToAccounts = () => {
@@ -86,6 +100,7 @@ const Contas: React.FC = () => {
     setMonthFilter(now.getMonth().toString());
     setYearFilter(now.getFullYear().toString());
     setIsShowingReport(false);
+    setIsShowingDetailedReport(false);
   };
   
   const handleReportYearChange = (year: number) => {
@@ -346,10 +361,15 @@ const Contas: React.FC = () => {
           <ReportsMonthNavigator
             onBackToAccounts={handleBackToAccounts}
           />
+        ) : isShowingDetailedReport ? (
+          <DetailedReportNavigator
+            onBackToAccounts={handleBackToAccounts}
+          />
         ) : (
           <AccountsHeader 
             onNewAccount={handleNewAccount} 
             onReportsToggle={handleShowReport}
+            onDetailedReportToggle={handleShowDetailedReport}
             showReports={false}
           />
         )}
@@ -388,6 +408,11 @@ const Contas: React.FC = () => {
               onYearChange={handleReportYearChange}
             />
           </>
+        ) : isShowingDetailedReport ? (
+          <DetailedCategoryReport 
+            accounts={accounts}
+            categories={categoriesData}
+          />
         ) : (
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
             <AccountsFilters
