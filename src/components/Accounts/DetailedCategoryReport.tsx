@@ -8,7 +8,7 @@ import { FileSpreadsheet, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from '@/hooks/use-toast';
-import { MonthNavigator } from './MonthNavigator';
+import { DetailedReportMonthNavigator } from './DetailedReportMonthNavigator';
 
 interface CategoryItem {
   description: string;
@@ -363,7 +363,7 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
         </div>
 
         {/* Navegador de mês/ano */}
-        <MonthNavigator
+        <DetailedReportMonthNavigator
           currentMonth={currentMonth}
           currentYear={currentYear}
           onMonthChange={handleMonthChange}
