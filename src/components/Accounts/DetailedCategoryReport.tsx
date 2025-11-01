@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FileSpreadsheet, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -28,9 +29,18 @@ interface DetailedCategoryReportProps {
 export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ accounts, categories }) => {
   const currentDate = new Date();
   const monthYear = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
-  const startOfMonth = format(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1), "dd/MM/yyyy");
-  const endOfMonth = format(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0), "dd/MM/yyyy");
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
   const generationDate = format(currentDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+
+  // Filtrar apenas contas do mês corrente
+  const currentMonthAccounts = React.useMemo(() => {
+    return accounts.filter(acc => {
+      if (!acc.due_date) return false;
+      const dueDate = new Date(acc.due_date);
+      return isWithinInterval(dueDate, { start: monthStart, end: monthEnd });
+    });
+  }, [accounts, monthStart, monthEnd]);
 
   // Agrupar por categoria (despesas e receitas juntas)
   const dataByCategory = React.useMemo(() => {
@@ -43,7 +53,7 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
       totalIncome: number;
     }>();
 
-    accounts.forEach(acc => {
+    currentMonthAccounts.forEach(acc => {
       if (acc.description === "Saldo Anterior") return;
       
       const categoryName = acc.category || 'Sem Categoria';
@@ -85,7 +95,7 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
     return Array.from(dataMap.values()).sort((a, b) => 
       (b.totalIncome + b.totalExpenses) - (a.totalIncome + a.totalExpenses)
     );
-  }, [accounts, categories]);
+  }, [currentMonthAccounts, categories]);
 
   const totalIncome = dataByCategory.reduce((sum, cat) => sum + cat.totalIncome, 0);
   const totalExpenses = dataByCategory.reduce((sum, cat) => sum + cat.totalExpenses, 0);
@@ -293,227 +303,151 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] p-8">
-      {/* Folha estilo Word */}
-      <div className="max-w-[210mm] mx-auto bg-white shadow-lg rounded-sm p-12" style={{ fontFamily: 'Inter, Roboto, Calibri, sans-serif' }}>
-        
-        {/* Cabeçalho */}
-        <div className="mb-8 pb-6 border-b-2 border-slate-200">
-          <h1 className="text-3xl font-bold text-center text-[#1e3a8a] mb-2">
-            Relatório Financeiro – {monthYear}
-          </h1>
-          <p className="text-center text-slate-600 text-sm mb-4">
-            Contas a Pagar e Receber organizadas por categoria
-          </p>
-          
-          {/* Botões de Exportação */}
-          <div className="flex justify-end gap-3 mt-4">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+      <Card className="bg-white shadow-xl w-full max-w-5xl p-10 rounded-2xl">
+        <div className="flex justify-between items-center mb-6 border-b pb-4">
+          <div>
+            <h1 className="text-2xl font-bold">
+              Relatório Financeiro – {monthYear}
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Contas a Pagar e Receber organizadas por categoria
+            </p>
+          </div>
+          <div className="flex gap-2">
             <Button
               onClick={exportToExcel}
               variant="outline"
-              size="sm"
-              className="border-[#198754] text-[#198754] hover:bg-[#198754] hover:text-white transition-colors"
+              className="border-green-600 text-green-700 hover:bg-green-50"
             >
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Exportar para Excel
+              <FileSpreadsheet className="w-4 h-4 mr-2" />
+              Exportar Excel
             </Button>
             <Button
               onClick={exportToPDF}
               variant="outline"
-              size="sm"
-              className="border-[#dc3545] text-[#dc3545] hover:bg-[#dc3545] hover:text-white transition-colors"
+              className="border-red-600 text-red-700 hover:bg-red-50"
             >
-              <FileText className="mr-2 h-4 w-4" />
-              Exportar para PDF
+              <FileText className="w-4 h-4 mr-2" />
+              Exportar PDF
             </Button>
           </div>
         </div>
 
-        {/* Seções por Categoria */}
-        <div className="space-y-8">
-          {dataByCategory.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
-              Sem dados para exibir neste período
-            </div>
-          ) : (
-            dataByCategory.map((catData, index) => {
-              const categoryBalance = catData.totalIncome - catData.totalExpenses;
-              
-              return (
-                <div key={index} className="mb-8 pb-6 border-b border-slate-200 last:border-0">
-                  {/* Título da Categoria */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: catData.color }}
-                    />
-                    <h2 className="text-xl font-bold text-[#1e3a8a]">
-                      Categoria: {catData.category}
-                    </h2>
-                  </div>
-
-                  {/* Despesas */}
-                  {catData.expenses.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-slate-700 mb-3">Despesas</h3>
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-slate-50 border-b-2 border-slate-200">
-                            <th className="text-left p-3 text-sm font-semibold text-slate-700">Data</th>
-                            <th className="text-left p-3 text-sm font-semibold text-slate-700">Descrição</th>
-                            <th className="text-right p-3 text-sm font-semibold text-slate-700">Valor (R$)</th>
-                            <th className="text-center p-3 text-sm font-semibold text-slate-700">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {catData.expenses.map((item, idx) => (
-                            <tr key={idx} className="border-b border-slate-100">
-                              <td className="p-3 text-sm text-slate-600">{item.date}</td>
-                              <td className="p-3 text-sm text-slate-800">{item.description}</td>
-                              <td className="p-3 text-sm text-right text-red-600 font-medium">
-                                {formatCurrency(item.amount)}
-                              </td>
-                              <td className="p-3 text-sm text-center">
-                                <span className={`px-2 py-1 rounded text-xs ${
-                                  item.status === 'Pago' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-yellow-100 text-yellow-700'
-                                }`}>
-                                  {item.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot>
-                          <tr className="bg-red-50 border-t-2 border-red-200">
-                            <td colSpan={2} className="p-3 text-sm font-bold text-slate-800">
-                              Total Despesas – {catData.category}
-                            </td>
-                            <td className="p-3 text-sm text-right font-bold text-red-700">
-                              {formatCurrency(catData.totalExpenses)}
-                            </td>
-                            <td></td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  )}
-
-                  {catData.expenses.length === 0 && (
-                    <div className="mb-6 p-4 bg-slate-50 rounded text-center text-slate-500 text-sm">
-                      Sem despesas nesta categoria
-                    </div>
-                  )}
-
-                  {/* Receitas */}
-                  {catData.income.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-slate-700 mb-3">Receitas</h3>
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-slate-50 border-b-2 border-slate-200">
-                            <th className="text-left p-3 text-sm font-semibold text-slate-700">Data</th>
-                            <th className="text-left p-3 text-sm font-semibold text-slate-700">Descrição</th>
-                            <th className="text-right p-3 text-sm font-semibold text-slate-700">Valor (R$)</th>
-                            <th className="text-center p-3 text-sm font-semibold text-slate-700">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {catData.income.map((item, idx) => (
-                            <tr key={idx} className="border-b border-slate-100">
-                              <td className="p-3 text-sm text-slate-600">{item.date}</td>
-                              <td className="p-3 text-sm text-slate-800">{item.description}</td>
-                              <td className="p-3 text-sm text-right text-green-600 font-medium">
-                                {formatCurrency(item.amount)}
-                              </td>
-                              <td className="p-3 text-sm text-center">
-                                <span className={`px-2 py-1 rounded text-xs ${
-                                  item.status === 'Recebido' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-yellow-100 text-yellow-700'
-                                }`}>
-                                  {item.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot>
-                          <tr className="bg-green-50 border-t-2 border-green-200">
-                            <td colSpan={2} className="p-3 text-sm font-bold text-slate-800">
-                              Total Receitas – {catData.category}
-                            </td>
-                            <td className="p-3 text-sm text-right font-bold text-green-700">
-                              {formatCurrency(catData.totalIncome)}
-                            </td>
-                            <td></td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  )}
-
-                  {catData.income.length === 0 && (
-                    <div className="mb-6 p-4 bg-slate-50 rounded text-center text-slate-500 text-sm">
-                      Sem receitas nesta categoria
-                    </div>
-                  )}
-
-                  {/* Total Geral da Categoria */}
-                  <div className={`p-4 rounded-lg ${categoryBalance >= 0 ? 'bg-blue-50 border border-blue-200' : 'bg-orange-50 border border-orange-200'}`}>
-                    <div className="flex justify-between items-center">
-                      <span className="text-base font-bold text-slate-800">
-                        Total Geral da Categoria:
-                      </span>
-                      <span className={`text-xl font-bold ${categoryBalance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                        💰 {formatCurrency(categoryBalance)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Resumo Final */}
-        <div className="mt-12 pt-6 border-t-2 border-slate-300">
-          <h2 className="text-2xl font-bold text-center text-[#1e3a8a] mb-6">
-            Resumo Financeiro – {monthYear}
-          </h2>
-          
-          <div className="max-w-md mx-auto">
-            <table className="w-full border-collapse border-2 border-slate-300">
-              <tbody>
-                <tr className="border-b-2 border-slate-300">
-                  <td className="p-4 font-bold text-slate-700 bg-slate-50">RECEITAS TOTAIS</td>
-                  <td className="p-4 text-right text-xl font-bold text-green-600">
-                    {formatCurrency(totalIncome)}
-                  </td>
-                </tr>
-                <tr className="border-b-2 border-slate-300">
-                  <td className="p-4 font-bold text-slate-700 bg-slate-50">DESPESAS TOTAIS</td>
-                  <td className="p-4 text-right text-xl font-bold text-red-600">
-                    {formatCurrency(totalExpenses)}
-                  </td>
-                </tr>
-                <tr className={balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}>
-                  <td className="p-4 font-bold text-slate-800">SALDO DO MÊS</td>
-                  <td className={`p-4 text-right text-xl font-bold ${balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                    {formatCurrency(balance)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        {dataByCategory.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            Sem dados para exibir neste período
           </div>
-        </div>
+        ) : (
+          dataByCategory.map((catData, index) => {
+            const totalDes = catData.totalExpenses;
+            const totalRec = catData.totalIncome;
+            const saldo = totalRec - totalDes;
+            const corSaldo = saldo >= 0 ? "text-green-600" : "text-red-600";
 
-        {/* Rodapé */}
-        <div className="mt-12 pt-6 border-t border-slate-200 text-center text-sm text-slate-500">
-          Gerado automaticamente pelo sistema Lovable – {generationDate}
+            return (
+              <div key={index} className="mb-10">
+                <h2 className="text-xl font-semibold text-blue-800 mb-3 border-b pb-1 flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-sm" 
+                    style={{ backgroundColor: catData.color }}
+                  />
+                  Categoria: {catData.category}
+                </h2>
+
+                <h3 className="font-semibold text-gray-700 mb-2">💸 Despesas</h3>
+                {catData.expenses.length ? (
+                  <table className="w-full mb-3 text-sm border border-gray-200">
+                    <thead className="bg-gray-100 text-gray-700">
+                      <tr>
+                        <th className="p-2 text-left">Data</th>
+                        <th className="p-2 text-left">Descrição</th>
+                        <th className="p-2 text-right">Valor (R$)</th>
+                        <th className="p-2 text-left">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {catData.expenses.map((item, idx) => (
+                        <tr key={idx} className="border-t">
+                          <td className="p-2">{item.date}</td>
+                          <td className="p-2">{item.description}</td>
+                          <td className="p-2 text-right">{item.amount.toFixed(2)}</td>
+                          <td className="p-2">{item.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-sm text-gray-500 mb-3">Sem despesas nesta categoria.</p>
+                )}
+
+                <p className="font-semibold text-right mb-4">
+                  Total Despesas: R$ {totalDes.toFixed(2)}
+                </p>
+
+                <h3 className="font-semibold text-gray-700 mb-2">💰 Receitas</h3>
+                {catData.income.length ? (
+                  <table className="w-full mb-3 text-sm border border-gray-200">
+                    <thead className="bg-gray-100 text-gray-700">
+                      <tr>
+                        <th className="p-2 text-left">Data</th>
+                        <th className="p-2 text-left">Descrição</th>
+                        <th className="p-2 text-right">Valor (R$)</th>
+                        <th className="p-2 text-left">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {catData.income.map((item, idx) => (
+                        <tr key={idx} className="border-t">
+                          <td className="p-2">{item.date}</td>
+                          <td className="p-2">{item.description}</td>
+                          <td className="p-2 text-right">{item.amount.toFixed(2)}</td>
+                          <td className="p-2">{item.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-sm text-gray-500 mb-3">Sem receitas nesta categoria.</p>
+                )}
+
+                <p className="font-semibold text-right mb-2">
+                  Total Receitas: R$ {totalRec.toFixed(2)}
+                </p>
+                <p className={`font-bold text-right ${corSaldo}`}>
+                  Saldo da Categoria: R$ {saldo.toFixed(2)}
+                </p>
+              </div>
+            );
+          })
+        )}
+
+        <div className="border-t pt-4 mt-6">
+          <h2 className="text-lg font-semibold text-center mb-3">
+            📊 Resumo Geral do Mês
+          </h2>
+          <table className="w-full text-sm border border-gray-200 mb-4">
+            <tbody>
+              <tr>
+                <td className="p-2 font-medium">💸 Total de Despesas</td>
+                <td className="p-2 text-right">R$ {totalExpenses.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td className="p-2 font-medium">💰 Total de Receitas</td>
+                <td className="p-2 text-right">R$ {totalIncome.toFixed(2)}</td>
+              </tr>
+              <tr className={balance >= 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+                <td className="p-2 font-medium">💹 Saldo Final</td>
+                <td className="p-2 text-right">R$ {balance.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p className="text-center text-gray-500 text-xs">
+            Gerado automaticamente pelo sistema Lovable – {generationDate}
+          </p>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
