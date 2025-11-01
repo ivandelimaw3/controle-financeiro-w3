@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FileSpreadsheet, FileText } from 'lucide-react';
+import { FileSpreadsheet, FileText, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from '@/hooks/use-toast';
@@ -27,20 +27,33 @@ interface DetailedCategoryReportProps {
 }
 
 export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ accounts, categories }) => {
-  const currentDate = new Date();
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = React.useState(today.getMonth());
+  const [currentYear, setCurrentYear] = React.useState(today.getFullYear());
+  const [isShowingAll, setIsShowingAll] = React.useState(false);
+  
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+
+  const currentDate = new Date(currentYear, currentMonth, 1);
   const monthYear = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const generationDate = format(currentDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  const generationDate = format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
 
-  // Filtrar apenas contas do mês corrente
+  // Filtrar contas do mês selecionado ou todos
   const currentMonthAccounts = React.useMemo(() => {
+    if (isShowingAll) {
+      return accounts;
+    }
     return accounts.filter(acc => {
       if (!acc.due_date) return false;
       const dueDate = new Date(acc.due_date);
       return isWithinInterval(dueDate, { start: monthStart, end: monthEnd });
     });
-  }, [accounts, monthStart, monthEnd]);
+  }, [accounts, monthStart, monthEnd, isShowingAll]);
 
   // Agrupar por categoria (despesas e receitas juntas)
   const dataByCategory = React.useMemo(() => {
@@ -100,6 +113,41 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
   const totalIncome = dataByCategory.reduce((sum, cat) => sum + cat.totalIncome, 0);
   const totalExpenses = dataByCategory.reduce((sum, cat) => sum + cat.totalExpenses, 0);
   const balance = totalIncome - totalExpenses;
+
+  const handleMonthChange = (month: number, year: number) => {
+    setCurrentMonth(month);
+    setCurrentYear(year);
+    setIsShowingAll(false);
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    let newMonth = currentMonth;
+    let newYear = currentYear;
+
+    if (direction === 'prev') {
+      newMonth = currentMonth - 1;
+      if (newMonth < 0) {
+        newMonth = 11;
+        newYear = currentYear - 1;
+      }
+    } else {
+      newMonth = currentMonth + 1;
+      if (newMonth > 11) {
+        newMonth = 0;
+        newYear = currentYear + 1;
+      }
+    }
+
+    handleMonthChange(newMonth, newYear);
+  };
+
+  const goToToday = () => {
+    handleMonthChange(today.getMonth(), today.getFullYear());
+  };
+
+  const handleShowAll = () => {
+    setIsShowingAll(true);
+  };
 
   // Exportar para Excel (CSV)
   const exportToExcel = () => {
@@ -305,10 +353,11 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
       <Card className="bg-white shadow-xl w-full max-w-5xl p-10 rounded-2xl">
-        <div className="flex justify-between items-center mb-6 border-b pb-4">
+        {/* Título e botões de exportar */}
+        <div className="flex justify-between items-center mb-4 border-b pb-4">
           <div>
             <h1 className="text-2xl font-bold">
-              Relatório Financeiro – {monthYear}
+              Relatório Detalhado por Categorias
             </h1>
             <p className="text-gray-500 text-sm">
               Contas a Pagar e Receber organizadas por categoria
@@ -331,6 +380,85 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
               <FileText className="w-4 h-4 mr-2" />
               Exportar PDF
             </Button>
+          </div>
+        </div>
+
+        {/* Navegador de mês/ano */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          {/* Navegação principal com setas, ano e botões Hoje/Todos */}
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth('prev')}
+              className="h-9 w-9 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+              disabled={isShowingAll}
+            >
+              <ChevronLeft size={16} />
+            </Button>
+
+            <div className="text-lg font-semibold text-slate-800">
+              {currentYear}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth('next')}
+              className="h-9 w-9 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
+              disabled={isShowingAll}
+            >
+              <ChevronRight size={16} />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+              disabled={currentMonth === today.getMonth() && currentYear === today.getFullYear() && !isShowingAll}
+            >
+              <Calendar size={14} />
+              <span className="hidden sm:inline">Hoje</span>
+            </Button>
+
+            <Button
+              variant={isShowingAll ? "default" : "outline"}
+              size="sm"
+              onClick={handleShowAll}
+              className={`flex items-center gap-2 h-9 px-3 rounded-full transition-colors ${
+                isShowingAll 
+                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                  : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
+              }`}
+            >
+              <span className="hidden sm:inline">Todos</span>
+            </Button>
+          </div>
+
+          {/* Botões dos meses */}
+          <div className="flex flex-wrap items-center gap-2">
+            {monthNames.map((monthName, index) => {
+              const isActive = index === currentMonth && !isShowingAll;
+              const monthShort = monthName.substring(0, 3);
+              
+              return (
+                <Button
+                  key={index}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleMonthChange(index, currentYear)}
+                  className={`h-8 px-3 text-xs rounded-full transition-colors ${
+                    isActive 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'hover:bg-blue-50 hover:border-blue-300'
+                  }`}
+                  disabled={isShowingAll}
+                >
+                  {monthShort}
+                </Button>
+              );
+            })}
           </div>
         </div>
 
