@@ -1,25 +1,16 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
-import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { FileSpreadsheet, FileText } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { toast } from '@/hooks/use-toast';
-import { DetailedReportMonthNavigator } from './DetailedReportMonthNavigator';
-
-interface CategoryItem {
-  description: string;
-  amount: number;
-}
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface CategoryData {
   category: string;
   color: string;
-  items: CategoryItem[];
-  total: number;
+  totalReceived: number;
+  totalPaid: number;
+  balance: number;
+  receivedCount: number;
+  paidCount: number;
 }
 
 interface DetailedCategoryReportProps {
@@ -28,461 +19,189 @@ interface DetailedCategoryReportProps {
 }
 
 export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ accounts, categories }) => {
-  const today = new Date();
-  const [currentMonth, setCurrentMonth] = React.useState(today.getMonth());
-  const [currentYear, setCurrentYear] = React.useState(today.getFullYear());
-  const [isShowingAll, setIsShowingAll] = React.useState(false);
-  const [monthStart, setMonthStart] = React.useState(startOfMonth(new Date()));
-  const [monthEnd, setMonthEnd] = React.useState(endOfMonth(new Date()));
+  // Agrupar dados por categoria
+  const categoryData = React.useMemo(() => {
+    const dataMap = new Map<string, CategoryData>();
 
-  const currentDate = new Date(currentYear, currentMonth, 1);
-  const monthYear = isShowingAll ? 'Todos os Meses' : format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
-  const generationDate = format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-
-  // Filtrar contas do mês selecionado ou todos
-  const currentMonthAccounts = React.useMemo(() => {
-    if (isShowingAll) {
-      return accounts.filter(acc => acc.description !== "Saldo Anterior");
-    }
-    return accounts.filter(acc => {
-      if (!acc.due_date || acc.description === "Saldo Anterior") return false;
-      const dueDate = new Date(acc.due_date);
-      return isWithinInterval(dueDate, { start: monthStart, end: monthEnd });
+    // Inicializar todas as categorias
+    categories.forEach(cat => {
+      dataMap.set(cat.name, {
+        category: cat.name,
+        color: cat.color || '#3B82F6',
+        totalReceived: 0,
+        totalPaid: 0,
+        balance: 0,
+        receivedCount: 0,
+        paidCount: 0
+      });
     });
-  }, [accounts, monthStart, monthEnd, isShowingAll]);
 
-  // Agrupar por categoria (despesas e receitas juntas)
-  const dataByCategory = React.useMemo(() => {
-    const dataMap = new Map<string, {
-      category: string;
-      color: string;
-      expenses: Array<{ date: string; description: string; amount: number; status: string }>;
-      income: Array<{ date: string; description: string; amount: number; status: string }>;
-      totalExpenses: number;
-      totalIncome: number;
-    }>();
-
-    currentMonthAccounts.forEach(acc => {
+    // Processar contas
+    accounts.forEach(acc => {
       if (acc.description === "Saldo Anterior") return;
       
-      const categoryName = acc.category || 'Sem Categoria';
-      const categoryColor = categories.find(c => c.name === categoryName)?.color || '#94A3B8';
-      
-      if (!dataMap.has(categoryName)) {
-        dataMap.set(categoryName, {
-          category: categoryName,
-          color: categoryColor,
-          expenses: [],
-          income: [],
-          totalExpenses: 0,
-          totalIncome: 0
+      if (!dataMap.has(acc.category)) {
+        dataMap.set(acc.category, {
+          category: acc.category,
+          color: '#94A3B8',
+          totalReceived: 0,
+          totalPaid: 0,
+          balance: 0,
+          receivedCount: 0,
+          paidCount: 0
         });
       }
 
-      const data = dataMap.get(categoryName)!;
-      const itemDate = acc.due_date ? format(new Date(acc.due_date), 'dd/MM/yyyy') : '-';
+      const data = dataMap.get(acc.category)!;
       
-      if (acc.type === 'despesa') {
-        const statusText = acc.status === 'pago' ? 'Pago' : 'Pendente';
-        data.expenses.push({
-          date: itemDate,
-          description: acc.description,
-          amount: Math.abs(acc.amount || 0),
-          status: statusText
-        });
-        if (acc.status === 'pago') {
-          data.totalExpenses += Math.abs(acc.amount || 0);
-        }
-      } else if (acc.type === 'receita') {
-        const statusText = acc.status === 'recebido' ? 'Recebido' : 'Pendente';
-        data.income.push({
-          date: itemDate,
-          description: acc.description,
-          amount: acc.amount || 0,
-          status: statusText
-        });
-        if (acc.status === 'recebido') {
-          data.totalIncome += acc.amount || 0;
-        }
+      if (acc.type === 'receita' && acc.status === 'recebido') {
+        data.totalReceived += acc.amount || 0;
+        data.receivedCount++;
+        data.balance += acc.amount || 0;
+      } else if (acc.type === 'despesa' && acc.status === 'pago') {
+        data.totalPaid += Math.abs(acc.amount || 0);
+        data.paidCount++;
+        data.balance -= Math.abs(acc.amount || 0);
       }
     });
 
-    return Array.from(dataMap.values()).sort((a, b) => 
-      (b.totalIncome + b.totalExpenses) - (a.totalIncome + a.totalExpenses)
-    );
-  }, [currentMonthAccounts, categories]);
+    return Array.from(dataMap.values())
+      .filter(data => data.totalReceived > 0 || data.totalPaid > 0)
+      .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
+  }, [accounts, categories]);
 
-  const totalIncome = dataByCategory.reduce((sum, cat) => sum + cat.totalIncome, 0);
-  const totalExpenses = dataByCategory.reduce((sum, cat) => sum + cat.totalExpenses, 0);
-  const balance = totalIncome - totalExpenses;
-
-  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
-    setMonthStart(startDate);
-    setMonthEnd(endDate);
-    setCurrentMonth(month);
-    setCurrentYear(year);
-    setIsShowingAll(false);
-  };
-
-  const handleShowAll = () => {
-    setIsShowingAll(true);
-  };
-
-  // Exportar para Excel (CSV)
-  const exportToExcel = () => {
-    try {
-      let csv = 'Relatório Financeiro - ' + monthYear + '\n\n';
-      
-      dataByCategory.forEach(catData => {
-        csv += `Categoria: ${catData.category}\n\n`;
-        
-        if (catData.expenses.length > 0) {
-          csv += 'DESPESAS\n';
-          csv += 'Data,Descrição,Valor (R$),Status\n';
-          catData.expenses.forEach(item => {
-            csv += `${item.date},${item.description},${item.amount.toFixed(2)},${item.status}\n`;
-          });
-          csv += `Total Despesas,,,${catData.totalExpenses.toFixed(2)}\n\n`;
-        }
-        
-        if (catData.income.length > 0) {
-          csv += 'RECEITAS\n';
-          csv += 'Data,Descrição,Valor (R$),Status\n';
-          catData.income.forEach(item => {
-            csv += `${item.date},${item.description},${item.amount.toFixed(2)},${item.status}\n`;
-          });
-          csv += `Total Receitas,,,${catData.totalIncome.toFixed(2)}\n\n`;
-        }
-        
-        const categoryBalance = catData.totalIncome - catData.totalExpenses;
-        csv += `Total Geral da Categoria,,,${categoryBalance.toFixed(2)}\n\n\n`;
-      });
-      
-      csv += '\nRESUMO GERAL\n';
-      csv += `Receitas Totais,${totalIncome.toFixed(2)}\n`;
-      csv += `Despesas Totais,${totalExpenses.toFixed(2)}\n`;
-      csv += `Saldo do Mês,${balance.toFixed(2)}\n`;
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `relatorio-financeiro-${format(currentDate, 'yyyy-MM')}.csv`;
-      link.click();
-      
-      toast({
-        title: "Excel exportado com sucesso!",
-        description: "O arquivo foi baixado para seu computador.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao exportar",
-        description: "Não foi possível gerar o arquivo Excel.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Exportar para PDF
-  const exportToPDF = () => {
-    try {
-      const doc = new jsPDF();
-      
-      // Cabeçalho
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Relatório Financeiro - ${monthYear}`, 105, 20, { align: 'center' });
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Contas a Pagar e Receber organizadas por categoria', 105, 28, { align: 'center' });
-      doc.text(`Gerado em: ${generationDate}`, 105, 34, { align: 'center' });
-      
-      let yPosition = 45;
-      
-      // Dados por categoria
-      dataByCategory.forEach((catData, index) => {
-        if (yPosition > 250) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(88, 28, 135);
-        doc.text(`${catData.category}`, 14, yPosition);
-        yPosition += 8;
-        
-        // Despesas
-        if (catData.expenses.length > 0) {
-          doc.setFontSize(12);
-          doc.setTextColor(0, 0, 0);
-          doc.text('Despesas', 14, yPosition);
-          yPosition += 5;
-          
-          autoTable(doc, {
-            startY: yPosition,
-            head: [['Data', 'Descrição', 'Valor (R$)', 'Status']],
-            body: catData.expenses.map(item => [
-              item.date,
-              item.description,
-              formatCurrency(item.amount),
-              item.status
-            ]),
-            foot: [['', '', `Total: ${formatCurrency(catData.totalExpenses)}`, '']],
-            theme: 'grid',
-            headStyles: { fillColor: [220, 38, 38], textColor: 255 },
-            footStyles: { fillColor: [254, 226, 226], textColor: 0, fontStyle: 'bold' },
-            margin: { left: 14 },
-          });
-          
-          yPosition = (doc as any).lastAutoTable.finalY + 8;
-        }
-        
-        // Receitas
-        if (catData.income.length > 0) {
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
-          
-          doc.setFontSize(12);
-          doc.text('Receitas', 14, yPosition);
-          yPosition += 5;
-          
-          autoTable(doc, {
-            startY: yPosition,
-            head: [['Data', 'Descrição', 'Valor (R$)', 'Status']],
-            body: catData.income.map(item => [
-              item.date,
-              item.description,
-              formatCurrency(item.amount),
-              item.status
-            ]),
-            foot: [['', '', `Total: ${formatCurrency(catData.totalIncome)}`, '']],
-            theme: 'grid',
-            headStyles: { fillColor: [34, 197, 94], textColor: 255 },
-            footStyles: { fillColor: [220, 252, 231], textColor: 0, fontStyle: 'bold' },
-            margin: { left: 14 },
-          });
-          
-          yPosition = (doc as any).lastAutoTable.finalY + 8;
-        }
-        
-        // Total da categoria
-        const categoryBalance = catData.totalIncome - catData.totalExpenses;
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(59, 130, 246);
-        doc.text(`Total Geral da Categoria: ${formatCurrency(categoryBalance)}`, 14, yPosition);
-        yPosition += 12;
-      });
-      
-      // Resumo Final
-      if (yPosition > 220) {
-        doc.addPage();
-        yPosition = 20;
-      }
-      
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text('RESUMO GERAL', 105, yPosition, { align: 'center' });
-      yPosition += 8;
-      
-      autoTable(doc, {
-        startY: yPosition,
-        body: [
-          ['Receitas Totais', formatCurrency(totalIncome)],
-          ['Despesas Totais', formatCurrency(totalExpenses)],
-          ['Saldo do Mês', formatCurrency(balance)]
-        ],
-        theme: 'grid',
-        styles: { fontSize: 12, fontStyle: 'bold' },
-        columnStyles: {
-          0: { cellWidth: 100 },
-          1: { halign: 'right', cellWidth: 80 }
-        },
-        margin: { left: 14 },
-      });
-      
-      // Rodapé
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(`Gerado automaticamente pelo sistema Lovable - ${generationDate}`, 105, 285, { align: 'center' });
-      }
-      
-      doc.save(`relatorio-financeiro-${format(currentDate, 'yyyy-MM')}.pdf`);
-      
-      toast({
-        title: "PDF exportado com sucesso!",
-        description: "O arquivo foi baixado para seu computador.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao exportar",
-        description: "Não foi possível gerar o arquivo PDF.",
-        variant: "destructive",
-      });
-    }
-  };
+  // Calcular totais gerais
+  const totals = React.useMemo(() => {
+    return categoryData.reduce((acc, data) => ({
+      totalReceived: acc.totalReceived + data.totalReceived,
+      totalPaid: acc.totalPaid + data.totalPaid,
+      balance: acc.balance + data.balance,
+      receivedCount: acc.receivedCount + data.receivedCount,
+      paidCount: acc.paidCount + data.paidCount
+    }), {
+      totalReceived: 0,
+      totalPaid: 0,
+      balance: 0,
+      receivedCount: 0,
+      paidCount: 0
+    });
+  }, [categoryData]);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      <Card className="bg-white shadow-xl w-full max-w-5xl p-10 rounded-2xl">
-        {/* Título e botões de exportar */}
-        <div className="flex justify-between items-center mb-4 border-b pb-4">
-          <div>
-            <h1 className="text-2xl font-bold">
-              Relatório Detalhado por Categorias
-            </h1>
-            <p className="text-gray-500 text-sm">
-              Contas a Pagar e Receber organizadas por categoria
-            </p>
+    <div className="space-y-6">
+      {/* Cards de Resumo Geral */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="p-6 bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-90 mb-1">Total Recebido</p>
+              <p className="text-3xl font-bold">{formatCurrency(totals.totalReceived)}</p>
+              <p className="text-xs opacity-75 mt-2">{totals.receivedCount} transações</p>
+            </div>
+            <TrendingUp size={40} className="opacity-80" />
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={exportToExcel}
-              variant="outline"
-              className="border-green-600 text-green-700 hover:bg-green-50"
-            >
-              <FileSpreadsheet className="w-4 h-4 mr-2" />
-              Exportar Excel
-            </Button>
-            <Button
-              onClick={exportToPDF}
-              variant="outline"
-              className="border-red-600 text-red-700 hover:bg-red-50"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Exportar PDF
-            </Button>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-red-500 to-red-600 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-90 mb-1">Total Pago</p>
+              <p className="text-3xl font-bold">{formatCurrency(totals.totalPaid)}</p>
+              <p className="text-xs opacity-75 mt-2">{totals.paidCount} transações</p>
+            </div>
+            <TrendingDown size={40} className="opacity-80" />
           </div>
-        </div>
+        </Card>
 
-        {/* Navegador de mês/ano */}
-        <DetailedReportMonthNavigator
-          currentMonth={currentMonth}
-          currentYear={currentYear}
-          onMonthChange={handleMonthChange}
-          onShowAll={handleShowAll}
-          isShowingAll={isShowingAll}
-        />
-
-        {dataByCategory.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            Sem dados para exibir neste período
+        <Card className={`p-6 bg-gradient-to-br ${totals.balance >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'} text-white`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-90 mb-1">Saldo Total</p>
+              <p className="text-3xl font-bold">{formatCurrency(totals.balance)}</p>
+              <p className="text-xs opacity-75 mt-2">{totals.receivedCount + totals.paidCount} transações</p>
+            </div>
+            <div className="text-4xl opacity-80">{totals.balance >= 0 ? '📈' : '📉'}</div>
           </div>
-        ) : (
-          dataByCategory.map((catData, index) => {
-            const totalDes = catData.totalExpenses;
-            const totalRec = catData.totalIncome;
-            const saldo = totalRec - totalDes;
-            const corSaldo = saldo >= 0 ? "text-green-600" : "text-red-600";
+        </Card>
+      </div>
 
-            return (
-              <div key={index} className="mb-10">
-                <h2 className="text-xl font-semibold text-blue-800 mb-3 border-b pb-1 flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-sm" 
-                    style={{ backgroundColor: catData.color }}
-                  />
-                  Categoria: {catData.category}
-                </h2>
-
-                <h3 className="font-semibold text-gray-700 mb-2">💸 Despesas</h3>
-                {catData.expenses.length ? (
-                  <table className="w-full mb-3 text-sm border border-gray-200">
-                    <thead className="bg-gray-100 text-gray-700">
-                      <tr>
-                        <th className="p-2 text-left">Data</th>
-                        <th className="p-2 text-left">Descrição</th>
-                        <th className="p-2 text-right">Valor (R$)</th>
-                        <th className="p-2 text-left">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {catData.expenses.map((item, idx) => (
-                        <tr key={idx} className="border-t">
-                          <td className="p-2">{item.date}</td>
-                          <td className="p-2">{item.description}</td>
-                          <td className="p-2 text-right">{item.amount.toFixed(2)}</td>
-                          <td className="p-2">{item.status}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-sm text-gray-500 mb-3">Sem despesas nesta categoria.</p>
-                )}
-
-                <p className="font-semibold text-right mb-4">
-                  Total Despesas: R$ {totalDes.toFixed(2)}
-                </p>
-
-                <h3 className="font-semibold text-gray-700 mb-2">💰 Receitas</h3>
-                {catData.income.length ? (
-                  <table className="w-full mb-3 text-sm border border-gray-200">
-                    <thead className="bg-gray-100 text-gray-700">
-                      <tr>
-                        <th className="p-2 text-left">Data</th>
-                        <th className="p-2 text-left">Descrição</th>
-                        <th className="p-2 text-right">Valor (R$)</th>
-                        <th className="p-2 text-left">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {catData.income.map((item, idx) => (
-                        <tr key={idx} className="border-t">
-                          <td className="p-2">{item.date}</td>
-                          <td className="p-2">{item.description}</td>
-                          <td className="p-2 text-right">{item.amount.toFixed(2)}</td>
-                          <td className="p-2">{item.status}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-sm text-gray-500 mb-3">Sem receitas nesta categoria.</p>
-                )}
-
-                <p className="font-semibold text-right mb-2">
-                  Total Receitas: R$ {totalRec.toFixed(2)}
-                </p>
-                <p className={`font-bold text-right ${corSaldo}`}>
-                  Saldo da Categoria: R$ {saldo.toFixed(2)}
-                </p>
-              </div>
-            );
-          })
-        )}
-
-        <div className="border-t pt-4 mt-6">
-          <h2 className="text-lg font-semibold text-center mb-3">
-            📊 Resumo Geral do Mês
-          </h2>
-          <table className="w-full text-sm border border-gray-200 mb-4">
+      {/* Tabela Detalhada por Categoria */}
+      <Card className="p-6">
+        <h2 className="text-xl font-bold text-slate-800 mb-6">Detalhamento por Categoria</h2>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-slate-200">
+                <th className="text-left py-4 px-4 font-semibold text-slate-700">Categoria</th>
+                <th className="text-right py-4 px-4 font-semibold text-slate-700">Recebido</th>
+                <th className="text-right py-4 px-4 font-semibold text-slate-700">Pago</th>
+                <th className="text-right py-4 px-4 font-semibold text-slate-700">Saldo</th>
+                <th className="text-center py-4 px-4 font-semibold text-slate-700">Transações</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr>
-                <td className="p-2 font-medium">💸 Total de Despesas</td>
-                <td className="p-2 text-right">R$ {totalExpenses.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td className="p-2 font-medium">💰 Total de Receitas</td>
-                <td className="p-2 text-right">R$ {totalIncome.toFixed(2)}</td>
-              </tr>
-              <tr className={balance >= 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
-                <td className="p-2 font-medium">💹 Saldo Final</td>
-                <td className="p-2 text-right">R$ {balance.toFixed(2)}</td>
-              </tr>
+              {categoryData.map((data, index) => (
+                <tr 
+                  key={data.category}
+                  className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+                  }`}
+                >
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: data.color }}
+                      />
+                      <span className="font-medium text-slate-800">{data.category}</span>
+                    </div>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <span className="text-green-600 font-semibold">
+                      {formatCurrency(data.totalReceived)}
+                    </span>
+                    <span className="text-xs text-slate-500 ml-2">({data.receivedCount})</span>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <span className="text-red-600 font-semibold">
+                      {formatCurrency(data.totalPaid)}
+                    </span>
+                    <span className="text-xs text-slate-500 ml-2">({data.paidCount})</span>
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <span className={`font-bold ${data.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                      {formatCurrency(data.balance)}
+                    </span>
+                  </td>
+                  <td className="text-center py-4 px-4">
+                    <span className="text-slate-600 font-medium">
+                      {data.receivedCount + data.paidCount}
+                    </span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold">
+                <td className="py-4 px-4 text-slate-800">TOTAL</td>
+                <td className="text-right py-4 px-4 text-green-700">
+                  {formatCurrency(totals.totalReceived)}
+                </td>
+                <td className="text-right py-4 px-4 text-red-700">
+                  {formatCurrency(totals.totalPaid)}
+                </td>
+                <td className="text-right py-4 px-4">
+                  <span className={totals.balance >= 0 ? 'text-blue-700' : 'text-orange-700'}>
+                    {formatCurrency(totals.balance)}
+                  </span>
+                </td>
+                <td className="text-center py-4 px-4 text-slate-800">
+                  {totals.receivedCount + totals.paidCount}
+                </td>
+              </tr>
+            </tfoot>
           </table>
-
-          <p className="text-center text-gray-500 text-xs">
-            Gerado automaticamente pelo sistema Lovable – {generationDate}
-          </p>
         </div>
       </Card>
     </div>
