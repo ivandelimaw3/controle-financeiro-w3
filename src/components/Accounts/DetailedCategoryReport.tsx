@@ -46,10 +46,10 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
   // Filtrar contas do mês selecionado ou todos
   const currentMonthAccounts = React.useMemo(() => {
     if (isShowingAll) {
-      return accounts;
+      return accounts.filter(acc => acc.description !== "Saldo Anterior");
     }
     return accounts.filter(acc => {
-      if (!acc.due_date) return false;
+      if (!acc.due_date || acc.description === "Saldo Anterior") return false;
       const dueDate = new Date(acc.due_date);
       return isWithinInterval(dueDate, { start: monthStart, end: monthEnd });
     });
@@ -384,7 +384,7 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
         </div>
 
         {/* Navegador de mês/ano */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
           {/* Navegação principal com setas, ano e botões Hoje/Todos */}
           <div className="flex items-center gap-4">
             <Button
