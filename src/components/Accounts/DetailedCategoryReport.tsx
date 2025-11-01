@@ -82,22 +82,28 @@ export const DetailedCategoryReport: React.FC<DetailedCategoryReportProps> = ({ 
       const data = dataMap.get(categoryName)!;
       const itemDate = acc.due_date ? format(new Date(acc.due_date), 'dd/MM/yyyy') : '-';
       
-      if (acc.type === 'despesa' && acc.status === 'pago') {
+      if (acc.type === 'despesa') {
+        const statusText = acc.status === 'pago' ? 'Pago' : 'Pendente';
         data.expenses.push({
           date: itemDate,
           description: acc.description,
           amount: Math.abs(acc.amount || 0),
-          status: acc.status === 'pago' ? 'Pago' : 'Pendente'
+          status: statusText
         });
-        data.totalExpenses += Math.abs(acc.amount || 0);
-      } else if (acc.type === 'receita' && acc.status === 'recebido') {
+        if (acc.status === 'pago') {
+          data.totalExpenses += Math.abs(acc.amount || 0);
+        }
+      } else if (acc.type === 'receita') {
+        const statusText = acc.status === 'recebido' ? 'Recebido' : 'Pendente';
         data.income.push({
           date: itemDate,
           description: acc.description,
           amount: acc.amount || 0,
-          status: acc.status === 'recebido' ? 'Recebido' : 'Pendente'
+          status: statusText
         });
-        data.totalIncome += acc.amount || 0;
+        if (acc.status === 'recebido') {
+          data.totalIncome += acc.amount || 0;
+        }
       }
     });
 
