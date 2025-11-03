@@ -1,20 +1,13 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, FileBarChart, ArrowLeft, FileSearch } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface AccountsHeaderProps {
   onNewAccount: () => void;
-  onReportsToggle: () => void;
-  showReports: boolean;
 }
 
-export const AccountsHeader: React.FC<AccountsHeaderProps> = ({ onNewAccount, onReportsToggle, showReports }) => {
-  // Reports view is now handled by ReportsMonthNavigator component
-  if (showReports) {
-    return null;
-  }
-
+export const AccountsHeader: React.FC<AccountsHeaderProps> = ({ onNewAccount }) => {
   return (
     <div className="flex flex-col space-y-4">
       <div className="flex items-center justify-between">
@@ -25,14 +18,6 @@ export const AccountsHeader: React.FC<AccountsHeaderProps> = ({ onNewAccount, on
           >
             <Plus size={20} className="mr-2" />
             Nova Conta
-          </Button>
-          
-          <Button
-            onClick={onReportsToggle}
-            className="bg-gradient-to-r from-sky-400 to-blue-400 hover:from-sky-500 hover:to-blue-500 px-4 py-2"
-          >
-            <FileBarChart size={20} className="mr-2" />
-            Relatórios
           </Button>
         </div>
         
