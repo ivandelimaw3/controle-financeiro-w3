@@ -470,27 +470,20 @@ const Relatorios: React.FC = () => {
                           return (
                             <React.Fragment key={`${group.category}-${group.type}-${groupIndex}`}>
                               {/* Linha de cabeçalho do grupo */}
-                              <tr className={`border-t-2 border-slate-400 ${
-                                group.type === 'receita' ? 'bg-green-50' : 'bg-red-50'
-                              }`}>
+                              <tr className="bg-white border-t-2 border-slate-400 border-b-4 border-b-slate-600">
                                 <td colSpan={3} className="px-4 py-3 border-r border-slate-300">
                                   <div className="flex items-center gap-2">
-                                    <span className={`inline-flex items-center px-3 py-1 rounded-md font-bold text-sm ${
-                                      group.type === 'receita' 
-                                        ? 'bg-green-600 text-white' 
-                                        : 'bg-red-600 text-white'
-                                    }`}>
+                                    <span className="font-bold text-base text-slate-900">
                                       {group.category}
                                     </span>
+                                    <span className="text-slate-600">-</span>
                                     <span className="font-semibold text-slate-700">
                                       {group.type === 'receita' ? 'Receitas' : 'Despesas'}
                                     </span>
                                   </div>
                                 </td>
                                 <td className="px-4 py-3 border-r border-slate-300">
-                                  <span className={`font-bold text-base ${
-                                    group.type === 'receita' ? 'text-green-700' : 'text-red-700'
-                                  }`}>
+                                  <span className="font-bold text-base text-slate-900">
                                     {group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}
                                   </span>
                                 </td>
