@@ -528,7 +528,7 @@ const Relatorios: React.FC = () => {
                               
                               {/* Linha de total do grupo */}
                               <tr className="bg-slate-100 border-b-2 border-slate-400">
-                                <td colSpan={3} className="px-4 py-3 text-right font-bold text-slate-900">
+                                <td colSpan={3} className="px-4 py-3 text-left font-bold text-slate-900">
                                   Total {group.category}:
                                 </td>
                                 <td className="px-4 py-3">
