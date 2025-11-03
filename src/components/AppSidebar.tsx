@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   FileSearch,
   Receipt, 
-  FileText, 
   Tag, 
   Building2, 
   CreditCard,
@@ -71,14 +70,6 @@ const menuItems = [
     color: 'text-orange-600',
     bgColor: 'bg-orange-50',
     hoverBg: 'hover:bg-orange-100'
-  },
-  { 
-    icon: FileText, 
-    label: 'Relatórios', 
-    path: '/relatorios', 
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    hoverBg: 'hover:bg-purple-100'
   },
   { 
     icon: PieChart, 
