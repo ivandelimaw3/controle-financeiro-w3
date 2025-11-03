@@ -470,21 +470,32 @@ const Relatorios: React.FC = () => {
                           return (
                             <React.Fragment key={`${group.category}-${group.type}-${groupIndex}`}>
                               {/* Linha de cabeçalho do grupo */}
-                              <tr className="bg-slate-200 border-t-2 border-slate-400">
-                                <td colSpan={3} className="px-4 py-2 border-r border-slate-300">
-                                  <span className="font-bold text-slate-800">
-                                    {group.category} - {group.type === 'receita' ? 'Receitas' : 'Despesas'}
-                                  </span>
+                              <tr className={`border-t-2 border-slate-400 ${
+                                group.type === 'receita' ? 'bg-green-50' : 'bg-red-50'
+                              }`}>
+                                <td colSpan={3} className="px-4 py-3 border-r border-slate-300">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-md font-bold text-sm ${
+                                      group.type === 'receita' 
+                                        ? 'bg-green-600 text-white' 
+                                        : 'bg-red-600 text-white'
+                                    }`}>
+                                      {group.category}
+                                    </span>
+                                    <span className="font-semibold text-slate-700">
+                                      {group.type === 'receita' ? 'Receitas' : 'Despesas'}
+                                    </span>
+                                  </div>
                                 </td>
-                                <td className="px-4 py-2 border-r border-slate-300">
-                                  <span className={`font-bold text-sm ${
-                                    group.type === 'receita' ? 'text-green-600' : 'text-red-600'
+                                <td className="px-4 py-3 border-r border-slate-300">
+                                  <span className={`font-bold text-base ${
+                                    group.type === 'receita' ? 'text-green-700' : 'text-red-700'
                                   }`}>
                                     {group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}
                                   </span>
                                 </td>
-                                <td colSpan={2} className="px-4 py-2">
-                                  <span className="text-xs text-slate-600">
+                                <td colSpan={2} className="px-4 py-3">
+                                  <span className="text-xs font-medium text-slate-600">
                                     {group.accounts.length} {group.accounts.length === 1 ? 'item' : 'itens'}
                                   </span>
                                 </td>
