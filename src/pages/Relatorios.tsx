@@ -470,8 +470,8 @@ const Relatorios: React.FC = () => {
                           return (
                             <React.Fragment key={`${group.category}-${group.type}-${groupIndex}`}>
                               {/* Linha de cabeçalho do grupo */}
-                              <tr className="bg-white border-t-2 border-slate-400 border-b-4 border-b-slate-600">
-                                <td colSpan={3} className="px-4 py-3 border-r border-slate-300">
+                              <tr className="bg-white border-t-2 border-slate-400 border-b-2 border-b-slate-400">
+                                <td colSpan={6} className="px-4 py-3">
                                   <div className="flex items-center gap-2">
                                     <span className="font-bold text-base text-slate-900">
                                       {group.category}
@@ -480,17 +480,10 @@ const Relatorios: React.FC = () => {
                                     <span className="font-semibold text-slate-700">
                                       {group.type === 'receita' ? 'Receitas' : 'Despesas'}
                                     </span>
+                                    <span className="text-xs font-medium text-slate-600 ml-2">
+                                      ({group.accounts.length} {group.accounts.length === 1 ? 'item' : 'itens'})
+                                    </span>
                                   </div>
-                                </td>
-                                <td className="px-4 py-3 border-r border-slate-300">
-                                  <span className="font-bold text-base text-slate-900">
-                                    {group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}
-                                  </span>
-                                </td>
-                                <td colSpan={2} className="px-4 py-3">
-                                  <span className="text-xs font-medium text-slate-600">
-                                    {group.accounts.length} {group.accounts.length === 1 ? 'item' : 'itens'}
-                                  </span>
                                 </td>
                               </tr>
                               
@@ -532,6 +525,19 @@ const Relatorios: React.FC = () => {
                                   </td>
                                 </tr>
                               ))}
+                              
+                              {/* Linha de total do grupo */}
+                              <tr className="bg-slate-100 border-b-2 border-slate-400">
+                                <td colSpan={3} className="px-4 py-3 text-right font-bold text-slate-900">
+                                  Total {group.category}:
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="font-bold text-base text-slate-900">
+                                    {group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}
+                                  </span>
+                                </td>
+                                <td colSpan={2} className="px-4 py-3"></td>
+                              </tr>
                             </React.Fragment>
                           );
                         })
