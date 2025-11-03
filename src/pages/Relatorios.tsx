@@ -7,7 +7,7 @@ import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search } from 'lu
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
@@ -426,62 +426,127 @@ const Relatorios: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/50">
-                  <TableHead className="font-semibold text-slate-700 py-2 w-[30%]">Descrição</TableHead>
-                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Categoria</TableHead>
-                  <TableHead className="font-semibold text-slate-700 py-2 w-[10%]">Tipo</TableHead>
-                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Valor</TableHead>
-                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Data de Vencimento</TableHead>
-                  <TableHead className="font-semibold text-slate-700 py-2 w-[15%]">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAccounts.map((account) => (
-                  <TableRow key={account.id} className="hover:bg-slate-50/30 transition-colors h-12">
-                    <TableCell className="font-medium py-2 max-w-0">
-                      <div className="truncate" title={account.description}>
-                        {account.description}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-2">{account.category}</TableCell>
-                    <TableCell className="py-2">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        account.type === 'receita' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {account.type === 'receita' ? 'Receita' : 'Despesa'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-2">
-                      <span className={`font-semibold ${
-                        account.type === 'receita' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-2">{formatDate(account.dueDate)}</TableCell>
-                    <TableCell className="py-2">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(account.status)}`}>
-                        {getStatusLabel(account.status)}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+            <div className="border border-slate-300 rounded-lg">
+              {(() => {
+                // Agrupar contas por categoria e tipo
+                const groupedAccounts = filteredAccounts.reduce((acc, account) => {
+                  const key = `${account.category}-${account.type}`;
+                  if (!acc[key]) {
+                    acc[key] = {
+                      category: account.category,
+                      type: account.type,
+                      accounts: []
+                    };
+                  }
+                  acc[key].accounts.push(account);
+                  return acc;
+                }, {} as Record<string, { category: string; type: string; accounts: typeof filteredAccounts }>);
 
-          {filteredAccounts.length === 0 && (
-            <div className="p-8 text-center text-slate-500">
-              {searchTerm ? 
-                `Nenhuma conta encontrada para "${searchTerm}".` : 
-                'Nenhuma conta encontrada com os filtros aplicados.'
-              }
+                // Ordenar grupos: primeiro receitas, depois despesas, e alfabeticamente por categoria
+                const sortedGroups = Object.values(groupedAccounts).sort((a, b) => {
+                  if (a.type !== b.type) {
+                    return a.type === 'receita' ? -1 : 1;
+                  }
+                  return a.category.localeCompare(b.category);
+                });
+
+                return (
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 border-b border-slate-300">
+                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Descrição</th>
+                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Categoria</th>
+                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Tipo</th>
+                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Valor</th>
+                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Vencimento</th>
+                        <th className="text-left font-semibold text-slate-700 px-4 py-3 text-sm">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedGroups.length > 0 ? (
+                        sortedGroups.map((group, groupIndex) => {
+                          const groupTotal = group.accounts.reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
+                          
+                          return (
+                            <React.Fragment key={`${group.category}-${group.type}-${groupIndex}`}>
+                              {/* Linha de cabeçalho do grupo */}
+                              <tr className="bg-slate-200 border-t-2 border-slate-400">
+                                <td colSpan={3} className="px-4 py-2 border-r border-slate-300">
+                                  <span className="font-bold text-slate-800">
+                                    {group.category} - {group.type === 'receita' ? 'Receitas' : 'Despesas'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2 border-r border-slate-300">
+                                  <span className={`font-bold text-sm ${
+                                    group.type === 'receita' ? 'text-green-600' : 'text-red-600'
+                                  }`}>
+                                    {group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}
+                                  </span>
+                                </td>
+                                <td colSpan={2} className="px-4 py-2">
+                                  <span className="text-xs text-slate-600">
+                                    {group.accounts.length} {group.accounts.length === 1 ? 'item' : 'itens'}
+                                  </span>
+                                </td>
+                              </tr>
+                              
+                              {/* Linhas de itens do grupo */}
+                              {group.accounts.map((account, index) => (
+                                <tr 
+                                  key={`${account.id}-${index}`} 
+                                  className="hover:bg-slate-50 border-b border-slate-200"
+                                >
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                    <span className="text-slate-700">{account.description}</span>
+                                  </td>
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                    <span className="text-slate-600">{account.category}</span>
+                                  </td>
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                      account.type === 'receita' 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : 'bg-red-100 text-red-800'
+                                    }`}>
+                                      {account.type === 'receita' ? 'Receita' : 'Despesa'}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                    <span className={`font-semibold ${
+                                      account.type === 'receita' ? 'text-green-600' : 'text-red-600'
+                                    }`}>
+                                      {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                    <span className="text-slate-600">{formatDate(account.dueDate)}</span>
+                                  </td>
+                                  <td className="px-4 py-2 text-sm">
+                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(account.status)}`}>
+                                      {getStatusLabel(account.status)}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                            {searchTerm ? 
+                              `Nenhuma conta encontrada para "${searchTerm}".` : 
+                              'Nenhuma conta encontrada com os filtros aplicados.'
+                            }
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                );
+              })()}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </Layout>
