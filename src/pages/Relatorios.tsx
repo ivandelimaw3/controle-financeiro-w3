@@ -457,12 +457,12 @@ const Relatorios: React.FC = () => {
                     <thead>
                       <tr className="bg-slate-100 border-b border-slate-300">
                         <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Descrição</th>
-                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Categoria</th>
-                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Tipo</th>
-                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Valor</th>
-                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Vencimento</th>
-                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Fonte Pagamento</th>
-                        <th className="text-left font-semibold text-slate-700 px-4 py-3 text-sm">Status</th>
+                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Categoria</th>
+                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Tipo</th>
+                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Valor</th>
+                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Vencimento</th>
+                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Fonte Pagamento</th>
+                        <th className="text-left font-semibold text-slate-700 px-2 py-3 text-sm">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -499,10 +499,10 @@ const Relatorios: React.FC = () => {
                                   <td className="px-4 py-2 border-r border-slate-200 text-sm">
                                     <span className="text-slate-700">{account.description}</span>
                                   </td>
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                  <td className="px-2 py-2 border-r border-slate-200 text-sm">
                                     <span className="text-slate-600">{account.category}</span>
                                   </td>
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                  <td className="px-2 py-2 border-r border-slate-200 text-sm">
                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                       account.type === 'receita' 
                                         ? 'bg-green-100 text-green-800' 
@@ -511,20 +511,20 @@ const Relatorios: React.FC = () => {
                                       {account.type === 'receita' ? 'Receita' : 'Despesa'}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm text-left">
+                                  <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
                                     <span className={`font-semibold ${
                                       account.type === 'receita' ? 'text-green-600' : 'text-red-600'
                                     }`}>
                                       {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm text-left">
+                                  <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
                                     <span className="text-slate-600">{formatDate(account.dueDate)}</span>
                                   </td>
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm text-left">
+                                  <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
                                     <span className="text-slate-600">{account.payment_source_name || '-'}</span>
                                   </td>
-                                  <td className="px-4 py-2 text-sm text-left">
+                                  <td className="px-2 py-2 text-sm text-left">
                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(account.status)}`}>
                                       {getStatusLabel(account.status)}
                                     </span>
