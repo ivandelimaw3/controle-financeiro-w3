@@ -102,12 +102,13 @@ const Relatorios: React.FC = () => {
         account.type === 'receita' ? 'Receita' : 'Despesa',
         `${account.type === 'receita' ? '+' : '-'}R$ ${Math.abs(account.amount).toFixed(2)}`,
         formatDate(account.dueDate),
+        account.payment_source_name || '-',
         getStatusLabel(account.status)
       ]);
       
       autoTable(doc, {
         startY: finalY + 14,
-        head: [['Descrição', 'Categoria', 'Tipo', 'Valor', 'Vencimento', 'Status']],
+        head: [['Descrição', 'Categoria', 'Tipo', 'Valor', 'Vencimento', 'Fonte Pgto', 'Status']],
         body: tableData,
         theme: 'striped',
         headStyles: { 
@@ -117,12 +118,13 @@ const Relatorios: React.FC = () => {
         },
         styles: { fontSize: 8, cellPadding: 2 },
         columnStyles: {
-          0: { cellWidth: 50 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 30, halign: 'right' },
-          4: { cellWidth: 25 },
-          5: { cellWidth: 22 }
+          0: { cellWidth: 45 },
+          1: { cellWidth: 28 },
+          2: { cellWidth: 22 },
+          3: { cellWidth: 28, halign: 'right' },
+          4: { cellWidth: 23 },
+          5: { cellWidth: 25 },
+          6: { cellWidth: 20 }
         },
         didParseCell: function(data) {
           // Colorir valores
@@ -459,6 +461,7 @@ const Relatorios: React.FC = () => {
                         <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Tipo</th>
                         <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Valor</th>
                         <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Vencimento</th>
+                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Fonte Pagamento</th>
                         <th className="text-left font-semibold text-slate-700 px-4 py-3 text-sm">Status</th>
                       </tr>
                     </thead>
@@ -471,7 +474,7 @@ const Relatorios: React.FC = () => {
                             <React.Fragment key={`${group.category}-${group.type}-${groupIndex}`}>
                               {/* Linha de cabeçalho do grupo */}
                               <tr className="bg-white border-t-2 border-slate-400 border-b-2 border-b-slate-400">
-                                <td colSpan={6} className="px-4 py-3">
+                                <td colSpan={7} className="px-4 py-3">
                                   <div className="flex items-center gap-2">
                                     <span className="font-bold text-base text-slate-900">
                                       {group.category}
@@ -518,6 +521,9 @@ const Relatorios: React.FC = () => {
                                   <td className="px-4 py-2 border-r border-slate-200 text-sm text-left">
                                     <span className="text-slate-600">{formatDate(account.dueDate)}</span>
                                   </td>
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm text-left">
+                                    <span className="text-slate-600">{account.payment_source_name || '-'}</span>
+                                  </td>
                                   <td className="px-4 py-2 text-sm text-left">
                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(account.status)}`}>
                                       {getStatusLabel(account.status)}
@@ -528,7 +534,7 @@ const Relatorios: React.FC = () => {
                               
                               {/* Linha de total do grupo */}
                               <tr className="bg-slate-100 border-b-2 border-slate-400">
-                                <td colSpan={6} className="px-4 py-3 text-left font-bold text-slate-900">
+                                <td colSpan={7} className="px-4 py-3 text-left font-bold text-slate-900">
                                   Total {group.category}: <span className={group.type === 'receita' ? 'text-green-600' : 'text-red-600'}>{group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}</span>
                                 </td>
                               </tr>
@@ -537,7 +543,7 @@ const Relatorios: React.FC = () => {
                         })
                       ) : (
                         <tr>
-                          <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                          <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
                             {searchTerm ? 
                               `Nenhuma conta encontrada para "${searchTerm}".` : 
                               'Nenhuma conta encontrada com os filtros aplicados.'
