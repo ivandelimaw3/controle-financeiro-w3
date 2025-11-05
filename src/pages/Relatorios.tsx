@@ -508,17 +508,17 @@ const Relatorios: React.FC = () => {
                                       {account.type === 'receita' ? 'Receita' : 'Despesa'}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm text-left">
                                     <span className={`font-semibold ${
                                       account.type === 'receita' ? 'text-green-600' : 'text-red-600'
                                     }`}>
                                       {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                  <td className="px-4 py-2 border-r border-slate-200 text-sm text-left">
                                     <span className="text-slate-600">{formatDate(account.dueDate)}</span>
                                   </td>
-                                  <td className="px-4 py-2 text-sm">
+                                  <td className="px-4 py-2 text-sm text-left">
                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(account.status)}`}>
                                       {getStatusLabel(account.status)}
                                     </span>
@@ -531,7 +531,7 @@ const Relatorios: React.FC = () => {
                                 <td colSpan={3} className="px-4 py-3 text-left font-bold text-slate-900">
                                   Total {group.category}:
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className="px-4 py-3 text-left">
                                   <span className="font-bold text-base text-slate-900">
                                     {group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}
                                   </span>
