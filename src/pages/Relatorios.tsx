@@ -158,11 +158,6 @@ const Relatorios: React.FC = () => {
 
   // Filtrar contas baseado nos filtros
   const filteredAccounts = accounts.filter(account => {
-    // Excluir contas com descrição "Saldo Anterior"
-    if (account.description === "Saldo Anterior") {
-      return false;
-    }
-    
     const accountDate = new Date(account.dueDate);
     const accountMonth = accountDate.getMonth() + 1;
     const accountYear = accountDate.getFullYear();

@@ -61,11 +61,6 @@ export const useAccountFilters = (accounts: Account[]) => {
 
     const filtered = accounts
       .filter(account => {
-        // Excluir contas com descrição "Saldo Anterior"
-        if (account.description === "Saldo Anterior") {
-          return false;
-        }
-        
         // Log detalhado da pesquisa
         const searchLower = searchTerm.toLowerCase().trim();
         const descriptionLower = account.description.toLowerCase();
