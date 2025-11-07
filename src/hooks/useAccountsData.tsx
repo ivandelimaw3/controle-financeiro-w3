@@ -519,15 +519,9 @@ export const useAccountsData = () => {
       }
 
       // Atualizar na lista local
-      const updatedAccount = accounts.find(acc => acc.id === id);
       setAccounts(prev => prev.map(acc => 
         acc.id === id ? { ...acc, status } : acc
       ));
-      
-      // Atualizar saldos subsequentes
-      if (updatedAccount) {
-        await updateSubsequentBalances(updatedAccount.dueDate);
-      }
       
       // SEMPRE invalidar cache quando status muda (pode afetar saldo)
       invalidateBanksCache();
