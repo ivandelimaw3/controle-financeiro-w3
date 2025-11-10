@@ -9,6 +9,7 @@ import { CreditCardPendingSummary } from '@/components/Dashboard/CreditCardPendi
 import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { formatCurrency } from '@/utils/formatters';
+import { MobileMenu } from '@/components/MobileMenu';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -129,8 +130,14 @@ const Dashboard: React.FC = () => {
 
   return (
     <AccessControlWrapper>
+      {/* Mobile: Show menu grid */}
+      <div className="md:hidden">
+        <MobileMenu />
+      </div>
+
+      {/* Desktop: Show full dashboard */}
       <Layout>
-        <div className="space-y-2 sm:space-y-6">
+        <div className="hidden md:block space-y-2 sm:space-y-6">
           <DashboardMonthNavigator
             currentMonth={selectedMonth}
             currentYear={selectedYear}

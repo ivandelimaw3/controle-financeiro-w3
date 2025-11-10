@@ -30,7 +30,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
   
   const isCollapsiblePage = collapsiblePages.includes(location.pathname);
-  const isDashboard = location.pathname === '/';
 
   useEffect(() => {
     if (!isCollapsiblePage) {
@@ -94,25 +93,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <AppSidebar />
         </div>
         
-        {/* Mobile: Show full sidebar on dashboard, menu button on other pages */}
-        {isDashboard ? (
-          <div className="md:hidden w-full">
+        {/* Mobile Menu Button */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild className="md:hidden fixed top-4 left-4 z-50">
+            <Button variant="outline" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-64">
             <AppSidebar />
-          </div>
-        ) : (
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild className="md:hidden fixed top-4 left-4 z-50">
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
-              <AppSidebar />
-            </SheetContent>
-          </Sheet>
-        )}
+          </SheetContent>
+        </Sheet>
 
-        <div className={`flex-1 flex-col ${isDashboard ? 'hidden md:flex' : 'flex'}`}>
+        <div className="flex-1 flex flex-col">
           <Header />
           <main className="flex-1 p-3 sm:p-6">
             {children}
