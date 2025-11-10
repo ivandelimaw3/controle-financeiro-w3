@@ -94,8 +94,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <AppSidebar />
         </div>
         
-        {/* Mobile Menu Button - Show on all pages except dashboard */}
-        {!isDashboard && (
+        {/* Mobile: Show full sidebar on dashboard, menu button on other pages */}
+        {isDashboard ? (
+          <div className="md:hidden w-full">
+            <AppSidebar />
+          </div>
+        ) : (
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden fixed top-4 left-4 z-50">
               <Button variant="outline" size="icon">
@@ -108,7 +112,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Sheet>
         )}
 
-        <div className="flex-1 flex flex-col">
+        <div className={`flex-1 flex-col ${isDashboard ? 'hidden md:flex' : 'flex'}`}>
           <Header />
           <main className="flex-1 p-3 sm:p-6">
             {children}
