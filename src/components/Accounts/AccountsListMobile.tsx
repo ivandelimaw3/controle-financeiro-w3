@@ -5,9 +5,10 @@ import { formatCurrency } from '@/utils/formatters';
 
 interface AccountsListMobileProps {
   accounts: Account[];
+  onEdit?: (account: Account) => void;
 }
 
-export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts }) => {
+export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts, onEdit }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pago':
@@ -45,7 +46,8 @@ export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts
         {accounts.map((account) => (
           <div
             key={account.id}
-            className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm"
+            onClick={() => onEdit?.(account)}
+            className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm cursor-pointer hover:bg-slate-50 active:bg-slate-100 transition-colors"
           >
             <div className="flex justify-between items-start gap-2 mb-2">
               <h3 className="font-medium text-slate-900 text-sm line-clamp-2 flex-1">
