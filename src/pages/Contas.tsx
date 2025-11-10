@@ -4,11 +4,12 @@ import { Layout } from '@/components/Layout';
 import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
+import { AccountsSummaryCardsMobile } from '@/components/Accounts/AccountsSummaryCardsMobile';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
-import { Loader2, Menu } from 'lucide-react';
+import { Loader2, Menu, Plus, FileText, Search } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
@@ -16,6 +17,7 @@ import { useAccountOperations } from '@/hooks/useAccountOperations';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 
 const Contas: React.FC = () => {
@@ -218,19 +220,81 @@ const Contas: React.FC = () => {
       );
     }
 
+    // Versão Mobile Simplificada
+    if (isMobile) {
+      return (
+        <div className="space-y-4 p-4">
+          {/* Botões de ação */}
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Menu className="h-5 w-5" />
+              Menu Principal
+            </Button>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={handleNewAccount}
+                className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                <Plus size={18} className="mr-2" />
+                Nova Conta
+              </Button>
+              
+              <Button
+                onClick={() => navigate('/relatorios')}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+              >
+                <FileText size={18} className="mr-2" />
+                Relatórios
+              </Button>
+            </div>
+          </div>
+
+          {/* Campo de pesquisa */}
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
+            <Input
+              placeholder="Pesquisar contas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Navegador de meses */}
+          <MonthNavigator
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onMonthChange={handleMonthChange}
+            onShowAll={handleShowAll}
+            isShowingAll={isShowingAll}
+          />
+
+          {/* Cards de resumo compactos */}
+          <AccountsSummaryCardsMobile 
+            accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
+            previousBalance={previousBalance}
+          />
+
+          <AccountModal
+            key={editingAccount?.id || 'new'}
+            isOpen={isModalOpen}
+            onClose={handleModalClose}
+            onSubmit={handleSubmit}
+            account={editingAccount}
+            categories={categories}
+          />
+        </div>
+      );
+    }
+
+    // Versão Desktop Completa
     return (
       <div className="space-y-6">
-        {isMobile && (
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="mb-4 flex items-center gap-2"
-          >
-            <Menu className="h-5 w-5" />
-            Menu Principal
-          </Button>
-        )}
-        
         <AccountsHeader 
           onNewAccount={handleNewAccount}
         />

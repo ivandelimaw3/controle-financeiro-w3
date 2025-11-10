@@ -1,0 +1,94 @@
+import React from 'react';
+import { Clock, TrendingUp, TrendingDown, History } from 'lucide-react';
+import { Account } from '@/contexts/AccountsContext';
+
+interface AccountsSummaryCardsMobileProps {
+  accounts: Account[];
+  previousBalance?: number;
+}
+
+export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProps> = ({ 
+  accounts, 
+  previousBalance = 0
+}) => {
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const calculateTotalPago = () => {
+    return accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pago')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+  };
+
+  const calculateTotalRecebido = () => {
+    return accounts
+      .filter(account => account.type === 'receita' && account.status === 'recebido')
+      .reduce((sum, account) => sum + account.amount, 0);
+  };
+
+  const calculateDespesasPendentes = () => {
+    return accounts
+      .filter(account => account.type === 'despesa' && account.status === 'pendente')
+      .reduce((sum, account) => sum + Math.abs(account.amount), 0);
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-3 mb-6">
+      {/* Saldo Anterior */}
+      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="p-1.5 bg-purple-100 rounded">
+            <History size={16} className="text-purple-600" />
+          </div>
+          <p className="text-xs text-slate-600 font-medium">Saldo Anterior</p>
+        </div>
+        <p className={`text-lg font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          {formatCurrency(previousBalance)}
+        </p>
+      </div>
+
+      {/* Total Recebido */}
+      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="p-1.5 bg-green-100 rounded">
+            <TrendingUp size={16} className="text-green-600" />
+          </div>
+          <p className="text-xs text-slate-600 font-medium">Total Recebido</p>
+        </div>
+        <p className="text-lg font-bold text-green-600">
+          {formatCurrency(calculateTotalRecebido())}
+        </p>
+      </div>
+
+      {/* Total Pago */}
+      <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="p-1.5 bg-red-100 rounded">
+            <TrendingDown size={16} className="text-red-600" />
+          </div>
+          <p className="text-xs text-slate-600 font-medium">Total Pago</p>
+        </div>
+        <p className="text-lg font-bold text-red-600">
+          {formatCurrency(calculateTotalPago())}
+        </p>
+      </div>
+
+      {/* Despesas Pendentes */}
+      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="p-1.5 bg-yellow-100 rounded">
+            <Clock size={16} className="text-yellow-600" />
+          </div>
+          <p className="text-xs text-slate-600 font-medium">Despesas Pendentes</p>
+        </div>
+        <p className="text-lg font-bold text-red-600">
+          {formatCurrency(calculateDespesasPendentes())}
+        </p>
+      </div>
+    </div>
+  );
+};
