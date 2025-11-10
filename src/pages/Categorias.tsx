@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, ChevronDown, ChevronRight, Menu } from 'lucide-react';
 import { useCategoriesData, Category } from '@/hooks/useCategoriesData';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 const Categorias: React.FC = () => {
   const { categories, loading, addCategory, updateCategory, deleteCategory, refreshCategories } = useCategoriesData();
@@ -19,6 +21,8 @@ const Categorias: React.FC = () => {
   });
   
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const colorOptions = [
     '#3B82F6', '#10B981', '#EF4444', '#F59E0B', 
@@ -142,6 +146,17 @@ const Categorias: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
+        {isMobile && (
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="mb-4 flex items-center gap-2"
+          >
+            <Menu className="h-5 w-5" />
+            Menu Principal
+          </Button>
+        )}
+        
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-slate-800 mb-2">Categorias</h1>

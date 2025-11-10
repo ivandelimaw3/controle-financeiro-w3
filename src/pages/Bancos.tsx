@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Building2, AlertCircle, Search, Edit, Trash2, Wallet, CheckCircle, Users } from 'lucide-react';
+import { Plus, Building2, AlertCircle, Search, Edit, Trash2, Wallet, CheckCircle, Users, Menu } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,6 +13,8 @@ import { BanksList } from '@/components/Banks/BanksList';
 import { useBanksData, Bank, BankInput } from '@/hooks/useBanksData';
 import { useDepositsData } from '@/hooks/useDepositsData';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 const Bancos = () => {
   const [showBankForm, setShowBankForm] = useState(false);
@@ -24,6 +26,8 @@ const Bancos = () => {
   const [typeFilter, setTypeFilter] = useState('all');
 
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const {
     banks,
@@ -174,6 +178,17 @@ const Bancos = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col space-y-4">
+          {isMobile && (
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="mb-4 flex items-center gap-2 w-fit"
+            >
+              <Menu className="h-5 w-5" />
+              Menu Principal
+            </Button>
+          )}
+          
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-800">Gestão de Bancos</h1>

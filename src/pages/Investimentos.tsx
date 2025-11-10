@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive, FileText } from 'lucide-react';
+import { Plus, TrendingUp, AlertCircle, Search, Edit, Trash2, DollarSign, CheckCircle, Building2, Archive, FileText, Menu } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Layout } from '@/components/Layout';
@@ -15,6 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ExpiredInvestmentsTable } from '@/components/Dashboard/ExpiredInvestmentsTable';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 const Investimentos = () => {
   const [showInvestmentForm, setShowInvestmentForm] = useState(false);
@@ -25,6 +27,8 @@ const Investimentos = () => {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const {
     investments,
@@ -349,6 +353,17 @@ const Investimentos = () => {
     <Layout>
   <div className="bg-white min-h-screen">
     <div className="space-y-6">
+      {isMobile && (
+        <Button
+          onClick={() => navigate('/')}
+          variant="outline"
+          className="m-6 flex items-center gap-2 w-fit"
+        >
+          <Menu className="h-5 w-5" />
+          Menu Principal
+        </Button>
+      )}
+      
       {/* Container interno só para o texto */}
       <div className="text-center py-20">  {/* py-20 adiciona espaço acima e abaixo */}
         <h1 className="text-3xl font-bold text-slate-800">Gestão de Investimentos</h1>

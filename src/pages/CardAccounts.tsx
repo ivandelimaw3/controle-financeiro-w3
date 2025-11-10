@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Menu } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +19,8 @@ import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 const CardAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,6 +28,9 @@ const CardAccounts = () => {
   const [isShowingAll, setIsShowingAll] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<number | null>(null);
+
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   // Estado do mês/ano atual
   const today = new Date();
@@ -163,6 +168,17 @@ const CardAccounts = () => {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="container mx-auto p-6 space-y-6">
+          
+          {isMobile && (
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="mb-4 flex items-center gap-2"
+            >
+              <Menu className="h-5 w-5" />
+              Menu Principal
+            </Button>
+          )}
           
           {/* Header com Botão e Título */}
           <div className="flex items-start justify-between">

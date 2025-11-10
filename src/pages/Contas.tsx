@@ -8,16 +8,21 @@ import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useAccountFilters } from '@/hooks/useAccountFilters';
 import { useAccountOperations } from '@/hooks/useAccountOperations';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Contas: React.FC = () => {
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
   const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   useAccountsReminder(accounts);
 
@@ -215,6 +220,17 @@ const Contas: React.FC = () => {
 
     return (
       <div className="space-y-6">
+        {isMobile && (
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="mb-4 flex items-center gap-2"
+          >
+            <Menu className="h-5 w-5" />
+            Menu Principal
+          </Button>
+        )}
+        
         <AccountsHeader 
           onNewAccount={handleNewAccount}
         />

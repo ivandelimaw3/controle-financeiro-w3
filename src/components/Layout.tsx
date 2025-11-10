@@ -72,7 +72,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <div className="flex-1 flex flex-col">
             <Header />
-            <SidebarTrigger className="hidden md:block fixed top-4 left-4 z-50" />
             <main 
               className="flex-1 p-3 sm:p-6"
               onMouseEnter={handleMainContentHover}

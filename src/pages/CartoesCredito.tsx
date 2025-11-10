@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, CreditCard, AlertCircle, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, CreditCard, AlertCircle, Search, Edit, Trash2, Menu } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +11,8 @@ import { CreditCardFormModal } from '@/components/CreditCards/CreditCardFormModa
 import { CreditCardsList } from '@/components/CreditCards/CreditCardsList';
 import { useCreditCardsData, CreditCardData, CreditCardFormData } from '@/hooks/useCreditCardsData';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 const CartoesCredito = () => {
   const [showCardForm, setShowCardForm] = useState(false);
@@ -20,6 +22,8 @@ const CartoesCredito = () => {
   const [brandFilter, setBrandFilter] = useState('all');
 
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const {
     creditCards,
@@ -183,6 +187,17 @@ const CartoesCredito = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col space-y-4">
+          {isMobile && (
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="mb-4 flex items-center gap-2 w-fit"
+            >
+              <Menu className="h-5 w-5" />
+              Menu Principal
+            </Button>
+          )}
+          
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-800">Gestão de Cartões</h1>
