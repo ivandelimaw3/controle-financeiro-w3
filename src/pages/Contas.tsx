@@ -237,7 +237,7 @@ const Contas: React.FC = () => {
           {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
           <AccountsSummaryCards 
             accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
-            previousBalance={hasActiveSearch ? 0 : previousBalance} 
+            previousBalance={previousBalance} 
             isJanuary={currentMonth === 0}
           />
 
