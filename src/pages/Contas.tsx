@@ -5,6 +5,7 @@ import { AccountsHeader } from '@/components/Accounts/AccountsHeader';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { AccountsSummaryCards } from '@/components/Accounts/AccountsSummaryCards';
 import { AccountsSummaryCardsMobile } from '@/components/Accounts/AccountsSummaryCardsMobile';
+import { AccountsListMobile } from '@/components/Accounts/AccountsListMobile';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
@@ -279,6 +280,9 @@ const Contas: React.FC = () => {
             accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
             previousBalance={previousBalance}
           />
+
+          {/* Lista simplificada de contas */}
+          <AccountsListMobile accounts={filteredAccounts} />
 
           <AccountModal
             key={editingAccount?.id || 'new'}
