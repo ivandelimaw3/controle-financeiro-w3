@@ -25,7 +25,7 @@ import {
 const menuItems = [
   { 
     icon: FileSearch, 
-    label: 'Visão Geral', 
+    label: 'Menu Financeiro', 
     path: '/', 
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
