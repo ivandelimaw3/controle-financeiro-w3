@@ -130,14 +130,14 @@ const Dashboard: React.FC = () => {
   return (
     <AccessControlWrapper>
       <Layout>
-        <div className="space-y-3 sm:space-y-6">
+        <div className="space-y-2 sm:space-y-6">
           <DashboardMonthNavigator
             currentMonth={selectedMonth}
             currentYear={selectedYear}
             onMonthChange={handleMonthChange}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
             <FinancialCard
               title="Contas Pendentes"
               value={accounts.filter(acc => acc.status === "pendente" && new Date(acc.dueDate).getMonth() === selectedMonth && new Date(acc.dueDate).getFullYear() === selectedYear).length.toString()}
@@ -175,7 +175,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-6">
             <RecentTransactions />
             <CreditCardPendingSummary />
           </div>

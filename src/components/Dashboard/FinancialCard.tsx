@@ -27,14 +27,14 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
 }) => {
   return (
     <div 
-      className={`bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 ${
+      className={`bg-white rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 ${
         onClick ? 'cursor-pointer hover:scale-105' : ''
       }`}
       onClick={onClick}
     >
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <div className={`p-2 sm:p-3 rounded-xl ${bgColor}`}>
-          <Icon size={20} className="text-white sm:w-6 sm:h-6" />
+      <div className="flex items-center justify-between mb-2 sm:mb-4">
+        <div className={`p-1.5 sm:p-3 rounded-lg sm:rounded-xl ${bgColor}`}>
+          <Icon size={18} className="text-white sm:w-6 sm:h-6" />
         </div>
         {trend && (
           <span className={`text-sm font-medium ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
@@ -42,10 +42,10 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
           </span>
         )}
       </div>
-      <h3 className="text-slate-600 text-xs sm:text-sm font-medium mb-1">{title}</h3>
-      <p className="text-xl sm:text-2xl font-bold text-slate-800">{value}</p>
+      <h3 className="text-slate-600 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">{title}</h3>
+      <p className="text-lg sm:text-2xl font-bold text-slate-800">{value}</p>
       {monthText && (
-        <p className={`text-sm font-medium mt-2 ${monthColor || 'text-slate-600'}`}>
+        <p className={`text-xs sm:text-sm font-medium mt-1 sm:mt-2 ${monthColor || 'text-slate-600'}`}>
           {monthText}
         </p>
       )}

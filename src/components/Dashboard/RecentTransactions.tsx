@@ -21,9 +21,9 @@ export const RecentTransactions: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-slate-200">
-      <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4">Saldo dos Bancos</h3>
-      <div className="space-y-3 sm:space-y-4">
+    <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-lg border border-slate-200">
+      <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-2 sm:mb-4">Saldo dos Bancos</h3>
+      <div className="space-y-2 sm:space-y-4">
         {banks.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-sm text-slate-500">Nenhum banco cadastrado</p>
