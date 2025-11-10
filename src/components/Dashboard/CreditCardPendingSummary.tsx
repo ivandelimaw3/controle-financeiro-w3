@@ -82,14 +82,14 @@ export const CreditCardPendingSummary: React.FC = () => {
 
   return (
     <Card className="bg-white shadow-lg border border-slate-200">
-      <CardHeader className="border-b border-slate-200">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <CreditCard className="h-5 w-5 text-blue-600" />
+      <CardHeader className="border-b border-slate-200 p-4 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-slate-800 text-base sm:text-lg">
+          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
           Valores Pendentes por Cartão
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
-        <div className="space-y-4">
+      <CardContent className="pt-4 sm:pt-6 p-4 sm:p-6">
+        <div className="space-y-3 sm:space-y-4">
           {cardSummary.map((card) => {
             const dueDate = new Date(card.nearestDueDate);
             const today = new Date();
@@ -98,28 +98,28 @@ export const CreditCardPendingSummary: React.FC = () => {
             return (
               <div
                 key={card.cardName}
-                className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
+                className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
               >
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <CreditCard className="h-5 w-5 text-blue-600" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-800">{card.cardName}</p>
-                    <p className="text-sm text-slate-600">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-800 text-sm sm:text-base truncate">{card.cardName}</p>
+                    <p className="text-xs sm:text-sm text-slate-600">
                       {card.count} {card.count === 1 ? 'conta' : 'contas'}
                     </p>
                     <div className="flex items-center gap-1 mt-1">
-                      <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                      <p className={`text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-slate-600'}`}>
+                      <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-slate-500 flex-shrink-0" />
+                      <p className={`text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-slate-600'} truncate`}>
                         Venc: {format(dueDate, 'dd/MM/yyyy', { locale: ptBR })}
                         {isOverdue && ' (Vencida)'}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-red-600">
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="text-base sm:text-lg font-bold text-red-600">
                     {formatCurrency(card.total)}
                   </p>
                 </div>
@@ -127,10 +127,10 @@ export const CreditCardPendingSummary: React.FC = () => {
             );
           })}
           
-          <div className="pt-4 mt-4 border-t-2 border-slate-300">
-            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-              <p className="font-bold text-slate-800 text-lg">Total Geral</p>
-              <p className="text-xl font-bold text-blue-600">
+          <div className="pt-3 sm:pt-4 mt-3 sm:mt-4 border-t-2 border-slate-300">
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-blue-50 rounded-lg">
+              <p className="font-bold text-slate-800 text-base sm:text-lg">Total Geral</p>
+              <p className="text-lg sm:text-xl font-bold text-blue-600">
                 {formatCurrency(totalPending)}
               </p>
             </div>
