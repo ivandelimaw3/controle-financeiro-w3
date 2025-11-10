@@ -6,14 +6,18 @@ import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
 import { DashboardMonthNavigator } from '@/components/Dashboard/DashboardMonthNavigator';
 import { CreditCardPendingSummary } from '@/components/Dashboard/CreditCardPendingSummary';
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2, Menu } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { formatCurrency } from '@/utils/formatters';
 import { MobileMenu } from '@/components/MobileMenu';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { loading, accounts, getTransactions } = useAccounts();
+  const isMobile = useIsMobile();
+  const [showMobileMenu, setShowMobileMenu] = useState(true);
 
   const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
@@ -128,16 +132,26 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  // Mobile menu view
+  if (isMobile && showMobileMenu) {
+    return <MobileMenu onViewDashboard={() => setShowMobileMenu(false)} />;
+  }
+
   return (
     <AccessControlWrapper>
-      {/* Mobile: Show menu grid */}
-      <div className="md:hidden">
-        <MobileMenu />
-      </div>
-
-      {/* Desktop: Show full dashboard */}
       <Layout>
-        <div className="hidden md:block space-y-2 sm:space-y-6">
+        <div className="space-y-2 sm:space-y-6">
+          {isMobile && (
+            <Button
+              onClick={() => setShowMobileMenu(true)}
+              variant="outline"
+              className="mb-4 flex items-center gap-2"
+            >
+              <Menu className="h-5 w-5" />
+              Menu Principal
+            </Button>
+          )}
+          
           <DashboardMonthNavigator
             currentMonth={selectedMonth}
             currentYear={selectedYear}

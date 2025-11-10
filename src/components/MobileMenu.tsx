@@ -9,9 +9,11 @@ import {
   TrendingUp, 
   PieChart,
   Settings,
-  Archive
+  Archive,
+  LayoutDashboard
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const menuItems = [
   { 
@@ -79,13 +81,27 @@ const menuItems = [
   },
 ];
 
-export function MobileMenu() {
+interface MobileMenuProps {
+  onViewDashboard?: () => void;
+}
+
+export function MobileMenu({ onViewDashboard }: MobileMenuProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
       <div className="mb-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Menu Financeiro</h1>
         <p className="text-sm text-gray-600">Selecione uma opção</p>
       </div>
+
+      {onViewDashboard && (
+        <Button
+          onClick={onViewDashboard}
+          className="w-full mb-4 h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+        >
+          <LayoutDashboard className="mr-2 h-6 w-6" />
+          Ver Resumo Financeiro
+        </Button>
+      )}
       
       <div className="grid grid-cols-2 gap-3">
         {menuItems.map((item) => {
