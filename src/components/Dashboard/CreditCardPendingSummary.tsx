@@ -98,27 +98,25 @@ export const CreditCardPendingSummary: React.FC = () => {
             return (
               <div
                 key={card.cardName}
-                className="flex items-center justify-between p-2 sm:p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
+                className="flex items-center gap-1.5 sm:gap-3 p-2 sm:p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
               >
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className="p-1 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                    <CreditCard className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-blue-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-800 text-xs sm:text-base truncate">{card.cardName}</p>
-                    <p className="text-xs sm:text-sm text-slate-600">
-                      {card.count} {card.count === 1 ? 'conta' : 'contas'}
+                <div className="p-1 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                  <CreditCard className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-slate-800 text-xs sm:text-base truncate">{card.cardName}</p>
+                  <p className="text-xs sm:text-sm text-slate-600">
+                    {card.count} {card.count === 1 ? 'conta' : 'contas'}
+                  </p>
+                  <div className="flex items-center gap-0.5 mt-0.5">
+                    <Calendar className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-slate-500 flex-shrink-0" />
+                    <p className={`text-[10px] sm:text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-slate-600'} truncate`}>
+                      Venc: {format(dueDate, 'dd/MM/yyyy', { locale: ptBR })}
+                      {isOverdue && ' (Vencida)'}
                     </p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Calendar className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-slate-500 flex-shrink-0" />
-                      <p className={`text-[10px] sm:text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-slate-600'} truncate`}>
-                        Venc: {format(dueDate, 'dd/MM/yyyy', { locale: ptBR })}
-                        {isOverdue && ' (Vencida)'}
-                      </p>
-                    </div>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0 ml-2">
+                <div className="text-right flex-shrink-0">
                   <p className="text-sm sm:text-lg font-bold text-red-600">
                     {formatCurrency(card.total)}
                   </p>

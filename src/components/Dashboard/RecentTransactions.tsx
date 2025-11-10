@@ -30,23 +30,21 @@ export const RecentTransactions: React.FC = () => {
           </div>
         ) : (
           banks.map((bank) => (
-            <div key={bank.id} className="flex items-center justify-between p-2 sm:p-3 hover:bg-slate-50 rounded-xl transition-colors">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 flex-shrink-0">
-                  <Building2 size={14} className="text-blue-600 sm:w-4 sm:h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-slate-800 text-sm sm:text-base truncate">{bank.name}</p>
-                  <p className="text-xs sm:text-sm text-slate-500 truncate">
-                    {bank.nickname || `${bank.account_type} - ${bank.account_number}`}
-                  </p>
-                </div>
+            <div key={bank.id} className="flex items-center gap-2 p-2 sm:p-3 hover:bg-slate-50 rounded-xl transition-colors">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 flex-shrink-0">
+                <Building2 size={14} className="text-blue-600 sm:w-4 sm:h-4" />
               </div>
-              <div className="text-right flex-shrink-0 ml-2">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-slate-800 text-sm sm:text-base truncate">{bank.name}</p>
+                <p className="text-xs sm:text-sm text-slate-500 truncate">
+                  {bank.nickname || `${bank.account_type} - ${bank.account_number}`}
+                </p>
+              </div>
+              <div className="text-right flex-shrink-0">
                 <p className={`font-semibold text-sm sm:text-base ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(bank.balance || 0)}
                 </p>
-                <span className="text-xs text-slate-500 flex items-center gap-1 justify-end mt-1">
+                <span className="text-xs text-slate-500 flex items-center gap-0.5 justify-end mt-0.5">
                   <Calendar size={10} className="sm:w-3 sm:h-3" />
                   <span className="hidden sm:inline">{format(new Date(bank.updated_at), 'dd/MM/yyyy', { locale: ptBR })}</span>
                   <span className="sm:hidden">{format(new Date(bank.updated_at), 'dd/MM', { locale: ptBR })}</span>
