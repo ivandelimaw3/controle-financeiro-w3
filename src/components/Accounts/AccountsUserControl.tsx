@@ -14,14 +14,14 @@ export const AccountsUserControl: React.FC = () => {
   };
 
   return (
-    <div className="bg-card rounded-xl p-4 shadow-lg border border-border">
+    <div className="bg-card rounded-xl p-4 shadow-md border border-border">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-primary/10 rounded-full p-2">
             <User className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-medium text-card-foreground">
+            <p className="text-sm font-medium text-foreground">
               {user?.email}
             </p>
             <p className="text-xs text-muted-foreground">
