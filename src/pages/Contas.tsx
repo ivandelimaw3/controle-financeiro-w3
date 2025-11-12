@@ -10,8 +10,6 @@ import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
-import { AccountsHeaderBanner } from '@/components/Accounts/AccountsHeaderBanner';
-import { AccountsUserControl } from '@/components/Accounts/AccountsUserControl';
 import { Loader2, Menu, Plus, FileText, Search } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
@@ -227,12 +225,6 @@ const Contas: React.FC = () => {
     if (isMobile) {
       return (
         <div className="space-y-4 p-4">
-          {/* Banner de cabeçalho */}
-          <AccountsHeaderBanner />
-          
-          {/* Controle de usuário */}
-          <AccountsUserControl />
-          
           {/* Botões de ação */}
           <div className="flex flex-col gap-3">
             <Button
