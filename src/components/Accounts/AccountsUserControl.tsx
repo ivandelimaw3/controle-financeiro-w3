@@ -14,17 +14,17 @@ export const AccountsUserControl: React.FC = () => {
   };
 
   return (
-    <div className="bg-card rounded-xl p-4 shadow-md border border-border">
+    <div className="bg-gradient-to-r from-blue-500 to-green-500 rounded-xl p-4 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="bg-primary/10 rounded-full p-2">
-            <User className="h-5 w-5 text-primary" />
+          <div className="bg-white/20 rounded-full p-2">
+            <User className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-medium text-white">
               {user?.email}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-white/80">
               Usuário autenticado
             </p>
           </div>
@@ -33,7 +33,7 @@ export const AccountsUserControl: React.FC = () => {
           onClick={handleSignOut}
           variant="ghost"
           size="sm"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          className="text-white hover:bg-white/20"
         >
           <LogOut className="h-4 w-4" />
         </Button>
