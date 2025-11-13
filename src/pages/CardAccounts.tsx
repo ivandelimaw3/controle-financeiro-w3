@@ -21,7 +21,7 @@ import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const CardAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,14 +32,16 @@ const CardAccounts = () => {
 
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Estado do mês/ano atual
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
-  // Reset state quando a página é montada
+  // Reset state quando a página é montada ou quando a location muda
   useEffect(() => {
+    console.log('CardAccounts montado/atualizado:', location.pathname);
     const today = new Date();
     setCurrentMonth(today.getMonth());
     setCurrentYear(today.getFullYear());
@@ -49,7 +51,7 @@ const CardAccounts = () => {
     setMonthFilter(today.getMonth().toString());
     setYearFilter(today.getFullYear().toString());
     setIsShowingAll(false);
-  }, []);
+  }, [location.pathname]);
 
   // Estados dos filtros
   const [searchTerm, setSearchTerm] = useState('');
