@@ -15,6 +15,7 @@ import {
 import { CardAccountFormModal } from '@/components/CardAccounts/CardAccountFormModal';
 import { CardAccountsTable } from '@/components/CardAccounts/CardAccountsTable';
 import { CardAccountsSummaryCards } from '@/components/CardAccounts/CardAccountsSummaryCards';
+import { CardAccountsListMobile } from '@/components/CardAccounts/CardAccountsListMobile';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
 import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
@@ -223,19 +224,16 @@ const CardAccounts = () => {
               />
             )}
 
-            {/* Tabela de contas */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20">
+            {/* Lista de contas mobile */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-4">
               {loading ? (
                 <div className="flex justify-center py-12">
                   <div className="text-lg text-slate-600">Carregando contas...</div>
                 </div>
               ) : (
-                <CardAccountsTable
+                <CardAccountsListMobile
                   cardAccounts={filteredCardAccounts}
                   onEdit={handleOpenModal}
-                  onDelete={handleDelete}
-                  onStatusChange={handleStatusChange}
-                  isDeleting={isDeleting}
                 />
               )}
             </div>
