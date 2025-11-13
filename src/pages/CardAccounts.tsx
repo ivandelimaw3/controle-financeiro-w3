@@ -225,18 +225,16 @@ const CardAccounts = () => {
             )}
 
             {/* Lista de contas mobile */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-4">
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="text-lg text-slate-600">Carregando contas...</div>
-                </div>
-              ) : (
-                <CardAccountsListMobile
-                  cardAccounts={filteredCardAccounts}
-                  onEdit={handleOpenModal}
-                />
-              )}
-            </div>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="text-lg text-slate-600">Carregando contas...</div>
+              </div>
+            ) : (
+              <CardAccountsListMobile
+                cardAccounts={filteredCardAccounts}
+                onEdit={handleOpenModal}
+              />
+            )}
 
             {/* Modal */}
             <CardAccountFormModal
