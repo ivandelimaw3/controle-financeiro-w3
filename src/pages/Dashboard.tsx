@@ -6,6 +6,7 @@ import { FinancialCard } from '@/components/Dashboard/FinancialCard';
 import { RecentTransactions } from '@/components/Dashboard/RecentTransactions';
 import { DashboardMonthNavigator } from '@/components/Dashboard/DashboardMonthNavigator';
 import { CreditCardPendingSummary } from '@/components/Dashboard/CreditCardPendingSummary';
+import { MobileUserCard } from '@/components/Dashboard/MobileUserCard';
 import { TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2, Menu } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { formatCurrency } from '@/utils/formatters';
@@ -142,14 +143,17 @@ const Dashboard: React.FC = () => {
       <Layout>
         <div className="space-y-2 sm:space-y-6">
           {isMobile && (
-            <Button
-              onClick={() => setShowMobileMenu(true)}
-              variant="outline"
-              className="mb-4 flex items-center gap-2"
-            >
-              <Menu className="h-5 w-5" />
-              Menu Principal
-            </Button>
+            <div className="space-y-3 mb-4">
+              <Button
+                onClick={() => setShowMobileMenu(true)}
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <Menu className="h-5 w-5" />
+                Menu Principal
+              </Button>
+              <MobileUserCard />
+            </div>
           )}
           
           <DashboardMonthNavigator
