@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Menu } from 'lucide-react';
+import { Plus, Menu, Search } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import {
@@ -145,47 +145,143 @@ const CardAccounts = () => {
     setAccountToDelete(null);
   };
 
-  const handleMonthChange = (direction: 'prev' | 'next') => {
-    let newMonth = currentMonth;
-    let newYear = currentYear;
+  // Renderização mobile vs desktop
+  if (isMobile) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+          <div className="space-y-4 p-4">
+            {/* Título no topo */}
+            <div className="text-center mb-4">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                Contas Cartões
+              </h1>
+              <p className="text-slate-600 mt-1">
+                Gerencie suas contas de cartões de crédito
+              </p>
+            </div>
 
-    if (direction === 'prev') {
-      newMonth = currentMonth - 1;
-      if (newMonth < 0) {
-        newMonth = 11;
-        newYear = currentYear - 1;
-      }
-    } else {
-      newMonth = currentMonth + 1;
-      if (newMonth > 11) {
-        newMonth = 0;
-        newYear = currentYear + 1;
-      }
-    }
-
-    setCurrentMonth(newMonth);
-    setCurrentYear(newYear);
-    setMonthFilter(newMonth.toString());
-    setYearFilter(newYear.toString());
-    setIsShowingAll(false);
-  };
-
-  return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <div className="container mx-auto p-6 space-y-6">
-          
-          {isMobile && (
+            {/* Botão Menu Principal */}
             <Button
               onClick={() => navigate('/')}
               variant="outline"
-              className="mb-4 flex items-center gap-2"
+              className="w-full flex items-center justify-center gap-2"
             >
               <Menu className="h-5 w-5" />
               Menu Principal
             </Button>
-          )}
-          
+
+            {/* Botão Nova Conta */}
+            <Button
+              onClick={() => handleOpenModal()}
+              className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+            >
+              <Plus size={18} className="mr-2" />
+              Nova Conta
+            </Button>
+
+            {/* Campo de pesquisa */}
+            <div className="relative">
+              <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Pesquisar contas..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Navegador de meses */}
+            <MonthNavigator
+              currentMonth={currentMonth}
+              currentYear={currentYear}
+              onMonthChange={(startDate, endDate, month, year) => {
+                setCurrentMonth(month);
+                setCurrentYear(year);
+                setMonthFilter(month.toString());
+                setYearFilter(year.toString());
+                setIsShowingAll(false);
+              }}
+              onShowAll={() => {
+                setIsShowingAll(!isShowingAll);
+                if (!isShowingAll) {
+                  setMonthFilter('todos');
+                  setYearFilter('todos');
+                } else {
+                  setMonthFilter(currentMonth.toString());
+                  setYearFilter(currentYear.toString());
+                }
+              }}
+              isShowingAll={isShowingAll}
+            />
+
+            {!loading && (
+              <CardAccountsSummaryCards 
+                cardAccounts={filteredCardAccounts} 
+                totalFound={filteredCardAccounts.length}
+              />
+            )}
+
+            {/* Tabela de contas */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20">
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="text-lg text-slate-600">Carregando contas...</div>
+                </div>
+              ) : (
+                <CardAccountsTable
+                  cardAccounts={filteredCardAccounts}
+                  onEdit={handleOpenModal}
+                  onDelete={handleDelete}
+                  onStatusChange={handleStatusChange}
+                  isDeleting={isDeleting}
+                />
+              )}
+            </div>
+
+            {/* Modal */}
+            <CardAccountFormModal
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              onSubmit={handleSubmit}
+              cardAccount={editingAccount}
+              isLoading={isCreating || isUpdating}
+            />
+
+            {/* Diálogo de Confirmação de Exclusão */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={cancelDelete}>
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={confirmDelete}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Versão Desktop
+  return (
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="container mx-auto p-6 space-y-6">
           {/* Header com Botão e Título */}
           <div className="flex items-start justify-between">
             {/* Botão totalmente à esquerda */}
@@ -201,7 +297,7 @@ const CardAccounts = () => {
             {/* Título alinhado acima do card "Total Pago" */}
             <div className="flex-1 ml-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div></div> {/* Espaço vazio para o primeiro card */}
+                <div></div>
                 <div className="text-center">
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
                     Contas Cartões
@@ -210,20 +306,16 @@ const CardAccounts = () => {
                     Gerencie suas contas de cartões de crédito
                   </p>
                 </div>
-                <div></div> {/* Espaço vazio para o terceiro card */}
-                <div></div> {/* Espaço vazio para o quarto card */}
+                <div></div>
+                <div></div>
               </div>
             </div>
           </div>
 
-          {/* Cards Informativos */}
           {!loading && (
             <CardAccountsSummaryCards 
               cardAccounts={filteredCardAccounts} 
               totalFound={filteredCardAccounts.length}
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              onMonthChange={handleMonthChange}
             />
           )}
 
