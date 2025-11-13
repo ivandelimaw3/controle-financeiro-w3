@@ -64,7 +64,7 @@ const App = () => {
                   <Route path="/card-accounts" element={
                     <ProtectedRoute>
                       <AccessControlWrapper>
-                        <CardAccounts key="card-accounts" />
+                        <CardAccounts />
                       </AccessControlWrapper>
                     </ProtectedRoute>
                   } />
