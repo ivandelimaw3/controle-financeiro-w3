@@ -145,23 +145,29 @@ const CardAccounts = () => {
     setAccountToDelete(null);
   };
 
-  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
-    setCurrentMonth(month);
-    setCurrentYear(year);
-    setMonthFilter(month.toString());
-    setYearFilter(year.toString());
-    setIsShowingAll(false);
-  };
+  const handleMonthChange = (direction: 'prev' | 'next') => {
+    let newMonth = currentMonth;
+    let newYear = currentYear;
 
-  const handleShowAll = () => {
-    setIsShowingAll(!isShowingAll);
-    if (!isShowingAll) {
-      setMonthFilter('todos');
-      setYearFilter('todos');
+    if (direction === 'prev') {
+      newMonth = currentMonth - 1;
+      if (newMonth < 0) {
+        newMonth = 11;
+        newYear = currentYear - 1;
+      }
     } else {
-      setMonthFilter(currentMonth.toString());
-      setYearFilter(currentYear.toString());
+      newMonth = currentMonth + 1;
+      if (newMonth > 11) {
+        newMonth = 0;
+        newYear = currentYear + 1;
+      }
     }
+
+    setCurrentMonth(newMonth);
+    setCurrentYear(newYear);
+    setMonthFilter(newMonth.toString());
+    setYearFilter(newYear.toString());
+    setIsShowingAll(false);
   };
 
   return (
@@ -215,6 +221,9 @@ const CardAccounts = () => {
             <CardAccountsSummaryCards 
               cardAccounts={filteredCardAccounts} 
               totalFound={filteredCardAccounts.length}
+              currentMonth={currentMonth}
+              currentYear={currentYear}
+              onMonthChange={handleMonthChange}
             />
           )}
 
@@ -231,15 +240,6 @@ const CardAccounts = () => {
             yearFilter={yearFilter}
             setYearFilter={setYearFilter}
             accounts={filteredCardAccounts}
-          />
-
-          {/* Month Navigator */}
-          <MonthNavigator
-            currentMonth={currentMonth}
-            currentYear={currentYear}
-            onMonthChange={handleMonthChange}
-            onShowAll={handleShowAll}
-            isShowingAll={isShowingAll}
           />
 
           {/* Tabela */}
