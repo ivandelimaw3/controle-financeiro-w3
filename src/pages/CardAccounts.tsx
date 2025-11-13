@@ -41,7 +41,6 @@ const CardAccounts = () => {
 
   // Reset state quando a página é montada ou quando a location muda
   useEffect(() => {
-    console.log('CardAccounts montado/atualizado:', location.pathname);
     const today = new Date();
     setCurrentMonth(today.getMonth());
     setCurrentYear(today.getFullYear());
@@ -51,7 +50,7 @@ const CardAccounts = () => {
     setMonthFilter(today.getMonth().toString());
     setYearFilter(today.getFullYear().toString());
     setIsShowingAll(false);
-  }, [location.pathname]);
+  }, [location.key]);
 
   // Estados dos filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -162,15 +161,9 @@ const CardAccounts = () => {
   };
 
   // Renderização mobile vs desktop
-  useEffect(() => {
-    console.log('Mobile check:', isMobile);
-    console.log('Current route:', location.pathname);
-  }, [isMobile, location.pathname]);
-
   if (isMobile) {
-    console.log('Renderizando versão MOBILE');
     return (
-      <Layout>
+      <Layout key={`card-accounts-mobile-${location.pathname}`}>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
           <div className="space-y-4 p-4">
             {/* Título no topo */}
