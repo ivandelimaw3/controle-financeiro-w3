@@ -1,29 +1,18 @@
 
 import React from 'react';
-import { CreditCard, CheckCircle, Clock, Calendar, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { CreditCard, CheckCircle, Clock, Calendar } from 'lucide-react';
 import { CardAccount } from '@/hooks/useCardAccounts';
 import { formatCurrency } from '@/utils/formatters';
-import { Button } from '@/components/ui/button';
 
 interface CardAccountsSummaryCardsProps {
   cardAccounts: CardAccount[];
   totalFound: number;
-  currentMonth: number;
-  currentYear: number;
-  onMonthChange: (direction: 'prev' | 'next') => void;
 }
 
 export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> = ({
   cardAccounts,
-  totalFound,
-  currentMonth,
-  currentYear,
-  onMonthChange
+  totalFound
 }) => {
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
   // Cálculos dos totais
   const totalAmount = cardAccounts.reduce((sum, account) => sum + account.amount, 0);
   const paidAccounts = cardAccounts.filter(account => account.status === 'pago').length;
@@ -47,72 +36,6 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
 
   return (
     <div className="mb-6">
-      {/* Card principal com título e navegador */}
-      <div className="mb-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
-        {/* Header section */}
-        <div className="flex items-center justify-between">
-          <div className="text-left flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <FileText className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800 mb-1">Contas de Cartão</h1>
-              <p className="text-sm text-slate-600">Gerencie suas contas de cartão de crédito</p>
-            </div>
-          </div>
-          
-          {/* Desktop month navigator */}
-          <div className="hidden md:flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onMonthChange('prev')}
-              className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-            >
-              <ChevronLeft size={16} />
-            </Button>
-
-            <div className="text-xl font-bold text-slate-800 min-w-[180px] text-center">
-              {monthNames[currentMonth]} {currentYear}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onMonthChange('next')}
-              className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-            >
-              <ChevronRight size={16} />
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile month navigator */}
-        <div className="md:hidden flex items-center justify-center gap-3 mt-4 pt-4 border-t border-slate-200">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onMonthChange('prev')}
-            className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-          >
-            <ChevronLeft size={16} />
-          </Button>
-
-          <div className="text-lg font-bold text-slate-800 min-w-[160px] text-center">
-            {monthNames[currentMonth]} {currentYear}
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onMonthChange('next')}
-            className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:border-blue-300"
-          >
-            <ChevronRight size={16} />
-          </Button>
-        </div>
-      </div>
-
       {/* Total de contas encontradas */}
       <div className="mb-4">
         <p className="text-sm text-slate-600">
