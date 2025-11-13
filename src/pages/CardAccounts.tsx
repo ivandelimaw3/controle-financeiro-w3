@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Menu, Search } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,19 @@ const CardAccounts = () => {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
+
+  // Reset state quando a página é montada
+  useEffect(() => {
+    const today = new Date();
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
+    setSearchTerm('');
+    setStatusFilter('todos');
+    setTypeFilter('todos');
+    setMonthFilter(today.getMonth().toString());
+    setYearFilter(today.getFullYear().toString());
+    setIsShowingAll(false);
+  }, []);
 
   // Estados dos filtros
   const [searchTerm, setSearchTerm] = useState('');
