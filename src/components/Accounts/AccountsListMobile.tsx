@@ -70,16 +70,19 @@ export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts
   };
 
   const handleDeleteClick = () => {
-    setSelectedAccount(null);
     setShowDeleteDialog(true);
   };
 
   const handleDeleteConfirm = () => {
     if (selectedAccount) {
       onDelete?.(selectedAccount.id);
-      setShowDeleteDialog(false);
-      setSelectedAccount(null);
     }
+    setShowDeleteDialog(false);
+    setSelectedAccount(null);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -141,7 +144,7 @@ export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts
       </Sheet>
 
       {/* Dialog de confirmação de exclusão */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={(open) => !open && handleCancelDelete()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
@@ -150,7 +153,7 @@ export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCancelDelete}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700"
