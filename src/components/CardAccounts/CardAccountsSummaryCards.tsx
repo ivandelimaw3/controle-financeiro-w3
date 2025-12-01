@@ -24,35 +24,33 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
     .reduce((sum, account) => sum + account.amount, 0);
 
   // Calcular dias até o próximo vencimento
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  
   const pendingAccounts = cardAccounts.filter(account => account.status === 'pendente');
   
   let daysUntilNextDue: number | null = null;
   let nextDueCount = 0;
   
   if (pendingAccounts.length > 0) {
-    const sortedByDueDate = [...pendingAccounts].sort((a, b) => {
-      return a.due_date.localeCompare(b.due_date);
-    });
+    const today = new Date().toISOString().split('T')[0];
     
-    const nextDueDateStr = sortedByDueDate[0].due_date;
-    
-    // Calcular diferença de dias usando apenas strings de data (YYYY-MM-DD)
-    const [todayYear, todayMonth, todayDay] = todayStr.split('-').map(Number);
-    const [dueYear, dueMonth, dueDay] = nextDueDateStr.split('-').map(Number);
-    
-    const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
-    const dueDate = new Date(dueYear, dueMonth - 1, dueDay);
-    
-    const diffTime = dueDate.getTime() - todayDate.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    
-    daysUntilNextDue = diffDays;
-    
-    // Contar quantas contas vencem nesta data
-    nextDueCount = pendingAccounts.filter(account => account.due_date === nextDueDateStr).length;
+    // Encontrar a conta com a data de vencimento mais próxima
+    const nextDueAccount = pendingAccounts.reduce((closest, current) => {
+      if (!current.due_date) return closest;
+      if (!closest || !closest.due_date) return current;
+      return current.due_date < closest.due_date ? current : closest;
+    }, pendingAccounts[0]);
+
+    if (nextDueAccount?.due_date) {
+      // Calcular dias até vencer comparando strings de data
+      const todayTime = new Date(today).getTime();
+      const dueTime = new Date(nextDueAccount.due_date).getTime();
+      const diffTime = dueTime - todayTime;
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      daysUntilNextDue = diffDays >= 0 ? diffDays : null;
+      
+      // Contar quantas contas vencem na mesma data
+      nextDueCount = pendingAccounts.filter(acc => acc.due_date === nextDueAccount.due_date).length;
+    }
   }
 
   return (
