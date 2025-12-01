@@ -7,11 +7,15 @@ import { formatCurrency } from '@/utils/formatters';
 interface CardAccountsSummaryCardsProps {
   cardAccounts: CardAccount[];
   totalFound: number;
+  dueDays: number;
+  onDueDaysChange: (days: number) => void;
 }
 
 export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> = ({
   cardAccounts,
-  totalFound
+  totalFound,
+  dueDays,
+  onDueDaysChange
 }) => {
   // Cálculos dos totais
   const totalAmount = cardAccounts.reduce((sum, account) => sum + account.amount, 0);
@@ -24,14 +28,14 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
     .filter(account => account.status === 'pendente')
     .reduce((sum, account) => sum + account.amount, 0);
 
-  // Contas vencendo nos próximos 7 dias
+  // Contas vencendo nos próximos X dias (configurável)
   const today = new Date();
-  const nextWeek = new Date(today);
-  nextWeek.setDate(today.getDate() + 7);
+  const futureDate = new Date(today);
+  futureDate.setDate(today.getDate() + dueDays);
   
   const dueSoonAccounts = cardAccounts.filter(account => {
     const dueDate = new Date(account.due_date);
-    return dueDate >= today && dueDate <= nextWeek && account.status === 'pendente';
+    return dueDate >= today && dueDate <= futureDate && account.status === 'pendente';
   }).length;
 
   return (
@@ -90,18 +94,32 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
           </div>
         </div>
 
-       {/* Vencendo Esta Semana */}
+       {/* Vencendo nos Próximos X Dias */}
         <div className="p-4 bg-red-50 rounded-xl border border-red-200">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-100 rounded-lg">
               <Calendar size={20} className="text-red-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-slate-600">Vencendo Esta Semana</p>
-              <p className="text-xl font-bold text-red-600">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-slate-600">Vencendo em</p>
+                <select
+                  value={dueDays}
+                  onChange={(e) => onDueDaysChange(Number(e.target.value))}
+                  className="text-xs px-2 py-1 bg-white border border-red-200 rounded focus:outline-none focus:ring-2 focus:ring-red-300"
+                >
+                  <option value={3}>3 dias</option>
+                  <option value={5}>5 dias</option>
+                  <option value={7}>7 dias</option>
+                  <option value={10}>10 dias</option>
+                  <option value={15}>15 dias</option>
+                  <option value={30}>30 dias</option>
+                </select>
+              </div>
+              <p className="text-xl font-bold text-red-600 mt-1">
                {dueSoonAccounts}
               </p>
-              <p className="text-sm text-slate-500 mt-1">Próximos 7 dias</p>
+              <p className="text-xs text-slate-500 mt-1">Próximos {dueDays} dias</p>
             </div>
           </div>
         </div>
