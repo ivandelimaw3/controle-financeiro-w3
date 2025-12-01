@@ -77,69 +77,69 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
   const { daysUntilNextDue, nextDueCount } = calculateDaysUntilNextDue();
 
   return (
-    <div className="grid grid-cols-2 gap-3 mb-6">
+    <div className="space-y-3">
       {/* Saldo Anterior */}
-      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-start">
-          <div className="p-1.5 bg-purple-100 rounded">
-            <ArrowLeft size={16} className="text-purple-600" />
+      <div className="bg-card border rounded-lg p-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="p-2 bg-purple-100 rounded-lg flex-shrink-0">
+            <ArrowLeft size={18} className="text-purple-600" />
           </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-slate-600 font-medium mb-1">Saldo Anterior</p>
-          <p className={`text-base font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {formatCurrency(previousBalance)}
-          </p>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground">Saldo Anterior</p>
+            <p className={`text-sm font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(previousBalance)}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Total Recebido */}
-      <div className="p-3 bg-green-50 rounded-lg border border-green-200 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-start">
-          <div className="p-1.5 bg-green-100 rounded">
-            <TrendingUp size={16} className="text-green-600" />
+      <div className="bg-card border rounded-lg p-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
+            <TrendingUp size={18} className="text-green-600" />
           </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-slate-600 font-medium mb-1">Total Recebido</p>
-          <p className="text-base font-bold text-green-600">
-            {formatCurrency(calculateTotalRecebido())}
-          </p>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground">Total Recebido</p>
+            <p className="text-sm font-bold text-green-600">
+              {formatCurrency(calculateTotalRecebido())}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Total Pago */}
-      <div className="p-3 bg-red-50 rounded-lg border border-red-200 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-start">
-          <div className="p-1.5 bg-red-100 rounded">
-            <TrendingDown size={16} className="text-red-600" />
+      <div className="bg-card border rounded-lg p-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+            <TrendingDown size={18} className="text-red-600" />
           </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-slate-600 font-medium mb-1">Total Pago</p>
-          <p className="text-base font-bold text-red-600">
-            {formatCurrency(calculateTotalPago())}
-          </p>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground">Total Pago</p>
+            <p className="text-sm font-bold text-red-600">
+              {formatCurrency(calculateTotalPago())}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Despesas Pendentes */}
-      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 col-span-2 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-start">
-          <div className="p-1.5 bg-yellow-100 rounded">
-            <Hourglass size={16} className="text-yellow-600" />
+      <div className="bg-card border rounded-lg p-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
+            <Hourglass size={18} className="text-yellow-600" />
           </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-slate-600 font-medium mb-1">Despesas Pendentes</p>
-          <p className="text-base font-bold text-red-600">
-            {formatCurrency(calculateDespesasPendentes())}
-          </p>
-          {daysUntilNextDue !== null && (
-            <p className="text-xs font-normal text-slate-600 mt-1">
-              Vence em {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''} ({nextDueCount} conta{nextDueCount !== 1 ? 's' : ''})
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground">Despesas Pendentes</p>
+            <p className="text-sm font-bold text-red-600">
+              {formatCurrency(calculateDespesasPendentes())}
             </p>
-          )}
+            {daysUntilNextDue !== null && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Vence em {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''} ({nextDueCount} conta{nextDueCount !== 1 ? 's' : ''})
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
