@@ -16,8 +16,8 @@ export const MonthYearStepperMobile: React.FC<MonthYearStepperMobileProps> = ({
   isShowingAll
 }) => {
   const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
   ];
 
   const handleMonthChange = (month: number, year: number) => {
@@ -57,48 +57,48 @@ export const MonthYearStepperMobile: React.FC<MonthYearStepperMobileProps> = ({
   }
 
   return (
-    <div className="bg-card border rounded-lg p-3 flex items-center justify-between gap-4">
+    <div className="bg-card border rounded-lg p-2 flex items-center justify-between gap-2">
       {/* Stepper de Ano */}
-      <div className="flex items-center gap-2 flex-1">
+      <div className="flex items-center gap-1 flex-1">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigateYear('prev')}
-          className="h-8 w-8 p-0"
+          className="h-7 w-7 p-0"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="text-sm font-semibold text-center flex-1">
+        <div className="text-xs font-semibold text-center flex-1">
           {currentYear}
         </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigateYear('next')}
-          className="h-8 w-8 p-0"
+          className="h-7 w-7 p-0"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Stepper de Mês */}
-      <div className="flex items-center gap-2 flex-1">
+      <div className="flex items-center gap-1 flex-1">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigateMonth('prev')}
-          className="h-8 w-8 p-0"
+          className="h-7 w-7 p-0"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="text-sm font-semibold text-center flex-1">
+        <div className="text-xs font-semibold text-center flex-1">
           {monthNames[currentMonth]}
         </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigateMonth('next')}
-          className="h-8 w-8 p-0"
+          className="h-7 w-7 p-0"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

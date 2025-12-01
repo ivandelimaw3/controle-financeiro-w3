@@ -203,7 +203,7 @@ const Analise: React.FC = () => {
     if (percent < 0.03) return null; // Não mostrar label para fatias muito pequenas (menos de 3%)
     
     const RADIAN = Math.PI / 180;
-    const radius = outerRadius + 25; // Posicionar fora do círculo
+    const radius = outerRadius + (isMobile ? 18 : 25); // Posicionar mais próximo no mobile
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -214,7 +214,7 @@ const Analise: React.FC = () => {
         fill="#334155" 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        fontSize={isMobile ? "11" : "13"}
+        fontSize={isMobile ? "10" : "13"}
         fontWeight="600"
       >
         {`${(percent * 100).toFixed(1)}%`}
@@ -394,7 +394,7 @@ const Analise: React.FC = () => {
                 <div className="text-base md:text-lg font-medium text-slate-700 text-center">
                   Despesas de {months[selectedMonth].label} de {selectedYear}
                 </div>
-                <ResponsiveContainer width="100%" height={isMobile ? 400 : 500}>
+                <ResponsiveContainer width="100%" height={isMobile ? 350 : 500}>
                   <PieChart>
                     <Pie
                       data={pieChartData}
@@ -405,7 +405,7 @@ const Analise: React.FC = () => {
                         strokeWidth: 1,
                       }}
                       label={renderCustomizedLabel}
-                      outerRadius={isMobile ? 120 : 160}
+                      outerRadius={isMobile ? 100 : 160}
                       fill="#8884d8"
                       dataKey="value"
                       stroke="#fff"
