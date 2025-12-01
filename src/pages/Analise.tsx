@@ -306,23 +306,26 @@ const Analise: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="min-h-[350px] md:min-h-[400px]">
-              <ResponsiveContainer width="100%" height={isMobile ? 350 : 400}>
+            <ChartContainer config={chartConfig} className="min-h-[300px] md:min-h-[400px]">
+              <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
                 <BarChart 
                   data={barChartData} 
-                  margin={{ top: 20, right: isMobile ? 10 : 30, left: isMobile ? 0 : 20, bottom: 5 }}
+                  margin={{ top: 20, right: isMobile ? 5 : 30, left: isMobile ? -10 : 20, bottom: isMobile ? 20 : 5 }}
+                  barGap={isMobile ? 2 : 4}
+                  barCategoryGap={isMobile ? '15%' : '20%'}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis 
                     dataKey="month" 
-                    tick={{ fontSize: isMobile ? 11 : 13, fill: '#64748b' }}
-                    angle={isMobile ? -45 : 0}
-                    textAnchor={isMobile ? 'end' : 'middle'}
-                    height={isMobile ? 80 : 60}
+                    tick={{ fontSize: isMobile ? 10 : 13, fill: '#64748b' }}
+                    angle={0}
+                    textAnchor="middle"
+                    height={isMobile ? 50 : 60}
                   />
                   <YAxis 
-                    tick={{ fontSize: isMobile ? 11 : 13, fill: '#64748b' }}
-                    tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                    tick={{ fontSize: isMobile ? 10 : 13, fill: '#64748b' }}
+                    tickFormatter={(value) => isMobile ? `${(value / 1000).toFixed(0)}k` : `R$ ${(value / 1000).toFixed(0)}k`}
+                    width={isMobile ? 35 : 60}
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
@@ -335,11 +338,13 @@ const Analise: React.FC = () => {
                     dataKey="receitas" 
                     fill="var(--color-receitas)" 
                     radius={[8, 8, 0, 0]}
+                    maxBarSize={isMobile ? 40 : 60}
                   />
                   <Bar 
                     dataKey="despesas" 
                     fill="var(--color-despesas)" 
                     radius={[8, 8, 0, 0]}
+                    maxBarSize={isMobile ? 40 : 60}
                   />
                 </BarChart>
               </ResponsiveContainer>
