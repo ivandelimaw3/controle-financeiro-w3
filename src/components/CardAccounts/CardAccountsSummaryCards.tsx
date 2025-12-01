@@ -25,7 +25,7 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
 
   // Calcular dias até o próximo vencimento
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   
   const pendingAccounts = cardAccounts.filter(account => account.status === 'pendente');
   
@@ -34,23 +34,25 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
   
   if (pendingAccounts.length > 0) {
     const sortedByDueDate = [...pendingAccounts].sort((a, b) => {
-      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      return a.due_date.localeCompare(b.due_date);
     });
     
-    const nextDueDate = new Date(sortedByDueDate[0].due_date);
-    nextDueDate.setHours(0, 0, 0, 0);
+    const nextDueDateStr = sortedByDueDate[0].due_date;
     
-    const diffTime = nextDueDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Calcular diferença de dias usando apenas strings de data (YYYY-MM-DD)
+    const [todayYear, todayMonth, todayDay] = todayStr.split('-').map(Number);
+    const [dueYear, dueMonth, dueDay] = nextDueDateStr.split('-').map(Number);
+    
+    const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
+    const dueDate = new Date(dueYear, dueMonth - 1, dueDay);
+    
+    const diffTime = dueDate.getTime() - todayDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     
     daysUntilNextDue = diffDays;
     
     // Contar quantas contas vencem nesta data
-    nextDueCount = pendingAccounts.filter(account => {
-      const accountDueDate = new Date(account.due_date);
-      accountDueDate.setHours(0, 0, 0, 0);
-      return accountDueDate.getTime() === nextDueDate.getTime();
-    }).length;
+    nextDueCount = pendingAccounts.filter(account => account.due_date === nextDueDateStr).length;
   }
 
   return (

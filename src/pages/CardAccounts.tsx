@@ -103,7 +103,7 @@ const CardAccounts = () => {
     if (cardAccounts.length === 0) return;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     const pendingAccounts = cardAccounts.filter(account => account.status === 'pendente');
     
@@ -111,11 +111,14 @@ const CardAccounts = () => {
 
     // Encontrar contas que vencem em 1 dia
     const accountsDueIn1Day = pendingAccounts.filter(account => {
-      const dueDate = new Date(account.due_date);
-      dueDate.setHours(0, 0, 0, 0);
+      const [todayYear, todayMonth, todayDay] = todayStr.split('-').map(Number);
+      const [dueYear, dueMonth, dueDay] = account.due_date.split('-').map(Number);
       
-      const diffTime = dueDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
+      const dueDate = new Date(dueYear, dueMonth - 1, dueDay);
+      
+      const diffTime = dueDate.getTime() - todayDate.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
       
       return diffDays === 1;
     });
