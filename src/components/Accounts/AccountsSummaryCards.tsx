@@ -1,6 +1,6 @@
 // components/Accounts/AccountsSummaryCards.tsx
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, History } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, DollarSign, ArrowLeft } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
@@ -101,9 +101,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
       {/* Saldo Anterior */}
       <div className="p-4 bg-purple-50 rounded-xl border border-purple-200 flex flex-col justify-between min-h-[100px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-2 bg-purple-100 rounded-lg">
-            <History size={20} className="text-purple-600" />
+            <ArrowLeft size={20} className="text-purple-600" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
@@ -116,7 +116,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
 
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200 flex flex-col justify-between min-h-[100px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-2 bg-green-100 rounded-lg">
             <TrendingUp size={20} className="text-green-600" />
           </div>
@@ -131,7 +131,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
 
       {/* Total Pago */}
       <div className="p-4 bg-red-50 rounded-xl border border-red-200 flex flex-col justify-between min-h-[100px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-2 bg-red-100 rounded-lg">
             <TrendingDown size={20} className="text-red-600" />
           </div>
@@ -146,7 +146,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
 
       {/* Saldo Final */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 flex flex-col justify-between min-h-[100px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-2 bg-blue-100 rounded-lg">
             <DollarSign size={20} className="text-blue-600" />
           </div>
@@ -161,7 +161,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
 
       {/* Despesas Pendentes */}
       <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 flex flex-col justify-between min-h-[100px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-2 bg-yellow-100 rounded-lg">
             <Clock size={20} className="text-yellow-600" />
           </div>
@@ -176,7 +176,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
 
       {/* Contas Vencendo em X dias */}
       <div className="p-4 bg-orange-50 rounded-xl border border-orange-200 flex flex-col justify-between min-h-[100px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-2 bg-orange-100 rounded-lg">
             <Clock size={20} className="text-orange-600" />
           </div>

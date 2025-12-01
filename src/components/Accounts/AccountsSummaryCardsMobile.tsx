@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, History } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, ArrowLeft } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsMobileProps {
@@ -80,9 +80,9 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
     <div className="grid grid-cols-2 gap-3 mb-6">
       {/* Saldo Anterior */}
       <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-1.5 bg-purple-100 rounded">
-            <History size={16} className="text-purple-600" />
+            <ArrowLeft size={16} className="text-purple-600" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
@@ -95,7 +95,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
 
       {/* Total Recebido */}
       <div className="p-3 bg-green-50 rounded-lg border border-green-200 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-1.5 bg-green-100 rounded">
             <TrendingUp size={16} className="text-green-600" />
           </div>
@@ -110,7 +110,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
 
       {/* Total Pago */}
       <div className="p-3 bg-red-50 rounded-lg border border-red-200 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-1.5 bg-red-100 rounded">
             <TrendingDown size={16} className="text-red-600" />
           </div>
@@ -125,7 +125,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
 
       {/* Despesas Pendentes */}
       <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-1.5 bg-yellow-100 rounded">
             <Clock size={16} className="text-yellow-600" />
           </div>
@@ -140,7 +140,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
 
       {/* Contas Vencendo em X dias */}
       <div className="p-3 bg-orange-50 rounded-lg border border-orange-200 col-span-2 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <div className="p-1.5 bg-orange-100 rounded">
             <Clock size={16} className="text-orange-600" />
           </div>
