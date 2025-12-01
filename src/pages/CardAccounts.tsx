@@ -16,9 +16,12 @@ import {
 import { CardAccountFormModal } from '@/components/CardAccounts/CardAccountFormModal';
 import { CardAccountsTable } from '@/components/CardAccounts/CardAccountsTable';
 import { CardAccountsSummaryCards } from '@/components/CardAccounts/CardAccountsSummaryCards';
+import { CardAccountsSummaryCardsMobile } from '@/components/CardAccounts/CardAccountsSummaryCardsMobile';
 import { CardAccountsListMobile } from '@/components/CardAccounts/CardAccountsListMobile';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
+import { MonthYearStepperMobile } from '@/components/Accounts/MonthYearStepperMobile';
 import { AccountsFilters } from '@/components/Accounts/AccountsFilters';
+import { Input } from '@/components/ui/input';
 import { useCardAccounts, CardAccount, CardAccountFormData } from '@/hooks/useCardAccounts';
 import { useAccountsReminder } from '@/hooks/useAccountsReminder';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -206,19 +209,9 @@ const CardAccounts = () => {
   if (isMobile) {
     return (
       <Layout key={`card-accounts-mobile-${location.pathname}`}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-          <div className="space-y-4 p-4">
-            {/* Título no topo */}
-            <div className="text-center mb-4">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-                Contas Cartões
-              </h1>
-              <p className="text-slate-600 mt-1">
-                Gerencie suas contas de cartões de crédito
-              </p>
-            </div>
-
-            {/* Botão Menu Principal */}
+        <div className="space-y-4 p-4">
+          {/* Botões de ação */}
+          <div className="flex flex-col gap-3">
             <Button
               onClick={() => navigate('/')}
               variant="outline"
@@ -228,7 +221,6 @@ const CardAccounts = () => {
               Menu Principal
             </Button>
 
-            {/* Botão Nova Conta */}
             <Button
               onClick={() => handleOpenModal()}
               className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
@@ -236,94 +228,85 @@ const CardAccounts = () => {
               <Plus size={18} className="mr-2" />
               Nova Conta
             </Button>
-
-            {/* Campo de pesquisa */}
-            <div className="relative">
-              <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Pesquisar contas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Navegador de meses */}
-            <MonthNavigator
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              onMonthChange={(startDate, endDate, month, year) => {
-                setCurrentMonth(month);
-                setCurrentYear(year);
-                setMonthFilter(month.toString());
-                setYearFilter(year.toString());
-                setIsShowingAll(false);
-              }}
-              onShowAll={() => {
-                setIsShowingAll(!isShowingAll);
-                if (!isShowingAll) {
-                  setMonthFilter('todos');
-                  setYearFilter('todos');
-                } else {
-                  setMonthFilter(currentMonth.toString());
-                  setYearFilter(currentYear.toString());
-                }
-              }}
-              isShowingAll={isShowingAll}
-            />
-
-            {!loading && (
-              <CardAccountsSummaryCards 
-                cardAccounts={filteredCardAccounts} 
-                totalFound={filteredCardAccounts.length}
-              />
-            )}
-
-            {/* Lista de contas mobile */}
-            {loading ? (
-              <div className="flex justify-center py-12">
-                <div className="text-lg text-slate-600">Carregando contas...</div>
-              </div>
-            ) : (
-              <CardAccountsListMobile
-                cardAccounts={filteredCardAccounts}
-                onEdit={handleOpenModal}
-              />
-            )}
-
-            {/* Modal */}
-            <CardAccountFormModal
-              isOpen={isModalOpen}
-              onClose={handleCloseModal}
-              onSubmit={handleSubmit}
-              cardAccount={editingAccount}
-              isLoading={isCreating || isUpdating}
-            />
-
-            {/* Diálogo de Confirmação de Exclusão */}
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={cancelDelete}>
-                    Cancelar
-                  </AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={confirmDelete}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Excluir
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </div>
+
+          {/* Campo de pesquisa */}
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
+            <Input
+              placeholder="Pesquisar contas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Navegador de mês e ano compacto */}
+          <MonthYearStepperMobile
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onMonthChange={(startDate, endDate, month, year) => {
+              setCurrentMonth(month);
+              setCurrentYear(year);
+              setMonthFilter(month.toString());
+              setYearFilter(year.toString());
+              setIsShowingAll(false);
+            }}
+            isShowingAll={isShowingAll}
+          />
+
+          {/* Cards de resumo compactos */}
+          {!loading && (
+            <CardAccountsSummaryCardsMobile 
+              cardAccounts={filteredCardAccounts} 
+              totalFound={filteredCardAccounts.length}
+            />
+          )}
+
+          {/* Lista simplificada de contas */}
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="text-lg text-slate-600">Carregando contas...</div>
+            </div>
+          ) : (
+            <CardAccountsListMobile
+              cardAccounts={filteredCardAccounts}
+              onEdit={handleOpenModal}
+              onDelete={handleDelete}
+            />
+          )}
+
+          {/* Modal */}
+          <CardAccountFormModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            onSubmit={handleSubmit}
+            cardAccount={editingAccount}
+            isLoading={isCreating || isUpdating}
+          />
+
+          {/* Diálogo de Confirmação de Exclusão */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={cancelDelete}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={confirmDelete}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </Layout>
     );
