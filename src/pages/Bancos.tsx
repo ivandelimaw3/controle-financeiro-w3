@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { BankForm } from '@/components/Banks/BankForm';
 import { DepositForm } from '@/components/Banks/DepositForm';
 import { BanksList } from '@/components/Banks/BanksList';
-import { BanksListMobile } from '@/components/Banks/BanksListMobile';
 import { useBanksData, Bank, BankInput } from '@/hooks/useBanksData';
 import { useDepositsData } from '@/hooks/useDepositsData';
 import { useToast } from '@/hooks/use-toast';
@@ -258,25 +257,15 @@ const Bancos = () => {
           </div>
         </div>
 
-        {/* Banks List - Mobile or Desktop */}
-        {isMobile ? (
-          <BanksListMobile
+        {/* Banks List - Cards Grid */}
+        <div className={isMobile ? "space-y-4" : ""}>
+          <BanksList
             banks={filteredBanks}
             onEdit={handleEditBank}
             onDelete={handleDeleteBank}
             onAddDeposit={handleAddDeposit}
           />
-        ) : (
-          <>
-            {/* Banks Cards Grid */}
-            <BanksList
-              banks={filteredBanks}
-              onEdit={handleEditBank}
-              onDelete={handleDeleteBank}
-              onAddDeposit={handleAddDeposit}
-            />
-          </>
-        )}
+        </div>
 
         {/* Tabela - Desktop only */}
         {!isMobile && (
