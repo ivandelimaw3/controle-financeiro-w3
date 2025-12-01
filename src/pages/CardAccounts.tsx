@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Menu, Search } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,14 +34,12 @@ const CardAccounts = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
 
   // Estado do mês/ano atual
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  
-  // Estado para controlar quantos dias mostrar no card de vencimento
-  const [dueDays, setDueDays] = useState(7);
 
   // Reset state quando a página é montada ou quando a location muda
   useEffect(() => {
@@ -98,6 +97,39 @@ const CardAccounts = () => {
   }));
 
   useAccountsReminder(cardAccountsForReminder);
+
+  // Toast de aviso quando faltar 1 dia para vencer
+  useEffect(() => {
+    if (cardAccounts.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const pendingAccounts = cardAccounts.filter(account => account.status === 'pendente');
+    
+    if (pendingAccounts.length === 0) return;
+
+    // Encontrar contas que vencem em 1 dia
+    const accountsDueIn1Day = pendingAccounts.filter(account => {
+      const dueDate = new Date(account.due_date);
+      dueDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = dueDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays === 1;
+    });
+
+    if (accountsDueIn1Day.length > 0) {
+      const descriptions = accountsDueIn1Day.map(acc => acc.description).join(', ');
+      
+      toast({
+        title: "⚠️ Aviso de Vencimento",
+        description: `${accountsDueIn1Day.length} ${accountsDueIn1Day.length === 1 ? 'cartão vence' : 'cartões vencem'} amanhã: ${descriptions}`,
+        duration: 5000,
+      });
+    }
+  }, [cardAccounts, toast]);
 
   // Filtros
   const filteredCardAccounts = cardAccounts.filter(account => {
@@ -238,8 +270,6 @@ const CardAccounts = () => {
               <CardAccountsSummaryCards 
                 cardAccounts={filteredCardAccounts} 
                 totalFound={filteredCardAccounts.length}
-                dueDays={dueDays}
-                onDueDaysChange={setDueDays}
               />
             )}
 
@@ -331,8 +361,6 @@ const CardAccounts = () => {
             <CardAccountsSummaryCards 
               cardAccounts={filteredCardAccounts} 
               totalFound={filteredCardAccounts.length}
-              dueDays={dueDays}
-              onDueDaysChange={setDueDays}
             />
           )}
 
