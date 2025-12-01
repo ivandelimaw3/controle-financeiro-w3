@@ -198,33 +198,39 @@ const CartoesCredito = () => {
             </Button>
           )}
           
-          <div className="flex items-center justify-between">
+          <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800">Gestão de Cartões</h1>
-              <p className="text-slate-600 mt-1">
+              <h1 className={isMobile ? "text-2xl font-bold" : "text-3xl font-bold text-slate-800"}>
+                Gestão de Cartões
+              </h1>
+              <p className={isMobile ? "text-sm text-muted-foreground" : "text-slate-600 mt-1"}>
                 Gerencie seus cartões de crédito e acompanhe seus gastos
               </p>
             </div>
+            {!isMobile && (
+              <Button
+                onClick={() => setShowCardForm(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Cartão
+              </Button>
+            )}
+          </div>
+
+          {isMobile && (
             <Button
               onClick={() => setShowCardForm(true)}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
               Novo Cartão
             </Button>
-          </div>
+          )}
         </div>
       
-        {/* Cards Visuais dos Cartões */}
-        <CreditCardsList
-          cards={creditCards.slice(0, 8)}
-          onEdit={handleEditCard}
-          onDelete={handleDeleteCard}
-        />
-
-
         {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className={isMobile ? "space-y-3" : "bg-white rounded-xl shadow-sm border border-slate-200 p-6"}>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
@@ -262,8 +268,18 @@ const CartoesCredito = () => {
           </div>
         </div>
 
-        {/* Tabela */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        {/* Cards Visuais dos Cartões */}
+        <div className={isMobile ? "space-y-4" : ""}>
+          <CreditCardsList
+            cards={filteredCards}
+            onEdit={handleEditCard}
+            onDelete={handleDeleteCard}
+          />
+        </div>
+
+        {/* Tabela - Desktop only */}
+        {!isMobile && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-slate-300">
               <thead className="bg-slate-100 border-b-2 border-slate-300">
@@ -389,7 +405,8 @@ const CartoesCredito = () => {
               )}
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Dialog */}
         <Dialog open={showCardForm} onOpenChange={closeCardForm}>
