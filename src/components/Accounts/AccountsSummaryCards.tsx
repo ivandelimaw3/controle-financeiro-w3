@@ -166,7 +166,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
             <Clock size={20} className="text-yellow-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-slate-600">Despesas Pendentes</p>
+            <p className="text-sm text-slate-600">Pendentes</p>
             <p className="text-xl font-bold text-red-600">
               {formatCurrency(calculateDespesasPendentes())}
             </p>
@@ -181,7 +181,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
             <Clock size={20} className="text-orange-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-slate-600">Contas vencendo em</p>
+            <p className="text-sm text-slate-600">vencendo em</p>
             <p className="text-xl font-bold text-orange-600">
               {daysUntilNextDue !== null ? (
                 <>
