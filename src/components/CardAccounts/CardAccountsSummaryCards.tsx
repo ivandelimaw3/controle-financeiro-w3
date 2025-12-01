@@ -7,20 +7,15 @@ import { formatCurrency } from '@/utils/formatters';
 interface CardAccountsSummaryCardsProps {
   cardAccounts: CardAccount[];
   totalFound: number;
-  dueDays: number;
-  onDueDaysChange: (days: number) => void;
 }
 
 export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> = ({
   cardAccounts,
   totalFound,
-  dueDays,
-  onDueDaysChange
 }) => {
   // Cálculos dos totais
   const totalAmount = cardAccounts.reduce((sum, account) => sum + account.amount, 0);
   const paidAccounts = cardAccounts.filter(account => account.status === 'pago').length;
-  const pendingAccounts = cardAccounts.filter(account => account.status === 'pendente').length;
   const paidAmount = cardAccounts
     .filter(account => account.status === 'pago')
     .reduce((sum, account) => sum + account.amount, 0);
@@ -28,15 +23,35 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
     .filter(account => account.status === 'pendente')
     .reduce((sum, account) => sum + account.amount, 0);
 
-  // Contas vencendo nos próximos X dias (configurável)
+  // Calcular dias até o próximo vencimento
   const today = new Date();
-  const futureDate = new Date(today);
-  futureDate.setDate(today.getDate() + dueDays);
+  today.setHours(0, 0, 0, 0);
   
-  const dueSoonAccounts = cardAccounts.filter(account => {
-    const dueDate = new Date(account.due_date);
-    return dueDate >= today && dueDate <= futureDate && account.status === 'pendente';
-  }).length;
+  const pendingAccounts = cardAccounts.filter(account => account.status === 'pendente');
+  
+  let daysUntilNextDue: number | null = null;
+  let nextDueCount = 0;
+  
+  if (pendingAccounts.length > 0) {
+    const sortedByDueDate = [...pendingAccounts].sort((a, b) => {
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+    });
+    
+    const nextDueDate = new Date(sortedByDueDate[0].due_date);
+    nextDueDate.setHours(0, 0, 0, 0);
+    
+    const diffTime = nextDueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    daysUntilNextDue = diffDays;
+    
+    // Contar quantas contas vencem nesta data
+    nextDueCount = pendingAccounts.filter(account => {
+      const accountDueDate = new Date(account.due_date);
+      accountDueDate.setHours(0, 0, 0, 0);
+      return accountDueDate.getTime() === nextDueDate.getTime();
+    }).length;
+  }
 
   return (
     <div className="mb-6">
@@ -94,32 +109,28 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
           </div>
         </div>
 
-       {/* Vencendo nos Próximos X Dias */}
+       {/* Cartões vencendo em X dias */}
         <div className="p-4 bg-red-50 rounded-xl border border-red-200">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-100 rounded-lg">
               <Calendar size={20} className="text-red-600" />
             </div>
             <div className="flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm text-slate-600">Vencendo em</p>
-                <select
-                  value={dueDays}
-                  onChange={(e) => onDueDaysChange(Number(e.target.value))}
-                  className="text-xs px-2 py-1 bg-white border border-red-200 rounded focus:outline-none focus:ring-2 focus:ring-red-300"
-                >
-                  <option value={3}>3 dias</option>
-                  <option value={5}>5 dias</option>
-                  <option value={7}>7 dias</option>
-                  <option value={10}>10 dias</option>
-                  <option value={15}>15 dias</option>
-                  <option value={30}>30 dias</option>
-                </select>
-              </div>
-              <p className="text-xl font-bold text-red-600 mt-1">
-               {dueSoonAccounts}
-              </p>
-              <p className="text-xs text-slate-500 mt-1">Próximos {dueDays} dias</p>
+              <p className="text-sm text-slate-600">Cartões vencendo em</p>
+              {daysUntilNextDue !== null ? (
+                <>
+                  <p className="text-xl font-bold text-red-600">
+                    {daysUntilNextDue} {daysUntilNextDue === 1 ? 'dia' : 'dias'}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {nextDueCount} {nextDueCount === 1 ? 'conta' : 'contas'}
+                  </p>
+                </>
+              ) : (
+                <p className="text-xl font-bold text-slate-600">
+                  Nenhuma pendente
+                </p>
+              )}
             </div>
           </div>
         </div>
