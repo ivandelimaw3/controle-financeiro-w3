@@ -3,10 +3,11 @@ import React, { useState, useMemo } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { format, parseISO, getMonth, getYear, subMonths, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,6 +15,7 @@ import { ptBR } from 'date-fns/locale';
 const Analise: React.FC = () => {
   const { accounts } = useAccounts();
   const { categories } = useCategoriesData();
+  const isMobile = useIsMobile();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -172,11 +174,11 @@ const Analise: React.FC = () => {
   };
 
   // Componente customizado para labels do gráfico de pizza
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-    if (percent < 0.05) return null; // Não mostrar label para fatias muito pequenas (menos de 5%)
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
+    if (percent < 0.03) return null; // Não mostrar label para fatias muito pequenas (menos de 3%)
     
     const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const radius = outerRadius + 25; // Posicionar fora do círculo
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -184,58 +186,58 @@ const Analise: React.FC = () => {
       <text 
         x={x} 
         y={y} 
-        fill="white" 
+        fill="#334155" 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        fontSize="12"
-        fontWeight="bold"
+        fontSize={isMobile ? "11" : "13"}
+        fontWeight="600"
       >
-        {`${(percent * 100).toFixed(0)}%`}
+        {`${(percent * 100).toFixed(1)}%`}
       </text>
     );
   };
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-slate-800">Análise Gráfica</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Análise Gráfica</h1>
         </div>
 
         {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <Card className="border-l-4 border-l-green-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Receitas</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-slate-600">Total de Receitas</CardTitle>
+              <TrendingUp className="h-5 w-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                R$ {totals.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              <div className="text-3xl md:text-4xl font-bold text-green-600">
+                R$ {totals.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-l-4 border-l-red-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Despesas</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-sm font-medium text-slate-600">Total de Despesas</CardTitle>
+              <TrendingDown className="h-5 w-5 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                R$ {totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              <div className="text-3xl md:text-4xl font-bold text-red-600">
+                R$ {totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={`border-l-4 ${totals.saldo >= 0 ? 'border-l-blue-500' : 'border-l-orange-500'}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Saldo</CardTitle>
-              <DollarSign className={`h-4 w-4 ${totals.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+              <CardTitle className="text-sm font-medium text-slate-600">Saldo</CardTitle>
+              <DollarSign className={`h-5 w-5 ${totals.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${totals.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                R$ {totals.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              <div className={`text-3xl md:text-4xl font-bold ${totals.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                R$ {totals.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
@@ -244,15 +246,27 @@ const Analise: React.FC = () => {
         {/* Gráfico de Barras - Últimos 6 Meses */}
         <Card>
           <CardHeader>
-            <CardTitle>Receitas vs Despesas - Últimos 6 Meses</CardTitle>
+            <CardTitle className="text-lg md:text-xl">Receitas vs Despesas - Últimos 6 Meses</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="min-h-[300px]">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={barChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
+            <ChartContainer config={chartConfig} className="min-h-[350px] md:min-h-[400px]">
+              <ResponsiveContainer width="100%" height={isMobile ? 350 : 400}>
+                <BarChart 
+                  data={barChartData} 
+                  margin={{ top: 20, right: isMobile ? 10 : 30, left: isMobile ? 0 : 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    tick={{ fontSize: isMobile ? 11 : 13, fill: '#64748b' }}
+                    angle={isMobile ? -45 : 0}
+                    textAnchor={isMobile ? 'end' : 'middle'}
+                    height={isMobile ? 80 : 60}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: isMobile ? 11 : 13, fill: '#64748b' }}
+                    tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                  />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
                     formatter={(value: number) => [
@@ -260,22 +274,30 @@ const Analise: React.FC = () => {
                       ''
                     ]}
                   />
-                  <Bar dataKey="receitas" fill="var(--color-receitas)" />
-                  <Bar dataKey="despesas" fill="var(--color-despesas)" />
+                  <Bar 
+                    dataKey="receitas" 
+                    fill="var(--color-receitas)" 
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="despesas" 
+                    fill="var(--color-despesas)" 
+                    radius={[8, 8, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Controles e Gráfico de Pizza - Atualizado */}
+        {/* Controles e Gráfico de Pizza */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Despesas por Categoria</CardTitle>
-              <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <CardTitle className="text-lg md:text-xl">Despesas por Categoria</CardTitle>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Selecione o mês" />
                   </SelectTrigger>
                   <SelectContent>
@@ -288,7 +310,7 @@ const Analise: React.FC = () => {
                 </Select>
 
                 <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full sm:w-32">
                     <SelectValue placeholder="Ano" />
                   </SelectTrigger>
                   <SelectContent>
@@ -304,23 +326,26 @@ const Analise: React.FC = () => {
           </CardHeader>
           <CardContent>
             {pieChartData.length > 0 ? (
-              <div className="space-y-4">
-                <div className="text-sm text-slate-600">
+              <div className="space-y-6">
+                <div className="text-base md:text-lg font-medium text-slate-700 text-center">
                   Despesas de {months[selectedMonth].label} de {selectedYear}
                 </div>
-                <ResponsiveContainer width="100%" height={450}>
+                <ResponsiveContainer width="100%" height={isMobile ? 400 : 500}>
                   <PieChart>
                     <Pie
                       data={pieChartData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
+                      labelLine={{
+                        stroke: '#94a3b8',
+                        strokeWidth: 1,
+                      }}
                       label={renderCustomizedLabel}
-                      outerRadius={140}
+                      outerRadius={isMobile ? 120 : 160}
                       fill="#8884d8"
                       dataKey="value"
                       stroke="#fff"
-                      strokeWidth={2}
+                      strokeWidth={3}
                     >
                       {pieChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -331,35 +356,46 @@ const Analise: React.FC = () => {
                         `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
                         name
                       ]}
-                      labelFormatter={(label) => `Categoria: ${label}`}
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        fontSize: isMobile ? '13px' : '14px'
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
                 
                 {/* Legenda das categorias - Melhorada */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-8">
                   {pieChartData.map((category, index) => (
-                    <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-slate-50">
+                    <div 
+                      key={index} 
+                      className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200"
+                    >
                       <div 
-                        className="w-5 h-5 rounded-full flex-shrink-0" 
+                        className="w-6 h-6 rounded-full flex-shrink-0 shadow-sm" 
                         style={{ backgroundColor: category.color }}
                       ></div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium text-slate-700 block truncate">
+                        <span className="text-sm font-semibold text-slate-800 block truncate">
                           {category.name}
                         </span>
-                        <span className="text-xs text-slate-500">
-                          {category.percentage.toFixed(1)}% • R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </span>
+                        <div className="flex items-center gap-2 text-xs text-slate-600 mt-0.5">
+                          <span className="font-medium">{category.percentage.toFixed(1)}%</span>
+                          <span className="text-slate-400">•</span>
+                          <span>R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[450px] text-slate-500">
-                <p className="text-lg mb-2">Nenhuma despesa encontrada</p>
-                <p className="text-sm text-center">
+              <div className="flex flex-col items-center justify-center h-[400px] md:h-[500px] text-slate-500">
+                <p className="text-lg md:text-xl font-medium mb-2">Nenhuma despesa encontrada</p>
+                <p className="text-sm md:text-base text-center">
                   Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.
                 </p>
               </div>
