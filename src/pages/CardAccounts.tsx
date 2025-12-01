@@ -123,13 +123,17 @@ const CardAccounts = () => {
       return diffDays === 1;
     });
 
+    console.log('CardAccounts toast debug', {
+      todayStr,
+      pendingCount: pendingAccounts.length,
+      dueIn1DayCount: accountsDueIn1Day.length,
+    });
+
     if (accountsDueIn1Day.length > 0) {
-      const descriptions = accountsDueIn1Day.map(acc => acc.description).join(', ');
-      
       toast({
         title: "⚠️ Aviso de Vencimento",
-        description: `${accountsDueIn1Day.length} ${accountsDueIn1Day.length === 1 ? 'cartão vence' : 'cartões vencem'} amanhã: ${descriptions}`,
-        duration: 5000,
+        description: "Há contas de cartões a vencer. Verifique!",
+        duration: 2000,
       });
     }
   }, [cardAccounts, toast]);
