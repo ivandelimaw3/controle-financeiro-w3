@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, ArrowLeft } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, ArrowLeft, Hourglass } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsMobileProps {
@@ -142,7 +142,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
       <div className="p-3 bg-orange-50 rounded-lg border border-orange-200 col-span-2 flex flex-col justify-between min-h-[80px]">
         <div className="flex justify-start">
           <div className="p-1.5 bg-orange-100 rounded">
-            <Clock size={16} className="text-orange-600" />
+            <Hourglass size={16} className="text-orange-600" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
