@@ -105,9 +105,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <div className="p-2 bg-purple-100 rounded-lg">
             <History size={20} className="text-purple-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Saldo Anterior</p>
-            <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-lg font-bold truncate ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(previousBalance)}
             </p>
           </div>
@@ -120,9 +120,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <div className="p-2 bg-green-100 rounded-lg">
             <TrendingUp size={20} className="text-green-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Total Recebido</p>
-            <p className="text-xl font-bold text-green-600">
+            <p className="text-lg font-bold text-green-600 truncate">
               {formatCurrency(calculateTotalRecebido())}
             </p>
           </div>
@@ -135,9 +135,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <div className="p-2 bg-red-100 rounded-lg">
             <TrendingDown size={20} className="text-red-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Total Pago</p>
-            <p className="text-xl font-bold text-red-600">
+            <p className="text-lg font-bold text-red-600 truncate">
               {formatCurrency(calculateTotalPago())}
             </p>
           </div>
@@ -150,9 +150,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <div className="p-2 bg-blue-100 rounded-lg">
             <DollarSign size={20} className="text-blue-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Saldo Final</p>
-            <p className={`text-xl font-bold ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-lg font-bold truncate ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(calculateSaldoFinal())}
             </p>
           </div>
@@ -165,9 +165,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <div className="p-2 bg-yellow-100 rounded-lg">
             <Clock size={20} className="text-yellow-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Pendentes</p>
-            <p className="text-xl font-bold text-red-600">
+            <p className="text-lg font-bold text-red-600 truncate">
               {formatCurrency(calculateDespesasPendentes())}
             </p>
           </div>
@@ -180,9 +180,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <div className="p-2 bg-orange-100 rounded-lg">
             <Clock size={20} className="text-orange-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">vencendo em</p>
-            <p className="text-xl font-bold text-orange-600">
+            <p className="text-lg font-bold text-orange-600">
               {daysUntilNextDue !== null ? (
                 <>
                   {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''}

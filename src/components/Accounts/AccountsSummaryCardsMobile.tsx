@@ -86,7 +86,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
           </div>
           <p className="text-xs text-slate-600 font-medium">Saldo Anterior</p>
         </div>
-        <p className={`text-lg font-bold ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <p className={`text-base font-bold truncate ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           {formatCurrency(previousBalance)}
         </p>
       </div>
@@ -99,7 +99,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
           </div>
           <p className="text-xs text-slate-600 font-medium">Total Recebido</p>
         </div>
-        <p className="text-lg font-bold text-green-600">
+        <p className="text-base font-bold text-green-600 truncate">
           {formatCurrency(calculateTotalRecebido())}
         </p>
       </div>
@@ -112,7 +112,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
           </div>
           <p className="text-xs text-slate-600 font-medium">Total Pago</p>
         </div>
-        <p className="text-lg font-bold text-red-600">
+        <p className="text-base font-bold text-red-600 truncate">
           {formatCurrency(calculateTotalPago())}
         </p>
       </div>
@@ -125,7 +125,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
           </div>
           <p className="text-xs text-slate-600 font-medium">Despesas Pendentes</p>
         </div>
-        <p className="text-lg font-bold text-red-600">
+        <p className="text-base font-bold text-red-600 truncate">
           {formatCurrency(calculateDespesasPendentes())}
         </p>
       </div>
@@ -138,7 +138,7 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
           </div>
           <p className="text-xs text-slate-600 font-medium">Contas vencendo em</p>
         </div>
-        <p className="text-lg font-bold text-orange-600">
+        <p className="text-base font-bold text-orange-600">
           {daysUntilNextDue !== null ? (
             <>
               {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''} - {nextDueCount} conta{nextDueCount !== 1 ? 's' : ''}
