@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { BankForm } from '@/components/Banks/BankForm';
 import { DepositForm } from '@/components/Banks/DepositForm';
 import { BanksList } from '@/components/Banks/BanksList';
+import { BanksListMobile } from '@/components/Banks/BanksListMobile';
 import { useBanksData, Bank, BankInput } from '@/hooks/useBanksData';
 import { useDepositsData } from '@/hooks/useDepositsData';
 import { useToast } from '@/hooks/use-toast';
@@ -176,7 +177,7 @@ const Bancos = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
+      {/* Header */}
         <div className="flex flex-col space-y-4">
           {isMobile && (
             <Button
@@ -189,33 +190,39 @@ const Bancos = () => {
             </Button>
           )}
           
-          <div className="flex items-center justify-between">
+          <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800">Gestão de Bancos</h1>
-              <p className="text-slate-600 mt-1">
+              <h1 className={isMobile ? "text-2xl font-bold" : "text-3xl font-bold text-slate-800"}>
+                Gestão de Bancos
+              </h1>
+              <p className={isMobile ? "text-sm text-muted-foreground" : "text-slate-600 mt-1"}>
                 Gerencie bancos vinculados às suas contas cadastradas
               </p>
             </div>
+            {!isMobile && (
+              <Button
+                onClick={() => setShowBankForm(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Banco
+              </Button>
+            )}
+          </div>
+
+          {isMobile && (
             <Button
               onClick={() => setShowBankForm(true)}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
               Novo Banco
             </Button>
-          </div>
+          )}
         </div>
-      
-        {/* Banks Cards Grid */}
-        <BanksList
-          banks={filteredBanks}
-          onEdit={handleEditBank}
-          onDelete={handleDeleteBank}
-          onAddDeposit={handleAddDeposit}
-        />
 
         {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className={isMobile ? "space-y-3" : "bg-white rounded-xl shadow-sm border border-slate-200 p-6"}>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
@@ -251,128 +258,150 @@ const Bancos = () => {
           </div>
         </div>
 
-        {/* Tabela */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-slate-300">
-              <thead className="bg-slate-100 border-b-2 border-slate-300">
-                <tr>
-                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Banco</th>
-                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Conta</th>
-                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Tipo</th>
-                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Saldo</th>
-                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Status</th>
-                  <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Criado em</th>
-                  <th className="text-left p-4 font-semibold text-slate-800">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBanks.map((bank, index) => (
-                  <tr
-                    key={bank.id}
-                    className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
-                    }`}
-                  >
-                    <td className="py-3 px-4 border-r border-slate-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Building2 className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-slate-800">
-                            {bank.nickname || bank.name}
-                          </p>
-                          <p className="text-sm text-slate-500">{bank.name}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 border-r border-slate-200">
-                      <div>
-                        <p className="font-medium text-slate-800">{bank.account_number}</p>
-                        <p className="text-sm text-slate-500">Agência: {bank.agency}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 border-r border-slate-200">
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                        {getAccountTypeLabel(bank.account_type)}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 border-r border-slate-200">
-                      <span className={`font-semibold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatCurrency(bank.balance)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 border-r border-slate-200">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                        <span className={`text-sm ${getStatusColor(bank.balance)}`}>
-                          {getStatusLabel(bank.balance)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600 border-r border-slate-200">
-                      {formatDate(bank.created_at)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleAddDeposit(bank)}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditBank(bank)}
-                          className="text-slate-600 hover:text-slate-700"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteBank(bank.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* Banks List - Mobile or Desktop */}
+        {isMobile ? (
+          <BanksListMobile
+            banks={filteredBanks}
+            onEdit={handleEditBank}
+            onDelete={handleDeleteBank}
+            onAddDeposit={handleAddDeposit}
+          />
+        ) : (
+          <>
+            {/* Banks Cards Grid */}
+            <BanksList
+              banks={filteredBanks}
+              onEdit={handleEditBank}
+              onDelete={handleDeleteBank}
+              onAddDeposit={handleAddDeposit}
+            />
+          </>
+        )}
 
-          {filteredBanks.length === 0 && (
-            <div className="p-8 text-center text-slate-500">
-              <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-lg font-medium text-slate-600 mb-2">
-                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
-                  ? 'Nenhum banco encontrado'
-                  : 'Nenhum banco cadastrado'}
-              </p>
-              <p className="text-slate-500 mb-4">
-                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
-                  ? 'Tente ajustar os filtros de busca.'
-                  : 'Adicione sua primeira conta bancária para começar.'}
-              </p>
-              {!searchTerm && statusFilter === 'all' && typeFilter === 'all' && (
-                <Button
-                  onClick={() => setShowBankForm(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Primeiro Banco
-                </Button>
-              )}
+        {/* Tabela - Desktop only */}
+        {!isMobile && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-slate-300">
+                <thead className="bg-slate-100 border-b-2 border-slate-300">
+                  <tr>
+                    <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Banco</th>
+                    <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Conta</th>
+                    <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Tipo</th>
+                    <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Saldo</th>
+                    <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Status</th>
+                    <th className="text-left p-4 font-semibold text-slate-800 border-r border-slate-300">Criado em</th>
+                    <th className="text-left p-4 font-semibold text-slate-800">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBanks.map((bank, index) => (
+                    <tr
+                      key={bank.id}
+                      className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
+                      }`}
+                    >
+                      <td className="py-3 px-4 border-r border-slate-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Building2 className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-800">
+                              {bank.nickname || bank.name}
+                            </p>
+                            <p className="text-sm text-slate-500">{bank.name}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 border-r border-slate-200">
+                        <div>
+                          <p className="font-medium text-slate-800">{bank.account_number}</p>
+                          <p className="text-sm text-slate-500">Agência: {bank.agency}</p>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 border-r border-slate-200">
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                          {getAccountTypeLabel(bank.account_type)}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 border-r border-slate-200">
+                        <span className={`font-semibold ${bank.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(bank.balance)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 border-r border-slate-200">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${bank.balance >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className={`text-sm ${getStatusColor(bank.balance)}`}>
+                            {getStatusLabel(bank.balance)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-slate-600 border-r border-slate-200">
+                        {formatDate(bank.created_at)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleAddDeposit(bank)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditBank(bank)}
+                            className="text-slate-600 hover:text-slate-700"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteBank(bank.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
+
+            {filteredBanks.length === 0 && (
+              <div className="p-8 text-center text-slate-500">
+                <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <p className="text-lg font-medium text-slate-600 mb-2">
+                  {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+                    ? 'Nenhum banco encontrado'
+                    : 'Nenhum banco cadastrado'}
+                </p>
+                <p className="text-slate-500 mb-4">
+                  {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+                    ? 'Tente ajustar os filtros de busca.'
+                    : 'Adicione sua primeira conta bancária para começar.'}
+                </p>
+                {!searchTerm && statusFilter === 'all' && typeFilter === 'all' && (
+                  <Button
+                    onClick={() => setShowBankForm(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Primeiro Banco
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Dialogs */}
         <Dialog open={showBankForm} onOpenChange={closeBankForm}>
