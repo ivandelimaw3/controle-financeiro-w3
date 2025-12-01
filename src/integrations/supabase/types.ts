@@ -607,7 +607,7 @@ export type Database = {
         Returns: boolean
       }
       get_all_users_with_trial_info: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           days_remaining: number
@@ -620,7 +620,7 @@ export type Database = {
         }[]
       }
       get_pending_upgrade_requests: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           id: string
           notes: string
@@ -631,7 +631,7 @@ export type Database = {
         }[]
       }
       get_users_for_admin_review: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           days_remaining: number
@@ -669,10 +669,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      request_premium_upgrade: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      request_premium_upgrade: { Args: never; Returns: boolean }
       update_user_status: {
         Args: {
           extend_trial_days?: number

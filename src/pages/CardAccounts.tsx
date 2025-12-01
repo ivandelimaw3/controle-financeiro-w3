@@ -38,6 +38,9 @@ const CardAccounts = () => {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  
+  // Estado para controlar quantos dias mostrar no card de vencimento
+  const [dueDays, setDueDays] = useState(7);
 
   // Reset state quando a página é montada ou quando a location muda
   useEffect(() => {
@@ -235,6 +238,8 @@ const CardAccounts = () => {
               <CardAccountsSummaryCards 
                 cardAccounts={filteredCardAccounts} 
                 totalFound={filteredCardAccounts.length}
+                dueDays={dueDays}
+                onDueDaysChange={setDueDays}
               />
             )}
 
@@ -326,6 +331,8 @@ const CardAccounts = () => {
             <CardAccountsSummaryCards 
               cardAccounts={filteredCardAccounts} 
               totalFound={filteredCardAccounts.length}
+              dueDays={dueDays}
+              onDueDaysChange={setDueDays}
             />
           )}
 
