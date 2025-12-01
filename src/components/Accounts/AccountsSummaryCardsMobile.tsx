@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, ArrowLeft, Hourglass } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowLeft, Hourglass } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsMobileProps {
@@ -124,10 +124,10 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
       </div>
 
       {/* Despesas Pendentes */}
-      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 flex flex-col justify-between min-h-[80px]">
+      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 col-span-2 flex flex-col justify-between min-h-[80px]">
         <div className="flex justify-start">
           <div className="p-1.5 bg-yellow-100 rounded">
-            <Clock size={16} className="text-yellow-600" />
+            <Hourglass size={16} className="text-yellow-600" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
@@ -135,27 +135,11 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
           <p className="text-base font-bold text-red-600">
             {formatCurrency(calculateDespesasPendentes())}
           </p>
-        </div>
-      </div>
-
-      {/* Contas Vencendo em X dias */}
-      <div className="p-3 bg-orange-50 rounded-lg border border-orange-200 col-span-2 flex flex-col justify-between min-h-[80px]">
-        <div className="flex justify-start">
-          <div className="p-1.5 bg-orange-100 rounded">
-            <Hourglass size={16} className="text-orange-600" />
-          </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-slate-600 font-medium mb-1">Contas vencendo em</p>
-          <p className="text-base font-bold text-orange-600">
-            {daysUntilNextDue !== null ? (
-              <>
-                {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''} - {nextDueCount} conta{nextDueCount !== 1 ? 's' : ''}
-              </>
-            ) : (
-              <span className="text-sm">Nenhuma pendente</span>
-            )}
-          </p>
+          {daysUntilNextDue !== null && (
+            <p className="text-xs font-normal text-slate-600 mt-1">
+              Vence em {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''} ({nextDueCount} conta{nextDueCount !== 1 ? 's' : ''})
+            </p>
+          )}
         </div>
       </div>
     </div>

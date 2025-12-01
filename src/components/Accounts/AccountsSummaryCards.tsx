@@ -1,6 +1,6 @@
 // components/Accounts/AccountsSummaryCards.tsx
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, ArrowLeft, Hourglass } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, ArrowLeft, Hourglass } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
@@ -40,19 +40,6 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   const calculateDespesasPendentes = () => {
     const contasDespesasPendentes = accounts.filter(account => account.type === 'despesa' && account.status === 'pendente');
     const despesasPendentes = contasDespesasPendentes.reduce((sum, account) => sum + Math.abs(account.amount), 0);
-    
-    console.log('=== DEBUG DESPESAS PENDENTES ===');
-    console.log('Total de contas no array:', accounts.length);
-    console.log('Contas de despesas pendentes:', contasDespesasPendentes.length);
-    console.log('Despesas pendentes (detalhes):', contasDespesasPendentes.map(a => ({
-      description: a.description,
-      amount: a.amount,
-      absAmount: Math.abs(a.amount),
-      status: a.status,
-      type: a.type
-    })));
-    console.log('Total despesas pendentes:', despesasPendentes);
-    console.log('================================');
     
     return despesasPendentes;
   };
@@ -163,7 +150,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
       <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 flex flex-col justify-between min-h-[100px]">
         <div className="flex justify-start">
           <div className="p-2 bg-yellow-100 rounded-lg">
-            <Clock size={20} className="text-yellow-600" />
+            <Hourglass size={20} className="text-yellow-600" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
@@ -171,30 +158,11 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
           <p className="text-lg font-bold text-red-600">
             {formatCurrency(calculateDespesasPendentes())}
           </p>
-        </div>
-      </div>
-
-      {/* Contas Vencendo em X dias */}
-      <div className="p-4 bg-orange-50 rounded-xl border border-orange-200 flex flex-col justify-between min-h-[100px]">
-        <div className="flex justify-start">
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <Hourglass size={20} className="text-orange-600" />
-          </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-slate-600 mb-1">vencendo em</p>
-          <p className="text-lg font-bold text-orange-600">
-            {daysUntilNextDue !== null ? (
-              <>
-                {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''}
-                <span className="text-sm font-normal text-slate-600 block">
-                  {nextDueCount} conta{nextDueCount !== 1 ? 's' : ''}
-                </span>
-              </>
-            ) : (
-              <span className="text-sm">Nenhuma pendente</span>
-            )}
-          </p>
+          {daysUntilNextDue !== null && (
+            <p className="text-sm font-normal text-slate-600 mt-1">
+              Vence em {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''} ({nextDueCount} conta{nextDueCount !== 1 ? 's' : ''})
+            </p>
+          )}
         </div>
       </div>
     </div>
