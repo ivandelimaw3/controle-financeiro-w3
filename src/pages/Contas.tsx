@@ -9,6 +9,7 @@ import { AccountsListMobile } from '@/components/Accounts/AccountsListMobile';
 import { AccountsTable } from '@/components/Accounts/AccountsTable';
 import { AccountModal, AccountFormData } from '@/components/Accounts/AccountModal';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
+import { MonthYearStepperMobile } from '@/components/Accounts/MonthYearStepperMobile';
 import { AccessControlWrapper } from '@/components/AccessControlWrapper';
 import { Loader2, Menu, Plus, FileText, Search } from 'lucide-react';
 import { useAccounts } from '@/contexts/AccountsContext';
@@ -296,12 +297,11 @@ const Contas: React.FC = () => {
             />
           </div>
 
-          {/* Navegador de meses */}
-          <MonthNavigator
+          {/* Navegador de mês e ano compacto */}
+          <MonthYearStepperMobile
             currentMonth={currentMonth}
             currentYear={currentYear}
             onMonthChange={handleMonthChange}
-            onShowAll={handleShowAll}
             isShowingAll={isShowingAll}
           />
 
