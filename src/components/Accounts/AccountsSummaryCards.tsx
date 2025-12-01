@@ -1,6 +1,6 @@
 // components/Accounts/AccountsSummaryCards.tsx
 import React from 'react';
-import { Clock, TrendingUp, TrendingDown, DollarSign, ArrowLeft } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, DollarSign, ArrowLeft, Hourglass } from 'lucide-react';
 import { Account } from '@/contexts/AccountsContext';
 
 interface AccountsSummaryCardsProps {
@@ -178,7 +178,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
       <div className="p-4 bg-orange-50 rounded-xl border border-orange-200 flex flex-col justify-between min-h-[100px]">
         <div className="flex justify-start">
           <div className="p-2 bg-orange-100 rounded-lg">
-            <Clock size={20} className="text-orange-600" />
+            <Hourglass size={20} className="text-orange-600" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
