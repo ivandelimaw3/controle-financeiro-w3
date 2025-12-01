@@ -312,7 +312,11 @@ const Contas: React.FC = () => {
           />
 
           {/* Lista simplificada de contas */}
-          <AccountsListMobile accounts={filteredAccounts} onEdit={handleEdit} />
+          <AccountsListMobile 
+            accounts={filteredAccounts} 
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
 
           <AccountModal
             key={editingAccount?.id || 'new'}
