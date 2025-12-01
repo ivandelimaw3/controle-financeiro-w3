@@ -311,8 +311,8 @@ const Analise: React.FC = () => {
                 <BarChart 
                   data={barChartData} 
                   margin={{ top: 20, right: isMobile ? 5 : 30, left: isMobile ? -10 : 20, bottom: isMobile ? 20 : 5 }}
-                  barGap={isMobile ? 2 : 4}
-                  barCategoryGap={isMobile ? '15%' : '20%'}
+                  barGap={isMobile ? 4 : 8}
+                  barCategoryGap={isMobile ? '25%' : '20%'}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis 
@@ -338,13 +338,13 @@ const Analise: React.FC = () => {
                     dataKey="receitas" 
                     fill="var(--color-receitas)" 
                     radius={[8, 8, 0, 0]}
-                    maxBarSize={isMobile ? 40 : 60}
+                    maxBarSize={isMobile ? 35 : 50}
                   />
                   <Bar 
                     dataKey="despesas" 
                     fill="var(--color-despesas)" 
                     radius={[8, 8, 0, 0]}
-                    maxBarSize={isMobile ? 40 : 60}
+                    maxBarSize={isMobile ? 35 : 50}
                   />
                 </BarChart>
               </ResponsiveContainer>
