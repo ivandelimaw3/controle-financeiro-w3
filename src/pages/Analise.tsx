@@ -64,43 +64,58 @@ const Analise: React.FC = () => {
     return Array.from(years).sort((a, b) => b - a);
   }, [accounts]);
 
-  // Dados para gráfico de barras (últimos 6 meses)
+  // Dados para gráfico de barras (até 12 meses)
   const barChartData = useMemo(() => {
-    const now = new Date();
-    const sixMonthsAgo = subMonths(now, 6);
+    const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
     
-    const monthlyData: { [key: string]: { receitas: number; despesas: number } } = {};
-    
-    // Inicializar os últimos 6 meses com valores zero
-    for (let i = 5; i >= 0; i--) {
-      const date = subMonths(now, i);
+    // Gerar últimos 12 meses
+    for (let i = 11; i >= 0; i--) {
+      const date = subMonths(new Date(), i);
       const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
-      monthlyData[monthKey] = { receitas: 0, despesas: 0 };
+      monthlyData.push({
+        month: monthKey,
+        monthKey,
+        receitas: 0,
+        despesas: 0,
+        year: getYear(date),
+        monthNum: getMonth(date)
+      });
     }
     
+    // Preencher com dados das contas
     accounts.forEach(account => {
       const date = parseISO(account.dueDate);
+      const accountYear = getYear(date);
+      const accountMonth = getMonth(date);
       
-      // Filtrar apenas contas dos últimos 6 meses
-      if (isAfter(date, sixMonthsAgo) && isBefore(date, now)) {
-        const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
-        
-        if (monthlyData[monthKey]) {
-          if (account.type === 'receita') {
-            monthlyData[monthKey].receitas += account.amount;
-          } else {
-            monthlyData[monthKey].despesas += Math.abs(account.amount);
-          }
+      const monthData = monthlyData.find(m => m.year === accountYear && m.monthNum === accountMonth);
+      
+      if (monthData) {
+        if (account.type === 'receita') {
+          monthData.receitas += account.amount;
+        } else {
+          monthData.despesas += Math.abs(account.amount);
         }
       }
     });
 
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month,
-      receitas: data.receitas,
-      despesas: data.despesas,
-    }));
-  }, [accounts]);
+    // No mobile, mostrar apenas 3 meses focando no mês selecionado
+    if (isMobile) {
+      const selectedIndex = monthlyData.findIndex(m => m.year === selectedYear && m.monthNum === selectedMonth);
+      
+      if (selectedIndex !== -1) {
+        // Tentar pegar o mês selecionado no meio (mês anterior, selecionado, próximo)
+        const startIndex = Math.max(0, selectedIndex - 1);
+        const endIndex = Math.min(monthlyData.length, startIndex + 3);
+        return monthlyData.slice(startIndex, endIndex);
+      }
+      
+      // Se não encontrar, mostrar os 3 últimos meses
+      return monthlyData.slice(-3);
+    }
+
+    return monthlyData;
+  }, [accounts, isMobile, selectedMonth, selectedYear]);
 
   // Dados para gráfico de pizza - filtrar por mês/ano selecionado
   const pieChartData = useMemo(() => {
@@ -174,11 +189,11 @@ const Analise: React.FC = () => {
 
   const chartConfig = {
     receitas: {
-      label: "Receitas",
+      label: "Recebido",
       color: "#22c55e",
     },
     despesas: {
-      label: "Despesas",
+      label: "Pago",
       color: "#ef4444",
     },
   };
@@ -283,10 +298,12 @@ const Analise: React.FC = () => {
           </div>
         )}
 
-        {/* Gráfico de Barras - Últimos 6 Meses */}
+        {/* Gráfico de Barras - Últimos 12 Meses */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg md:text-xl">Receitas vs Despesas - Últimos 6 Meses</CardTitle>
+            <CardTitle className="text-lg md:text-xl">
+              {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas - Últimos 12 Meses'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="min-h-[350px] md:min-h-[400px]">
