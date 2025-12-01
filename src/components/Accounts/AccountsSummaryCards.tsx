@@ -101,85 +101,82 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
       {/* Saldo Anterior */}
       <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <History size={20} className="text-purple-600" />
-          </div>
+        <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Saldo Anterior</p>
             <p className={`text-lg font-bold truncate ${previousBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(previousBalance)}
             </p>
           </div>
+          <div className="p-2 bg-purple-100 rounded-lg flex-shrink-0">
+            <History size={20} className="text-purple-600" />
+          </div>
         </div>
       </div>
 
       {/* Total Recebido */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <TrendingUp size={20} className="text-green-600" />
-          </div>
+        <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Total Recebido</p>
             <p className="text-lg font-bold text-green-600 truncate">
               {formatCurrency(calculateTotalRecebido())}
             </p>
           </div>
+          <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
+            <TrendingUp size={20} className="text-green-600" />
+          </div>
         </div>
       </div>
 
       {/* Total Pago */}
       <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-100 rounded-lg">
-            <TrendingDown size={20} className="text-red-600" />
-          </div>
+        <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Total Pago</p>
             <p className="text-lg font-bold text-red-600 truncate">
               {formatCurrency(calculateTotalPago())}
             </p>
           </div>
+          <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+            <TrendingDown size={20} className="text-red-600" />
+          </div>
         </div>
       </div>
 
       {/* Saldo Final */}
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <DollarSign size={20} className="text-blue-600" />
-          </div>
+        <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Saldo Final</p>
             <p className={`text-lg font-bold truncate ${calculateSaldoFinal() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(calculateSaldoFinal())}
             </p>
           </div>
+          <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+            <DollarSign size={20} className="text-blue-600" />
+          </div>
         </div>
       </div>
 
       {/* Despesas Pendentes */}
       <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-yellow-100 rounded-lg">
-            <Clock size={20} className="text-yellow-600" />
-          </div>
+        <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">Pendentes</p>
             <p className="text-lg font-bold text-red-600 truncate">
               {formatCurrency(calculateDespesasPendentes())}
             </p>
           </div>
+          <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
+            <Clock size={20} className="text-yellow-600" />
+          </div>
         </div>
       </div>
 
       {/* Contas Vencendo em X dias */}
       <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <Clock size={20} className="text-orange-600" />
-          </div>
+        <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm text-slate-600">vencendo em</p>
             <p className="text-lg font-bold text-orange-600">
@@ -194,6 +191,9 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
                 <span className="text-sm">Nenhuma pendente</span>
               )}
             </p>
+          </div>
+          <div className="p-2 bg-orange-100 rounded-lg flex-shrink-0">
+            <Clock size={20} className="text-orange-600" />
           </div>
         </div>
       </div>
