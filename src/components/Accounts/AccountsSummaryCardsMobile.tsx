@@ -36,6 +36,46 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
+  const calculateDaysUntilNextDue = () => {
+    const pendingAccounts = accounts.filter(account => account.status === 'pendente');
+    
+    if (pendingAccounts.length === 0) {
+      return { daysUntilNextDue: null, nextDueCount: 0 };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Encontrar a conta com a data de vencimento mais próxima
+    const nextDueAccount = pendingAccounts.reduce((closest, current) => {
+      if (!current.dueDate) return closest;
+      if (!closest || !closest.dueDate) return current;
+      return current.dueDate < closest.dueDate ? current : closest;
+    }, pendingAccounts[0]);
+
+    if (!nextDueAccount?.dueDate) {
+      return { daysUntilNextDue: null, nextDueCount: 0 };
+    }
+
+    // Calcular dias até vencer comparando strings de data
+    const todayDate = today;
+    const dueDate = nextDueAccount.dueDate;
+    
+    const todayTime = new Date(todayDate).getTime();
+    const dueTime = new Date(dueDate).getTime();
+    const diffTime = dueTime - todayTime;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    // Contar quantas contas vencem na mesma data
+    const nextDueCount = pendingAccounts.filter(acc => acc.dueDate === nextDueAccount.dueDate).length;
+
+    return { 
+      daysUntilNextDue: diffDays >= 0 ? diffDays : null, 
+      nextDueCount 
+    };
+  };
+
+  const { daysUntilNextDue, nextDueCount } = calculateDaysUntilNextDue();
+
   return (
     <div className="grid grid-cols-2 gap-3 mb-6">
       {/* Saldo Anterior */}
@@ -87,6 +127,25 @@ export const AccountsSummaryCardsMobile: React.FC<AccountsSummaryCardsMobileProp
         </div>
         <p className="text-lg font-bold text-red-600">
           {formatCurrency(calculateDespesasPendentes())}
+        </p>
+      </div>
+
+      {/* Contas Vencendo em X dias */}
+      <div className="p-3 bg-orange-50 rounded-lg border border-orange-200 col-span-2">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="p-1.5 bg-orange-100 rounded">
+            <Clock size={16} className="text-orange-600" />
+          </div>
+          <p className="text-xs text-slate-600 font-medium">Contas vencendo em</p>
+        </div>
+        <p className="text-lg font-bold text-orange-600">
+          {daysUntilNextDue !== null ? (
+            <>
+              {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''} - {nextDueCount} conta{nextDueCount !== 1 ? 's' : ''}
+            </>
+          ) : (
+            <span className="text-sm">Nenhuma pendente</span>
+          )}
         </p>
       </div>
     </div>

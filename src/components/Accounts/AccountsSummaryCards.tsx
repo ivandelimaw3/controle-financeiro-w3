@@ -57,8 +57,48 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
     return despesasPendentes;
   };
 
+  const calculateDaysUntilNextDue = () => {
+    const pendingAccounts = accounts.filter(account => account.status === 'pendente');
+    
+    if (pendingAccounts.length === 0) {
+      return { daysUntilNextDue: null, nextDueCount: 0 };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Encontrar a conta com a data de vencimento mais próxima
+    const nextDueAccount = pendingAccounts.reduce((closest, current) => {
+      if (!current.dueDate) return closest;
+      if (!closest || !closest.dueDate) return current;
+      return current.dueDate < closest.dueDate ? current : closest;
+    }, pendingAccounts[0]);
+
+    if (!nextDueAccount?.dueDate) {
+      return { daysUntilNextDue: null, nextDueCount: 0 };
+    }
+
+    // Calcular dias até vencer comparando strings de data
+    const todayDate = today;
+    const dueDate = nextDueAccount.dueDate;
+    
+    const todayTime = new Date(todayDate).getTime();
+    const dueTime = new Date(dueDate).getTime();
+    const diffTime = dueTime - todayTime;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    // Contar quantas contas vencem na mesma data
+    const nextDueCount = pendingAccounts.filter(acc => acc.dueDate === nextDueAccount.dueDate).length;
+
+    return { 
+      daysUntilNextDue: diffDays >= 0 ? diffDays : null, 
+      nextDueCount 
+    };
+  };
+
+  const { daysUntilNextDue, nextDueCount } = calculateDaysUntilNextDue();
+
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
       {/* Saldo Anterior */}
       <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
         <div className="flex items-center gap-3">
@@ -129,6 +169,30 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
             <p className="text-sm text-slate-600">Despesas Pendentes</p>
             <p className="text-xl font-bold text-red-600">
               {formatCurrency(calculateDespesasPendentes())}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contas Vencendo em X dias */}
+      <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-orange-100 rounded-lg">
+            <Clock size={20} className="text-orange-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">Contas vencendo em</p>
+            <p className="text-xl font-bold text-orange-600">
+              {daysUntilNextDue !== null ? (
+                <>
+                  {daysUntilNextDue} dia{daysUntilNextDue !== 1 ? 's' : ''}
+                  <span className="text-sm font-normal text-slate-600 block">
+                    {nextDueCount} conta{nextDueCount !== 1 ? 's' : ''}
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm">Nenhuma pendente</span>
+              )}
             </p>
           </div>
         </div>
