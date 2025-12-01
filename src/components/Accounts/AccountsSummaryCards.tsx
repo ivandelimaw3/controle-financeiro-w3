@@ -85,7 +85,7 @@ export const AccountsSummaryCards: React.FC<AccountsSummaryCardsProps> = ({
   const { daysUntilNextDue, nextDueCount } = calculateDaysUntilNextDue();
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {/* Saldo Anterior */}
       <div className="p-4 bg-purple-50 rounded-xl border border-purple-200 flex flex-col justify-between min-h-[100px]">
         <div className="flex justify-start">
