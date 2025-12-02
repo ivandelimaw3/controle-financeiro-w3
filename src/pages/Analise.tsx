@@ -15,6 +15,7 @@ import { ptBR } from 'date-fns/locale';
 import { AnalysisSummaryCardsMobile } from '@/components/Dashboard/AnalysisSummaryCardsMobile';
 import { MonthYearStepperMobile } from '@/components/Accounts/MonthYearStepperMobile';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Analise: React.FC = () => {
   const { accounts } = useAccounts();
@@ -64,15 +65,15 @@ const Analise: React.FC = () => {
     return Array.from(years).sort((a, b) => b - a);
   }, [accounts]);
 
-  // Dados para gráfico de barras - apenas 2 meses baseado na seleção
+  // Dados para gráfico de barras - últimos 12 meses baseado na seleção
   const barChartData = useMemo(() => {
     const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
     
-    // Gerar os 2 meses: o selecionado e o próximo
+    // Gerar os últimos 12 meses a partir do mês selecionado
     const selectedDate = new Date(selectedYear, selectedMonth);
-    const nextDate = subMonths(selectedDate, -1); // Adiciona 1 mês
     
-    [selectedDate, nextDate].forEach(date => {
+    for (let i = 11; i >= 0; i--) {
+      const date = subMonths(selectedDate, i);
       const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
       monthlyData.push({
         month: monthKey,
@@ -82,7 +83,7 @@ const Analise: React.FC = () => {
         year: getYear(date),
         monthNum: getMonth(date)
       });
-    });
+    }
     
     // Preencher com dados das contas
     accounts.forEach(account => {
@@ -209,6 +210,41 @@ const Analise: React.FC = () => {
           </CardHeader>
         </Card>
 
+        {/* Navegador de Mês/Ano - Desktop */}
+        {!isMobile && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+                    const newYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+                    handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-sm font-semibold text-slate-800">
+                  {months[selectedMonth].label} de {selectedYear}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
+                    const newYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
+                    handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Cards de Resumo */}
         {isMobile ? (
           <AnalysisSummaryCardsMobile
@@ -221,10 +257,10 @@ const Analise: React.FC = () => {
             <Card className="border-l-4 border-l-green-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-slate-600">Total de Receitas</CardTitle>
-                <TrendingUp className="h-5 w-5 text-green-600" />
+                <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl md:text-4xl font-bold text-green-600">
+                <div className="text-xl font-bold text-green-600">
                   R$ {totals.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </CardContent>
@@ -233,10 +269,10 @@ const Analise: React.FC = () => {
             <Card className="border-l-4 border-l-red-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-slate-600">Total de Despesas</CardTitle>
-                <TrendingDown className="h-5 w-5 text-red-600" />
+                <TrendingDown className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl md:text-4xl font-bold text-red-600">
+                <div className="text-xl font-bold text-red-600">
                   R$ {totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </CardContent>
@@ -245,10 +281,10 @@ const Analise: React.FC = () => {
             <Card className={`border-l-4 ${totals.saldo >= 0 ? 'border-l-blue-500' : 'border-l-orange-500'}`}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-slate-600">Saldo</CardTitle>
-                <DollarSign className={`h-5 w-5 ${totals.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
+                <DollarSign className={`h-4 w-4 ${totals.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
               </CardHeader>
               <CardContent>
-                <div className={`text-3xl md:text-4xl font-bold ${totals.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                <div className={`text-xl font-bold ${totals.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
                   R$ {totals.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </CardContent>
@@ -283,10 +319,10 @@ const Analise: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis 
                     dataKey="month" 
-                    tick={{ fontSize: isMobile ? 9 : 13, fill: '#64748b' }}
-                    angle={0}
-                    textAnchor="middle"
-                    height={isMobile ? 40 : 60}
+                    tick={{ fontSize: isMobile ? 9 : 10, fill: '#64748b' }}
+                    angle={isMobile ? 0 : -45}
+                    textAnchor={isMobile ? "middle" : "end"}
+                    height={isMobile ? 40 : 80}
                   />
                   <YAxis 
                     tick={{ fontSize: isMobile ? 9 : 13, fill: '#64748b' }}
