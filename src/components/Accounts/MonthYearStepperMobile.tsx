@@ -57,32 +57,9 @@ export const MonthYearStepperMobile: React.FC<MonthYearStepperMobileProps> = ({
   }
 
   return (
-    <div className="bg-card border rounded-lg p-2 flex items-center justify-between gap-2 w-full">
-      {/* Stepper de Ano */}
-      <div className="flex items-center gap-1 flex-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigateYear('prev')}
-          className="h-7 w-7 p-0"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="text-xs font-semibold text-center flex-1">
-          {currentYear}
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigateYear('next')}
-          className="h-7 w-7 p-0"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
+    <div className="bg-card border rounded-lg p-2 flex items-center justify-between gap-1 w-full">
       {/* Stepper de Mês */}
-      <div className="flex items-center gap-1 flex-1">
+      <div className="flex items-center gap-0.5 flex-1">
         <Button
           variant="ghost"
           size="sm"
@@ -98,6 +75,29 @@ export const MonthYearStepperMobile: React.FC<MonthYearStepperMobileProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => navigateMonth('next')}
+          className="h-7 w-7 p-0"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Stepper de Ano */}
+      <div className="flex items-center gap-0.5 flex-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigateYear('prev')}
+          className="h-7 w-7 p-0"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-xs font-semibold text-center flex-1">
+          {currentYear}
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigateYear('next')}
           className="h-7 w-7 p-0"
         >
           <ChevronRight className="h-4 w-4" />
