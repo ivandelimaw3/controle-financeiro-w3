@@ -304,13 +304,13 @@ const Analise: React.FC = () => {
             )}
           </CardHeader>
           <CardContent className={isMobile ? "px-2 pb-3" : ""}>
-            <ChartContainer config={chartConfig} className={isMobile ? "min-h-[280px]" : "min-h-[400px]"}>
-              <ResponsiveContainer width="100%" height={isMobile ? 280 : 400}>
+            <ChartContainer config={chartConfig} className={isMobile ? "min-h-[200px]" : "min-h-[300px]"}>
+              <ResponsiveContainer width="100%" height={isMobile ? 200 : 300}>
                 <BarChart 
                   data={barChartData} 
-                  margin={{ top: 10, right: isMobile ? 5 : 30, left: isMobile ? -5 : 20, bottom: isMobile ? 10 : 5 }}
-                  barGap={isMobile ? 0 : 8}
-                  barCategoryGap={isMobile ? '8%' : '20%'}
+                  margin={{ top: 10, right: isMobile ? 5 : 20, left: isMobile ? -10 : 10, bottom: isMobile ? 5 : 5 }}
+                  barGap={isMobile ? 0 : 6}
+                  barCategoryGap={isMobile ? '15%' : '20%'}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis 
@@ -335,14 +335,14 @@ const Analise: React.FC = () => {
                   <Bar 
                     dataKey="receitas" 
                     fill="var(--color-receitas)" 
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={isMobile ? 32 : 50}
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={isMobile ? 24 : 40}
                   />
                   <Bar 
                     dataKey="despesas" 
                     fill="var(--color-despesas)" 
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={isMobile ? 32 : 50}
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={isMobile ? 24 : 40}
                   />
                 </BarChart>
               </ResponsiveContainer>
