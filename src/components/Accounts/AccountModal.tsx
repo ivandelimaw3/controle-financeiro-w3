@@ -56,6 +56,18 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   const [displayAmount, setDisplayAmount] = useState('');
 
+  const formatCurrencyInput = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (value: string): number => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers ? parseFloat(numbers) / 100 : 0;
+  };
+
   useEffect(() => {
     if (account) {
       setFormData({
@@ -85,18 +97,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setDisplayAmount('');
     }
   }, [account, isOpen]);
-
-  const formatCurrencyInput = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
-  const parseCurrencyInput = (value: string): number => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers ? parseFloat(numbers) / 100 : 0;
-  };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -130,9 +130,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     
     return filtered;
   };
-
-  // Encontra a categoria atual para exibição
-  const selectedCategory = categoriesData.find(cat => cat.name === formData.category);
 
   const handleBankChange = (bankId: string) => {
     const selectedBank = banks.find(bank => bank.id === bankId);
@@ -194,19 +191,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 onValueChange={value => handleChange('category', value)}
               >
                 <SelectTrigger>
-                  {selectedCategory ? (
-                    <span className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0" 
-                        style={{ backgroundColor: selectedCategory.color }}
-                      />
-                      <span className="truncate">{selectedCategory.name}</span>
-                    </span>
-                  ) : formData.category ? (
-                    <span className="truncate">{formData.category}</span>
-                  ) : (
-                    <span className="text-muted-foreground">Selecione uma categoria</span>
-                  )}
+                  <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80 overflow-y-auto">
                   {getFilteredCategories().map(category => (
