@@ -188,23 +188,26 @@ const Analise: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-4 pb-8">
-        {/* Header com título e botão menu */}
-        <div className="flex items-center gap-2">
-          {isMobile && (
-            <Button
-              onClick={() => navigate('/')}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1 text-xs px-2 py-1 h-8"
-            >
-              <Menu size={16} />
-              Menu
-            </Button>
-          )}
-          <h1 className="text-xl md:text-3xl font-bold text-slate-800">
-            {isMobile ? 'Análise' : 'Análise Gráfica'}
-          </h1>
-        </div>
+        {/* Card Menu Principal */}
+        {isMobile && (
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <Menu className="h-5 w-5" />
+            Menu Principal
+          </Button>
+        )}
+
+        {/* Card Título */}
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl md:text-3xl font-bold text-slate-800">
+              {isMobile ? 'Análise' : 'Análise Gráfica'}
+            </CardTitle>
+          </CardHeader>
+        </Card>
 
         {/* Cards de Resumo */}
         {isMobile ? (
