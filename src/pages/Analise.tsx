@@ -192,7 +192,7 @@ const Analise: React.FC = () => {
         <div className="flex items-center gap-2">
           {isMobile && (
             <Button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               variant="outline"
               size="sm"
               className="flex items-center gap-1 text-xs px-2 py-1 h-8"
