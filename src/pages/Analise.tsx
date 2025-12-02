@@ -324,7 +324,7 @@ const Analise: React.FC = () => {
           <CardContent className={isMobile ? "px-3 pb-3" : ""}>
             {pieChartData.length > 0 ? (
               <div className="space-y-2">
-                <div className={`text-xs font-medium text-slate-700 text-center ${isMobile ? 'mb-2' : 'mb-4'}`}>
+                <div className={`text-xs font-medium text-slate-700 ${isMobile ? 'mb-2' : 'mb-4'}`}>
                   {months[selectedMonth].label} de {selectedYear}
                 </div>
                 {pieChartData.map((category, index) => (
