@@ -118,6 +118,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   // Retorna categorias filtradas por tipo, mas sempre inclui a categoria atual se existir
   const getFilteredCategories = () => {
+    // Se não há categorias carregadas mas há uma categoria selecionada, criar item temporário
+    if (categoriesData.length === 0 && formData.category) {
+      return [{ id: -1, name: formData.category, type: formData.type, color: '#6B7280' }];
+    }
+    
     const filtered = categoriesData.filter(cat => cat.type === formData.type);
     
     // Se há uma categoria selecionada que não está na lista filtrada, adiciona ela
@@ -125,6 +130,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       const currentCat = categoriesData.find(cat => cat.name === formData.category);
       if (currentCat && !filtered.find(cat => cat.name === formData.category)) {
         return [currentCat, ...filtered];
+      }
+      // Se categoria não existe nas categoriesData, criar item temporário
+      if (!currentCat) {
+        return [{ id: -1, name: formData.category, type: formData.type, color: '#6B7280' }, ...filtered];
       }
     }
     
