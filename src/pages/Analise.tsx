@@ -200,19 +200,21 @@ const Analise: React.FC = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 pb-8">
-        {/* Header com título e botão menu (mobile) */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Análise Gráfica</h1>
+      <div className="space-y-4 pb-8">
+        {/* Header com título e botão menu */}
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-xl md:text-3xl font-bold text-slate-800">
+            {isMobile ? 'Análise' : 'Análise Gráfica'}
+          </h1>
           {isMobile && (
             <Button
               onClick={() => navigate('/dashboard')}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 text-xs px-2 py-1 h-8"
             >
-              <Menu size={18} />
-              Menu Principal
+              <Menu size={16} />
+              Menu
             </Button>
           )}
         </div>
@@ -276,32 +278,32 @@ const Analise: React.FC = () => {
 
         {/* Gráfico de Barras - Últimos 12 Meses */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">
+          <CardHeader className={isMobile ? "pb-3" : ""}>
+            <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
               {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas - Últimos 12 Meses'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="min-h-[300px] md:min-h-[400px]">
-              <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
+          <CardContent className={isMobile ? "px-2 pb-3" : ""}>
+            <ChartContainer config={chartConfig} className={isMobile ? "min-h-[280px]" : "min-h-[400px]"}>
+              <ResponsiveContainer width="100%" height={isMobile ? 280 : 400}>
                 <BarChart 
                   data={barChartData} 
-                  margin={{ top: 20, right: isMobile ? 10 : 30, left: 0, bottom: isMobile ? 20 : 5 }}
+                  margin={{ top: 10, right: isMobile ? 5 : 30, left: isMobile ? -5 : 20, bottom: isMobile ? 10 : 5 }}
                   barGap={isMobile ? 0 : 8}
-                  barCategoryGap={isMobile ? '10%' : '20%'}
+                  barCategoryGap={isMobile ? '8%' : '20%'}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis 
                     dataKey="month" 
-                    tick={{ fontSize: isMobile ? 10 : 13, fill: '#64748b' }}
+                    tick={{ fontSize: isMobile ? 9 : 13, fill: '#64748b' }}
                     angle={0}
                     textAnchor="middle"
-                    height={isMobile ? 50 : 60}
+                    height={isMobile ? 40 : 60}
                   />
                   <YAxis 
-                    tick={{ fontSize: isMobile ? 10 : 13, fill: '#64748b' }}
+                    tick={{ fontSize: isMobile ? 9 : 13, fill: '#64748b' }}
                     tickFormatter={(value) => isMobile ? `${(value / 1000).toFixed(0)}k` : `R$ ${(value / 1000).toFixed(0)}k`}
-                    width={isMobile ? 35 : 60}
+                    width={isMobile ? 32 : 60}
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
@@ -313,14 +315,14 @@ const Analise: React.FC = () => {
                   <Bar 
                     dataKey="receitas" 
                     fill="var(--color-receitas)" 
-                    radius={[8, 8, 0, 0]}
-                    maxBarSize={isMobile ? 36 : 50}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={isMobile ? 32 : 50}
                   />
                   <Bar 
                     dataKey="despesas" 
                     fill="var(--color-despesas)" 
-                    radius={[8, 8, 0, 0]}
-                    maxBarSize={isMobile ? 36 : 50}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={isMobile ? 32 : 50}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -330,27 +332,29 @@ const Analise: React.FC = () => {
 
         {/* Despesas por Categoria - Cards em Barras */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">Despesas por Categoria</CardTitle>
+          <CardHeader className={isMobile ? "pb-3" : ""}>
+            <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
+              Despesas por Categoria
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className={isMobile ? "px-3 pb-3" : ""}>
             {pieChartData.length > 0 ? (
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-slate-700 text-center mb-4">
+              <div className="space-y-2">
+                <div className={`text-xs font-medium text-slate-700 text-center ${isMobile ? 'mb-2' : 'mb-4'}`}>
                   {months[selectedMonth].label} de {selectedYear}
                 </div>
                 {pieChartData.map((category, index) => (
                   <div 
                     key={index} 
-                    className="bg-card border rounded-lg p-3 flex items-center gap-3"
+                    className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5"
                   >
                     <div 
-                      className="w-6 h-6 rounded-full flex-shrink-0 shadow-sm" 
+                      className="w-5 h-5 rounded-full flex-shrink-0 shadow-sm" 
                       style={{ backgroundColor: category.color }}
                     ></div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-sm font-semibold text-slate-800 truncate">
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <span className="text-xs font-semibold text-slate-800 truncate">
                           {category.name}
                         </span>
                         <span className="text-xs font-medium text-slate-600 flex-shrink-0">
@@ -365,9 +369,9 @@ const Analise: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[200px] text-slate-500">
-                <p className="text-base font-medium mb-2">Nenhuma despesa encontrada</p>
-                <p className="text-sm text-center">
+              <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
+                <p className="text-sm font-medium mb-1">Nenhuma despesa encontrada</p>
+                <p className="text-xs text-center">
                   Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.
                 </p>
               </div>
