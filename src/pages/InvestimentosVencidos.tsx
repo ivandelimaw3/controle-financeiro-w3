@@ -1,17 +1,22 @@
-
 import React, { useState } from 'react';
-import { Edit, Trash2, Archive, TrendingUp, Calendar, Search } from 'lucide-react';
+import { Edit, Trash2, Archive, TrendingUp, Calendar, Search, Menu } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useExpiredInvestments } from '@/hooks/useExpiredInvestments';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
+import { ExpiredInvestmentsSummaryCardsMobile } from '@/components/Dashboard/ExpiredInvestmentsSummaryCardsMobile';
+import { ExpiredInvestmentsListMobile } from '@/components/Dashboard/ExpiredInvestmentsListMobile';
 
 const InvestimentosVencidos = () => {
   const { toast } = useToast();
   const { expiredInvestments, loading, deleteExpiredInvestment } = useExpiredInvestments();
   const [searchTerm, setSearchTerm] = useState('');
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   // Funções de formatação
   const formatCurrency = (value: number) => {
@@ -70,6 +75,56 @@ const InvestimentosVencidos = () => {
     );
   }
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <Layout>
+        <div className="space-y-4 p-4">
+          {/* Botões de ação */}
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Menu className="h-5 w-5" />
+              Menu Principal
+            </Button>
+
+            <Button
+              onClick={() => navigate('/investimentos')}
+              className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+            >
+              <TrendingUp size={18} className="mr-2" />
+              Investimentos Ativos
+            </Button>
+          </div>
+
+          {/* Campo de pesquisa */}
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
+            <Input
+              placeholder="Pesquisar investimentos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Cards de resumo */}
+          <ExpiredInvestmentsSummaryCardsMobile investments={filteredInvestments} />
+
+          {/* Lista de investimentos */}
+          <ExpiredInvestmentsListMobile 
+            investments={filteredInvestments}
+            onDelete={handleDelete}
+          />
+        </div>
+      </Layout>
+    );
+  }
+
+  // Desktop Layout
   return (
     <Layout>
       <div className="space-y-6 bg-white min-h-screen">
