@@ -176,14 +176,30 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             <div>
               <Label htmlFor="category">Categoria *</Label>
               <Select 
-                value={formData.category} 
+                value={formData.category || ''} 
                 onValueChange={value => handleChange('category', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
+                  {formData.category ? (
+                    (() => {
+                      const selectedCat = categoriesData.find(c => c.name === formData.category);
+                      return selectedCat ? (
+                        <span className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full flex-shrink-0" 
+                            style={{ backgroundColor: selectedCat.color }}
+                          />
+                          <span className="truncate">{selectedCat.name}</span>
+                        </span>
+                      ) : (
+                        <span className="truncate">{formData.category}</span>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-muted-foreground">Selecione uma categoria</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent className="max-h-80 overflow-y-auto">
-                  {/* Mostrar todas as categorias para garantir que a atual seja encontrada */}
                   {categoriesData
                     .filter(cat => cat.type === formData.type || cat.name === formData.category)
                     .map(category => (
