@@ -4,7 +4,7 @@ import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
@@ -198,30 +198,6 @@ const Analise: React.FC = () => {
     },
   };
 
-  // Componente customizado para labels do gráfico de pizza
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
-    if (percent < 0.03) return null; // Não mostrar label para fatias muito pequenas (menos de 3%)
-    
-    const RADIAN = Math.PI / 180;
-    const radius = outerRadius + (isMobile ? 18 : 25); // Posicionar mais próximo no mobile
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="#334155" 
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central"
-        fontSize={isMobile ? "10" : "13"}
-        fontWeight="600"
-      >
-        {`${(percent * 100).toFixed(1)}%`}
-      </text>
-    );
-  };
-
   return (
     <Layout>
       <div className="space-y-6 pb-8">
@@ -352,114 +328,46 @@ const Analise: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Controles e Gráfico de Pizza */}
+        {/* Despesas por Categoria - Cards em Barras */}
         <Card>
           <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <CardTitle className="text-lg md:text-xl">Despesas por Categoria</CardTitle>
-              {!isMobile && (
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder="Selecione o mês" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {months.map((month) => (
-                        <SelectItem key={month.value} value={month.value.toString()}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                    <SelectTrigger className="w-full sm:w-32">
-                      <SelectValue placeholder="Ano" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableYears.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
+            <CardTitle className="text-lg md:text-xl">Despesas por Categoria</CardTitle>
           </CardHeader>
           <CardContent>
             {pieChartData.length > 0 ? (
-              <div className="space-y-6">
-                <div className="text-base md:text-lg font-medium text-slate-700 text-center">
-                  Despesas de {months[selectedMonth].label} de {selectedYear}
+              <div className="space-y-3">
+                <div className="text-sm font-medium text-slate-700 text-center mb-4">
+                  {months[selectedMonth].label} de {selectedYear}
                 </div>
-                <ResponsiveContainer width="100%" height={isMobile ? 350 : 500}>
-                  <PieChart>
-                    <Pie
-                      data={pieChartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={{
-                        stroke: '#94a3b8',
-                        strokeWidth: 1,
-                      }}
-                      label={renderCustomizedLabel}
-                      outerRadius={isMobile ? 100 : 160}
-                      fill="#8884d8"
-                      dataKey="value"
-                      stroke="#fff"
-                      strokeWidth={3}
-                    >
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: number, name: string) => [
-                        `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                        name
-                      ]}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.96)',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
-                        padding: '12px',
-                        fontSize: isMobile ? '13px' : '14px'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                
-                {/* Legenda das categorias - Melhorada */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-8">
-                  {pieChartData.map((category, index) => (
+                {pieChartData.map((category, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-card border rounded-lg p-3 flex items-center gap-3"
+                  >
                     <div 
-                      key={index} 
-                      className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200"
-                    >
-                      <div 
-                        className="w-6 h-6 rounded-full flex-shrink-0 shadow-sm" 
-                        style={{ backgroundColor: category.color }}
-                      ></div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-slate-800 block truncate">
+                      className="w-6 h-6 rounded-full flex-shrink-0 shadow-sm" 
+                      style={{ backgroundColor: category.color }}
+                    ></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-sm font-semibold text-slate-800 truncate">
                           {category.name}
                         </span>
-                        <div className="flex items-center gap-2 text-xs text-slate-600 mt-0.5">
-                          <span className="font-medium">{category.percentage.toFixed(1)}%</span>
-                          <span className="text-slate-400">•</span>
-                          <span>R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                        </div>
+                        <span className="text-xs font-medium text-slate-600 flex-shrink-0">
+                          {category.percentage.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-600">
+                        R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[400px] md:h-[500px] text-slate-500">
-                <p className="text-lg md:text-xl font-medium mb-2">Nenhuma despesa encontrada</p>
-                <p className="text-sm md:text-base text-center">
+              <div className="flex flex-col items-center justify-center h-[200px] text-slate-500">
+                <p className="text-base font-medium mb-2">Nenhuma despesa encontrada</p>
+                <p className="text-sm text-center">
                   Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.
                 </p>
               </div>
