@@ -64,13 +64,15 @@ const Analise: React.FC = () => {
     return Array.from(years).sort((a, b) => b - a);
   }, [accounts]);
 
-  // Dados para gráfico de barras (até 12 meses)
+  // Dados para gráfico de barras - apenas 2 meses baseado na seleção
   const barChartData = useMemo(() => {
     const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
     
-    // Gerar últimos 12 meses
-    for (let i = 11; i >= 0; i--) {
-      const date = subMonths(new Date(), i);
+    // Gerar os 2 meses: o selecionado e o anterior
+    const selectedDate = new Date(selectedYear, selectedMonth);
+    const previousDate = subMonths(selectedDate, 1);
+    
+    [previousDate, selectedDate].forEach(date => {
       const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
       monthlyData.push({
         month: monthKey,
@@ -80,7 +82,7 @@ const Analise: React.FC = () => {
         year: getYear(date),
         monthNum: getMonth(date)
       });
-    }
+    });
     
     // Preencher com dados das contas
     accounts.forEach(account => {
@@ -99,23 +101,8 @@ const Analise: React.FC = () => {
       }
     });
 
-    // No mobile, mostrar apenas 3 meses focando no mês selecionado
-    if (isMobile) {
-      const selectedIndex = monthlyData.findIndex(m => m.year === selectedYear && m.monthNum === selectedMonth);
-      
-      if (selectedIndex !== -1) {
-        // Tentar pegar o mês selecionado no meio (mês anterior, selecionado, próximo)
-        const startIndex = Math.max(0, selectedIndex - 1);
-        const endIndex = Math.min(monthlyData.length, startIndex + 3);
-        return monthlyData.slice(startIndex, endIndex);
-      }
-      
-      // Se não encontrar, mostrar os 3 últimos meses
-      return monthlyData.slice(-3);
-    }
-
     return monthlyData;
-  }, [accounts, isMobile, selectedMonth, selectedYear]);
+  }, [accounts, selectedMonth, selectedYear]);
 
   // Dados para gráfico de pizza - filtrar por mês/ano selecionado
   const pieChartData = useMemo(() => {
