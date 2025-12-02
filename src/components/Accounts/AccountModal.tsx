@@ -116,9 +116,23 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Retorna categorias filtradas por tipo, mas sempre inclui a categoria atual se existir
   const getFilteredCategories = () => {
-    return categoriesData.filter(cat => cat.type === formData.type);
+    const filtered = categoriesData.filter(cat => cat.type === formData.type);
+    
+    // Se há uma categoria selecionada que não está na lista filtrada, adiciona ela
+    if (formData.category) {
+      const currentCat = categoriesData.find(cat => cat.name === formData.category);
+      if (currentCat && !filtered.find(cat => cat.name === formData.category)) {
+        return [currentCat, ...filtered];
+      }
+    }
+    
+    return filtered;
   };
+
+  // Encontra a categoria atual para exibição
+  const selectedCategory = categoriesData.find(cat => cat.name === formData.category);
 
   const handleBankChange = (bankId: string) => {
     const selectedBank = banks.find(bank => bank.id === bankId);
@@ -180,39 +194,32 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 onValueChange={value => handleChange('category', value)}
               >
                 <SelectTrigger>
-                  {formData.category ? (
-                    (() => {
-                      const selectedCat = categoriesData.find(c => c.name === formData.category);
-                      return selectedCat ? (
-                        <span className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full flex-shrink-0" 
-                            style={{ backgroundColor: selectedCat.color }}
-                          />
-                          <span className="truncate">{selectedCat.name}</span>
-                        </span>
-                      ) : (
-                        <span className="truncate">{formData.category}</span>
-                      );
-                    })()
+                  {selectedCategory ? (
+                    <span className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: selectedCategory.color }}
+                      />
+                      <span className="truncate">{selectedCategory.name}</span>
+                    </span>
+                  ) : formData.category ? (
+                    <span className="truncate">{formData.category}</span>
                   ) : (
                     <span className="text-muted-foreground">Selecione uma categoria</span>
                   )}
                 </SelectTrigger>
                 <SelectContent className="max-h-80 overflow-y-auto">
-                  {categoriesData
-                    .filter(cat => cat.type === formData.type || cat.name === formData.category)
-                    .map(category => (
-                      <SelectItem key={category.id} value={category.name}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: category.color }}
-                          />
-                          {category.name}
-                        </div>
-                      </SelectItem>
-                    ))}
+                  {getFilteredCategories().map(category => (
+                    <SelectItem key={category.id} value={category.name}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
