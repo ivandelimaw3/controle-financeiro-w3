@@ -9,7 +9,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { TrendingUp, TrendingDown, DollarSign, Menu } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, parseISO, getMonth, getYear, subMonths, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnalysisSummaryCardsMobile } from '@/components/Dashboard/AnalysisSummaryCardsMobile';
@@ -255,20 +255,53 @@ const Analise: React.FC = () => {
 
         {/* Gráfico de Barras */}
         <Card>
-          <CardHeader className={isMobile ? "pb-3" : ""}>
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
-                {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas'}
-              </CardTitle>
-              {isMobile && (
-                <MonthYearStepperMobile
-                  currentMonth={selectedMonth}
-                  currentYear={selectedYear}
-                  onMonthChange={handleMonthChange}
-                  isShowingAll={false}
-                />
-              )}
-            </div>
+          <CardHeader className={isMobile ? "pb-3 space-y-2" : ""}>
+            <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
+              {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas'}
+            </CardTitle>
+            {isMobile && (
+              <div className="flex items-center justify-center gap-2 bg-card border rounded-lg p-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    let newMonth = selectedMonth - 1;
+                    let newYear = selectedYear;
+                    if (newMonth < 0) {
+                      newMonth = 11;
+                      newYear = selectedYear - 1;
+                    }
+                    const startDate = new Date(newYear, newMonth, 1);
+                    const endDate = new Date(newYear, newMonth + 1, 0);
+                    handleMonthChange(startDate, endDate, newMonth, newYear);
+                  }}
+                  className="h-7 w-7 p-0 flex-shrink-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-xs font-semibold text-center min-w-[100px]">
+                  {months[selectedMonth].label} {selectedYear}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    let newMonth = selectedMonth + 1;
+                    let newYear = selectedYear;
+                    if (newMonth > 11) {
+                      newMonth = 0;
+                      newYear = selectedYear + 1;
+                    }
+                    const startDate = new Date(newYear, newMonth, 1);
+                    const endDate = new Date(newYear, newMonth + 1, 0);
+                    handleMonthChange(startDate, endDate, newMonth, newYear);
+                  }}
+                  className="h-7 w-7 p-0 flex-shrink-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent className={isMobile ? "px-2 pb-3" : ""}>
             <ChartContainer config={chartConfig} className={isMobile ? "min-h-[280px]" : "min-h-[400px]"}>
