@@ -189,10 +189,7 @@ const Analise: React.FC = () => {
     <Layout>
       <div className="space-y-4 pb-8">
         {/* Header com título e botão menu */}
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-xl md:text-3xl font-bold text-slate-800">
-            {isMobile ? 'Análise' : 'Análise Gráfica'}
-          </h1>
+        <div className="flex items-center gap-2">
           {isMobile && (
             <Button
               onClick={() => navigate('/dashboard')}
@@ -204,6 +201,9 @@ const Analise: React.FC = () => {
               Menu
             </Button>
           )}
+          <h1 className="text-xl md:text-3xl font-bold text-slate-800">
+            {isMobile ? 'Análise' : 'Análise Gráfica'}
+          </h1>
         </div>
 
         {/* Cards de Resumo */}
@@ -327,10 +327,13 @@ const Analise: React.FC = () => {
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
-                    formatter={(value: number) => [
-                      `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                      ''
-                    ]}
+                    formatter={(value: number, name: string) => {
+                      const label = name === 'receitas' ? 'Recebido' : 'Pago';
+                      return [
+                        `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                        label
+                      ];
+                    }}
                   />
                   <Bar 
                     dataKey="receitas" 
