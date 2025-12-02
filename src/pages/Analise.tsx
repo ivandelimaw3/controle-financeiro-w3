@@ -68,11 +68,11 @@ const Analise: React.FC = () => {
   const barChartData = useMemo(() => {
     const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
     
-    // Gerar os 2 meses: o selecionado e o anterior
+    // Gerar os 2 meses: o selecionado e o próximo
     const selectedDate = new Date(selectedYear, selectedMonth);
-    const previousDate = subMonths(selectedDate, 1);
+    const nextDate = subMonths(selectedDate, -1); // Adiciona 1 mês
     
-    [previousDate, selectedDate].forEach(date => {
+    [selectedDate, nextDate].forEach(date => {
       const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
       monthlyData.push({
         month: monthKey,
