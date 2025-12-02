@@ -13,6 +13,8 @@ import { ExpiredInvestmentCards } from '@/components/Dashboard/ExpiredInvestment
 import { useInvestmentsData, Investment, InvestmentInstitution, InvestmentType } from '@/hooks/useInvestmentsData';
 import { useToast } from '@/hooks/use-toast';
 import { ExpiredInvestmentsTable } from '@/components/Dashboard/ExpiredInvestmentsTable';
+import { InvestmentsSummaryCardsMobile } from '@/components/Dashboard/InvestmentsSummaryCardsMobile';
+import { InvestmentsListMobile } from '@/components/Dashboard/InvestmentsListMobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -349,28 +351,127 @@ const Investimentos = () => {
     }
   };
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <Layout>
+        <div className="space-y-4 p-4">
+          {/* Botões de ação */}
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Menu className="h-5 w-5" />
+              Menu Principal
+            </Button>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowInvestmentForm(true)}
+                className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                <Plus size={18} className="mr-2" />
+                Novo
+              </Button>
+              
+              <Button
+                onClick={handleExportPDF}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+              >
+                <FileText size={18} className="mr-2" />
+                Exportar PDF
+              </Button>
+            </div>
+
+            {expiredInvestments.length > 0 && (
+              <Button 
+                onClick={handleMoveExpiredInvestments}
+                variant="outline"
+                className="w-full border-orange-300 text-orange-600 hover:bg-orange-50"
+              >
+                <Archive size={18} className="mr-2" />
+                Arquivar Vencidas ({expiredInvestments.length})
+              </Button>
+            )}
+          </div>
+
+          {/* Campo de pesquisa */}
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
+            <Input
+              placeholder="Pesquisar investimentos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Filtros */}
+          <div className="flex gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="flex-1 text-xs h-9">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="profitable">Lucrativos</SelectItem>
+                <SelectItem value="loss">Prejuízo</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="flex-1 text-xs h-9">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="renda_fixa">Renda Fixa</SelectItem>
+                <SelectItem value="renda_variavel">Renda Variável</SelectItem>
+                <SelectItem value="fundos">Fundos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Cards de resumo */}
+          <InvestmentsSummaryCardsMobile investments={filteredInvestments} />
+
+          {/* Lista de investimentos */}
+          <InvestmentsListMobile 
+            investments={filteredInvestments}
+            onEdit={handleEditInvestment}
+          />
+
+          {/* Modal de formulário */}
+          {showInvestmentForm && (
+            <InvestmentForm
+              onSubmit={editingInvestment ? handleUpdateInvestment : handleCreateInvestment}
+              onClose={closeInvestmentForm}
+              institutions={institutions}
+              investmentTypes={investmentTypes}
+              onAddInstitution={addInstitution}
+              onAddType={addInvestmentType}
+              investment={editingInvestment}
+            />
+          )}
+        </div>
+      </Layout>
+    );
+  }
+
+  // Desktop Layout
   return (
     <Layout>
-  <div className="bg-white min-h-screen">
-    <div className="space-y-6">
-      {isMobile && (
-        <Button
-          onClick={() => navigate('/')}
-          variant="outline"
-          className="m-6 flex items-center gap-2 w-fit"
-        >
-          <Menu className="h-5 w-5" />
-          Menu Principal
-        </Button>
-      )}
-      
-      {/* Container interno só para o texto */}
-      <div className="text-center py-20">  {/* py-20 adiciona espaço acima e abaixo */}
-        <h1 className="text-3xl font-bold text-slate-800">Gestão de Investimentos</h1>
-        <p className="text-slate-600 mt-1">
-          Gerencie sua carteira de investimentos e acompanhe a performance
-        </p>
-       </div>
+      <div className="bg-white min-h-screen">
+        <div className="space-y-6">
+          {/* Container interno só para o texto */}
+          <div className="text-center py-10">
+            <h1 className="text-3xl font-bold text-slate-800">Gestão de Investimentos</h1>
+            <p className="text-slate-600 mt-1">
+              Gerencie sua carteira de investimentos e acompanhe a performance
+            </p>
+          </div>
 
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
