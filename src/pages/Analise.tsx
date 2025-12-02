@@ -306,13 +306,13 @@ const Analise: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="min-h-[300px] md:min-h-[400px] overflow-hidden">
+            <ChartContainer config={chartConfig} className="min-h-[300px] md:min-h-[400px]">
               <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
                 <BarChart 
                   data={barChartData} 
                   margin={{ top: 20, right: isMobile ? 10 : 30, left: 0, bottom: isMobile ? 20 : 5 }}
-                  barGap={isMobile ? 2 : 8}
-                  barCategoryGap={isMobile ? '5%' : '20%'}
+                  barGap={isMobile ? 0 : 8}
+                  barCategoryGap={isMobile ? '10%' : '20%'}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis 

@@ -57,7 +57,7 @@ export const MonthYearStepperMobile: React.FC<MonthYearStepperMobileProps> = ({
   }
 
   return (
-    <div className="bg-card border rounded-lg p-2 flex items-center justify-between gap-2">
+    <div className="bg-card border rounded-lg p-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full max-w-full">
       {/* Stepper de Ano */}
       <div className="flex items-center gap-1 flex-1">
         <Button
