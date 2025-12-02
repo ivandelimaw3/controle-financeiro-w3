@@ -260,7 +260,7 @@ const Analise: React.FC = () => {
               {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas'}
             </CardTitle>
             {isMobile && (
-              <div className="flex items-center justify-center gap-2 bg-card border rounded-lg p-2">
+              <div className="flex items-center gap-2 bg-card border rounded-lg p-2 w-fit">
                 <Button
                   variant="ghost"
                   size="sm"
