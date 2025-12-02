@@ -176,41 +176,17 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             <div>
               <Label htmlFor="category">Categoria *</Label>
               <Select 
-                value={formData.category || ''}
+                value={formData.category} 
                 onValueChange={value => handleChange('category', value)}
               >
                 <SelectTrigger>
-                  {formData.category ? (
-                    <span className="flex items-center gap-2">
-                      {(() => {
-                        const cat = categoriesData.find(c => c.name === formData.category);
-                        if (cat) {
-                          return (
-                            <>
-                              <div 
-                                className="w-3 h-3 rounded-full flex-shrink-0" 
-                                style={{ backgroundColor: cat.color }}
-                              />
-                              <span className="truncate">{cat.name}</span>
-                            </>
-                          );
-                        }
-                        return <span className="truncate">{formData.category}</span>;
-                      })()}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Selecione uma categoria</span>
-                  )}
+                  <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80 overflow-y-auto">
-                  {(() => {
-                    const filtered = getFilteredCategories();
-                    const currentCat = categoriesData.find(c => c.name === formData.category);
-                    const allCategories = currentCat && !filtered.find(f => f.id === currentCat.id)
-                      ? [currentCat, ...filtered]
-                      : filtered;
-                    
-                    return allCategories.map(category => (
+                  {/* Mostrar todas as categorias para garantir que a atual seja encontrada */}
+                  {categoriesData
+                    .filter(cat => cat.type === formData.type || cat.name === formData.category)
+                    .map(category => (
                       <SelectItem key={category.id} value={category.name}>
                         <div className="flex items-center gap-2">
                           <div 
@@ -220,9 +196,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                           {category.name}
                         </div>
                       </SelectItem>
-                    ));
-                  })()}
-                </SelectContent>                 
+                    ))}
+                </SelectContent>
               </Select>
             </div>
       </div>
