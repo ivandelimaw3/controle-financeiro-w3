@@ -56,18 +56,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   const [displayAmount, setDisplayAmount] = useState('');
 
-  const formatCurrencyInput = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
-  const parseCurrencyInput = (value: string): number => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers ? parseFloat(numbers) / 100 : 0;
-  };
-
   useEffect(() => {
     if (account) {
       setFormData({
@@ -98,6 +86,18 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     }
   }, [account, isOpen]);
 
+  const formatCurrencyInput = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (value: string): number => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers ? parseFloat(numbers) / 100 : 0;
+  };
+
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     const numericValue = parseCurrencyInput(inputValue);
@@ -116,28 +116,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Retorna categorias filtradas por tipo, mas sempre inclui a categoria atual se existir
   const getFilteredCategories = () => {
-    // Se não há categorias carregadas mas há uma categoria selecionada, criar item temporário
-    if (categoriesData.length === 0 && formData.category) {
-      return [{ id: -1, name: formData.category, type: formData.type, color: '#6B7280' }];
-    }
-    
-    const filtered = categoriesData.filter(cat => cat.type === formData.type);
-    
-    // Se há uma categoria selecionada que não está na lista filtrada, adiciona ela
-    if (formData.category) {
-      const currentCat = categoriesData.find(cat => cat.name === formData.category);
-      if (currentCat && !filtered.find(cat => cat.name === formData.category)) {
-        return [currentCat, ...filtered];
-      }
-      // Se categoria não existe nas categoriesData, criar item temporário
-      if (!currentCat) {
-        return [{ id: -1, name: formData.category, type: formData.type, color: '#6B7280' }, ...filtered];
-      }
-    }
-    
-    return filtered;
+    return categoriesData.filter(cat => cat.type === formData.type);
   };
 
   const handleBankChange = (bankId: string) => {
@@ -196,27 +176,27 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             <div>
               <Label htmlFor="category">Categoria *</Label>
               <Select 
-                value={formData.category || ''} 
+                value={formData.category} 
                 onValueChange={value => handleChange('category', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80 overflow-y-auto">
-                  {getFilteredCategories().map(category => (
-                    <SelectItem key={category.id} value={category.name}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+               {getFilteredCategories().map(category => (
+              <SelectItem key={category.id} value={category.name}>
+            <div className="flex items-center gap-2">
+            <div 
+          className="w-3 h-3 rounded-full" 
+          style={{ backgroundColor: category.color }}
+          />
+         {category.name}
+       </div>
+       </SelectItem>
+      ))}
+      </SelectContent>                 
+        </Select>
+       </div>
       </div>
 
           {/* Fonte de Pagamento e Banco */}
