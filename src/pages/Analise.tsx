@@ -10,7 +10,7 @@ import { useAccounts } from '@/contexts/AccountsContext';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TrendingUp, TrendingDown, DollarSign, Menu } from 'lucide-react';
-import { format, parseISO, getMonth, getYear, subMonths, isAfter, isBefore } from 'date-fns';
+import { format, parseISO, getMonth, getYear } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnalysisSummaryCardsMobile } from '@/components/Dashboard/AnalysisSummaryCardsMobile';
 import { MonthYearStepperMobile } from '@/components/Accounts/MonthYearStepperMobile';
@@ -65,23 +65,21 @@ const Analise: React.FC = () => {
     return Array.from(years).sort((a, b) => b - a);
   }, [accounts]);
 
-  // Dados para gráfico de barras - últimos 12 meses baseado na seleção
+  // Dados para gráfico de barras - Janeiro a Dezembro do ano selecionado
   const barChartData = useMemo(() => {
     const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
     
-    // Gerar os últimos 12 meses a partir do mês selecionado
-    const selectedDate = new Date(selectedYear, selectedMonth);
-    
-    for (let i = 11; i >= 0; i--) {
-      const date = subMonths(selectedDate, i);
-      const monthKey = format(date, 'MMM yyyy', { locale: ptBR });
+    // Gerar de Janeiro a Dezembro do ano selecionado
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(selectedYear, i);
+      const monthKey = format(date, 'MMM', { locale: ptBR });
       monthlyData.push({
         month: monthKey,
         monthKey,
         receitas: 0,
         despesas: 0,
-        year: getYear(date),
-        monthNum: getMonth(date)
+        year: selectedYear,
+        monthNum: i
       });
     }
     
@@ -91,73 +89,86 @@ const Analise: React.FC = () => {
       const accountYear = getYear(date);
       const accountMonth = getMonth(date);
       
-      const monthData = monthlyData.find(m => m.year === accountYear && m.monthNum === accountMonth);
-      
-      if (monthData) {
-        if (account.type === 'receita') {
-          monthData.receitas += account.amount;
-        } else {
-          monthData.despesas += Math.abs(account.amount);
+      if (accountYear === selectedYear) {
+        const monthData = monthlyData.find(m => m.monthNum === accountMonth);
+        
+        if (monthData) {
+          if (account.type === 'receita') {
+            monthData.receitas += account.amount;
+          } else {
+            monthData.despesas += Math.abs(account.amount);
+          }
         }
       }
     });
 
     return monthlyData;
-  }, [accounts, selectedMonth, selectedYear]);
+  }, [accounts, selectedYear]);
 
-  // Dados para gráfico de pizza - filtrar por mês/ano selecionado
-  const pieChartData = useMemo(() => {
-    console.log('=== DEBUG GRÁFICO DE PIZZA ===');
-    console.log('Mês selecionado:', selectedMonth, 'Ano selecionado:', selectedYear);
-    console.log('Total de contas:', accounts.length);
-    
-    // Filtrar contas do mês/ano selecionado que são despesas
+  // Dados para despesas por categoria - filtrar por mês/ano selecionado
+  const despesasPorCategoria = useMemo(() => {
     const filteredAccounts = accounts.filter(account => {
       const date = parseISO(account.dueDate);
       const accountMonth = getMonth(date);
       const accountYear = getYear(date);
-      
-      const isExpense = account.type === 'despesa';
-      const matchesMonth = accountMonth === selectedMonth;
-      const matchesYear = accountYear === selectedYear;
-      
-      return isExpense && matchesMonth && matchesYear;
+      return account.type === 'despesa' && accountMonth === selectedMonth && accountYear === selectedYear;
     });
-
-    console.log('Contas filtradas (despesas do período):', filteredAccounts.length);
     
-    // Agrupar por categoria
     const categoryTotals: { [key: string]: number } = {};
-    
     filteredAccounts.forEach(account => {
       const category = account.category;
-      if (!categoryTotals[category]) {
-        categoryTotals[category] = 0;
-      }
+      if (!categoryTotals[category]) categoryTotals[category] = 0;
       categoryTotals[category] += Math.abs(account.amount);
     });
 
-    console.log('Totais por categoria:', categoryTotals);
-
-    // Converter para array, ordenar por valor (maior para menor) e adicionar cores
     const result = Object.entries(categoryTotals)
       .filter(([_, value]) => value > 0)
-      .sort(([, a], [, b]) => b - a) // Ordenar por valor decrescente
+      .sort(([, a], [, b]) => b - a)
       .map(([name, value], index) => ({
         name,
         value,
         color: COLORS[index % COLORS.length],
-        percentage: 0 // Será calculado após ter todos os dados
+        percentage: 0
       }));
 
-    // Calcular porcentagens
     const total = result.reduce((sum, item) => sum + item.value, 0);
     result.forEach(item => {
       item.percentage = total > 0 ? (item.value / total) * 100 : 0;
     });
+    
+    return result;
+  }, [accounts, selectedMonth, selectedYear]);
 
-    console.log('Dados finais do gráfico:', result);
-    console.log('=== FIM DEBUG ===');
+  // Dados para receitas por categoria - filtrar por mês/ano selecionado
+  const receitasPorCategoria = useMemo(() => {
+    const filteredAccounts = accounts.filter(account => {
+      const date = parseISO(account.dueDate);
+      const accountMonth = getMonth(date);
+      const accountYear = getYear(date);
+      return account.type === 'receita' && accountMonth === selectedMonth && accountYear === selectedYear;
+    });
+    
+    const categoryTotals: { [key: string]: number } = {};
+    filteredAccounts.forEach(account => {
+      const category = account.category;
+      if (!categoryTotals[category]) categoryTotals[category] = 0;
+      categoryTotals[category] += account.amount;
+    });
+
+    const result = Object.entries(categoryTotals)
+      .filter(([_, value]) => value > 0)
+      .sort(([, a], [, b]) => b - a)
+      .map(([name, value], index) => ({
+        name,
+        value,
+        color: COLORS[index % COLORS.length],
+        percentage: 0
+      }));
+
+    const total = result.reduce((sum, item) => sum + item.value, 0);
+    result.forEach(item => {
+      item.percentage = total > 0 ? (item.value / total) * 100 : 0;
+    });
     
     return result;
   }, [accounts, selectedMonth, selectedYear]);
@@ -210,36 +221,62 @@ const Analise: React.FC = () => {
           </CardHeader>
         </Card>
 
-        {/* Navegador de Mês/Ano - Desktop */}
+        {/* Navegador de Mês/Ano - Desktop com dois steppers */}
         {!isMobile && (
           <Card>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
-                    const newYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
-                    handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
-                  }}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="text-sm font-semibold text-slate-800">
-                  {months[selectedMonth].label} de {selectedYear}
+              <div className="flex items-center justify-center gap-8">
+                {/* Stepper de Mês */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 mr-1">Mês:</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+                      const newYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+                      handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
+                    }}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="text-sm font-semibold text-slate-800 min-w-[90px] text-center">
+                    {months[selectedMonth].label}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
+                      const newYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
+                      handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
+                    }}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
-                    const newYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
-                    handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
-                  }}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                
+                {/* Stepper de Ano */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 mr-1">Ano:</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedYear(prev => prev - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="text-sm font-semibold text-slate-800 min-w-[50px] text-center">
+                    {selectedYear}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedYear(prev => prev + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -350,54 +387,108 @@ const Analise: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Despesas por Categoria - Cards em Barras */}
-        <Card>
-          <CardHeader className={isMobile ? "pb-3" : ""}>
-            <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
-              Despesas por Categoria
-            </CardTitle>
-          </CardHeader>
-          <CardContent className={isMobile ? "px-3 pb-3" : ""}>
-            {pieChartData.length > 0 ? (
-              <div className="space-y-2">
-                <div className={`text-xs font-medium text-slate-700 ${isMobile ? 'mb-2' : 'mb-4'}`}>
-                  {months[selectedMonth].label} de {selectedYear}
-                </div>
-                {pieChartData.map((category, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5"
-                  >
-                    <div 
-                      className="w-5 h-5 rounded-full flex-shrink-0 shadow-sm" 
-                      style={{ backgroundColor: category.color }}
-                    ></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-slate-800 truncate mb-0.5">
-                        {category.name}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-600">
-                          R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </span>
-                        <span className="text-xs font-medium text-slate-600">
-                          {category.percentage.toFixed(1)}%
-                        </span>
+        {/* Receitas e Despesas por Categoria - Duas colunas em Desktop */}
+        {isMobile ? (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Despesas por Categoria</CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              {despesasPorCategoria.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-slate-700 mb-2">
+                    {months[selectedMonth].label} de {selectedYear}
+                  </div>
+                  {despesasPorCategoria.map((category, index) => (
+                    <div key={index} className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: category.color }}></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold text-slate-800 truncate mb-0.5">{category.name}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-600">R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          <span className="text-xs font-medium text-slate-600">{category.percentage.toFixed(1)}%</span>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
+                  <p className="text-sm font-medium mb-1">Nenhuma despesa encontrada</p>
+                  <p className="text-xs text-center">Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {/* Receitas por Categoria */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg md:text-xl text-green-600">Receitas por Categoria</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {receitasPorCategoria.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-slate-700 mb-4">
+                      {months[selectedMonth].label} de {selectedYear}
+                    </div>
+                    {receitasPorCategoria.map((category, index) => (
+                      <div key={index} className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5">
+                        <div className="w-5 h-5 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: category.color }}></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-semibold text-slate-800 truncate mb-0.5">{category.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-green-600">R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <span className="text-xs font-medium text-slate-600">{category.percentage.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
-                <p className="text-sm font-medium mb-1">Nenhuma despesa encontrada</p>
-                <p className="text-xs text-center">
-                  Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
+                    <p className="text-sm font-medium mb-1">Nenhuma receita encontrada</p>
+                    <p className="text-xs text-center">Não há receitas cadastradas para {months[selectedMonth].label} de {selectedYear}.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Despesas por Categoria */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg md:text-xl text-red-600">Despesas por Categoria</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {despesasPorCategoria.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-slate-700 mb-4">
+                      {months[selectedMonth].label} de {selectedYear}
+                    </div>
+                    {despesasPorCategoria.map((category, index) => (
+                      <div key={index} className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5">
+                        <div className="w-5 h-5 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: category.color }}></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-semibold text-slate-800 truncate mb-0.5">{category.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-red-600">R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <span className="text-xs font-medium text-slate-600">{category.percentage.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
+                    <p className="text-sm font-medium mb-1">Nenhuma despesa encontrada</p>
+                    <p className="text-xs text-center">Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </Layout>
   );
