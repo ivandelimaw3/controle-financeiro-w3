@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -183,7 +183,7 @@ const Analise: React.FC = () => {
       label: "Pago",
       color: "#ef4444",
     },
-  };
+  } satisfies ChartConfig;
 
   return (
     <Layout>
@@ -291,14 +291,7 @@ const Analise: React.FC = () => {
                     width={isMobile ? 32 : 60}
                   />
                   <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                    formatter={(value: number, name: string) => {
-                      const label = name === 'receitas' ? 'Recebido' : 'Pago';
-                      return [
-                        `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                        label
-                      ];
-                    }}
+                    content={<ChartTooltipContent labelKey="month" />}
                   />
                   <Bar 
                     dataKey="receitas" 
