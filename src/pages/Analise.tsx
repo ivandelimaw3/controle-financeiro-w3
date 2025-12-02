@@ -206,16 +206,6 @@ const Analise: React.FC = () => {
           )}
         </div>
 
-        {/* Stepper de Mês/Ano (mobile) */}
-        {isMobile && (
-          <MonthYearStepperMobile
-            currentMonth={selectedMonth}
-            currentYear={selectedYear}
-            onMonthChange={handleMonthChange}
-            isShowingAll={false}
-          />
-        )}
-
         {/* Cards de Resumo */}
         {isMobile ? (
           <AnalysisSummaryCardsMobile
@@ -263,12 +253,22 @@ const Analise: React.FC = () => {
           </div>
         )}
 
-        {/* Gráfico de Barras - Últimos 12 Meses */}
+        {/* Gráfico de Barras */}
         <Card>
           <CardHeader className={isMobile ? "pb-3" : ""}>
-            <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
-              {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas - Últimos 12 Meses'}
-            </CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
+                {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas'}
+              </CardTitle>
+              {isMobile && (
+                <MonthYearStepperMobile
+                  currentMonth={selectedMonth}
+                  currentYear={selectedYear}
+                  onMonthChange={handleMonthChange}
+                  isShowingAll={false}
+                />
+              )}
+            </div>
           </CardHeader>
           <CardContent className={isMobile ? "px-2 pb-3" : ""}>
             <ChartContainer config={chartConfig} className={isMobile ? "min-h-[280px]" : "min-h-[400px]"}>
