@@ -180,23 +180,40 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 onValueChange={value => handleChange('category', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
+                  <SelectValue placeholder="Selecione uma categoria">
+                    {formData.category && (
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const cat = categoriesData.find(c => c.name === formData.category);
+                          return cat ? (
+                            <>
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: cat.color }}
+                              />
+                              {cat.name}
+                            </>
+                          ) : formData.category;
+                        })()}
+                      </div>
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-80 overflow-y-auto">
-               {getFilteredCategories().map(category => (
-              <SelectItem key={category.id} value={category.name}>
-            <div className="flex items-center gap-2">
-            <div 
-          className="w-3 h-3 rounded-full" 
-          style={{ backgroundColor: category.color }}
-          />
-         {category.name}
-       </div>
-       </SelectItem>
-      ))}
-      </SelectContent>                 
-        </Select>
-       </div>
+                  {getFilteredCategories().map(category => (
+                    <SelectItem key={category.id} value={category.name}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>                 
+              </Select>
+            </div>
       </div>
 
           {/* Fonte de Pagamento e Banco */}
