@@ -337,16 +337,16 @@ const Analise: React.FC = () => {
                       style={{ backgroundColor: category.color }}
                     ></div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-0.5">
-                        <span className="text-xs font-semibold text-slate-800 truncate">
-                          {category.name}
+                      <div className="text-xs font-semibold text-slate-800 truncate mb-0.5">
+                        {category.name}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-600">
+                          R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
-                        <span className="text-xs font-medium text-slate-600 flex-shrink-0">
+                        <span className="text-xs font-medium text-slate-600">
                           {category.percentage.toFixed(1)}%
                         </span>
-                      </div>
-                      <div className="text-xs text-slate-600">
-                        R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </div>
                     </div>
                   </div>
