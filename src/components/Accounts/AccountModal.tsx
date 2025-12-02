@@ -180,37 +180,29 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 onValueChange={value => handleChange('category', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria">
-                    {formData.category && (
-                      <div className="flex items-center gap-2">
-                        {(() => {
-                          const cat = categoriesData.find(c => c.name === formData.category);
-                          return cat ? (
-                            <>
-                              <div 
-                                className="w-3 h-3 rounded-full" 
-                                style={{ backgroundColor: cat.color }}
-                              />
-                              {cat.name}
-                            </>
-                          ) : formData.category;
-                        })()}
-                      </div>
-                    )}
-                  </SelectValue>
+                  <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80 overflow-y-auto">
-                  {getFilteredCategories().map(category => (
-                    <SelectItem key={category.id} value={category.name}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {/* Incluir a categoria atual mesmo se não estiver no tipo filtrado */}
+                  {(() => {
+                    const filtered = getFilteredCategories();
+                    const currentCat = categoriesData.find(c => c.name === formData.category);
+                    const allCategories = currentCat && !filtered.find(f => f.id === currentCat.id)
+                      ? [currentCat, ...filtered]
+                      : filtered;
+                    
+                    return allCategories.map(category => (
+                      <SelectItem key={category.id} value={category.name}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ));
+                  })()}
                 </SelectContent>                 
               </Select>
             </div>
