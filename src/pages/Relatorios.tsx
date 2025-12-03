@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
-import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +15,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const Relatorios: React.FC = () => {
+  const navigate = useNavigate();
   const { accounts, getTotalReceitas, getTotalDespesas, getSaldo } = useAccounts();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
@@ -163,9 +165,10 @@ const Relatorios: React.FC = () => {
     // Excluir contas de saldo anterior
     if (account.description === "Saldo Anterior") return false;
     
-    const accountDate = new Date(account.dueDate);
-    const accountMonth = accountDate.getMonth() + 1;
-    const accountYear = accountDate.getFullYear();
+    // Parse da data corrigido - usar split para evitar problemas de timezone
+    const dateParts = account.dueDate.split('-');
+    const accountYear = parseInt(dateParts[0], 10);
+    const accountMonth = parseInt(dateParts[1], 10); // Já é 1-12
 
     // Melhorar a pesquisa por texto - buscar tanto na descrição quanto na categoria
     const searchLower = searchTerm.toLowerCase().trim();
@@ -175,8 +178,8 @@ const Relatorios: React.FC = () => {
     
     const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
     const matchesType = typeFilter === 'todos' || account.type === typeFilter;
-    const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter);
-    const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter);
+    const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter, 10);
+    const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter, 10);
     
     return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
   });
@@ -269,7 +272,15 @@ const Relatorios: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex justify-start items-center">
+        <div className="flex justify-start items-center gap-3">
+          <Button 
+            onClick={() => navigate('/contas')}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft size={18} />
+            Voltar para Contas
+          </Button>
           <Button 
             onClick={handleExportPDF}
             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
