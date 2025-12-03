@@ -55,6 +55,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   });
 
   const [displayAmount, setDisplayAmount] = useState('');
+  const [isCategoryEditing, setIsCategoryEditing] = useState(false);
 
   useEffect(() => {
     if (account) {
@@ -70,6 +71,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         payment_source_name: account.payment_source_name || ''
       });
       setDisplayAmount(formatCurrencyInput(account.amount));
+      setIsCategoryEditing(false);
     } else {
       setFormData({
         description: '',
@@ -83,6 +85,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         payment_source_name: ''
       });
       setDisplayAmount('');
+      setIsCategoryEditing(true);
     }
   }, [account, isOpen]);
 
@@ -175,28 +178,50 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
             <div>
               <Label htmlFor="category">Categoria *</Label>
-              <Select 
-                value={formData.category} 
-                onValueChange={value => handleChange('category', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80 overflow-y-auto">
-               {getFilteredCategories().map(category => (
-              <SelectItem key={category.id} value={category.name}>
-            <div className="flex items-center gap-2">
-            <div 
-          className="w-3 h-3 rounded-full" 
-          style={{ backgroundColor: category.color }}
-          />
-         {category.name}
-       </div>
-       </SelectItem>
-      ))}
-      </SelectContent>                 
-        </Select>
-       </div>
+              {account && !isCategoryEditing ? (
+                <div
+                  onClick={() => setIsCategoryEditing(true)}
+                  className="flex items-center h-10 px-3 py-2 border border-input rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+                >
+                  {(() => {
+                    const currentCategory = categoriesData.find(cat => cat.name === formData.category);
+                    return (
+                      <div className="flex items-center gap-2">
+                        {currentCategory && (
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: currentCategory.color }}
+                          />
+                        )}
+                        <span className="text-sm">{formData.category || 'Selecione uma categoria'}</span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <Select 
+                  value={formData.category} 
+                  onValueChange={value => handleChange('category', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-80 overflow-y-auto">
+                    {getFilteredCategories().map(category => (
+                      <SelectItem key={category.id} value={category.name}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>                 
+                </Select>
+              )}
+           </div>
       </div>
 
           {/* Fonte de Pagamento e Banco */}
