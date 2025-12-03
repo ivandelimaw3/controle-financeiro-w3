@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
-import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
+import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,40 +28,20 @@ const Relatorios: React.FC = () => {
 
   const { toast } = useToast();
 
-  const monthNames = [
-    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-  ];
+  // Para o MonthNavigator (que usa 0-11 para meses)
+  const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10) - 1;
+  const currentYear = parseInt(yearFilter, 10);
+  const isShowingAll = monthFilter === 'todos';
 
-  // Para controle do stepper (0-11 internamente)
-  const currentMonthIndex = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10) - 1;
-  const currentYearNum = parseInt(yearFilter, 10);
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    let newMonth = currentMonthIndex;
-    let newYear = currentYearNum;
-
-    if (direction === 'prev') {
-      newMonth = currentMonthIndex - 1;
-      if (newMonth < 0) {
-        newMonth = 11;
-        newYear = currentYearNum - 1;
-      }
-    } else {
-      newMonth = currentMonthIndex + 1;
-      if (newMonth > 11) {
-        newMonth = 0;
-        newYear = currentYearNum + 1;
-      }
-    }
-
-    setMonthFilter((newMonth + 1).toString());
-    setYearFilter(newYear.toString());
+  // Funções para o MonthNavigator
+  const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
+    setMonthFilter((month + 1).toString()); // MonthNavigator usa 0-11, nossos filtros usam 1-12
+    setYearFilter(year.toString());
   };
 
-  const navigateYear = (direction: 'prev' | 'next') => {
-    const newYear = direction === 'prev' ? currentYearNum - 1 : currentYearNum + 1;
-    setYearFilter(newYear.toString());
+  const handleShowAll = () => {
+    setMonthFilter('todos');
+    setYearFilter('todos');
   };
 
   const handleExportPDF = () => {
@@ -399,54 +380,14 @@ const Relatorios: React.FC = () => {
               </Select>
             </div>
 
-            {/* Stepper de Mês/Ano compacto */}
-            <div className="flex items-center gap-4 mb-4">
-              {/* Stepper de Mês */}
-              <div className="flex items-center gap-1 bg-slate-100 rounded-lg px-2 py-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateMonth('prev')}
-                  className="h-8 w-8 p-0 hover:bg-slate-200"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="text-sm font-semibold text-slate-700 min-w-[40px] text-center">
-                  {monthNames[currentMonthIndex]}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateMonth('next')}
-                  className="h-8 w-8 p-0 hover:bg-slate-200"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Stepper de Ano */}
-              <div className="flex items-center gap-1 bg-slate-100 rounded-lg px-2 py-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateYear('prev')}
-                  className="h-8 w-8 p-0 hover:bg-slate-200"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="text-sm font-semibold text-slate-700 min-w-[50px] text-center">
-                  {currentYearNum}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateYear('next')}
-                  className="h-8 w-8 p-0 hover:bg-slate-200"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            {/* MonthNavigator substituindo os filtros de data */}
+            <MonthNavigator
+              currentMonth={currentMonth}
+              currentYear={currentYear}
+              onMonthChange={handleMonthChange}
+              onShowAll={handleShowAll}
+              isShowingAll={isShowingAll}
+            />
 
             {/* Campo de Total por Status */}
             {statusTotal !== null && (
