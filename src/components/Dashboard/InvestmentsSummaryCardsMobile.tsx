@@ -15,6 +15,7 @@ export const InvestmentsSummaryCardsMobile: React.FC<InvestmentsSummaryCardsMobi
   const totalGain = totalCurrent - totalInvested;
   const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
   const totalInvestments = investments.length;
+  const totalYield = investments.reduce((sum, inv) => sum + Number(inv.yield_percentage || 0), 0);
 
   return (
     <div className="flex flex-col gap-2">
@@ -38,16 +39,16 @@ export const InvestmentsSummaryCardsMobile: React.FC<InvestmentsSummaryCardsMobi
 
       {/* Rendimentos */}
       <div className={`flex items-center justify-between rounded-lg px-3 py-2 ${
-        totalGain >= 0 
+        totalYield >= 0 
           ? 'bg-emerald-50 border border-emerald-200' 
           : 'bg-red-50 border border-red-200'
       }`}>
         <div className="flex items-center gap-2">
-          <TrendingUp size={16} className={totalGain >= 0 ? 'text-emerald-600' : 'text-red-600'} />
+          <TrendingUp size={16} className={totalYield >= 0 ? 'text-emerald-600' : 'text-red-600'} />
           <span className="text-xs font-medium text-slate-600">Rendimentos</span>
         </div>
-        <span className={`text-sm font-bold ${totalGain >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-          {formatCurrency(totalGain)}
+        <span className={`text-sm font-bold ${totalYield >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+          {formatCurrency(totalYield)}
         </span>
       </div>
 
