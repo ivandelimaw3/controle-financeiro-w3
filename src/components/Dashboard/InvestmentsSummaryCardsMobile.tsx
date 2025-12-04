@@ -36,6 +36,21 @@ export const InvestmentsSummaryCardsMobile: React.FC<InvestmentsSummaryCardsMobi
         <span className="text-sm font-bold text-slate-800">{formatCurrency(totalCurrent)}</span>
       </div>
 
+      {/* Rendimentos */}
+      <div className={`flex items-center justify-between rounded-lg px-3 py-2 ${
+        totalGain >= 0 
+          ? 'bg-emerald-50 border border-emerald-200' 
+          : 'bg-red-50 border border-red-200'
+      }`}>
+        <div className="flex items-center gap-2">
+          <TrendingUp size={16} className={totalGain >= 0 ? 'text-emerald-600' : 'text-red-600'} />
+          <span className="text-xs font-medium text-slate-600">Rendimentos</span>
+        </div>
+        <span className={`text-sm font-bold ${totalGain >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+          {formatCurrency(totalGain)}
+        </span>
+      </div>
+
       {/* Investimentos */}
       <div className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
         <div className="flex items-center gap-2">

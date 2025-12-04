@@ -510,7 +510,7 @@ const Investimentos = () => {
           />
 
           {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -531,6 +531,20 @@ const Investimentos = () => {
                 </div>
                 <div className="p-3 bg-green-100 rounded-lg">
                   <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Rendimentos</p>
+                  <p className={`text-2xl font-bold ${totalGain >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {formatCurrency(totalGain)}
+                  </p>
+                </div>
+                <div className={`p-3 rounded-lg ${totalGain >= 0 ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                  <TrendingUp className={`h-6 w-6 ${totalGain >= 0 ? 'text-emerald-600' : 'text-red-600'}`} />
                 </div>
               </div>
             </div>
