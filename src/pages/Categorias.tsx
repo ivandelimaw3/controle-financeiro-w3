@@ -159,8 +159,12 @@ const Categorias: React.FC = () => {
         
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Categorias</h1>
-            <p className="text-slate-600">Organize suas transações por categorias hierárquicas</p>
+            <h1 className={isMobile ? "text-2xl font-bold mb-2" : "text-3xl font-bold text-slate-800 mb-2"}>
+              {isMobile ? 'Gestão de Categorias' : 'Categorias'}
+            </h1>
+            <p className={isMobile ? "text-sm text-muted-foreground" : "text-slate-600"}>
+              Organize suas transações por categorias hierárquicas
+            </p>
           </div>
           <Button
             onClick={() => handleNewCategory()}

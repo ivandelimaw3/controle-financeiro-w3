@@ -256,6 +256,9 @@ const Contas: React.FC = () => {
     if (isMobile) {
       return (
         <div className="space-y-4 p-4">
+          {/* Título Mobile */}
+          <h1 className="text-2xl font-bold text-slate-800">Gestão de Contas</h1>
+
           {/* Botões de ação */}
           <div className="flex flex-col gap-3">
             <Button
