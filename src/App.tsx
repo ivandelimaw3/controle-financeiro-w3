@@ -2,6 +2,7 @@
 import { Toaster } from "sonner";
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { PWAUpdatePrompt } from "./components/PWAUpdatePrompt";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -129,6 +130,7 @@ const App = () => {
                   closeButton={true}
                 />
                 <ShadcnToaster />
+                <PWAUpdatePrompt />
               </div>
             </AccountsProvider>
           </AuthProvider>
