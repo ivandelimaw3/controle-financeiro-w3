@@ -189,16 +189,9 @@ const Bancos = () => {
             </Button>
           )}
           
-          <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
-            <div>
-            <h1 className={isMobile ? "text-2xl font-bold" : "text-3xl font-bold text-slate-800"}>
-                Gestão de Bancos
-              </h1>
-              <p className={isMobile ? "text-sm text-muted-foreground" : "text-slate-600 mt-1"}>
-                Gerencie bancos vinculados às suas contas cadastradas
-              </p>
-            </div>
-            {!isMobile && (
+          {!isMobile && (
+            <div className="flex items-center justify-between">
+              <div></div>
               <Button
                 onClick={() => setShowBankForm(true)}
                 className="bg-blue-600 hover:bg-blue-700"
@@ -206,8 +199,8 @@ const Bancos = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Banco
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           {isMobile && (
             <Button
