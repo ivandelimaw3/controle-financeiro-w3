@@ -291,23 +291,21 @@ const AdminReport: React.FC = () => {
         )}
 
         {/* Filter */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-700">Filtrar por usuário:</span>
-            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Todos os usuários" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os usuários</SelectItem>
-                {users.map(user => (
-                  <SelectItem key={user.user_id} value={user.user_id}>
-                    {user.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-slate-700">Filtrar por usuário:</span>
+          <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Todos os usuários" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os usuários</SelectItem>
+              {users.map(user => (
+                <SelectItem key={user.user_id} value={user.user_id}>
+                  {user.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
           <AlertDialog>
             <AlertDialogTrigger asChild>
