@@ -201,7 +201,7 @@ const CartoesCredito = () => {
           <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
             <div>
             <h1 className={isMobile ? "text-2xl font-bold" : "text-3xl font-bold text-slate-800"}>
-                {isMobile ? 'Gestão Cartões de Crédito' : 'Gestão de Cartões de Crédito'}
+                Gestão de Cartões
               </h1>
               <p className={isMobile ? "text-sm text-muted-foreground" : "text-slate-600 mt-1"}>
                 Gerencie seus cartões de crédito e acompanhe seus gastos
