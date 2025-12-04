@@ -28,6 +28,7 @@ const getSubtitleByRoute = (pathname: string): string => {
     '/relatorios': 'Gestão de Relatórios',
     '/dashboard': 'Gestão Financeira',
     '/admin': 'Administração',
+    '/admin/relatorio': 'Relatório de Acessos',
     '/change-password': 'Alterar Senha',
   };
   return routeSubtitles[pathname] || 'Gestão Financeira';

@@ -18,6 +18,7 @@ import Bancos from "./pages/Bancos";
 import Investimentos from "./pages/Investimentos";
 import InvestimentosVencidos from "./pages/InvestimentosVencidos";
 import Admin from "./pages/Admin";
+import AdminReport from "./pages/AdminReport";
 import Auth from "./pages/Auth";
 import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
@@ -121,6 +122,11 @@ const App = () => {
                   <Route path="/admin" element={
                     <ProtectedRoute>
                       <Admin />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/relatorio" element={
+                    <ProtectedRoute>
+                      <AdminReport />
                     </ProtectedRoute>
                   } />
                   <Route path="*" element={<NotFound />} />
