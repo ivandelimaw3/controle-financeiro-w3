@@ -15,11 +15,14 @@ export const PWAUpdatePrompt = () => {
     onRegisteredSW(swUrl, registration) {
       console.log('Service Worker registrado:', swUrl);
       
-      // Verifica atualizações a cada 1 hora
+      // Verifica atualizações imediatamente ao abrir
       if (registration) {
+        registration.update();
+        
+        // Verifica atualizações a cada 5 minutos
         setInterval(() => {
           registration.update();
-        }, 60 * 60 * 1000);
+        }, 5 * 60 * 1000);
       }
     },
     onRegisterError(error) {
