@@ -1,2 +1,2 @@
 // Versão do aplicativo - atualize este valor a cada release
-export const APP_VERSION = '1.0.1';
+export const APP_VERSION = '1.0.2';
