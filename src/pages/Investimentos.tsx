@@ -515,69 +515,29 @@ const Investimentos = () => {
           />
 
           {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Total Investido</p>
-                  <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalInvested)}</p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
+              <p className="text-sm font-medium text-slate-600">Total Investido</p>
+              <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalInvested)}</p>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Valor Atual</p>
-                  <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalCurrent)}</p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
+              <p className="text-sm font-medium text-slate-600">Valor Atual</p>
+              <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalCurrent)}</p>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Rendimentos</p>
-                  <p className={`text-2xl font-bold ${totalRendimentos >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {formatCurrency(totalRendimentos)}
-                  </p>
-                </div>
-                <div className={`p-3 rounded-lg ${totalRendimentos >= 0 ? 'bg-emerald-100' : 'bg-red-100'}`}>
-                  <TrendingUp className={`h-6 w-6 ${totalRendimentos >= 0 ? 'text-emerald-600' : 'text-red-600'}`} />
-                </div>
-              </div>
+              <p className="text-sm font-medium text-slate-600">Rendimentos</p>
+              <p className={`text-2xl font-bold ${totalRendimentos >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {formatCurrency(totalRendimentos)}
+              </p>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Investimentos</p>
-                  <p className="text-2xl font-bold text-slate-800">{totalInvestments}</p>
-                </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Building2 className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Rentabilidade</p>
-                  <p className={`text-2xl font-bold ${gainPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {gainPercentage.toFixed(2)}%
-                  </p>
-                </div>
-                <div className="p-3 bg-yellow-100 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-yellow-600" />
-                </div>
-              </div>
+              <p className="text-sm font-medium text-slate-600">Rentabilidade</p>
+              <p className={`text-2xl font-bold ${gainPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {gainPercentage.toFixed(2)}%
+              </p>
             </div>
           </div>
 
@@ -621,6 +581,7 @@ const Investimentos = () => {
               <table className="w-full border-collapse border border-slate-300">
                 <thead className="bg-slate-100 border-b-2 border-slate-300">
                   <tr>
+                    <th className="text-center py-2 px-2 font-semibold text-slate-800 border-r border-slate-300 w-12">#</th>
                     <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Investimento</th>
                     <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Instituição</th>
                     <th className="text-left py-2 px-4 font-semibold text-slate-800 border-r border-slate-300">Tipo</th>
@@ -642,15 +603,13 @@ const Investimentos = () => {
                     
                     return (
                       <tr key={investment.id} className={`border-b border-slate-200 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
+                        <td className="py-1 px-2 border-r border-slate-200 text-center">
+                          <span className="font-medium text-slate-600">{index + 1}</span>
+                        </td>
                         <td className="py-1 px-4 border-r border-slate-200">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <TrendingUp className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-800">{investment.name}</p>
-                              <p className="text-xs text-slate-500">{investment.investor_name || 'Sem investidor'}</p>
-                            </div>
+                          <div>
+                            <p className="font-medium text-slate-800">{investment.name}</p>
+                            <p className="text-xs text-slate-500">{investment.investor_name || 'Sem investidor'}</p>
                           </div>
                         </td>
                         <td className="py-1 px-4 border-r border-slate-200">
