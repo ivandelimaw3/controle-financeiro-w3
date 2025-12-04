@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { APP_VERSION } from '@/utils/version';
 
 const menuItems = [
   { 
@@ -118,6 +119,12 @@ export function MobileMenu({ onViewDashboard }: MobileMenuProps) {
             </Link>
           );
         })}
+      </div>
+
+      <div className="mt-6 text-center">
+        <span className="text-xs text-muted-foreground">
+          Versão {APP_VERSION}
+        </span>
       </div>
     </div>
   );
