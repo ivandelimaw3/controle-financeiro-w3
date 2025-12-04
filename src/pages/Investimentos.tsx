@@ -129,7 +129,11 @@ const Investimentos = () => {
   const totalCurrent = filteredInvestments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
   const totalGain = totalCurrent - totalInvested;
   const gainPercentage = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
-  const totalYield = filteredInvestments.reduce((sum, inv) => sum + Number(inv.yield_percentage || 0), 0);
+  // Soma dos rendimentos individuais (current_value - invested_amount) de cada investimento
+  const totalRendimentos = filteredInvestments.reduce((sum, inv) => {
+    const gain = Number(inv.current_value) - Number(inv.invested_amount);
+    return sum + gain;
+  }, 0);
 
   const handleCreateInvestment = async (investmentData: any) => {
     await addInvestment(investmentData);
@@ -540,12 +544,12 @@ const Investimentos = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Rendimentos</p>
-                  <p className={`text-2xl font-bold ${totalYield >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {formatCurrency(totalYield)}
+                  <p className={`text-2xl font-bold ${totalRendimentos >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {formatCurrency(totalRendimentos)}
                   </p>
                 </div>
-                <div className={`p-3 rounded-lg ${totalYield >= 0 ? 'bg-emerald-100' : 'bg-red-100'}`}>
-                  <TrendingUp className={`h-6 w-6 ${totalYield >= 0 ? 'text-emerald-600' : 'text-red-600'}`} />
+                <div className={`p-3 rounded-lg ${totalRendimentos >= 0 ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                  <TrendingUp className={`h-6 w-6 ${totalRendimentos >= 0 ? 'text-emerald-600' : 'text-red-600'}`} />
                 </div>
               </div>
             </div>
