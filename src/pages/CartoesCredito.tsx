@@ -198,16 +198,9 @@ const CartoesCredito = () => {
             </Button>
           )}
           
-          <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
-            <div>
-            <h1 className={isMobile ? "text-2xl font-bold" : "text-3xl font-bold text-slate-800"}>
-                Gestão de Cartões
-              </h1>
-              <p className={isMobile ? "text-sm text-muted-foreground" : "text-slate-600 mt-1"}>
-                Gerencie seus cartões de crédito e acompanhe seus gastos
-              </p>
-            </div>
-            {!isMobile && (
+          {!isMobile && (
+            <div className="flex items-center justify-between">
+              <div></div>
               <Button
                 onClick={() => setShowCardForm(true)}
                 className="bg-blue-600 hover:bg-blue-700"
@@ -215,8 +208,8 @@ const CartoesCredito = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Cartão
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           {isMobile && (
             <Button
