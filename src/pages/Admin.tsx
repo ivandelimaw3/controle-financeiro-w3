@@ -225,22 +225,23 @@ const Admin: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-                  <ShieldCheck className="h-8 w-8 text-blue-600" />
-                  Administração
-                </h1>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+                <ShieldCheck className="h-8 w-8 text-blue-600" />
+                Administração
+              </h1>
+              <div className="flex items-center gap-4">
                 <p className="text-slate-600">Gerenciar usuários e permissões do sistema</p>
+                <Button
+                  onClick={() => navigate('/admin/relatorio')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Relatório de Acessos
+                </Button>
               </div>
-              <Button
-                onClick={() => navigate('/admin/relatorio')}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Relatório de Acessos
-              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
