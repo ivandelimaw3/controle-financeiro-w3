@@ -3,7 +3,7 @@ import React from 'react';
 import { User, LogOut, Settings, Crown, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTrialStatus } from '@/hooks/useTrialStatus';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -14,12 +14,34 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+const getSubtitleByRoute = (pathname: string): string => {
+  const routeSubtitles: Record<string, string> = {
+    '/': 'Gestão Financeira',
+    '/contas': 'Gestão de Contas',
+    '/card-accounts': 'Gestão Contas Cartões',
+    '/cartoes-credito': 'Gestão Cartões de Crédito',
+    '/bancos': 'Gestão Contas Bancos',
+    '/investimentos': 'Gestão de Investimentos',
+    '/investimentos-vencidos': 'Gestão Investimentos Vencidos',
+    '/categorias': 'Gestão de Categorias',
+    '/analise': 'Gestão Análise Gráfica',
+    '/relatorios': 'Gestão de Relatórios',
+    '/dashboard': 'Gestão Financeira',
+    '/admin': 'Administração',
+    '/change-password': 'Alterar Senha',
+  };
+  return routeSubtitles[pathname] || 'Gestão Financeira';
+};
+
 export const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { trialStatus, loading } = useTrialStatus();
   const isMobile = useIsMobile();
+  
+  const subtitle = getSubtitleByRoute(location.pathname);
 
   const handleLogout = async () => {
     try {
@@ -84,7 +106,7 @@ export const Header: React.FC = () => {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
             Controle Financeiro W3
           </h1>
-          <p className="text-sm text-slate-500">Gestão Financeira</p>
+          <p className="text-sm text-slate-500">{subtitle}</p>
         </div>
         
         {!isMobile && (

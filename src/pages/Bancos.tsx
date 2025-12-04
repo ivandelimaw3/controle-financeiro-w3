@@ -192,7 +192,7 @@ const Bancos = () => {
           <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
             <div>
             <h1 className={isMobile ? "text-2xl font-bold" : "text-3xl font-bold text-slate-800"}>
-                {isMobile ? 'Gestão Contas Bancos' : 'Gestão de Bancos'}
+                Gestão de Bancos
               </h1>
               <p className={isMobile ? "text-sm text-muted-foreground" : "text-slate-600 mt-1"}>
                 Gerencie bancos vinculados às suas contas cadastradas
