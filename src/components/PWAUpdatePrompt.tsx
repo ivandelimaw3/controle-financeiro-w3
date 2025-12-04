@@ -19,10 +19,10 @@ export const PWAUpdatePrompt = () => {
       if (registration) {
         registration.update();
         
-        // Verifica atualizações a cada 5 minutos
+        // Verifica atualizações a cada 2 minutos
         setInterval(() => {
           registration.update();
-        }, 5 * 60 * 1000);
+        }, 2 * 60 * 1000);
       }
     },
     onRegisterError(error) {
@@ -31,32 +31,29 @@ export const PWAUpdatePrompt = () => {
   });
 
   useEffect(() => {
-    if (needRefresh && isMobile && !hasShownPrompt) {
+    if (needRefresh && !hasShownPrompt) {
       setHasShownPrompt(true);
       
+      // Mostra toast e atualiza automaticamente após 3 segundos
       toast(
         <div className="flex items-center gap-3">
-          <RefreshCw className="h-5 w-5 text-primary" />
+          <RefreshCw className="h-5 w-5 text-primary animate-spin" />
           <div className="flex-1">
-            <p className="font-medium">Nova versão disponível!</p>
-            <p className="text-sm text-muted-foreground">Clique para atualizar</p>
+            <p className="font-medium">Atualizando app...</p>
+            <p className="text-sm text-muted-foreground">Nova versão sendo instalada</p>
           </div>
         </div>,
         {
-          duration: 10000,
-          action: {
-            label: 'Atualizar',
-            onClick: () => {
-              updateServiceWorker(true);
-            },
-          },
-          onDismiss: () => {
-            setHasShownPrompt(false);
-          },
+          duration: 3000,
         }
       );
+      
+      // Atualiza automaticamente após mostrar o toast
+      setTimeout(() => {
+        updateServiceWorker(true);
+      }, 2000);
     }
-  }, [needRefresh, isMobile, hasShownPrompt, updateServiceWorker]);
+  }, [needRefresh, hasShownPrompt, updateServiceWorker]);
 
   return null;
 };
