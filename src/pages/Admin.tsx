@@ -18,6 +18,7 @@ import {
   Edit,
   UserPlus,
   UserMinus,
+  FileText,
   AlertTriangle,
   Menu
 } from 'lucide-react';
@@ -188,6 +189,14 @@ const Admin: React.FC = () => {
         {/* Summary Cards */}
         {isMobile ? (
           <div className="space-y-2">
+            <Button
+              onClick={() => navigate('/admin/relatorio')}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Relatório de Acessos
+            </Button>
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-blue-600" />
@@ -216,12 +225,22 @@ const Admin: React.FC = () => {
           </div>
         ) : (
           <>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-                <ShieldCheck className="h-8 w-8 text-blue-600" />
-                Administração
-              </h1>
-              <p className="text-slate-600">Gerenciar usuários e permissões do sistema</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+                  <ShieldCheck className="h-8 w-8 text-blue-600" />
+                  Administração
+                </h1>
+                <p className="text-slate-600">Gerenciar usuários e permissões do sistema</p>
+              </div>
+              <Button
+                onClick={() => navigate('/admin/relatorio')}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Relatório de Acessos
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

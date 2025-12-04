@@ -31,6 +31,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Function to log access events
+  const logAccessEvent = async (userId: string, email: string, eventType: 'login' | 'logout') => {
+    try {
+      await supabase.from('user_access_logs').insert({
+        user_id: userId,
+        user_email: email,
+        event_type: eventType
+      });
+    } catch (error) {
+      console.error('Error logging access event:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -39,6 +52,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Log login/logout events using setTimeout to avoid deadlock
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            logAccessEvent(session.user.id, session.user.email || '', 'login');
+          }, 0);
+        } else if (event === 'SIGNED_OUT') {
+          // User info is lost on sign out, but we handle it in signOut function
+        }
       }
     );
 
@@ -74,6 +96,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signOut = async () => {
+    // Log logout before signing out (while we still have user info)
+    if (user) {
+      await logAccessEvent(user.id, user.email || '', 'logout');
+    }
     await supabase.auth.signOut();
   };
 
