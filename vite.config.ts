@@ -18,9 +18,10 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icon-192x192.png', 'icon-512x512.png'],
       manifest: {
-        name: 'Controle Financeiro W3',
+        name: 'Controle Financeiro W3 - Gestão de Finanças',
         short_name: 'W3 Finanças',
-        description: 'Sistema de controle financeiro pessoal',
+        description: 'Sistema completo de controle financeiro pessoal. Gerencie contas, cartões de crédito, investimentos e despesas.',
+        categories: ['finance', 'productivity', 'utilities'],
         theme_color: '#2563eb',
         background_color: '#f8fafc',
         display: 'standalone',
