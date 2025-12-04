@@ -15,12 +15,25 @@ import {
   Calendar,
   Clock,
   User,
-  Menu
+  Menu,
+  Trash2
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface AccessLog {
   id: string;
@@ -45,6 +58,7 @@ const AdminReport: React.FC = () => {
   const { loading, isAdmin, users } = useUserRoles();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [accessLogs, setAccessLogs] = useState<AccessLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
@@ -71,6 +85,30 @@ const AdminReport: React.FC = () => {
       fetchAccessLogs();
     }
   }, [isAdmin]);
+
+  const handleClearHistory = async () => {
+    try {
+      const { error } = await supabase
+        .from('user_access_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
+
+      if (error) throw error;
+      
+      setAccessLogs([]);
+      toast({
+        title: "Sucesso",
+        description: "Histórico de acessos limpo com sucesso."
+      });
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao limpar histórico de acessos.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -253,21 +291,55 @@ const AdminReport: React.FC = () => {
         )}
 
         {/* Filter */}
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-slate-700">Filtrar por usuário:</span>
-          <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Todos os usuários" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os usuários</SelectItem>
-              {users.map(user => (
-                <SelectItem key={user.user_id} value={user.user_id}>
-                  {user.email}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-slate-700">Filtrar por usuário:</span>
+            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <SelectTrigger className="w-[250px]">
+                <SelectValue placeholder="Todos os usuários" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os usuários</SelectItem>
+                {users.map(user => (
+                  <SelectItem key={user.user_id} value={user.user_id}>
+                    {user.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex items-center gap-2"
+                disabled={accessLogs.length === 0}
+              >
+                <Trash2 className="h-4 w-4" />
+                Limpar Histórico
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja limpar todo o histórico de acessos? 
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearHistory}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Limpar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Access Logs */}
