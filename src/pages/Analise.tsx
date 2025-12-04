@@ -216,7 +216,7 @@ const Analise: React.FC = () => {
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl md:text-3xl font-bold text-slate-800">
-              {isMobile ? 'Análise' : 'Análise Gráfica'}
+              {isMobile ? 'Gestão Análise Gráfica' : 'Análise Gráfica'}
             </CardTitle>
           </CardHeader>
         </Card>
