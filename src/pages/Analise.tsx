@@ -403,8 +403,8 @@ const Analise: React.FC = () => {
             )}
           </CardHeader>
           <CardContent className={isMobile ? "px-2 pb-3" : ""}>
-            <ChartContainer config={chartConfig} className={isMobile ? "min-h-[200px]" : "min-h-[300px]"}>
-              <ResponsiveContainer width="100%" height={isMobile ? 200 : 300}>
+            <ChartContainer config={chartConfig} className={isMobile ? "min-h-[130px]" : "min-h-[195px]"}>
+              <ResponsiveContainer width="100%" height={isMobile ? 130 : 195}>
                 <BarChart 
                   data={barChartData} 
                   margin={{ top: 10, right: isMobile ? 5 : 20, left: isMobile ? -10 : 10, bottom: isMobile ? 5 : 5 }}
