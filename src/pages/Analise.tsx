@@ -9,13 +9,15 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { TrendingUp, TrendingDown, DollarSign, Menu } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Menu, Check } from 'lucide-react';
 import { format, parseISO, getMonth, getYear } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnalysisSummaryCardsMobile } from '@/components/Dashboard/AnalysisSummaryCardsMobile';
 import { MonthYearStepperMobile } from '@/components/Accounts/MonthYearStepperMobile';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const Analise: React.FC = () => {
   const { accounts } = useAccounts();
@@ -24,7 +26,7 @@ const Analise: React.FC = () => {
   const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [showAll, setShowAll] = useState(true);
+  const [selectedMonths, setSelectedMonths] = useState<number[]>([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     setSelectedMonth(month);
@@ -66,37 +68,41 @@ const Analise: React.FC = () => {
     return Array.from(years).sort((a, b) => b - a);
   }, [accounts]);
 
-  // Dados para gráfico de barras - Janeiro a Dezembro ou mês selecionado
+  const toggleMonth = (monthValue: number) => {
+    setSelectedMonths(prev => {
+      if (prev.includes(monthValue)) {
+        return prev.filter(m => m !== monthValue);
+      } else {
+        return [...prev, monthValue].sort((a, b) => a - b);
+      }
+    });
+  };
+
+  const selectAllMonths = () => {
+    setSelectedMonths([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  };
+
+  const clearAllMonths = () => {
+    setSelectedMonths([]);
+  };
+
+  // Dados para gráfico de barras - baseado nos meses selecionados
   const barChartData = useMemo(() => {
     const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
     
-    if (showAll) {
-      // Gerar de Janeiro a Dezembro do ano selecionado
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(selectedYear, i);
-        const monthKey = format(date, 'MMM', { locale: ptBR });
-        monthlyData.push({
-          month: monthKey,
-          monthKey,
-          receitas: 0,
-          despesas: 0,
-          year: selectedYear,
-          monthNum: i
-        });
-      }
-    } else {
-      // Apenas o mês selecionado
-      const date = new Date(selectedYear, selectedMonth);
-      const monthKey = format(date, 'MMMM', { locale: ptBR });
+    // Gerar apenas para os meses selecionados
+    selectedMonths.forEach(i => {
+      const date = new Date(selectedYear, i);
+      const monthKey = format(date, 'MMM', { locale: ptBR });
       monthlyData.push({
         month: monthKey,
         monthKey,
         receitas: 0,
         despesas: 0,
         year: selectedYear,
-        monthNum: selectedMonth
+        monthNum: i
       });
-    }
+    });
     
     // Preencher com dados das contas
     accounts.forEach(account => {
@@ -104,7 +110,7 @@ const Analise: React.FC = () => {
       const accountYear = getYear(date);
       const accountMonth = getMonth(date);
       
-      if (accountYear === selectedYear) {
+      if (accountYear === selectedYear && selectedMonths.includes(accountMonth)) {
         const monthData = monthlyData.find(m => m.monthNum === accountMonth);
         
         if (monthData) {
@@ -118,7 +124,7 @@ const Analise: React.FC = () => {
     });
 
     return monthlyData;
-  }, [accounts, selectedYear, selectedMonth, showAll]);
+  }, [accounts, selectedYear, selectedMonths]);
 
   // Dados para despesas por categoria - filtrar por mês/ano selecionado
   const despesasPorCategoria = useMemo(() => {
@@ -188,17 +194,13 @@ const Analise: React.FC = () => {
     return result;
   }, [accounts, selectedMonth, selectedYear]);
 
-  // Calcular totais - baseado na seleção (todos ou mês específico)
+  // Calcular totais - baseado nos meses selecionados
   const totals = useMemo(() => {
-    const filteredAccounts = showAll 
-      ? accounts.filter(account => {
-          const date = parseISO(account.dueDate);
-          return getYear(date) === selectedYear;
-        })
-      : accounts.filter(account => {
-          const date = parseISO(account.dueDate);
-          return getMonth(date) === selectedMonth && getYear(date) === selectedYear;
-        });
+    const filteredAccounts = accounts.filter(account => {
+      const date = parseISO(account.dueDate);
+      const accountMonth = getMonth(date);
+      return getYear(date) === selectedYear && selectedMonths.includes(accountMonth);
+    });
 
     const receitas = filteredAccounts
       .filter(account => account.type === 'receita')
@@ -209,7 +211,7 @@ const Analise: React.FC = () => {
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
 
     return { receitas, despesas, saldo: receitas - despesas };
-  }, [accounts, showAll, selectedMonth, selectedYear]);
+  }, [accounts, selectedMonths, selectedYear]);
 
   const chartConfig = {
     receitas: {
@@ -246,56 +248,53 @@ const Analise: React.FC = () => {
           </CardHeader>
         </Card>
 
-        {/* Navegador de Mês/Ano - Desktop com dois steppers e botão Todos */}
+        {/* Navegador de Mês/Ano - Desktop com seletor de meses */}
         {!isMobile && (
           <Card>
             <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-8">
-                {/* Botão Todos */}
-                <Button
-                  variant={showAll ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowAll(true)}
-                >
-                  Todos
-                </Button>
-
-                {/* Stepper de Mês */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 mr-1">Mês:</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const newMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
-                      const newYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
-                      handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
-                      setShowAll(false);
-                    }}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={!showAll ? "default" : "outline"}
-                    size="sm"
-                    className="min-w-[90px]"
-                    onClick={() => setShowAll(false)}
-                  >
-                    {months[selectedMonth].label}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const newMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
-                      const newYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
-                      handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
-                      setShowAll(false);
-                    }}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+              <div className="flex items-center justify-center gap-6">
+                {/* Seletor de Meses */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="min-w-[180px]">
+                      {selectedMonths.length === 12 
+                        ? "Todos os meses" 
+                        : selectedMonths.length === 0 
+                          ? "Selecionar meses"
+                          : `${selectedMonths.length} mês(es)`}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-3" align="center">
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={selectAllMonths}>
+                          Todos
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={clearAllMonths}>
+                          Limpar
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {months.map((month) => (
+                          <div
+                            key={month.value}
+                            className={`flex items-center gap-1.5 p-1.5 rounded cursor-pointer text-xs hover:bg-slate-100 ${
+                              selectedMonths.includes(month.value) ? 'bg-primary/10' : ''
+                            }`}
+                            onClick={() => toggleMonth(month.value)}
+                          >
+                            <Checkbox
+                              checked={selectedMonths.includes(month.value)}
+                              onCheckedChange={() => toggleMonth(month.value)}
+                              className="h-3.5 w-3.5"
+                            />
+                            <span>{month.label.slice(0, 3)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 
                 {/* Stepper de Ano */}
                 <div className="flex items-center gap-2">
@@ -375,31 +374,74 @@ const Analise: React.FC = () => {
           <CardHeader className={isMobile ? "pb-3 space-y-2" : ""}>
             <div className="flex items-center justify-between">
               <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
-                {showAll 
+                {selectedMonths.length === 12 
                   ? `Receitas vs Despesas - ${selectedYear}` 
-                  : `Receitas vs Despesas - ${months[selectedMonth].label}/${selectedYear}`}
+                  : selectedMonths.length === 1
+                    ? `Receitas vs Despesas - ${months[selectedMonths[0]].label}/${selectedYear}`
+                    : `Receitas vs Despesas - ${selectedMonths.length} meses/${selectedYear}`}
               </CardTitle>
             </div>
             {isMobile && (
-              <div className="flex items-center gap-2 mt-2">
-                <Button
-                  variant={showAll ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowAll(true)}
-                  className="text-xs"
-                >
-                  Todos
-                </Button>
-                <MonthYearStepperMobile
-                  currentMonth={selectedMonth}
-                  currentYear={selectedYear}
-                  onMonthChange={(startDate, endDate, month, year) => {
-                    handleMonthChange(startDate, endDate, month, year);
-                    setShowAll(false);
-                  }}
-                  isShowingAll={false}
-                />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full text-xs">
+                    {selectedMonths.length === 12 
+                      ? "Todos os meses" 
+                      : selectedMonths.length === 0 
+                        ? "Selecionar meses"
+                        : `${selectedMonths.length} mês(es) selecionado(s)`}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-3" align="center">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={selectAllMonths}>
+                        Todos
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={clearAllMonths}>
+                        Limpar
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedYear(prev => prev - 1)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <ChevronLeft className="h-3 w-3" />
+                        </Button>
+                        <span className="text-xs font-semibold min-w-[40px] text-center">{selectedYear}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedYear(prev => prev + 1)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <ChevronRight className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {months.map((month) => (
+                        <div
+                          key={month.value}
+                          className={`flex items-center gap-1 p-1.5 rounded cursor-pointer text-xs hover:bg-slate-100 ${
+                            selectedMonths.includes(month.value) ? 'bg-primary/10' : ''
+                          }`}
+                          onClick={() => toggleMonth(month.value)}
+                        >
+                          <Checkbox
+                            checked={selectedMonths.includes(month.value)}
+                            onCheckedChange={() => toggleMonth(month.value)}
+                            className="h-3 w-3"
+                          />
+                          <span>{month.label.slice(0, 3)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
           </CardHeader>
           <CardContent className={isMobile ? "px-2 pb-3" : ""}>
