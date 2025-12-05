@@ -24,6 +24,7 @@ const Analise: React.FC = () => {
   const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showAll, setShowAll] = useState(true);
 
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     setSelectedMonth(month);
@@ -65,21 +66,35 @@ const Analise: React.FC = () => {
     return Array.from(years).sort((a, b) => b - a);
   }, [accounts]);
 
-  // Dados para gráfico de barras - Janeiro a Dezembro do ano selecionado
+  // Dados para gráfico de barras - Janeiro a Dezembro ou mês selecionado
   const barChartData = useMemo(() => {
     const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
     
-    // Gerar de Janeiro a Dezembro do ano selecionado
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(selectedYear, i);
-      const monthKey = format(date, 'MMM', { locale: ptBR });
+    if (showAll) {
+      // Gerar de Janeiro a Dezembro do ano selecionado
+      for (let i = 0; i < 12; i++) {
+        const date = new Date(selectedYear, i);
+        const monthKey = format(date, 'MMM', { locale: ptBR });
+        monthlyData.push({
+          month: monthKey,
+          monthKey,
+          receitas: 0,
+          despesas: 0,
+          year: selectedYear,
+          monthNum: i
+        });
+      }
+    } else {
+      // Apenas o mês selecionado
+      const date = new Date(selectedYear, selectedMonth);
+      const monthKey = format(date, 'MMMM', { locale: ptBR });
       monthlyData.push({
         month: monthKey,
         monthKey,
         receitas: 0,
         despesas: 0,
         year: selectedYear,
-        monthNum: i
+        monthNum: selectedMonth
       });
     }
     
@@ -103,7 +118,7 @@ const Analise: React.FC = () => {
     });
 
     return monthlyData;
-  }, [accounts, selectedYear]);
+  }, [accounts, selectedYear, selectedMonth, showAll]);
 
   // Dados para despesas por categoria - filtrar por mês/ano selecionado
   const despesasPorCategoria = useMemo(() => {
@@ -173,18 +188,28 @@ const Analise: React.FC = () => {
     return result;
   }, [accounts, selectedMonth, selectedYear]);
 
-  // Calcular totais
+  // Calcular totais - baseado na seleção (todos ou mês específico)
   const totals = useMemo(() => {
-    const receitas = accounts
+    const filteredAccounts = showAll 
+      ? accounts.filter(account => {
+          const date = parseISO(account.dueDate);
+          return getYear(date) === selectedYear;
+        })
+      : accounts.filter(account => {
+          const date = parseISO(account.dueDate);
+          return getMonth(date) === selectedMonth && getYear(date) === selectedYear;
+        });
+
+    const receitas = filteredAccounts
       .filter(account => account.type === 'receita')
       .reduce((sum, account) => sum + account.amount, 0);
     
-    const despesas = accounts
+    const despesas = filteredAccounts
       .filter(account => account.type === 'despesa')
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
 
     return { receitas, despesas, saldo: receitas - despesas };
-  }, [accounts]);
+  }, [accounts, showAll, selectedMonth, selectedYear]);
 
   const chartConfig = {
     receitas: {
@@ -221,11 +246,20 @@ const Analise: React.FC = () => {
           </CardHeader>
         </Card>
 
-        {/* Navegador de Mês/Ano - Desktop com dois steppers */}
+        {/* Navegador de Mês/Ano - Desktop com dois steppers e botão Todos */}
         {!isMobile && (
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-center gap-8">
+                {/* Botão Todos */}
+                <Button
+                  variant={showAll ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowAll(true)}
+                >
+                  Todos
+                </Button>
+
                 {/* Stepper de Mês */}
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500 mr-1">Mês:</span>
@@ -236,13 +270,19 @@ const Analise: React.FC = () => {
                       const newMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
                       const newYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
                       handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
+                      setShowAll(false);
                     }}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <div className="text-sm font-semibold text-slate-800 min-w-[90px] text-center">
+                  <Button
+                    variant={!showAll ? "default" : "outline"}
+                    size="sm"
+                    className="min-w-[90px]"
+                    onClick={() => setShowAll(false)}
+                  >
                     {months[selectedMonth].label}
-                  </div>
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -250,6 +290,7 @@ const Analise: React.FC = () => {
                       const newMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
                       const newYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
                       handleMonthChange(new Date(newYear, newMonth), new Date(newYear, newMonth), newMonth, newYear);
+                      setShowAll(false);
                     }}
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -332,16 +373,33 @@ const Analise: React.FC = () => {
         {/* Gráfico de Barras */}
         <Card>
           <CardHeader className={isMobile ? "pb-3 space-y-2" : ""}>
-            <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
-              {isMobile ? 'Recebido vs Pago' : 'Receitas vs Despesas'}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
+                {showAll 
+                  ? `Receitas vs Despesas - ${selectedYear}` 
+                  : `Receitas vs Despesas - ${months[selectedMonth].label}/${selectedYear}`}
+              </CardTitle>
+            </div>
             {isMobile && (
-              <MonthYearStepperMobile
-                currentMonth={selectedMonth}
-                currentYear={selectedYear}
-                onMonthChange={handleMonthChange}
-                isShowingAll={false}
-              />
+              <div className="flex items-center gap-2 mt-2">
+                <Button
+                  variant={showAll ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowAll(true)}
+                  className="text-xs"
+                >
+                  Todos
+                </Button>
+                <MonthYearStepperMobile
+                  currentMonth={selectedMonth}
+                  currentYear={selectedYear}
+                  onMonthChange={(startDate, endDate, month, year) => {
+                    handleMonthChange(startDate, endDate, month, year);
+                    setShowAll(false);
+                  }}
+                  isShowingAll={false}
+                />
+              </div>
             )}
           </CardHeader>
           <CardContent className={isMobile ? "px-2 pb-3" : ""}>
