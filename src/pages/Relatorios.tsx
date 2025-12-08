@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
-import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search, ArrowLeft } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search, ArrowLeft, Wallet, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -44,6 +44,49 @@ const Relatorios: React.FC = () => {
     setYearFilter('todos');
   };
 
+  // Calcular saldo acumulado até um determinado mês/ano
+  const calculateAccumulatedBalance = useCallback((untilMonth: number, untilYear: number) => {
+    if (!accounts || accounts.length === 0) return 0;
+    
+    let totalRecebido = 0;
+    let totalPago = 0;
+    
+    for (const acc of accounts) {
+      if (!acc.dueDate || acc.description === "Saldo Anterior") continue;
+      
+      const d = new Date(acc.dueDate + "T00:00:00");
+      const accYear = d.getFullYear();
+      const accMonth = d.getMonth();
+      
+      // Verificar se está dentro do período
+      if (accYear < untilYear || (accYear === untilYear && accMonth <= untilMonth)) {
+        if (acc.type === "receita" && acc.status === "recebido") {
+          totalRecebido += acc.amount;
+        } else if (acc.type === "despesa" && acc.status === "pago") {
+          totalPago += Math.abs(acc.amount);
+        }
+      }
+    }
+    
+    return totalRecebido - totalPago;
+  }, [accounts]);
+
+  // Calcular previousBalance dinamicamente baseado no saldo final do mês anterior
+  const previousBalance = useMemo(() => {
+    if (!accounts || accounts.length === 0) return 0;
+    
+    const targetMonth = isShowingAll ? 0 : currentMonth;
+    const targetYear = currentYear;
+    
+    // Para janeiro, calcular baseado em dezembro do ano anterior
+    if (targetMonth === 0) {
+      return calculateAccumulatedBalance(11, targetYear - 1);
+    }
+    
+    // Para outros meses, calcular baseado no mês anterior do mesmo ano
+    return calculateAccumulatedBalance(targetMonth - 1, targetYear);
+  }, [accounts, currentMonth, currentYear, isShowingAll, calculateAccumulatedBalance]);
+
   const handleExportPDF = () => {
     try {
       const doc = new jsPDF();
@@ -71,11 +114,12 @@ const Relatorios: React.FC = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('Resumo do Período', 14, 38);
       
-      // Cards de resumo
+      // Cards de resumo com saldo anterior
       const resumoData = [
+        ['Saldo Anterior', `R$ ${previousBalance.toFixed(2)}`],
         ['Total de Receitas', `R$ ${filteredReceitas.toFixed(2)}`],
         ['Total de Despesas', `R$ ${filteredDespesas.toFixed(2)}`],
-        ['Saldo do Período', `R$ ${filteredSaldo.toFixed(2)}`]
+        ['Saldo Final', `R$ ${filteredSaldoFinal.toFixed(2)}`]
       ];
       
       autoTable(doc, {
@@ -229,15 +273,16 @@ const Relatorios: React.FC = () => {
       .reduce((sum, account) => sum + Math.abs(account.amount), 0);
   };
 
-  const getFilteredSaldo = () => {
-    return getFilteredReceitas() - getFilteredDespesas();
+  // Calcular saldo final incluindo saldo anterior
+  const getFilteredSaldoFinal = () => {
+    return previousBalance + getFilteredReceitas() - getFilteredDespesas();
   };
 
   const filteredTotal = getFilteredTotal();
   const statusTotal = getStatusTotal();
   const filteredReceitas = getFilteredReceitas();
   const filteredDespesas = getFilteredDespesas();
-  const filteredSaldo = getFilteredSaldo();
+  const filteredSaldoFinal = getFilteredSaldoFinal();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -294,46 +339,61 @@ const Relatorios: React.FC = () => {
         <ExpiringAccountsAlert />
 
         {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-green-100 rounded-xl">
-                <TrendingUp className="text-green-600" size={24} />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Saldo Anterior */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Wallet className="text-purple-600" size={22} />
               </div>
               <div>
-                <h3 className="text-slate-600 text-sm">Total de Receitas</h3>
-                <p className="text-2xl font-bold text-green-600">R$ {filteredReceitas.toFixed(2)}</p>
-              </div>
-            </div>
-            <p className="text-sm text-slate-500">+12% vs mês anterior</p>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-red-100 rounded-xl">
-                <TrendingDown className="text-red-600" size={24} />
-              </div>
-              <div>
-                <h3 className="text-slate-600 text-sm">Total de Despesas</h3>
-                <p className="text-2xl font-bold text-red-600">R$ {filteredDespesas.toFixed(2)}</p>
-              </div>
-            </div>
-            <p className="text-sm text-slate-500">+5% vs mês anterior</p>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Calendar className="text-blue-600" size={24} />
-              </div>
-              <div>
-                <h3 className="text-slate-600 text-sm">Saldo do Período</h3>
-                <p className={`text-2xl font-bold ${filteredSaldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  R$ {filteredSaldo.toFixed(2)}
+                <h3 className="text-slate-600 text-sm">Saldo Anterior</h3>
+                <p className={`text-xl font-bold ${previousBalance >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                  R$ {previousBalance.toFixed(2)}
                 </p>
               </div>
             </div>
-            <p className="text-sm text-slate-500">-18% vs mês anterior</p>
+          </div>
+
+          {/* Total de Receitas */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-green-100 rounded-xl">
+                <TrendingUp className="text-green-600" size={22} />
+              </div>
+              <div>
+                <h3 className="text-slate-600 text-sm">Total Recebido</h3>
+                <p className="text-xl font-bold text-green-600">R$ {filteredReceitas.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total de Despesas */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-red-100 rounded-xl">
+                <TrendingDown className="text-red-600" size={22} />
+              </div>
+              <div>
+                <h3 className="text-slate-600 text-sm">Total Pago</h3>
+                <p className="text-xl font-bold text-red-600">R$ {filteredDespesas.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Saldo Final */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <DollarSign className="text-blue-600" size={22} />
+              </div>
+              <div>
+                <h3 className="text-slate-600 text-sm">Saldo Final</h3>
+                <p className={`text-xl font-bold ${filteredSaldoFinal >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                  R$ {filteredSaldoFinal.toFixed(2)}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
