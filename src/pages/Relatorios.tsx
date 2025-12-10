@@ -168,19 +168,18 @@ const Relatorios: React.FC = () => {
       sortedGroups.forEach((group, groupIndex) => {
         const groupTotal = group.accounts.reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
         
-        // Cabeçalho do grupo
+        // Cabeçalho do grupo - texto preto negrito
         currentY += 10;
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        const tipoLabel = group.type === 'receita' ? 'Receitas' : 'Despesas';
-        doc.setTextColor(group.type === 'receita' ? 34 : 239, group.type === 'receita' ? 197 : 68, group.type === 'receita' ? 94 : 68);
-        doc.text(`${group.category} - ${tipoLabel} (${group.accounts.length} ${group.accounts.length === 1 ? 'item' : 'itens'})`, 14, currentY);
         doc.setTextColor(0, 0, 0);
+        const tipoLabel = group.type === 'receita' ? 'Receitas' : 'Despesas';
+        doc.text(`${group.category} - ${tipoLabel} (${group.accounts.length} ${group.accounts.length === 1 ? 'item' : 'itens'})`, 14, currentY);
         
         // Preparar dados da tabela do grupo
         const tableData = group.accounts.map(account => [
           account.description,
-          `${account.type === 'receita' ? '+' : '-'}R$ ${Math.abs(account.amount).toFixed(2)}`,
+          `R$ ${Math.abs(account.amount).toFixed(2)}`,
           formatDate(account.dueDate),
           account.payment_source_name || '-',
           getStatusLabel(account.status)
@@ -189,7 +188,7 @@ const Relatorios: React.FC = () => {
         // Adicionar linha de total
         tableData.push([
           `Total ${group.category}`,
-          `${group.type === 'receita' ? '+' : '-'}R$ ${groupTotal.toFixed(2)}`,
+          `R$ ${groupTotal.toFixed(2)}`,
           '',
           '',
           ''
@@ -201,11 +200,12 @@ const Relatorios: React.FC = () => {
           body: tableData,
           theme: 'striped',
           headStyles: { 
-            fillColor: group.type === 'receita' ? [34, 197, 94] : [239, 68, 68],
+            fillColor: [229, 231, 235], // Cinza claro neutro
+            textColor: [0, 0, 0], // Texto preto
             fontSize: 9,
             fontStyle: 'bold'
           },
-          styles: { fontSize: 8, cellPadding: 2 },
+          styles: { fontSize: 8, cellPadding: 2, textColor: [55, 65, 81] }, // Texto cinza escuro
           columnStyles: {
             0: { cellWidth: 60 },
             1: { cellWidth: 35, halign: 'right' },
@@ -214,19 +214,11 @@ const Relatorios: React.FC = () => {
             4: { cellWidth: 25 }
           },
           didParseCell: function(data) {
-            // Colorir valores
-            if (data.column.index === 1 && data.section === 'body') {
-              const valor = tableData[data.row.index][1];
-              if (valor.startsWith('+')) {
-                data.cell.styles.textColor = [34, 197, 94];
-              } else {
-                data.cell.styles.textColor = [239, 68, 68];
-              }
-            }
-            // Estilizar linha de total
+            // Estilizar linha de total - preto negrito
             if (data.row.index === tableData.length - 1 && data.section === 'body') {
               data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fillColor = group.type === 'receita' ? [220, 252, 231] : [254, 226, 226];
+              data.cell.styles.textColor = [0, 0, 0];
+              data.cell.styles.fillColor = [243, 244, 246]; // Cinza muito claro
             }
           }
         });
