@@ -96,28 +96,9 @@ const Relatorios: React.FC = () => {
     try {
       const doc = new jsPDF();
       
-      // Cores profissionais modernas
-      const colors = {
-        primary: [30, 58, 95] as [number, number, number],      // Azul escuro corporativo
-        secondary: [71, 85, 105] as [number, number, number],   // Cinza azulado
-        accent: [14, 116, 144] as [number, number, number],     // Teal/Ciano
-        success: [22, 101, 52] as [number, number, number],     // Verde escuro
-        danger: [153, 27, 27] as [number, number, number],      // Vermelho escuro
-        text: [30, 41, 59] as [number, number, number],         // Texto escuro
-        textLight: [100, 116, 139] as [number, number, number], // Texto secundário
-        headerBg: [241, 245, 249] as [number, number, number],  // Fundo header cinza claro
-        rowAlt: [248, 250, 252] as [number, number, number],    // Linhas alternadas
-        totalBg: [226, 232, 240] as [number, number, number],   // Fundo total
-      };
-      
-      // Cabeçalho do documento
-      doc.setFillColor(...colors.primary);
-      doc.rect(0, 0, 210, 35, 'F');
-      
       // Título
-      doc.setFontSize(20);
+      doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 255, 255);
       doc.text('Relatório Financeiro', 105, 15, { align: 'center' });
       
       // Período
@@ -126,25 +107,17 @@ const Relatorios: React.FC = () => {
       const periodo = monthFilter === 'todos' 
         ? 'Todos os períodos' 
         : `${monthFilter}/${yearFilter}`;
-      doc.text(`Período: ${periodo}`, 105, 23, { align: 'center' });
+      doc.text(`Período: ${periodo}`, 105, 22, { align: 'center' });
       
       // Data de geração
-      doc.setFontSize(9);
       const dataGeracao = new Date().toLocaleDateString('pt-BR');
-      doc.text(`Gerado em: ${dataGeracao}`, 105, 30, { align: 'center' });
-      
-      // Reset text color
-      doc.setTextColor(...colors.text);
+      doc.setFontSize(9);
+      doc.text(`Gerado em: ${dataGeracao}`, 105, 28, { align: 'center' });
       
       // Resumo Financeiro
-      doc.setFontSize(13);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Resumo do Período', 14, 45);
-      
-      // Linha decorativa
-      doc.setDrawColor(...colors.accent);
-      doc.setLineWidth(0.5);
-      doc.line(14, 47, 60, 47);
+      doc.text('Resumo do Período', 14, 38);
       
       // Cards de resumo com saldo anterior
       const resumoData = [
@@ -155,171 +128,67 @@ const Relatorios: React.FC = () => {
       ];
       
       autoTable(doc, {
-        startY: 50,
+        startY: 42,
         head: [['Descrição', 'Valor']],
         body: resumoData,
-        theme: 'plain',
-        headStyles: { 
-          fillColor: colors.primary,
-          textColor: [255, 255, 255],
-          fontSize: 10, 
-          fontStyle: 'bold',
-          cellPadding: 4
-        },
-        styles: { 
-          fontSize: 10,
-          cellPadding: 4,
-          textColor: colors.text
-        },
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], fontSize: 10, fontStyle: 'bold' },
+        styles: { fontSize: 10 },
         columnStyles: {
           0: { cellWidth: 100 },
           1: { cellWidth: 80, halign: 'right', fontStyle: 'bold' }
+        }
+      });
+      
+      // Detalhamento das Contas
+      const finalY = (doc as any).lastAutoTable.finalY || 42;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detalhamento das Contas', 14, finalY + 10);
+      
+      // Preparar dados da tabela
+      const tableData = filteredAccounts.map(account => [
+        account.description,
+        account.category,
+        account.type === 'receita' ? 'Receita' : 'Despesa',
+        `${account.type === 'receita' ? '+' : '-'}R$ ${Math.abs(account.amount).toFixed(2)}`,
+        formatDate(account.dueDate),
+        account.payment_source_name || '-',
+        getStatusLabel(account.status)
+      ]);
+      
+      autoTable(doc, {
+        startY: finalY + 14,
+        head: [['Descrição', 'Categoria', 'Tipo', 'Valor', 'Vencimento', 'Fonte Pgto', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [59, 130, 246],
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 45 },
+          1: { cellWidth: 28 },
+          2: { cellWidth: 22 },
+          3: { cellWidth: 28, halign: 'right' },
+          4: { cellWidth: 23 },
+          5: { cellWidth: 25 },
+          6: { cellWidth: 20 }
         },
         didParseCell: function(data) {
-          if (data.section === 'body') {
-            // Saldo Final em destaque
-            if (data.row.index === 3) {
-              data.cell.styles.fillColor = colors.totalBg;
-              data.cell.styles.fontStyle = 'bold';
-            }
-            // Cores para valores
-            if (data.column.index === 1) {
-              if (data.row.index === 1) data.cell.styles.textColor = colors.success;
-              if (data.row.index === 2) data.cell.styles.textColor = colors.danger;
-              if (data.row.index === 3) data.cell.styles.textColor = filteredSaldoFinal >= 0 ? colors.success : colors.danger;
+          // Colorir valores
+          if (data.column.index === 3 && data.section === 'body') {
+            const valor = tableData[data.row.index][3];
+            if (valor.startsWith('+')) {
+              data.cell.styles.textColor = [34, 197, 94]; // verde
+            } else {
+              data.cell.styles.textColor = [239, 68, 68]; // vermelho
             }
           }
         }
       });
-      
-      // Agrupar contas por categoria e tipo
-      const groupedAccounts = filteredAccounts.reduce((acc, account) => {
-        const key = `${account.category}-${account.type}`;
-        if (!acc[key]) {
-          acc[key] = {
-            category: account.category,
-            type: account.type,
-            accounts: []
-          };
-        }
-        acc[key].accounts.push(account);
-        return acc;
-      }, {} as Record<string, { category: string; type: string; accounts: typeof filteredAccounts }>);
-
-      // Ordenar grupos: primeiro receitas, depois despesas, e alfabeticamente por categoria
-      const sortedGroups = Object.values(groupedAccounts).sort((a, b) => {
-        if (a.type !== b.type) {
-          return a.type === 'receita' ? -1 : 1;
-        }
-        return a.category.localeCompare(b.category);
-      });
-      
-      let currentY = (doc as any).lastAutoTable.finalY || 50;
-      
-      // Iterar por cada grupo
-      sortedGroups.forEach((group, groupIndex) => {
-        const groupTotal = group.accounts.reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
-        
-        // Verificar se precisa de nova página antes do grupo
-        if (currentY > 250) {
-          doc.addPage();
-          currentY = 20;
-        }
-        
-        // Cabeçalho do grupo
-        currentY += 12;
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...colors.text);
-        const tipoLabel = group.type === 'receita' ? 'Receitas' : 'Despesas';
-        doc.text(`${group.category} - ${tipoLabel}`, 14, currentY);
-        
-        // Badge com quantidade
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...colors.textLight);
-        doc.text(`(${group.accounts.length} ${group.accounts.length === 1 ? 'item' : 'itens'})`, 14 + doc.getTextWidth(`${group.category} - ${tipoLabel} `), currentY);
-        
-        // Preparar dados da tabela do grupo
-        const tableData = group.accounts.map(account => [
-          account.description,
-          `R$ ${Math.abs(account.amount).toFixed(2)}`,
-          formatDate(account.dueDate),
-          account.payment_source_name || '-',
-          getStatusLabel(account.status)
-        ]);
-        
-        // Adicionar linha de total
-        tableData.push([
-          `Total ${group.category}`,
-          `R$ ${groupTotal.toFixed(2)}`,
-          '',
-          '',
-          ''
-        ]);
-        
-        autoTable(doc, {
-          startY: currentY + 3,
-          head: [['Descrição', 'Valor', 'Vencimento', 'Fonte Pgto', 'Status']],
-          body: tableData,
-          theme: 'striped',
-          headStyles: { 
-            fillColor: colors.headerBg,
-            textColor: colors.secondary,
-            fontSize: 8,
-            fontStyle: 'bold',
-            cellPadding: 3
-          },
-          styles: { 
-            fontSize: 8, 
-            cellPadding: 3, 
-            textColor: colors.text
-          },
-          alternateRowStyles: {
-            fillColor: colors.rowAlt
-          },
-          columnStyles: {
-            0: { cellWidth: 60 },
-            1: { cellWidth: 32, halign: 'right' },
-            2: { cellWidth: 26 },
-            3: { cellWidth: 38 },
-            4: { cellWidth: 26 }
-          },
-          didParseCell: function(data) {
-            // Estilizar linha de total
-            if (data.row.index === tableData.length - 1 && data.section === 'body') {
-              data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.textColor = colors.text;
-              data.cell.styles.fillColor = colors.totalBg;
-            }
-            // Cor do valor baseado no tipo
-            if (data.column.index === 1 && data.section === 'body') {
-              if (group.type === 'receita') {
-                data.cell.styles.textColor = colors.success;
-              } else {
-                data.cell.styles.textColor = colors.danger;
-              }
-            }
-          }
-        });
-        
-        currentY = (doc as any).lastAutoTable.finalY;
-        
-        // Verificar se precisa de nova página
-        if (currentY > 260 && groupIndex < sortedGroups.length - 1) {
-          doc.addPage();
-          currentY = 20;
-        }
-      });
-      
-      // Rodapé
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(...colors.textLight);
-        doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
-      }
       
       // Salvar PDF
       const nomeArquivo = `relatorio-financeiro-${periodo.replace(/\//g, '-')}.pdf`;
