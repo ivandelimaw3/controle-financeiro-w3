@@ -105,7 +105,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {accounts.map((account, index) => (
+          {[...accounts].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()).map((account, index) => (
             <TableRow key={account.id} className="hover:bg-slate-50/50 transition-colors h-10">
               <TableCell className="text-center text-slate-600 font-medium py-1">
                 {index + 1}
