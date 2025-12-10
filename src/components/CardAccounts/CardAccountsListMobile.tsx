@@ -47,6 +47,12 @@ export const CardAccountsListMobile: React.FC<CardAccountsListMobileProps> = ({ 
     return 'Pendente';
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   const handleEdit = () => {
     if (selectedAccount) {
       onEdit?.(selectedAccount);
@@ -105,12 +111,13 @@ export const CardAccountsListMobile: React.FC<CardAccountsListMobileProps> = ({ 
                 <span>{account.card_name || 'Sem cartão'}</span>
                 <span>{account.category_name || 'Sem categoria'}</span>
               </div>
+              <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
+                <span>Compra: {formatDate(account.data_conta || '')}</span>
+                <span>Venc: {formatDate(account.due_date)}</span>
+              </div>
               <div className="flex justify-between items-center">
                 <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(account.status)}`}>
                   {getStatusLabel(account.status)}
-                </span>
-                <span className="text-xs text-slate-500">
-                  Venc: {new Date(account.due_date).toLocaleDateString('pt-BR')}
                 </span>
               </div>
             </div>

@@ -54,6 +54,12 @@ export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts
     return 'Pendente';
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   if (accounts.length === 0) {
     return (
       <div className="text-center py-8">
@@ -103,12 +109,13 @@ export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts
                   {formatCurrency(Math.abs(account.amount))}
                 </span>
               </div>
+              <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
+                <span>Data: {formatDate(account.dueDate)}</span>
+                <span>{account.category}</span>
+              </div>
               <div className="flex justify-between items-center">
                 <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(account.status)}`}>
                   {getStatusLabel(account.status, account.type)}
-                </span>
-                <span className="text-xs text-slate-500">
-                  {account.category}
                 </span>
               </div>
             </div>
