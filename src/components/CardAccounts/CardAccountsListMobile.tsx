@@ -88,12 +88,14 @@ export const CardAccountsListMobile: React.FC<CardAccountsListMobileProps> = ({ 
     <>
       <ScrollArea className="h-[calc(100vh-480px)]">
         <div className="space-y-2 pr-4">
-          {[...cardAccounts].sort((a, b) => {
-            const dataContaA = a.data_conta ? new Date(a.data_conta).getTime() : 0;
-            const dataContaB = b.data_conta ? new Date(b.data_conta).getTime() : 0;
-            if (dataContaA !== dataContaB) return dataContaA - dataContaB;
-            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-          }).map((account) => (
+          {[...cardAccounts]
+            .sort((a, b) => {
+              const dataContaA = a.data_conta ? new Date(a.data_conta).getTime() : 0;
+              const dataContaB = b.data_conta ? new Date(b.data_conta).getTime() : 0;
+              if (dataContaA !== dataContaB) return dataContaA - dataContaB;
+              return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+            })
+            .map((account, index) => (
             <div
               key={account.id}
               onClick={() => setSelectedAccount(account)}
@@ -101,6 +103,9 @@ export const CardAccountsListMobile: React.FC<CardAccountsListMobileProps> = ({ 
             >
               <div className="flex justify-between items-start gap-2 mb-2">
                 <h3 className="font-medium text-slate-900 text-sm line-clamp-2 flex-1">
+                  <span className="inline-flex items-center justify-center w-5 h-5 bg-slate-200 text-slate-700 text-xs font-bold rounded-full mr-2">
+                    {index + 1}
+                  </span>
                   {account.description}
                 </h3>
                 <span className="font-bold text-base whitespace-nowrap text-red-600">
