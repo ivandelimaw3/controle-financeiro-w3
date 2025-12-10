@@ -140,53 +140,103 @@ const Relatorios: React.FC = () => {
         }
       });
       
-      // Detalhamento das Contas
-      const finalY = (doc as any).lastAutoTable.finalY || 42;
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Detalhamento das Contas', 14, finalY + 10);
+      // Agrupar contas por categoria e tipo
+      const groupedAccounts = filteredAccounts.reduce((acc, account) => {
+        const key = `${account.category}-${account.type}`;
+        if (!acc[key]) {
+          acc[key] = {
+            category: account.category,
+            type: account.type,
+            accounts: []
+          };
+        }
+        acc[key].accounts.push(account);
+        return acc;
+      }, {} as Record<string, { category: string; type: string; accounts: typeof filteredAccounts }>);
+
+      // Ordenar grupos: primeiro receitas, depois despesas, e alfabeticamente por categoria
+      const sortedGroups = Object.values(groupedAccounts).sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === 'receita' ? -1 : 1;
+        }
+        return a.category.localeCompare(b.category);
+      });
       
-      // Preparar dados da tabela
-      const tableData = filteredAccounts.map(account => [
-        account.description,
-        account.category,
-        account.type === 'receita' ? 'Receita' : 'Despesa',
-        `${account.type === 'receita' ? '+' : '-'}R$ ${Math.abs(account.amount).toFixed(2)}`,
-        formatDate(account.dueDate),
-        account.payment_source_name || '-',
-        getStatusLabel(account.status)
-      ]);
+      let currentY = (doc as any).lastAutoTable.finalY || 42;
       
-      autoTable(doc, {
-        startY: finalY + 14,
-        head: [['Descrição', 'Categoria', 'Tipo', 'Valor', 'Vencimento', 'Fonte Pgto', 'Status']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: { 
-          fillColor: [59, 130, 246],
-          fontSize: 9,
-          fontStyle: 'bold'
-        },
-        styles: { fontSize: 8, cellPadding: 2 },
-        columnStyles: {
-          0: { cellWidth: 45 },
-          1: { cellWidth: 28 },
-          2: { cellWidth: 22 },
-          3: { cellWidth: 28, halign: 'right' },
-          4: { cellWidth: 23 },
-          5: { cellWidth: 25 },
-          6: { cellWidth: 20 }
-        },
-        didParseCell: function(data) {
-          // Colorir valores
-          if (data.column.index === 3 && data.section === 'body') {
-            const valor = tableData[data.row.index][3];
-            if (valor.startsWith('+')) {
-              data.cell.styles.textColor = [34, 197, 94]; // verde
-            } else {
-              data.cell.styles.textColor = [239, 68, 68]; // vermelho
+      // Iterar por cada grupo
+      sortedGroups.forEach((group, groupIndex) => {
+        const groupTotal = group.accounts.reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
+        
+        // Cabeçalho do grupo
+        currentY += 10;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        const tipoLabel = group.type === 'receita' ? 'Receitas' : 'Despesas';
+        doc.setTextColor(group.type === 'receita' ? 34 : 239, group.type === 'receita' ? 197 : 68, group.type === 'receita' ? 94 : 68);
+        doc.text(`${group.category} - ${tipoLabel} (${group.accounts.length} ${group.accounts.length === 1 ? 'item' : 'itens'})`, 14, currentY);
+        doc.setTextColor(0, 0, 0);
+        
+        // Preparar dados da tabela do grupo
+        const tableData = group.accounts.map(account => [
+          account.description,
+          `${account.type === 'receita' ? '+' : '-'}R$ ${Math.abs(account.amount).toFixed(2)}`,
+          formatDate(account.dueDate),
+          account.payment_source_name || '-',
+          getStatusLabel(account.status)
+        ]);
+        
+        // Adicionar linha de total
+        tableData.push([
+          `Total ${group.category}`,
+          `${group.type === 'receita' ? '+' : '-'}R$ ${groupTotal.toFixed(2)}`,
+          '',
+          '',
+          ''
+        ]);
+        
+        autoTable(doc, {
+          startY: currentY + 2,
+          head: [['Descrição', 'Valor', 'Vencimento', 'Fonte Pgto', 'Status']],
+          body: tableData,
+          theme: 'striped',
+          headStyles: { 
+            fillColor: group.type === 'receita' ? [34, 197, 94] : [239, 68, 68],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          styles: { fontSize: 8, cellPadding: 2 },
+          columnStyles: {
+            0: { cellWidth: 60 },
+            1: { cellWidth: 35, halign: 'right' },
+            2: { cellWidth: 28 },
+            3: { cellWidth: 35 },
+            4: { cellWidth: 25 }
+          },
+          didParseCell: function(data) {
+            // Colorir valores
+            if (data.column.index === 1 && data.section === 'body') {
+              const valor = tableData[data.row.index][1];
+              if (valor.startsWith('+')) {
+                data.cell.styles.textColor = [34, 197, 94];
+              } else {
+                data.cell.styles.textColor = [239, 68, 68];
+              }
+            }
+            // Estilizar linha de total
+            if (data.row.index === tableData.length - 1 && data.section === 'body') {
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fillColor = group.type === 'receita' ? [220, 252, 231] : [254, 226, 226];
             }
           }
+        });
+        
+        currentY = (doc as any).lastAutoTable.finalY;
+        
+        // Verificar se precisa de nova página
+        if (currentY > 260 && groupIndex < sortedGroups.length - 1) {
+          doc.addPage();
+          currentY = 20;
         }
       });
       
