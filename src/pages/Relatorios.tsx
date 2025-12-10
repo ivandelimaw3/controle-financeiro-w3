@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { ExpiringAccountsAlert } from '@/components/Reports/ExpiringAccountsAlert';
 import { MonthNavigator } from '@/components/Accounts/MonthNavigator';
-import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search, ArrowLeft, Wallet, DollarSign } from 'lucide-react';
+import { MonthYearStepperMobile } from '@/components/Accounts/MonthYearStepperMobile';
+import { ReportsListMobile } from '@/components/Reports/ReportsListMobile';
+import { ReportsSummaryCardsMobile } from '@/components/Reports/ReportsSummaryCardsMobile';
+import { TrendingUp, TrendingDown, Calendar, Download, Filter, Search, ArrowLeft, Wallet, DollarSign, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +19,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const Relatorios: React.FC = () => {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { accounts, getTotalReceitas, getTotalDespesas, getSaldo } = useAccounts();
   const [searchTerm, setSearchTerm] = useState('');
@@ -314,6 +319,112 @@ const Relatorios: React.FC = () => {
     return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
   };
 
+  // Mobile render
+  if (isMobile) {
+    return (
+      <Layout>
+        <div className="px-4 py-4 space-y-4">
+          {/* Menu Principal Button */}
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <Menu size={18} />
+            Menu Principal
+          </Button>
+
+          {/* Botões de Ação */}
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate('/contas')}
+              variant="outline"
+              className="flex-1 flex items-center justify-center gap-2"
+            >
+              <ArrowLeft size={16} />
+              Contas
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+            >
+              <Download size={16} className="mr-1" />
+              PDF
+            </Button>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input
+                placeholder="Pesquisar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 h-10 text-sm"
+              />
+            </div>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-md bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="receita">Receitas</option>
+              <option value="despesa">Despesas</option>
+            </select>
+          </div>
+
+          {/* Filtro de Status */}
+          <div className="flex gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="flex-1 px-3 py-2 border border-slate-200 rounded-md bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="todos">Todos Status</option>
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+              <option value="recebido">Recebido</option>
+            </select>
+          </div>
+
+          {/* Month/Year Stepper */}
+          <MonthYearStepperMobile
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onMonthChange={handleMonthChange}
+            isShowingAll={isShowingAll}
+          />
+
+          {/* Summary Cards */}
+          <ReportsSummaryCardsMobile
+            previousBalance={previousBalance}
+            totalReceitas={filteredReceitas}
+            totalDespesas={filteredDespesas}
+            saldoFinal={filteredSaldoFinal}
+          />
+
+          {/* Resultados da Pesquisa */}
+          {searchTerm && (
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Search size={14} className="text-blue-600" />
+                <span className="text-xs text-blue-800">
+                  "{searchTerm}" - {filteredAccounts.length} conta(s)
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Lista de Contas */}
+          <ReportsListMobile accounts={filteredAccounts} />
+        </div>
+      </Layout>
+    );
+  }
+
+  // Desktop render
   return (
     <Layout>
       <div className="space-y-6">
