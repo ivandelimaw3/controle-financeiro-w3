@@ -286,15 +286,26 @@ const Contas: React.FC = () => {
             </div>
           </div>
 
-          {/* Campo de pesquisa */}
-          <div className="relative">
-            <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
-            <Input
-              placeholder="Pesquisar contas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          {/* Campo de pesquisa e filtro de tipo */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search size={18} className="absolute left-3 top-3 text-slate-400 pointer-events-none" />
+              <Input
+                placeholder="Pesquisar contas..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-md bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="receita">Receitas</option>
+              <option value="despesa">Despesas</option>
+            </select>
           </div>
 
           {/* Navegador de mês e ano compacto */}
