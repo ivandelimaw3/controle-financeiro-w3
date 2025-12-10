@@ -82,7 +82,12 @@ export const CardAccountsListMobile: React.FC<CardAccountsListMobileProps> = ({ 
     <>
       <ScrollArea className="h-[calc(100vh-480px)]">
         <div className="space-y-2 pr-4">
-          {cardAccounts.map((account) => (
+          {[...cardAccounts].sort((a, b) => {
+            const dataContaA = a.data_conta ? new Date(a.data_conta).getTime() : 0;
+            const dataContaB = b.data_conta ? new Date(b.data_conta).getTime() : 0;
+            if (dataContaA !== dataContaB) return dataContaA - dataContaB;
+            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+          }).map((account) => (
             <div
               key={account.id}
               onClick={() => setSelectedAccount(account)}

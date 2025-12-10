@@ -89,7 +89,7 @@ export const AccountsListMobile: React.FC<AccountsListMobileProps> = ({ accounts
     <>
       <ScrollArea className="h-[calc(100vh-480px)]">
         <div className="space-y-2 pr-4">
-          {accounts.map((account) => (
+          {[...accounts].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()).map((account) => (
             <div
               key={account.id}
               onClick={() => setSelectedAccount(account)}
