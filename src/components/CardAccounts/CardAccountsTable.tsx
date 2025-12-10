@@ -64,7 +64,12 @@ export const CardAccountsTable: React.FC<CardAccountsTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {[...cardAccounts].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()).map((account) => (
+          {[...cardAccounts].sort((a, b) => {
+            const dataContaA = a.data_conta ? new Date(a.data_conta).getTime() : 0;
+            const dataContaB = b.data_conta ? new Date(b.data_conta).getTime() : 0;
+            if (dataContaA !== dataContaB) return dataContaA - dataContaB;
+            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+          }).map((account) => (
             <TableRow key={account.id} className="hover:bg-slate-50/50 transition-colors h-10">
               <TableCell className="font-medium text-slate-900 min-w-[200px] max-w-[250px] py-1">
                 <div className="truncate" title={account.description}>
