@@ -139,36 +139,88 @@ export const ReportsListMobile: React.FC<ReportsListMobileProps> = ({ accounts }
 
               {/* Expanded Accounts */}
               {isExpanded && (
-                <div className="divide-y divide-slate-100">
-                  {group.accounts.map((account, index) => (
-                    <div
-                      key={account.id}
-                      className="px-3 py-2 bg-white"
-                    >
-                      <div className="flex justify-between items-start gap-2 mb-1">
-                        <h4 className="font-medium text-slate-800 text-xs line-clamp-2 flex-1">
-                          <span className="inline-flex items-center justify-center w-4 h-4 bg-slate-200 text-slate-600 text-[10px] font-bold rounded-full mr-1.5">
-                            {index + 1}
-                          </span>
-                          {account.description}
-                        </h4>
-                        <span className={`font-bold text-sm whitespace-nowrap ${getTypeColor(account.type)}`}>
-                          {account.type === 'receita' ? '+' : '-'}{formatCurrency(Math.abs(account.amount))}
-                        </span>
+                <div className="bg-white">
+                  {/* Receitas Section */}
+                  {group.accounts.filter(a => a.type === 'receita').length > 0 && (
+                    <div className="border-b border-slate-100">
+                      <div className="px-3 py-1.5 bg-green-50 border-b border-green-100">
+                        <span className="text-xs font-semibold text-green-700">Receitas</span>
                       </div>
-                      <div className="flex justify-between items-center text-[10px] text-slate-500">
-                        <div className="flex items-center gap-2">
-                          <span>Data: {formatDate(account.dueDate)}</span>
-                          <span className={`px-1.5 py-0.5 rounded-full border ${getStatusColor(account.status)}`}>
-                            {getStatusLabel(account.status)}
-                          </span>
-                        </div>
-                        {account.payment_source_name && (
-                          <span className="text-slate-400">{account.payment_source_name}</span>
-                        )}
+                      {group.accounts
+                        .filter(a => a.type === 'receita')
+                        .map((account, index) => (
+                          <div key={account.id} className="px-3 py-2 border-b border-slate-50">
+                            <div className="flex justify-between items-start gap-2">
+                              <h4 className="font-medium text-slate-800 text-xs line-clamp-2 flex-1">
+                                <span className="inline-flex items-center justify-center w-4 h-4 bg-green-100 text-green-700 text-[10px] font-bold rounded-full mr-1.5">
+                                  {index + 1}
+                                </span>
+                                {account.description}
+                              </h4>
+                              <span className="font-bold text-sm whitespace-nowrap text-green-600">
+                                +{formatCurrency(Math.abs(account.amount))}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-[10px] text-slate-500 mt-1 ml-5">
+                              <div className="flex items-center gap-2">
+                                <span>{formatDate(account.dueDate)}</span>
+                                <span className={`px-1.5 py-0.5 rounded-full border ${getStatusColor(account.status)}`}>
+                                  {getStatusLabel(account.status)}
+                                </span>
+                              </div>
+                              {account.payment_source_name && (
+                                <span className="text-slate-400">{account.payment_source_name}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      <div className="px-3 py-1.5 bg-green-50 flex justify-between">
+                        <span className="text-xs font-semibold text-green-700">Total Receitas:</span>
+                        <span className="text-xs font-bold text-green-700">+{formatCurrency(group.totalReceitas)}</span>
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Despesas Section */}
+                  {group.accounts.filter(a => a.type === 'despesa').length > 0 && (
+                    <div>
+                      <div className="px-3 py-1.5 bg-red-50 border-b border-red-100">
+                        <span className="text-xs font-semibold text-red-700">Despesas</span>
+                      </div>
+                      {group.accounts
+                        .filter(a => a.type === 'despesa')
+                        .map((account, index) => (
+                          <div key={account.id} className="px-3 py-2 border-b border-slate-50">
+                            <div className="flex justify-between items-start gap-2">
+                              <h4 className="font-medium text-slate-800 text-xs line-clamp-2 flex-1">
+                                <span className="inline-flex items-center justify-center w-4 h-4 bg-red-100 text-red-700 text-[10px] font-bold rounded-full mr-1.5">
+                                  {index + 1}
+                                </span>
+                                {account.description}
+                              </h4>
+                              <span className="font-bold text-sm whitespace-nowrap text-red-600">
+                                -{formatCurrency(Math.abs(account.amount))}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-[10px] text-slate-500 mt-1 ml-5">
+                              <div className="flex items-center gap-2">
+                                <span>{formatDate(account.dueDate)}</span>
+                                <span className={`px-1.5 py-0.5 rounded-full border ${getStatusColor(account.status)}`}>
+                                  {getStatusLabel(account.status)}
+                                </span>
+                              </div>
+                              {account.payment_source_name && (
+                                <span className="text-slate-400">{account.payment_source_name}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      <div className="px-3 py-1.5 bg-red-50 flex justify-between">
+                        <span className="text-xs font-semibold text-red-700">Total Despesas:</span>
+                        <span className="text-xs font-bold text-red-700">-{formatCurrency(group.totalDespesas)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
