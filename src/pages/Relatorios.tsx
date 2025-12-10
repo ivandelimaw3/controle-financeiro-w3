@@ -96,9 +96,28 @@ const Relatorios: React.FC = () => {
     try {
       const doc = new jsPDF();
       
+      // Cores profissionais modernas
+      const colors = {
+        primary: [30, 58, 95] as [number, number, number],      // Azul escuro corporativo
+        secondary: [71, 85, 105] as [number, number, number],   // Cinza azulado
+        accent: [14, 116, 144] as [number, number, number],     // Teal/Ciano
+        success: [22, 101, 52] as [number, number, number],     // Verde escuro
+        danger: [153, 27, 27] as [number, number, number],      // Vermelho escuro
+        text: [30, 41, 59] as [number, number, number],         // Texto escuro
+        textLight: [100, 116, 139] as [number, number, number], // Texto secundário
+        headerBg: [241, 245, 249] as [number, number, number],  // Fundo header cinza claro
+        rowAlt: [248, 250, 252] as [number, number, number],    // Linhas alternadas
+        totalBg: [226, 232, 240] as [number, number, number],   // Fundo total
+      };
+      
+      // Cabeçalho do documento
+      doc.setFillColor(...colors.primary);
+      doc.rect(0, 0, 210, 35, 'F');
+      
       // Título
-      doc.setFontSize(18);
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
       doc.text('Relatório Financeiro', 105, 15, { align: 'center' });
       
       // Período
@@ -107,17 +126,25 @@ const Relatorios: React.FC = () => {
       const periodo = monthFilter === 'todos' 
         ? 'Todos os períodos' 
         : `${monthFilter}/${yearFilter}`;
-      doc.text(`Período: ${periodo}`, 105, 22, { align: 'center' });
+      doc.text(`Período: ${periodo}`, 105, 23, { align: 'center' });
       
       // Data de geração
-      const dataGeracao = new Date().toLocaleDateString('pt-BR');
       doc.setFontSize(9);
-      doc.text(`Gerado em: ${dataGeracao}`, 105, 28, { align: 'center' });
+      const dataGeracao = new Date().toLocaleDateString('pt-BR');
+      doc.text(`Gerado em: ${dataGeracao}`, 105, 30, { align: 'center' });
+      
+      // Reset text color
+      doc.setTextColor(...colors.text);
       
       // Resumo Financeiro
-      doc.setFontSize(14);
+      doc.setFontSize(13);
       doc.setFont('helvetica', 'bold');
-      doc.text('Resumo do Período', 14, 38);
+      doc.text('Resumo do Período', 14, 45);
+      
+      // Linha decorativa
+      doc.setDrawColor(...colors.accent);
+      doc.setLineWidth(0.5);
+      doc.line(14, 47, 60, 47);
       
       // Cards de resumo com saldo anterior
       const resumoData = [
@@ -128,15 +155,40 @@ const Relatorios: React.FC = () => {
       ];
       
       autoTable(doc, {
-        startY: 42,
+        startY: 50,
         head: [['Descrição', 'Valor']],
         body: resumoData,
-        theme: 'grid',
-        headStyles: { fillColor: [59, 130, 246], fontSize: 10, fontStyle: 'bold' },
-        styles: { fontSize: 10 },
+        theme: 'plain',
+        headStyles: { 
+          fillColor: colors.primary,
+          textColor: [255, 255, 255],
+          fontSize: 10, 
+          fontStyle: 'bold',
+          cellPadding: 4
+        },
+        styles: { 
+          fontSize: 10,
+          cellPadding: 4,
+          textColor: colors.text
+        },
         columnStyles: {
           0: { cellWidth: 100 },
           1: { cellWidth: 80, halign: 'right', fontStyle: 'bold' }
+        },
+        didParseCell: function(data) {
+          if (data.section === 'body') {
+            // Saldo Final em destaque
+            if (data.row.index === 3) {
+              data.cell.styles.fillColor = colors.totalBg;
+              data.cell.styles.fontStyle = 'bold';
+            }
+            // Cores para valores
+            if (data.column.index === 1) {
+              if (data.row.index === 1) data.cell.styles.textColor = colors.success;
+              if (data.row.index === 2) data.cell.styles.textColor = colors.danger;
+              if (data.row.index === 3) data.cell.styles.textColor = filteredSaldoFinal >= 0 ? colors.success : colors.danger;
+            }
+          }
         }
       });
       
@@ -162,19 +214,31 @@ const Relatorios: React.FC = () => {
         return a.category.localeCompare(b.category);
       });
       
-      let currentY = (doc as any).lastAutoTable.finalY || 42;
+      let currentY = (doc as any).lastAutoTable.finalY || 50;
       
       // Iterar por cada grupo
       sortedGroups.forEach((group, groupIndex) => {
         const groupTotal = group.accounts.reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
         
-        // Cabeçalho do grupo - texto preto negrito
-        currentY += 10;
-        doc.setFontSize(12);
+        // Verificar se precisa de nova página antes do grupo
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        // Cabeçalho do grupo
+        currentY += 12;
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
+        doc.setTextColor(...colors.text);
         const tipoLabel = group.type === 'receita' ? 'Receitas' : 'Despesas';
-        doc.text(`${group.category} - ${tipoLabel} (${group.accounts.length} ${group.accounts.length === 1 ? 'item' : 'itens'})`, 14, currentY);
+        doc.text(`${group.category} - ${tipoLabel}`, 14, currentY);
+        
+        // Badge com quantidade
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...colors.textLight);
+        doc.text(`(${group.accounts.length} ${group.accounts.length === 1 ? 'item' : 'itens'})`, 14 + doc.getTextWidth(`${group.category} - ${tipoLabel} `), currentY);
         
         // Preparar dados da tabela do grupo
         const tableData = group.accounts.map(account => [
@@ -195,30 +259,46 @@ const Relatorios: React.FC = () => {
         ]);
         
         autoTable(doc, {
-          startY: currentY + 2,
+          startY: currentY + 3,
           head: [['Descrição', 'Valor', 'Vencimento', 'Fonte Pgto', 'Status']],
           body: tableData,
           theme: 'striped',
           headStyles: { 
-            fillColor: [229, 231, 235], // Cinza claro neutro
-            textColor: [0, 0, 0], // Texto preto
-            fontSize: 9,
-            fontStyle: 'bold'
+            fillColor: colors.headerBg,
+            textColor: colors.secondary,
+            fontSize: 8,
+            fontStyle: 'bold',
+            cellPadding: 3
           },
-          styles: { fontSize: 8, cellPadding: 2, textColor: [55, 65, 81] }, // Texto cinza escuro
+          styles: { 
+            fontSize: 8, 
+            cellPadding: 3, 
+            textColor: colors.text
+          },
+          alternateRowStyles: {
+            fillColor: colors.rowAlt
+          },
           columnStyles: {
             0: { cellWidth: 60 },
-            1: { cellWidth: 35, halign: 'right' },
-            2: { cellWidth: 28 },
-            3: { cellWidth: 35 },
-            4: { cellWidth: 25 }
+            1: { cellWidth: 32, halign: 'right' },
+            2: { cellWidth: 26 },
+            3: { cellWidth: 38 },
+            4: { cellWidth: 26 }
           },
           didParseCell: function(data) {
-            // Estilizar linha de total - preto negrito
+            // Estilizar linha de total
             if (data.row.index === tableData.length - 1 && data.section === 'body') {
               data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.textColor = [0, 0, 0];
-              data.cell.styles.fillColor = [243, 244, 246]; // Cinza muito claro
+              data.cell.styles.textColor = colors.text;
+              data.cell.styles.fillColor = colors.totalBg;
+            }
+            // Cor do valor baseado no tipo
+            if (data.column.index === 1 && data.section === 'body') {
+              if (group.type === 'receita') {
+                data.cell.styles.textColor = colors.success;
+              } else {
+                data.cell.styles.textColor = colors.danger;
+              }
             }
           }
         });
@@ -231,6 +311,15 @@ const Relatorios: React.FC = () => {
           currentY = 20;
         }
       });
+      
+      // Rodapé
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(...colors.textLight);
+        doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+      }
       
       // Salvar PDF
       const nomeArquivo = `relatorio-financeiro-${periodo.replace(/\//g, '-')}.pdf`;
