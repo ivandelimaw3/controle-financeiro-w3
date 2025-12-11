@@ -188,6 +188,11 @@ const Relatorios: React.FC = () => {
           groups[cat].total += Math.abs(acc.amount);
         });
         
+        // Ordenar contas por data de vencimento crescente dentro de cada grupo
+        Object.values(groups).forEach(group => {
+          group.accounts.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+        });
+        
         return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
       };
       
