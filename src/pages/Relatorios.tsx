@@ -913,6 +913,11 @@ const Relatorios: React.FC = () => {
                   return acc;
                 }, {} as Record<string, { category: string; type: string; accounts: typeof filteredAccounts }>);
 
+                // Ordenar contas por data de vencimento crescente dentro de cada grupo
+                Object.values(groupedAccounts).forEach(group => {
+                  group.accounts.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+                });
+
                 // Ordenar grupos: primeiro receitas, depois despesas, e alfabeticamente por categoria
                 const sortedGroups = Object.values(groupedAccounts).sort((a, b) => {
                   if (a.type !== b.type) {
