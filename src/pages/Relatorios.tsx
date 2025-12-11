@@ -95,100 +95,277 @@ const Relatorios: React.FC = () => {
   const handleExportPDF = () => {
     try {
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
       
-      // Título
-      doc.setFontSize(18);
+      // Cabeçalho
+      doc.setFillColor(59, 130, 246);
+      doc.rect(0, 0, pageWidth, 35, 'F');
+      
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('Relatório Financeiro', 105, 15, { align: 'center' });
+      doc.setTextColor(255, 255, 255);
+      doc.text('Relatório Financeiro', pageWidth / 2, 15, { align: 'center' });
       
       // Período
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       const periodo = monthFilter === 'todos' 
         ? 'Todos os períodos' 
-        : `${monthFilter}/${yearFilter}`;
-      doc.text(`Período: ${periodo}`, 105, 22, { align: 'center' });
+        : `${String(monthFilter).padStart(2, '0')}/${yearFilter}`;
+      doc.text(`Período: ${periodo}`, pageWidth / 2, 24, { align: 'center' });
       
       // Data de geração
-      const dataGeracao = new Date().toLocaleDateString('pt-BR');
+      const dataGeracao = new Date().toLocaleDateString('pt-BR', { 
+        day: '2-digit', month: 'long', year: 'numeric' 
+      });
       doc.setFontSize(9);
-      doc.text(`Gerado em: ${dataGeracao}`, 105, 28, { align: 'center' });
+      doc.text(`Gerado em: ${dataGeracao}`, pageWidth / 2, 31, { align: 'center' });
+      
+      doc.setTextColor(0, 0, 0);
       
       // Resumo Financeiro
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Resumo do Período', 14, 38);
+      doc.text('Resumo do Período', 14, 45);
       
-      // Cards de resumo com saldo anterior
       const resumoData = [
-        ['Saldo Anterior', `R$ ${previousBalance.toFixed(2)}`],
-        ['Total de Receitas', `R$ ${filteredReceitas.toFixed(2)}`],
-        ['Total de Despesas', `R$ ${filteredDespesas.toFixed(2)}`],
-        ['Saldo Final', `R$ ${filteredSaldoFinal.toFixed(2)}`]
+        ['Saldo Anterior', formatCurrencyPDF(previousBalance)],
+        ['Total de Receitas', formatCurrencyPDF(filteredReceitas)],
+        ['Total de Despesas', formatCurrencyPDF(filteredDespesas)],
+        ['Saldo Final', formatCurrencyPDF(filteredSaldoFinal)]
       ];
       
       autoTable(doc, {
-        startY: 42,
+        startY: 50,
         head: [['Descrição', 'Valor']],
         body: resumoData,
         theme: 'grid',
         headStyles: { fillColor: [59, 130, 246], fontSize: 10, fontStyle: 'bold' },
-        styles: { fontSize: 10 },
+        styles: { fontSize: 10, cellPadding: 4 },
         columnStyles: {
           0: { cellWidth: 100 },
           1: { cellWidth: 80, halign: 'right', fontStyle: 'bold' }
-        }
-      });
-      
-      // Detalhamento das Contas
-      const finalY = (doc as any).lastAutoTable.finalY || 42;
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Detalhamento das Contas', 14, finalY + 10);
-      
-      // Preparar dados da tabela
-      const tableData = filteredAccounts.map(account => [
-        account.description,
-        account.category,
-        account.type === 'receita' ? 'Receita' : 'Despesa',
-        `${account.type === 'receita' ? '+' : '-'}R$ ${Math.abs(account.amount).toFixed(2)}`,
-        formatDate(account.dueDate),
-        account.payment_source_name || '-',
-        getStatusLabel(account.status)
-      ]);
-      
-      autoTable(doc, {
-        startY: finalY + 14,
-        head: [['Descrição', 'Categoria', 'Tipo', 'Valor', 'Vencimento', 'Fonte Pgto', 'Status']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: { 
-          fillColor: [59, 130, 246],
-          fontSize: 9,
-          fontStyle: 'bold'
-        },
-        styles: { fontSize: 8, cellPadding: 2 },
-        columnStyles: {
-          0: { cellWidth: 45 },
-          1: { cellWidth: 28 },
-          2: { cellWidth: 22 },
-          3: { cellWidth: 28, halign: 'right' },
-          4: { cellWidth: 23 },
-          5: { cellWidth: 25 },
-          6: { cellWidth: 20 }
         },
         didParseCell: function(data) {
-          // Colorir valores
-          if (data.column.index === 3 && data.section === 'body') {
-            const valor = tableData[data.row.index][3];
-            if (valor.startsWith('+')) {
-              data.cell.styles.textColor = [34, 197, 94]; // verde
-            } else {
-              data.cell.styles.textColor = [239, 68, 68]; // vermelho
+          if (data.column.index === 1 && data.section === 'body') {
+            if (data.row.index === 0) data.cell.styles.textColor = [147, 51, 234]; // purple
+            if (data.row.index === 1) data.cell.styles.textColor = [34, 197, 94]; // green
+            if (data.row.index === 2) data.cell.styles.textColor = [239, 68, 68]; // red
+            if (data.row.index === 3) {
+              data.cell.styles.textColor = filteredSaldoFinal >= 0 ? [34, 197, 94] : [239, 68, 68];
             }
           }
         }
       });
+      
+      let currentY = (doc as any).lastAutoTable.finalY + 10;
+      
+      // Agrupar contas por categoria
+      const groupByCategory = (accs: typeof filteredAccounts, type: 'receita' | 'despesa') => {
+        const filtered = accs.filter(a => a.type === type);
+        const groups: Record<string, { accounts: typeof filtered; total: number }> = {};
+        
+        filtered.forEach(acc => {
+          const cat = acc.category || 'Sem Categoria';
+          if (!groups[cat]) {
+            groups[cat] = { accounts: [], total: 0 };
+          }
+          groups[cat].accounts.push(acc);
+          groups[cat].total += Math.abs(acc.amount);
+        });
+        
+        return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
+      };
+      
+      const receitasGroups = groupByCategory(filteredAccounts, 'receita');
+      const despesasGroups = groupByCategory(filteredAccounts, 'despesa');
+      
+      // SEÇÃO RECEITAS
+      if (receitasGroups.length > 0) {
+        doc.setFillColor(220, 252, 231);
+        doc.rect(14, currentY, pageWidth - 28, 10, 'F');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(22, 101, 52);
+        doc.text('RECEITAS', 18, currentY + 7);
+        currentY += 14;
+        
+        let totalGeralReceitas = 0;
+        
+        receitasGroups.forEach(([category, data]) => {
+          // Check if need new page
+          if (currentY > 250) {
+            doc.addPage();
+            currentY = 20;
+          }
+          
+          // Category header
+          doc.setFillColor(240, 253, 244);
+          doc.rect(14, currentY, pageWidth - 28, 8, 'F');
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(34, 197, 94);
+          doc.text(category, 18, currentY + 5.5);
+          currentY += 10;
+          
+          // Accounts table for this category
+          const categoryData = data.accounts.map((acc, idx) => [
+            String(idx + 1),
+            acc.description,
+            formatDate(acc.dueDate),
+            getStatusLabel(acc.status),
+            formatCurrencyPDF(acc.amount)
+          ]);
+          
+          autoTable(doc, {
+            startY: currentY,
+            head: [['#', 'Descrição', 'Vencimento', 'Status', 'Valor']],
+            body: categoryData,
+            theme: 'plain',
+            headStyles: { 
+              fillColor: [249, 250, 251], 
+              fontSize: 8, 
+              fontStyle: 'bold',
+              textColor: [100, 116, 139]
+            },
+            styles: { fontSize: 8, cellPadding: 2 },
+            columnStyles: {
+              0: { cellWidth: 10, halign: 'center' },
+              1: { cellWidth: 80 },
+              2: { cellWidth: 25 },
+              3: { cellWidth: 25 },
+              4: { cellWidth: 35, halign: 'right', textColor: [34, 197, 94] }
+            },
+            margin: { left: 14, right: 14 }
+          });
+          
+          currentY = (doc as any).lastAutoTable.finalY;
+          
+          // Category total
+          doc.setFillColor(220, 252, 231);
+          doc.rect(14, currentY, pageWidth - 28, 7, 'F');
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(22, 101, 52);
+          doc.text(`Total ${category}:`, 18, currentY + 5);
+          doc.text(formatCurrencyPDF(data.total), pageWidth - 18, currentY + 5, { align: 'right' });
+          currentY += 10;
+          
+          totalGeralReceitas += data.total;
+        });
+        
+        // Grand total receitas
+        doc.setFillColor(34, 197, 94);
+        doc.rect(14, currentY, pageWidth - 28, 9, 'F');
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text('TOTAL RECEITAS:', 18, currentY + 6.5);
+        doc.text(formatCurrencyPDF(totalGeralReceitas), pageWidth - 18, currentY + 6.5, { align: 'right' });
+        currentY += 15;
+      }
+      
+      // SEÇÃO DESPESAS
+      if (despesasGroups.length > 0) {
+        if (currentY > 220) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        doc.setFillColor(254, 226, 226);
+        doc.rect(14, currentY, pageWidth - 28, 10, 'F');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(153, 27, 27);
+        doc.text('DESPESAS', 18, currentY + 7);
+        currentY += 14;
+        
+        let totalGeralDespesas = 0;
+        
+        despesasGroups.forEach(([category, data]) => {
+          if (currentY > 250) {
+            doc.addPage();
+            currentY = 20;
+          }
+          
+          // Category header
+          doc.setFillColor(254, 242, 242);
+          doc.rect(14, currentY, pageWidth - 28, 8, 'F');
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(239, 68, 68);
+          doc.text(category, 18, currentY + 5.5);
+          currentY += 10;
+          
+          const categoryData = data.accounts.map((acc, idx) => [
+            String(idx + 1),
+            acc.description,
+            formatDate(acc.dueDate),
+            getStatusLabel(acc.status),
+            formatCurrencyPDF(Math.abs(acc.amount))
+          ]);
+          
+          autoTable(doc, {
+            startY: currentY,
+            head: [['#', 'Descrição', 'Vencimento', 'Status', 'Valor']],
+            body: categoryData,
+            theme: 'plain',
+            headStyles: { 
+              fillColor: [249, 250, 251], 
+              fontSize: 8, 
+              fontStyle: 'bold',
+              textColor: [100, 116, 139]
+            },
+            styles: { fontSize: 8, cellPadding: 2 },
+            columnStyles: {
+              0: { cellWidth: 10, halign: 'center' },
+              1: { cellWidth: 80 },
+              2: { cellWidth: 25 },
+              3: { cellWidth: 25 },
+              4: { cellWidth: 35, halign: 'right', textColor: [239, 68, 68] }
+            },
+            margin: { left: 14, right: 14 }
+          });
+          
+          currentY = (doc as any).lastAutoTable.finalY;
+          
+          // Category total
+          doc.setFillColor(254, 226, 226);
+          doc.rect(14, currentY, pageWidth - 28, 7, 'F');
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(153, 27, 27);
+          doc.text(`Total ${category}:`, 18, currentY + 5);
+          doc.text(formatCurrencyPDF(data.total), pageWidth - 18, currentY + 5, { align: 'right' });
+          currentY += 10;
+          
+          totalGeralDespesas += data.total;
+        });
+        
+        // Grand total despesas
+        doc.setFillColor(239, 68, 68);
+        doc.rect(14, currentY, pageWidth - 28, 9, 'F');
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text('TOTAL DESPESAS:', 18, currentY + 6.5);
+        doc.text(formatCurrencyPDF(totalGeralDespesas), pageWidth - 18, currentY + 6.5, { align: 'right' });
+        currentY += 15;
+      }
+      
+      // Rodapé com saldo final
+      if (currentY > 260) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      doc.setFillColor(59, 130, 246);
+      doc.rect(14, currentY, pageWidth - 28, 12, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('SALDO FINAL DO PERÍODO:', 18, currentY + 8);
+      doc.text(formatCurrencyPDF(filteredSaldoFinal), pageWidth - 18, currentY + 8, { align: 'right' });
       
       // Salvar PDF
       const nomeArquivo = `relatorio-financeiro-${periodo.replace(/\//g, '-')}.pdf`;
@@ -200,6 +377,7 @@ const Relatorios: React.FC = () => {
         duration: 3000,
       });
     } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
       toast({
         title: "Erro ao exportar PDF",
         description: "Ocorreu um erro ao gerar o arquivo PDF.",
@@ -207,6 +385,10 @@ const Relatorios: React.FC = () => {
         duration: 3000,
       });
     }
+  };
+
+  const formatCurrencyPDF = (value: number) => {
+    return `R$ ${Math.abs(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; 
   };
 
   // Filtrar contas baseado nos filtros
