@@ -120,22 +120,28 @@ const Relatorios: React.FC = () => {
       doc.setTextColor(100, 116, 139); // slate-500
       doc.text(`Gerado em: ${dataGeracao}`, pageWidth / 2, 28, { align: 'center' });
       
-      // Resumo Financeiro - Tabela com grid
+      // Subtítulo "Resumo do Período"
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 65, 85); // slate-700
+      doc.text('Resumo do Período', 14, 36);
+      
+      // Resumo Financeiro - Tabela com grid e cabeçalho azul
       autoTable(doc, {
-        startY: 34,
+        startY: 40,
         head: [['Descrição', 'Valor']],
         body: [
           ['Saldo Anterior', formatCurrencyPDF(previousBalance)],
           ['Total de Receitas', formatCurrencyPDF(filteredReceitas)],
-          ['Total de Despesas', formatCurrencyPDF(filteredDespesas)],
+          ['Total de Despesas', `-${formatCurrencyPDF(filteredDespesas)}`],
           ['Saldo Final', formatCurrencyPDF(filteredSaldoFinal)]
         ],
         theme: 'grid',
         headStyles: { 
-          fillColor: [241, 245, 249], // slate-100
+          fillColor: [59, 130, 246], // blue-500
           fontSize: 9, 
           fontStyle: 'bold',
-          textColor: [51, 65, 85], // slate-700
+          textColor: [255, 255, 255], // white
           halign: 'left'
         },
         styles: { 
@@ -152,7 +158,7 @@ const Relatorios: React.FC = () => {
         didParseCell: function(data) {
           if (data.column.index === 1 && data.section === 'body') {
             const rowIndex = data.row.index;
-            if (rowIndex === 1) data.cell.styles.textColor = [22, 163, 74]; // green - receitas
+            if (rowIndex === 1) data.cell.styles.textColor = [59, 130, 246]; // blue - receitas
             else if (rowIndex === 2) data.cell.styles.textColor = [220, 38, 38]; // red - despesas
             else data.cell.styles.textColor = [51, 65, 85]; // slate-700
           }
@@ -160,6 +166,13 @@ const Relatorios: React.FC = () => {
       });
       
       let currentY = (doc as any).lastAutoTable.finalY + 10;
+      
+      // Subtítulo "Detalhamento das Contas"
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 65, 85); // slate-700
+      doc.text('Detalhamento das Contas', 14, currentY);
+      currentY += 8;
       
       // Agrupar contas por categoria
       const groupByCategory = (accs: typeof filteredAccounts, type: 'receita' | 'despesa') => {
@@ -183,10 +196,10 @@ const Relatorios: React.FC = () => {
       
       // SEÇÃO RECEITAS
       if (receitasGroups.length > 0) {
-        // Título da seção
+        // Título da seção em azul
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(22, 163, 74); // green
+        doc.setTextColor(59, 130, 246); // blue
         doc.text('RECEITAS', 14, currentY);
         currentY += 5;
         
@@ -241,14 +254,14 @@ const Relatorios: React.FC = () => {
             bodyStyles: { fillColor: [255, 255, 255] },
             margin: { left: 14, right: 14 },
             didParseCell: function(data) {
-              // Colorir valor em verde
+              // Colorir valor em azul
               if (data.column.index === 4 && data.section === 'body') {
-                data.cell.styles.textColor = [22, 163, 74]; // green
+                data.cell.styles.textColor = [59, 130, 246]; // blue
               }
               // Colorir status
               if (data.column.index === 3 && data.section === 'body') {
                 const status = data.cell.raw as string;
-                if (status === 'Recebido') data.cell.styles.textColor = [22, 163, 74];
+                if (status === 'Recebido') data.cell.styles.textColor = [59, 130, 246]; // blue
                 else if (status === 'Pendente') data.cell.styles.textColor = [234, 179, 8];
               }
             }
@@ -256,7 +269,7 @@ const Relatorios: React.FC = () => {
           
           currentY = (doc as any).lastAutoTable.finalY + 2;
           
-          // Category subtotal em tabela
+          // Category subtotal em tabela - preto negrito
           autoTable(doc, {
             startY: currentY,
             body: [[`Subtotal ${category}`, formatCurrencyPDF(data.total)]],
@@ -268,8 +281,8 @@ const Relatorios: React.FC = () => {
               lineWidth: 0.2
             },
             columnStyles: {
-              0: { cellWidth: 132, fontStyle: 'bold', textColor: [71, 85, 105] },
-              1: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [22, 163, 74] }
+              0: { cellWidth: 132, fontStyle: 'bold', textColor: [31, 41, 55] }, // gray-800 (preto)
+              1: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [31, 41, 55] } // preto
             },
             bodyStyles: { fillColor: [248, 250, 252] }, // slate-50
             margin: { left: 14, right: 14 }
@@ -279,7 +292,7 @@ const Relatorios: React.FC = () => {
           totalGeralReceitas += data.total;
         });
         
-        // Total receitas em tabela
+        // Total receitas em tabela - azul
         autoTable(doc, {
           startY: currentY,
           body: [['TOTAL RECEITAS', formatCurrencyPDF(totalGeralReceitas)]],
@@ -291,10 +304,10 @@ const Relatorios: React.FC = () => {
             lineWidth: 0.3
           },
           columnStyles: {
-            0: { cellWidth: 132, fontStyle: 'bold', textColor: [22, 163, 74] },
-            1: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [22, 163, 74] }
+            0: { cellWidth: 132, fontStyle: 'bold', textColor: [59, 130, 246] }, // blue
+            1: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [59, 130, 246] } // blue
           },
-          bodyStyles: { fillColor: [240, 253, 244] }, // green-50
+          bodyStyles: { fillColor: [239, 246, 255] }, // blue-50
           margin: { left: 14, right: 14 }
         });
         
@@ -330,12 +343,13 @@ const Relatorios: React.FC = () => {
           doc.text(category, 14, currentY + 4);
           currentY += 6;
           
+          // Valores com sinal negativo
           const categoryData = data.accounts.map((acc, idx) => [
             String(idx + 1),
             acc.description,
             formatDate(acc.dueDate),
             getStatusLabel(acc.status),
-            formatCurrencyPDF(Math.abs(acc.amount))
+            `-${formatCurrencyPDF(Math.abs(acc.amount))}`
           ]);
           
           autoTable(doc, {
@@ -381,10 +395,10 @@ const Relatorios: React.FC = () => {
           
           currentY = (doc as any).lastAutoTable.finalY + 2;
           
-          // Category subtotal em tabela
+          // Category subtotal em tabela - preto negrito com sinal negativo
           autoTable(doc, {
             startY: currentY,
-            body: [[`Subtotal ${category}`, formatCurrencyPDF(data.total)]],
+            body: [[`Subtotal ${category}`, `-${formatCurrencyPDF(data.total)}`]],
             theme: 'grid',
             styles: { 
               fontSize: 8, 
@@ -393,8 +407,8 @@ const Relatorios: React.FC = () => {
               lineWidth: 0.2
             },
             columnStyles: {
-              0: { cellWidth: 132, fontStyle: 'bold', textColor: [71, 85, 105] },
-              1: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [220, 38, 38] }
+              0: { cellWidth: 132, fontStyle: 'bold', textColor: [31, 41, 55] }, // preto
+              1: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [31, 41, 55] } // preto
             },
             bodyStyles: { fillColor: [248, 250, 252] },
             margin: { left: 14, right: 14 }
@@ -404,10 +418,10 @@ const Relatorios: React.FC = () => {
           totalGeralDespesas += data.total;
         });
         
-        // Total despesas em tabela
+        // Total despesas em tabela - vermelho com sinal negativo
         autoTable(doc, {
           startY: currentY,
-          body: [['TOTAL DESPESAS', formatCurrencyPDF(totalGeralDespesas)]],
+          body: [['TOTAL DESPESAS', `-${formatCurrencyPDF(totalGeralDespesas)}`]],
           theme: 'grid',
           styles: { 
             fontSize: 10, 
