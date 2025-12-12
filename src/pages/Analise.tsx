@@ -4,8 +4,8 @@ import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { useAccounts } from '@/contexts/AccountsContext';
 import { useCategoriesData } from '@/hooks/useCategoriesData';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -86,44 +86,40 @@ const Analise: React.FC = () => {
     setSelectedMonths([]);
   };
 
-  // Dados para gráfico de barras - baseado nos meses selecionados
-  const barChartData = useMemo(() => {
-    const monthlyData: { month: string; monthKey: string; receitas: number; despesas: number; year: number; monthNum: number }[] = [];
-    
-    // Gerar apenas para os meses selecionados
-    selectedMonths.forEach(i => {
-      const date = new Date(selectedYear, i);
-      const monthKey = format(date, 'MMM', { locale: ptBR });
-      monthlyData.push({
-        month: monthKey,
-        monthKey,
-        receitas: 0,
-        despesas: 0,
-        year: selectedYear,
-        monthNum: i
-      });
+  // Dados para gráfico de pizza - todas as categorias combinadas (receitas + despesas)
+  const pieChartData = useMemo(() => {
+    const filteredAccounts = accounts.filter(account => {
+      const date = parseISO(account.dueDate);
+      const accountMonth = getMonth(date);
+      const accountYear = getYear(date);
+      return selectedMonths.includes(accountMonth) && accountYear === selectedYear;
     });
     
-    // Preencher com dados das contas
-    accounts.forEach(account => {
-      const date = parseISO(account.dueDate);
-      const accountYear = getYear(date);
-      const accountMonth = getMonth(date);
-      
-      if (accountYear === selectedYear && selectedMonths.includes(accountMonth)) {
-        const monthData = monthlyData.find(m => m.monthNum === accountMonth);
-        
-        if (monthData) {
-          if (account.type === 'receita') {
-            monthData.receitas += account.amount;
-          } else {
-            monthData.despesas += Math.abs(account.amount);
-          }
-        }
+    const categoryTotals: { [key: string]: { value: number; type: string } } = {};
+    
+    filteredAccounts.forEach(account => {
+      const category = account.category;
+      const key = `${category}-${account.type}`;
+      if (!categoryTotals[key]) {
+        categoryTotals[key] = { value: 0, type: account.type };
       }
+      categoryTotals[key].value += Math.abs(account.amount);
     });
 
-    return monthlyData;
+    const result = Object.entries(categoryTotals)
+      .filter(([_, data]) => data.value > 0)
+      .sort(([, a], [, b]) => b.value - a.value)
+      .map(([key, data], index) => {
+        const categoryName = key.replace('-receita', '').replace('-despesa', '');
+        return {
+          name: categoryName,
+          value: data.value,
+          type: data.type,
+          color: COLORS[index % COLORS.length],
+        };
+      });
+
+    return result;
   }, [accounts, selectedYear, selectedMonths]);
 
   // Dados para despesas por categoria - filtrar por mês/ano selecionado
@@ -369,16 +365,16 @@ const Analise: React.FC = () => {
           </div>
         )}
 
-        {/* Gráfico de Barras */}
+        {/* Gráfico de Pizza */}
         <Card>
           <CardHeader className={isMobile ? "pb-3 space-y-2" : ""}>
             <div className="flex items-center justify-between">
               <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
                 {selectedMonths.length === 12 
-                  ? `Receitas vs Despesas - ${selectedYear}` 
+                  ? `Distribuição por Categoria - ${selectedYear}` 
                   : selectedMonths.length === 1
-                    ? `Receitas vs Despesas - ${months[selectedMonths[0]].label}/${selectedYear}`
-                    : `Receitas vs Despesas - ${selectedMonths.length} meses/${selectedYear}`}
+                    ? `Distribuição por Categoria - ${months[selectedMonths[0]].label}/${selectedYear}`
+                    : `Distribuição por Categoria - ${selectedMonths.length} meses/${selectedYear}`}
               </CardTitle>
             </div>
             {isMobile && (
@@ -444,46 +440,47 @@ const Analise: React.FC = () => {
               </Popover>
             )}
           </CardHeader>
-          <CardContent className={isMobile ? "px-2 pb-3" : ""}>
-            <ChartContainer config={chartConfig} className={isMobile ? "min-h-[43px]" : "min-h-[64px]"}>
-              <ResponsiveContainer width="100%" height={isMobile ? 43 : 64}>
-                <BarChart 
-                  data={barChartData} 
-                  margin={{ top: 10, right: isMobile ? 5 : 20, left: isMobile ? -10 : 10, bottom: isMobile ? 5 : 5 }}
-                  barGap={isMobile ? 0 : 6}
-                  barCategoryGap={isMobile ? '15%' : '20%'}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: isMobile ? 9 : 10, fill: '#64748b' }}
-                    angle={isMobile ? 0 : -45}
-                    textAnchor={isMobile ? "middle" : "end"}
-                    height={isMobile ? 40 : 80}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: isMobile ? 9 : 13, fill: '#64748b' }}
-                    tickFormatter={(value) => isMobile ? `${(value / 1000).toFixed(0)}k` : `R$ ${(value / 1000).toFixed(0)}k`}
-                    width={isMobile ? 32 : 60}
-                  />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent labelKey="month" />}
-                  />
-                  <Bar 
-                    dataKey="receitas" 
-                    fill="var(--color-receitas)" 
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={isMobile ? 24 : 40}
-                  />
-                  <Bar 
-                    dataKey="despesas" 
-                    fill="var(--color-despesas)" 
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={isMobile ? 24 : 40}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+          <CardContent className={isMobile ? "px-2 pb-3" : "px-4"}>
+            {pieChartData.length > 0 ? (
+              <ChartContainer config={chartConfig} className={isMobile ? "min-h-[280px]" : "min-h-[350px]"}>
+                <ResponsiveContainer width="100%" height={isMobile ? 280 : 350}>
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={!isMobile}
+                      label={isMobile ? false : ({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={isMobile ? 90 : 120}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']}
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: '1px solid #e2e8f0', 
+                        borderRadius: '8px',
+                        fontSize: isMobile ? '12px' : '14px'
+                      }}
+                    />
+                    <Legend 
+                      wrapperStyle={{ fontSize: isMobile ? '10px' : '12px' }}
+                      formatter={(value) => <span className="text-slate-700">{value}</span>}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[200px] text-slate-500">
+                <p className="text-sm font-medium mb-1">Nenhum dado encontrado</p>
+                <p className="text-xs text-center">Não há contas cadastradas para o período selecionado.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
