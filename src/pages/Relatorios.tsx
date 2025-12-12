@@ -835,20 +835,20 @@ const Relatorios: React.FC = () => {
               {/* Seção de Receitas */}
               {annualCategoryData.receitas.length > 0 && (
                 <>
-                  <div className="bg-green-50 px-3 py-2 border-b border-slate-300">
-                    <span className="font-bold text-green-800 text-sm">RECEITAS - {yearFilter}</span>
+                  <div className="bg-white border-b-2 border-slate-400 px-3 py-2">
+                    <span className="font-bold text-slate-900 text-sm">RECEITAS - {yearFilter}</span>
                   </div>
                   {annualCategoryData.receitas.map((group, index) => (
-                    <div key={`receita-m-${group.category}-${index}`} className="flex justify-between items-center px-3 py-2 border-b border-slate-200 bg-white">
-                      <span className="text-sm text-slate-700">{group.category}</span>
-                      <span className="font-bold text-green-600 text-sm">
+                    <div key={`receita-m-${group.category}-${index}`} className="flex justify-between items-center px-3 py-2 border-b border-slate-200 bg-white hover:bg-slate-50">
+                      <span className="text-sm text-slate-700 font-medium">{group.category}</span>
+                      <span className="font-semibold text-green-600 text-sm">
                         +R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
                   ))}
-                  <div className="bg-green-100 px-3 py-2 border-b border-slate-300 flex justify-between">
-                    <span className="font-bold text-green-800 text-sm">Total Receitas:</span>
-                    <span className="font-bold text-green-700 text-sm">
+                  <div className="bg-slate-100 px-3 py-2 border-b-2 border-slate-400 flex justify-between">
+                    <span className="font-bold text-slate-900 text-sm">Total Receitas:</span>
+                    <span className="font-bold text-green-600 text-sm">
                       +R$ {annualCategoryData.totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -858,20 +858,20 @@ const Relatorios: React.FC = () => {
               {/* Seção de Despesas */}
               {annualCategoryData.despesas.length > 0 && (
                 <>
-                  <div className="bg-red-50 px-3 py-2 border-b border-slate-300">
-                    <span className="font-bold text-red-800 text-sm">DESPESAS - {yearFilter}</span>
+                  <div className="bg-white border-b-2 border-slate-400 px-3 py-2">
+                    <span className="font-bold text-slate-900 text-sm">DESPESAS - {yearFilter}</span>
                   </div>
                   {annualCategoryData.despesas.map((group, index) => (
-                    <div key={`despesa-m-${group.category}-${index}`} className="flex justify-between items-center px-3 py-2 border-b border-slate-200 bg-white">
-                      <span className="text-sm text-slate-700">{group.category}</span>
-                      <span className="font-bold text-red-600 text-sm">
+                    <div key={`despesa-m-${group.category}-${index}`} className="flex justify-between items-center px-3 py-2 border-b border-slate-200 bg-white hover:bg-slate-50">
+                      <span className="text-sm text-slate-700 font-medium">{group.category}</span>
+                      <span className="font-semibold text-red-600 text-sm">
                         -R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
                   ))}
-                  <div className="bg-red-100 px-3 py-2 border-b border-slate-300 flex justify-between">
-                    <span className="font-bold text-red-800 text-sm">Total Despesas:</span>
-                    <span className="font-bold text-red-700 text-sm">
+                  <div className="bg-slate-100 px-3 py-2 border-b-2 border-slate-400 flex justify-between">
+                    <span className="font-bold text-slate-900 text-sm">Total Despesas:</span>
+                    <span className="font-bold text-red-600 text-sm">
                       -R$ {annualCategoryData.totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -879,9 +879,9 @@ const Relatorios: React.FC = () => {
               )}
 
               {/* Saldo Final */}
-              <div className="bg-slate-200 px-3 py-3 flex justify-between">
-                <span className="font-bold text-slate-800 text-sm">SALDO ANUAL:</span>
-                <span className={`font-bold text-base ${(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+              <div className="bg-slate-100 px-3 py-3 flex justify-between">
+                <span className="font-bold text-slate-900 text-sm">SALDO ANUAL:</span>
+                <span className={`font-bold text-base ${(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   R$ {(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1120,18 +1120,18 @@ const Relatorios: React.FC = () => {
               <div className="border border-slate-300 rounded-lg">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-purple-100 border-b border-slate-300">
-                      <th className="text-left font-semibold text-purple-800 px-4 py-3 border-r border-slate-300 text-sm">Categoria</th>
-                      <th className="text-left font-semibold text-purple-800 px-4 py-3 border-r border-slate-300 text-sm">Qtd. Contas</th>
-                      <th className="text-right font-semibold text-purple-800 px-4 py-3 text-sm">Total Anual</th>
+                    <tr className="bg-slate-100 border-b border-slate-300">
+                      <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Categoria</th>
+                      <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Qtd. Contas</th>
+                      <th className="text-right font-semibold text-slate-700 px-4 py-3 text-sm">Total Anual</th>
                     </tr>
                   </thead>
                   <tbody>
                     {/* Seção de Receitas */}
                     {annualCategoryData.receitas.length > 0 && (
                       <>
-                        <tr className="bg-green-50 border-t-2 border-slate-400">
-                          <td colSpan={3} className="px-4 py-3 font-bold text-green-800 text-base">
+                        <tr className="bg-white border-t-2 border-slate-400">
+                          <td colSpan={3} className="px-4 py-3 font-bold text-slate-900 text-base">
                             RECEITAS - {yearFilter}
                           </td>
                         </tr>
@@ -1144,18 +1144,18 @@ const Relatorios: React.FC = () => {
                               <span className="text-slate-600">{group.count}</span>
                             </td>
                             <td className="px-4 py-3 text-sm text-right">
-                              <span className="font-bold text-green-600">
+                              <span className="font-semibold text-green-600">
                                 +R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
                             </td>
                           </tr>
                         ))}
-                        <tr className="bg-green-100 border-b-2 border-slate-400">
-                          <td colSpan={2} className="px-4 py-3 font-bold text-green-800 text-right">
+                        <tr className="bg-slate-100 border-b-2 border-slate-400">
+                          <td colSpan={2} className="px-4 py-3 font-bold text-slate-900 text-right">
                             Total Receitas:
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <span className="font-bold text-green-700 text-lg">
+                            <span className="font-bold text-green-600 text-lg">
                               +R$ {annualCategoryData.totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </span>
                           </td>
@@ -1166,8 +1166,8 @@ const Relatorios: React.FC = () => {
                     {/* Seção de Despesas */}
                     {annualCategoryData.despesas.length > 0 && (
                       <>
-                        <tr className="bg-red-50 border-t-2 border-slate-400">
-                          <td colSpan={3} className="px-4 py-3 font-bold text-red-800 text-base">
+                        <tr className="bg-white border-t-2 border-slate-400">
+                          <td colSpan={3} className="px-4 py-3 font-bold text-slate-900 text-base">
                             DESPESAS - {yearFilter}
                           </td>
                         </tr>
@@ -1180,18 +1180,18 @@ const Relatorios: React.FC = () => {
                               <span className="text-slate-600">{group.count}</span>
                             </td>
                             <td className="px-4 py-3 text-sm text-right">
-                              <span className="font-bold text-red-600">
+                              <span className="font-semibold text-red-600">
                                 -R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
                             </td>
                           </tr>
                         ))}
-                        <tr className="bg-red-100 border-b-2 border-slate-400">
-                          <td colSpan={2} className="px-4 py-3 font-bold text-red-800 text-right">
+                        <tr className="bg-slate-100 border-b-2 border-slate-400">
+                          <td colSpan={2} className="px-4 py-3 font-bold text-slate-900 text-right">
                             Total Despesas:
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <span className="font-bold text-red-700 text-lg">
+                            <span className="font-bold text-red-600 text-lg">
                               -R$ {annualCategoryData.totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </span>
                           </td>
@@ -1200,12 +1200,12 @@ const Relatorios: React.FC = () => {
                     )}
 
                     {/* Saldo Final Anual */}
-                    <tr className="bg-slate-200 border-t-2 border-slate-500">
-                      <td colSpan={2} className="px-4 py-4 font-bold text-slate-800 text-right text-base">
+                    <tr className="bg-slate-100 border-t-2 border-slate-500">
+                      <td colSpan={2} className="px-4 py-4 font-bold text-slate-900 text-right text-base">
                         SALDO ANUAL ({yearFilter}):
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <span className={`font-bold text-xl ${(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        <span className={`font-bold text-xl ${(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           R$ {(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                       </td>
