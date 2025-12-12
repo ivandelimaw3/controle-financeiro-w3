@@ -25,6 +25,7 @@ const Relatorios: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
+  const [isAnnualView, setIsAnnualView] = useState(false);
   
   // Inicializar com mês atual
   const today = new Date();
@@ -47,6 +48,14 @@ const Relatorios: React.FC = () => {
   const handleShowAll = () => {
     setMonthFilter('todos');
     setYearFilter('todos');
+    setIsAnnualView(false);
+  };
+
+  const handleAnnualView = () => {
+    setIsAnnualView(!isAnnualView);
+    if (!isAnnualView) {
+      setMonthFilter('todos');
+    }
   };
 
   // Calcular saldo acumulado até um determinado mês/ano
@@ -511,11 +520,65 @@ const Relatorios: React.FC = () => {
     
     const matchesStatus = statusFilter === 'todos' || account.status === statusFilter;
     const matchesType = typeFilter === 'todos' || account.type === typeFilter;
-    const matchesMonth = monthFilter === 'todos' || accountMonth === parseInt(monthFilter, 10);
+    const matchesMonth = isAnnualView ? true : (monthFilter === 'todos' || accountMonth === parseInt(monthFilter, 10));
     const matchesYear = yearFilter === 'todos' || accountYear === parseInt(yearFilter, 10);
     
     return matchesSearch && matchesStatus && matchesType && matchesMonth && matchesYear;
   });
+
+  // Calcular dados anuais por categoria (para a view Anual)
+  const annualCategoryData = useMemo(() => {
+    if (!isAnnualView) return { receitas: [], despesas: [], totalReceitas: 0, totalDespesas: 0 };
+    
+    const yearNum = parseInt(yearFilter, 10);
+    
+    // Filtrar contas do ano selecionado
+    const yearAccounts = accounts.filter(acc => {
+      if (acc.description === "Saldo Anterior") return false;
+      const dateParts = acc.dueDate.split('-');
+      const accYear = parseInt(dateParts[0], 10);
+      return accYear === yearNum;
+    });
+
+    // Agrupar por categoria e tipo
+    const categoryGroups: Record<string, { 
+      category: string; 
+      type: 'receita' | 'despesa';
+      total: number;
+      count: number;
+    }> = {};
+
+    yearAccounts.forEach(acc => {
+      const key = `${acc.category}-${acc.type}`;
+      if (!categoryGroups[key]) {
+        categoryGroups[key] = {
+          category: acc.category,
+          type: acc.type as 'receita' | 'despesa',
+          total: 0,
+          count: 0
+        };
+      }
+      // Somar apenas contas pagas/recebidas
+      if ((acc.type === 'receita' && acc.status === 'recebido') || 
+          (acc.type === 'despesa' && acc.status === 'pago')) {
+        categoryGroups[key].total += Math.abs(acc.amount);
+      }
+      categoryGroups[key].count++;
+    });
+
+    const receitas = Object.values(categoryGroups)
+      .filter(g => g.type === 'receita')
+      .sort((a, b) => b.total - a.total);
+    
+    const despesas = Object.values(categoryGroups)
+      .filter(g => g.type === 'despesa')
+      .sort((a, b) => b.total - a.total);
+
+    const totalReceitas = receitas.reduce((sum, g) => sum + g.total, 0);
+    const totalDespesas = despesas.reduce((sum, g) => sum + g.total, 0);
+
+    return { receitas, despesas, totalReceitas, totalDespesas };
+  }, [isAnnualView, yearFilter, accounts]);
 
   // Calcular total filtrado baseado no tipo selecionado (apenas para contas pagas/recebidas)
   const getFilteredTotal = () => {
@@ -635,6 +698,14 @@ const Relatorios: React.FC = () => {
               <Download size={16} className="mr-1" />
               PDF
             </Button>
+            <Button
+              onClick={handleAnnualView}
+              variant={isAnnualView ? "default" : "outline"}
+              className={`flex-1 ${isAnnualView ? "bg-purple-600 hover:bg-purple-700" : ""}`}
+            >
+              <Calendar size={16} className="mr-1" />
+              Anual
+            </Button>
           </div>
 
           {/* Filtros */}
@@ -673,13 +744,35 @@ const Relatorios: React.FC = () => {
             </select>
           </div>
 
-          {/* Month/Year Stepper */}
-          <MonthYearStepperMobile
-            currentMonth={currentMonth}
-            currentYear={currentYear}
-            onMonthChange={handleMonthChange}
-            isShowingAll={isShowingAll}
-          />
+          {/* Month/Year Stepper ou Seletor Anual */}
+          {isAnnualView ? (
+            <div className="flex items-center justify-center gap-4 py-3 bg-purple-50 rounded-lg">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setYearFilter((parseInt(yearFilter) - 1).toString())}
+              >
+                <ArrowLeft size={14} />
+              </Button>
+              <span className="text-base font-bold text-purple-700">
+                Anual - {yearFilter}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setYearFilter((parseInt(yearFilter) + 1).toString())}
+              >
+                <ArrowLeft size={14} className="rotate-180" />
+              </Button>
+            </div>
+          ) : (
+            <MonthYearStepperMobile
+              currentMonth={currentMonth}
+              currentYear={currentYear}
+              onMonthChange={handleMonthChange}
+              isShowingAll={isShowingAll}
+            />
+          )}
 
           {/* Summary Cards */}
           <ReportsSummaryCardsMobile
@@ -701,8 +794,73 @@ const Relatorios: React.FC = () => {
             </div>
           )}
 
-          {/* Lista de Contas */}
-          <ReportsListMobile accounts={filteredAccounts} />
+          {/* Lista de Contas ou Relatório Anual */}
+          {isAnnualView ? (
+            <div className="border border-slate-300 rounded-lg overflow-hidden">
+              {/* Seção de Receitas */}
+              {annualCategoryData.receitas.length > 0 && (
+                <>
+                  <div className="bg-green-50 px-3 py-2 border-b border-slate-300">
+                    <span className="font-bold text-green-800 text-sm">RECEITAS - {yearFilter}</span>
+                  </div>
+                  {annualCategoryData.receitas.map((group, index) => (
+                    <div key={`receita-m-${group.category}-${index}`} className="flex justify-between items-center px-3 py-2 border-b border-slate-200 bg-white">
+                      <span className="text-sm text-slate-700">{group.category}</span>
+                      <span className="font-bold text-green-600 text-sm">
+                        +R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="bg-green-100 px-3 py-2 border-b border-slate-300 flex justify-between">
+                    <span className="font-bold text-green-800 text-sm">Total Receitas:</span>
+                    <span className="font-bold text-green-700 text-sm">
+                      +R$ {annualCategoryData.totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {/* Seção de Despesas */}
+              {annualCategoryData.despesas.length > 0 && (
+                <>
+                  <div className="bg-red-50 px-3 py-2 border-b border-slate-300">
+                    <span className="font-bold text-red-800 text-sm">DESPESAS - {yearFilter}</span>
+                  </div>
+                  {annualCategoryData.despesas.map((group, index) => (
+                    <div key={`despesa-m-${group.category}-${index}`} className="flex justify-between items-center px-3 py-2 border-b border-slate-200 bg-white">
+                      <span className="text-sm text-slate-700">{group.category}</span>
+                      <span className="font-bold text-red-600 text-sm">
+                        -R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="bg-red-100 px-3 py-2 border-b border-slate-300 flex justify-between">
+                    <span className="font-bold text-red-800 text-sm">Total Despesas:</span>
+                    <span className="font-bold text-red-700 text-sm">
+                      -R$ {annualCategoryData.totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {/* Saldo Final */}
+              <div className="bg-slate-200 px-3 py-3 flex justify-between">
+                <span className="font-bold text-slate-800 text-sm">SALDO ANUAL:</span>
+                <span className={`font-bold text-base ${(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                  R$ {(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+
+              {/* Mensagem vazia */}
+              {annualCategoryData.receitas.length === 0 && annualCategoryData.despesas.length === 0 && (
+                <div className="px-3 py-6 text-center text-slate-500 text-sm">
+                  Nenhuma conta encontrada para o ano {yearFilter}.
+                </div>
+              )}
+            </div>
+          ) : (
+            <ReportsListMobile accounts={filteredAccounts} />
+          )}
         </div>
       </Layout>
     );
@@ -727,6 +885,14 @@ const Relatorios: React.FC = () => {
           >
             <Download size={20} className="mr-2" />
             Exportar PDF
+          </Button>
+          <Button 
+            onClick={handleAnnualView}
+            variant={isAnnualView ? "default" : "outline"}
+            className={isAnnualView ? "bg-purple-600 hover:bg-purple-700" : ""}
+          >
+            <Calendar size={18} className="mr-2" />
+            Anual
           </Button>
         </div>
 
@@ -836,13 +1002,38 @@ const Relatorios: React.FC = () => {
             </div>
 
             {/* MonthNavigator substituindo os filtros de data */}
-            <MonthNavigator
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              onMonthChange={handleMonthChange}
-              onShowAll={handleShowAll}
-              isShowingAll={isShowingAll}
-            />
+            {!isAnnualView && (
+              <MonthNavigator
+                currentMonth={currentMonth}
+                currentYear={currentYear}
+                onMonthChange={handleMonthChange}
+                onShowAll={handleShowAll}
+                isShowingAll={isShowingAll}
+              />
+            )}
+
+            {/* Seletor de Ano para Vista Anual */}
+            {isAnnualView && (
+              <div className="flex items-center justify-center gap-4 py-4 mb-4 bg-purple-50 rounded-lg">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setYearFilter((parseInt(yearFilter) - 1).toString())}
+                >
+                  <ArrowLeft size={16} />
+                </Button>
+                <span className="text-lg font-bold text-purple-700">
+                  Relatório Anual - {yearFilter}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setYearFilter((parseInt(yearFilter) + 1).toString())}
+                >
+                  <ArrowLeft size={16} className="rotate-180" />
+                </Button>
+              </div>
+            )}
 
             {/* Campo de Total por Status */}
             {statusTotal !== null && (
@@ -896,141 +1087,252 @@ const Relatorios: React.FC = () => {
             )}
           </div>
 
-          <div className="overflow-x-auto">
-            <div className="border border-slate-300 rounded-lg">
-              {(() => {
-                // Agrupar contas por categoria e tipo
-                const groupedAccounts = filteredAccounts.reduce((acc, account) => {
-                  const key = `${account.category}-${account.type}`;
-                  if (!acc[key]) {
-                    acc[key] = {
-                      category: account.category,
-                      type: account.type,
-                      accounts: []
-                    };
-                  }
-                  acc[key].accounts.push(account);
-                  return acc;
-                }, {} as Record<string, { category: string; type: string; accounts: typeof filteredAccounts }>);
-
-                // Ordenar contas por data de vencimento crescente dentro de cada grupo
-                Object.values(groupedAccounts).forEach(group => {
-                  group.accounts.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-                });
-
-                // Ordenar grupos: primeiro receitas, depois despesas, e alfabeticamente por categoria
-                const sortedGroups = Object.values(groupedAccounts).sort((a, b) => {
-                  if (a.type !== b.type) {
-                    return a.type === 'receita' ? -1 : 1;
-                  }
-                  return a.category.localeCompare(b.category);
-                });
-
-                return (
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-slate-100 border-b border-slate-300">
-                        <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Descrição</th>
-                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Categoria</th>
-                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Tipo</th>
-                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Valor</th>
-                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Vencimento</th>
-                        <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Fonte Pagamento</th>
-                        <th className="text-left font-semibold text-slate-700 px-2 py-3 text-sm">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedGroups.length > 0 ? (
-                        sortedGroups.map((group, groupIndex) => {
-                          const groupTotal = group.accounts.reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
-                          
-                          return (
-                            <React.Fragment key={`${group.category}-${group.type}-${groupIndex}`}>
-                              {/* Linha de cabeçalho do grupo */}
-                              <tr className="bg-white border-t-2 border-slate-400 border-b-2 border-b-slate-400">
-                                <td colSpan={7} className="px-4 py-3">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-base text-slate-900">
-                                      {group.category}
-                                    </span>
-                                    <span className="text-slate-600">-</span>
-                                    <span className="font-semibold text-slate-700">
-                                      {group.type === 'receita' ? 'Receitas' : 'Despesas'}
-                                    </span>
-                                    <span className="text-xs font-medium text-slate-600 ml-2">
-                                      ({group.accounts.length} {group.accounts.length === 1 ? 'item' : 'itens'})
-                                    </span>
-                                  </div>
-                                </td>
-                              </tr>
-                              
-                              {/* Linhas de itens do grupo */}
-                              {group.accounts.map((account, index) => (
-                                <tr 
-                                  key={`${account.id}-${index}`} 
-                                  className="hover:bg-slate-50 border-b border-slate-200"
-                                >
-                                  <td className="px-4 py-2 border-r border-slate-200 text-sm">
-                                    <span className="text-slate-700">{account.description}</span>
-                                  </td>
-                                  <td className="px-2 py-2 border-r border-slate-200 text-sm">
-                                    <span className="text-slate-600">{account.category}</span>
-                                  </td>
-                                  <td className="px-2 py-2 border-r border-slate-200 text-sm">
-                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                      account.type === 'receita' 
-                                        ? 'bg-green-100 text-green-800' 
-                                        : 'bg-red-100 text-red-800'
-                                    }`}>
-                                      {account.type === 'receita' ? 'Receita' : 'Despesa'}
-                                    </span>
-                                  </td>
-                                  <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
-                                    <span className={`font-semibold ${
-                                      account.type === 'receita' ? 'text-green-600' : 'text-red-600'
-                                    }`}>
-                                      {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
-                                    </span>
-                                  </td>
-                                  <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
-                                    <span className="text-slate-600">{formatDate(account.dueDate)}</span>
-                                  </td>
-                                  <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
-                                    <span className="text-slate-600">{account.payment_source_name || '-'}</span>
-                                  </td>
-                                  <td className="px-2 py-2 text-sm text-left">
-                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(account.status)}`}>
-                                      {getStatusLabel(account.status)}
-                                    </span>
-                                  </td>
-                                </tr>
-                              ))}
-                              
-                              {/* Linha de total do grupo */}
-                              <tr className="bg-slate-100 border-b-2 border-slate-400">
-                                <td colSpan={7} className="px-4 py-3 text-left font-bold text-slate-900">
-                                  Total {group.category}: <span className={group.type === 'receita' ? 'text-green-600' : 'text-red-600'}>{group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}</span>
-                                </td>
-                              </tr>
-                            </React.Fragment>
-                          );
-                        })
-                      ) : (
-                        <tr>
-                          <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
-                            {searchTerm ? 
-                              `Nenhuma conta encontrada para "${searchTerm}".` : 
-                              'Nenhuma conta encontrada com os filtros aplicados.'
-                            }
+          {/* Tabela de Relatório Anual por Categoria */}
+          {isAnnualView ? (
+            <div className="overflow-x-auto">
+              <div className="border border-slate-300 rounded-lg">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-purple-100 border-b border-slate-300">
+                      <th className="text-left font-semibold text-purple-800 px-4 py-3 border-r border-slate-300 text-sm">Categoria</th>
+                      <th className="text-left font-semibold text-purple-800 px-4 py-3 border-r border-slate-300 text-sm">Qtd. Contas</th>
+                      <th className="text-right font-semibold text-purple-800 px-4 py-3 text-sm">Total Anual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Seção de Receitas */}
+                    {annualCategoryData.receitas.length > 0 && (
+                      <>
+                        <tr className="bg-green-50 border-t-2 border-slate-400">
+                          <td colSpan={3} className="px-4 py-3 font-bold text-green-800 text-base">
+                            RECEITAS - {yearFilter}
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                );
-              })()}
+                        {annualCategoryData.receitas.map((group, index) => (
+                          <tr key={`receita-${group.category}-${index}`} className="hover:bg-slate-50 border-b border-slate-200">
+                            <td className="px-4 py-3 border-r border-slate-200 text-sm">
+                              <span className="text-slate-700 font-medium">{group.category}</span>
+                            </td>
+                            <td className="px-4 py-3 border-r border-slate-200 text-sm text-left">
+                              <span className="text-slate-600">{group.count}</span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right">
+                              <span className="font-bold text-green-600">
+                                +R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr className="bg-green-100 border-b-2 border-slate-400">
+                          <td colSpan={2} className="px-4 py-3 font-bold text-green-800 text-right">
+                            Total Receitas:
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="font-bold text-green-700 text-lg">
+                              +R$ {annualCategoryData.totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                          </td>
+                        </tr>
+                      </>
+                    )}
+
+                    {/* Seção de Despesas */}
+                    {annualCategoryData.despesas.length > 0 && (
+                      <>
+                        <tr className="bg-red-50 border-t-2 border-slate-400">
+                          <td colSpan={3} className="px-4 py-3 font-bold text-red-800 text-base">
+                            DESPESAS - {yearFilter}
+                          </td>
+                        </tr>
+                        {annualCategoryData.despesas.map((group, index) => (
+                          <tr key={`despesa-${group.category}-${index}`} className="hover:bg-slate-50 border-b border-slate-200">
+                            <td className="px-4 py-3 border-r border-slate-200 text-sm">
+                              <span className="text-slate-700 font-medium">{group.category}</span>
+                            </td>
+                            <td className="px-4 py-3 border-r border-slate-200 text-sm text-left">
+                              <span className="text-slate-600">{group.count}</span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right">
+                              <span className="font-bold text-red-600">
+                                -R$ {group.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr className="bg-red-100 border-b-2 border-slate-400">
+                          <td colSpan={2} className="px-4 py-3 font-bold text-red-800 text-right">
+                            Total Despesas:
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="font-bold text-red-700 text-lg">
+                              -R$ {annualCategoryData.totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                          </td>
+                        </tr>
+                      </>
+                    )}
+
+                    {/* Saldo Final Anual */}
+                    <tr className="bg-slate-200 border-t-2 border-slate-500">
+                      <td colSpan={2} className="px-4 py-4 font-bold text-slate-800 text-right text-base">
+                        SALDO ANUAL ({yearFilter}):
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span className={`font-bold text-xl ${(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                          R$ {(annualCategoryData.totalReceitas - annualCategoryData.totalDespesas).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Mensagem de dados vazios */}
+                    {annualCategoryData.receitas.length === 0 && annualCategoryData.despesas.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="px-4 py-8 text-center text-slate-500">
+                          Nenhuma conta encontrada para o ano {yearFilter}.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <div className="border border-slate-300 rounded-lg">
+                {(() => {
+                  // Agrupar contas por categoria e tipo
+                  const groupedAccounts = filteredAccounts.reduce((acc, account) => {
+                    const key = `${account.category}-${account.type}`;
+                    if (!acc[key]) {
+                      acc[key] = {
+                        category: account.category,
+                        type: account.type,
+                        accounts: []
+                      };
+                    }
+                    acc[key].accounts.push(account);
+                    return acc;
+                  }, {} as Record<string, { category: string; type: string; accounts: typeof filteredAccounts }>);
+
+                  // Ordenar contas por data de vencimento crescente dentro de cada grupo
+                  Object.values(groupedAccounts).forEach(group => {
+                    group.accounts.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+                  });
+
+                  // Ordenar grupos: primeiro receitas, depois despesas, e alfabeticamente por categoria
+                  const sortedGroups = Object.values(groupedAccounts).sort((a, b) => {
+                    if (a.type !== b.type) {
+                      return a.type === 'receita' ? -1 : 1;
+                    }
+                    return a.category.localeCompare(b.category);
+                  });
+
+                  return (
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 border-b border-slate-300">
+                          <th className="text-left font-semibold text-slate-700 px-4 py-3 border-r border-slate-300 text-sm">Descrição</th>
+                          <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Categoria</th>
+                          <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Tipo</th>
+                          <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Valor</th>
+                          <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Vencimento</th>
+                          <th className="text-left font-semibold text-slate-700 px-2 py-3 border-r border-slate-300 text-sm">Fonte Pagamento</th>
+                          <th className="text-left font-semibold text-slate-700 px-2 py-3 text-sm">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedGroups.length > 0 ? (
+                          sortedGroups.map((group, groupIndex) => {
+                            const groupTotal = group.accounts.reduce((sum, acc) => sum + Math.abs(acc.amount), 0);
+                            
+                            return (
+                              <React.Fragment key={`${group.category}-${group.type}-${groupIndex}`}>
+                                {/* Linha de cabeçalho do grupo */}
+                                <tr className="bg-white border-t-2 border-slate-400 border-b-2 border-b-slate-400">
+                                  <td colSpan={7} className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-base text-slate-900">
+                                        {group.category}
+                                      </span>
+                                      <span className="text-slate-600">-</span>
+                                      <span className="font-semibold text-slate-700">
+                                        {group.type === 'receita' ? 'Receitas' : 'Despesas'}
+                                      </span>
+                                      <span className="text-xs font-medium text-slate-600 ml-2">
+                                        ({group.accounts.length} {group.accounts.length === 1 ? 'item' : 'itens'})
+                                      </span>
+                                    </div>
+                                  </td>
+                                </tr>
+                                
+                                {/* Linhas de itens do grupo */}
+                                {group.accounts.map((account, index) => (
+                                  <tr 
+                                    key={`${account.id}-${index}`} 
+                                    className="hover:bg-slate-50 border-b border-slate-200"
+                                  >
+                                    <td className="px-4 py-2 border-r border-slate-200 text-sm">
+                                      <span className="text-slate-700">{account.description}</span>
+                                    </td>
+                                    <td className="px-2 py-2 border-r border-slate-200 text-sm">
+                                      <span className="text-slate-600">{account.category}</span>
+                                    </td>
+                                    <td className="px-2 py-2 border-r border-slate-200 text-sm">
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                        account.type === 'receita' 
+                                          ? 'bg-green-100 text-green-800' 
+                                          : 'bg-red-100 text-red-800'
+                                      }`}>
+                                        {account.type === 'receita' ? 'Receita' : 'Despesa'}
+                                      </span>
+                                    </td>
+                                    <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
+                                      <span className={`font-semibold ${
+                                        account.type === 'receita' ? 'text-green-600' : 'text-red-600'
+                                      }`}>
+                                        {account.type === 'receita' ? '+' : '-'}R$ {Math.abs(account.amount).toFixed(2)}
+                                      </span>
+                                    </td>
+                                    <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
+                                      <span className="text-slate-600">{formatDate(account.dueDate)}</span>
+                                    </td>
+                                    <td className="px-2 py-2 border-r border-slate-200 text-sm text-left">
+                                      <span className="text-slate-600">{account.payment_source_name || '-'}</span>
+                                    </td>
+                                    <td className="px-2 py-2 text-sm text-left">
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(account.status)}`}>
+                                        {getStatusLabel(account.status)}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                                
+                                {/* Linha de total do grupo */}
+                                <tr className="bg-slate-100 border-b-2 border-slate-400">
+                                  <td colSpan={7} className="px-4 py-3 text-left font-bold text-slate-900">
+                                    Total {group.category}: <span className={group.type === 'receita' ? 'text-green-600' : 'text-red-600'}>{group.type === 'receita' ? '+' : '-'}R$ {groupTotal.toFixed(2)}</span>
+                                  </td>
+                                </tr>
+                              </React.Fragment>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                              {searchTerm ? 
+                                `Nenhuma conta encontrada para "${searchTerm}".` : 
+                                'Nenhuma conta encontrada com os filtros aplicados.'
+                              }
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
