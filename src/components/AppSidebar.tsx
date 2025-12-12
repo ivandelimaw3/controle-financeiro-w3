@@ -9,7 +9,8 @@ import {
   TrendingUp, 
   PieChart,
   Settings,
-  Archive
+  Archive,
+  Smartphone
 } from 'lucide-react';
 import {
   Sidebar,
@@ -102,6 +103,14 @@ const menuItems = [
     color: 'text-gray-600',
     bgColor: 'bg-gray-50',
     hoverBg: 'hover:bg-gray-100'
+  },
+  { 
+    icon: Smartphone, 
+    label: 'Baixar App', 
+    path: '/install', 
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50',
+    hoverBg: 'hover:bg-emerald-100'
   },
 ];
 

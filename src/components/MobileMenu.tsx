@@ -10,7 +10,8 @@ import {
   PieChart,
   Settings,
   Archive,
-  LayoutDashboard
+  LayoutDashboard,
+  Smartphone
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,13 @@ const menuItems = [
     path: '/admin', 
     color: 'text-gray-600',
     bgColor: 'bg-gray-50',
+  },
+  { 
+    icon: Smartphone, 
+    label: 'Baixar App', 
+    path: '/install', 
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50',
   },
 ];
 

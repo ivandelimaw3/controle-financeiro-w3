@@ -23,6 +23,7 @@ import Auth from "./pages/Auth";
 import Analise from "./pages/Analise";
 import NotFound from "./pages/NotFound";
 import CartoesCredito from "./pages/CartoesCredito";
+import Install from "./pages/Install";
 import ChangePassword from "./pages/ChangePassword";
 
 const queryClient = new QueryClient({
@@ -127,6 +128,11 @@ const App = () => {
                   <Route path="/admin/relatorio" element={
                     <ProtectedRoute>
                       <AdminReport />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/install" element={
+                    <ProtectedRoute>
+                      <Install />
                     </ProtectedRoute>
                   } />
                   <Route path="*" element={<NotFound />} />
