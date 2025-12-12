@@ -382,7 +382,7 @@ const Analise: React.FC = () => {
         {/* Gráfico de Pizza */}
         <Card>
           <CardHeader className={isMobile ? "pb-3 space-y-2" : ""}>
-            <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="space-y-2">
               <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
                 {selectedMonths.length === 12 
                   ? `Distribuição por Categoria - ${selectedYear}` 
