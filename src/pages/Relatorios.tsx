@@ -698,14 +698,6 @@ const Relatorios: React.FC = () => {
               <Download size={16} className="mr-1" />
               PDF
             </Button>
-            <Button
-              onClick={handleAnnualView}
-              variant={isAnnualView ? "default" : "outline"}
-              className={`flex-1 ${isAnnualView ? "bg-purple-600 hover:bg-purple-700" : ""}`}
-            >
-              <Calendar size={16} className="mr-1" />
-              Anual
-            </Button>
           </div>
 
           {/* Filtros */}
@@ -742,6 +734,49 @@ const Relatorios: React.FC = () => {
               <option value="pago">Pago</option>
               <option value="recebido">Recebido</option>
             </select>
+          </div>
+
+          {/* Botões Hoje, Anual, Todos */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsAnnualView(false);
+                const today = new Date();
+                setMonthFilter((today.getMonth() + 1).toString());
+                setYearFilter(today.getFullYear().toString());
+              }}
+              className="flex-1 flex items-center justify-center gap-1 h-9 rounded-full hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+            >
+              <Calendar size={14} />
+              Hoje
+            </Button>
+            <Button
+              variant={isAnnualView ? "default" : "outline"}
+              size="sm"
+              onClick={handleAnnualView}
+              className={`flex-1 flex items-center justify-center gap-1 h-9 rounded-full transition-colors ${
+                isAnnualView 
+                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                  : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
+              }`}
+            >
+              <Calendar size={14} />
+              Anual
+            </Button>
+            <Button
+              variant={isShowingAll && !isAnnualView ? "default" : "outline"}
+              size="sm"
+              onClick={handleShowAll}
+              className={`flex-1 flex items-center justify-center gap-1 h-9 rounded-full transition-colors ${
+                isShowingAll && !isAnnualView
+                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                  : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
+              }`}
+            >
+              Todos
+            </Button>
           </div>
 
           {/* Month/Year Stepper ou Seletor Anual */}
@@ -886,14 +921,6 @@ const Relatorios: React.FC = () => {
             <Download size={20} className="mr-2" />
             Exportar PDF
           </Button>
-          <Button 
-            onClick={handleAnnualView}
-            variant={isAnnualView ? "default" : "outline"}
-            className={isAnnualView ? "bg-purple-600 hover:bg-purple-700" : ""}
-          >
-            <Calendar size={18} className="mr-2" />
-            Anual
-          </Button>
         </div>
 
         {/* Alerta de Despesas Vencendo */}
@@ -1001,16 +1028,16 @@ const Relatorios: React.FC = () => {
               </Select>
             </div>
 
-            {/* MonthNavigator substituindo os filtros de data */}
-            {!isAnnualView && (
-              <MonthNavigator
-                currentMonth={currentMonth}
-                currentYear={currentYear}
-                onMonthChange={handleMonthChange}
-                onShowAll={handleShowAll}
-                isShowingAll={isShowingAll}
-              />
-            )}
+            {/* MonthNavigator com botão Anual integrado */}
+            <MonthNavigator
+              currentMonth={currentMonth}
+              currentYear={currentYear}
+              onMonthChange={handleMonthChange}
+              onShowAll={handleShowAll}
+              isShowingAll={isShowingAll}
+              onAnnualView={handleAnnualView}
+              isAnnualView={isAnnualView}
+            />
 
             {/* Seletor de Ano para Vista Anual */}
             {isAnnualView && (
