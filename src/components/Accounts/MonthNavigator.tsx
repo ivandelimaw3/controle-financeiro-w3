@@ -10,6 +10,8 @@ interface MonthNavigatorProps {
   isShowingAll: boolean; // Nova prop para indicar se está mostrando todos
   onShowReport?: () => void; // Nova prop para mostrar relatório
   isShowingReport?: boolean; // Nova prop para indicar se está mostrando relatório
+  onAnnualView?: () => void; // Prop para vista anual
+  isAnnualView?: boolean; // Indica se está em vista anual
 }
 
 export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
@@ -19,7 +21,9 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
   onShowAll,
   isShowingAll,
   onShowReport,
-  isShowingReport
+  isShowingReport,
+  onAnnualView,
+  isAnnualView
 }) => {
   const today = new Date();
   const todayMonth = today.getMonth();
@@ -99,11 +103,27 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           size="sm"
           onClick={goToToday}
           className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-green-50 hover:border-green-300 hover:text-green-700"
-          disabled={currentMonth === todayMonth && currentYear === todayYear && !isShowingAll && !isShowingReport}
+          disabled={currentMonth === todayMonth && currentYear === todayYear && !isShowingAll && !isShowingReport && !isAnnualView}
         >
           <Calendar size={14} />
           <span className="hidden sm:inline">Hoje</span>
         </Button>
+
+        {onAnnualView && (
+          <Button
+            variant={isAnnualView ? "default" : "outline"}
+            size="sm"
+            onClick={onAnnualView}
+            className={`flex items-center gap-2 h-9 px-3 rounded-full transition-colors ${
+              isAnnualView 
+                ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
+            }`}
+          >
+            <Calendar size={14} />
+            <span className="hidden sm:inline">Anual</span>
+          </Button>
+        )}
 
         <Button
           variant={isShowingAll ? "default" : "outline"}
