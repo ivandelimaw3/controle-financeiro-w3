@@ -24,9 +24,10 @@ const Analise: React.FC = () => {
   const { categories } = useCategoriesData();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const currentMonth = new Date().getMonth();
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonths, setSelectedMonths] = useState<number[]>([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  const [selectedMonths, setSelectedMonths] = useState<number[]>([currentMonth]);
   const [typeFilter, setTypeFilter] = useState<'todos' | 'receita' | 'despesa'>('todos');
 
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
