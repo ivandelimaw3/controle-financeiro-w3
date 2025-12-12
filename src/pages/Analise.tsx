@@ -27,6 +27,7 @@ const Analise: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonths, setSelectedMonths] = useState<number[]>([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  const [typeFilter, setTypeFilter] = useState<'todos' | 'receita' | 'despesa'>('todos');
 
   const handleMonthChange = (startDate: Date, endDate: Date, month: number, year: number) => {
     setSelectedMonth(month);
@@ -96,7 +97,9 @@ const Analise: React.FC = () => {
       const date = parseISO(account.dueDate);
       const accountMonth = getMonth(date);
       const accountYear = getYear(date);
-      return selectedMonths.includes(accountMonth) && accountYear === selectedYear;
+      const matchesDate = selectedMonths.includes(accountMonth) && accountYear === selectedYear;
+      const matchesType = typeFilter === 'todos' || account.type === typeFilter;
+      return matchesDate && matchesType;
     });
     
     const categoryTotals: { [key: string]: { value: number; type: string } } = {};
@@ -131,7 +134,7 @@ const Analise: React.FC = () => {
       });
 
     return result;
-  }, [accounts, selectedYear, selectedMonths]);
+  }, [accounts, selectedYear, selectedMonths, typeFilter]);
 
   // Dados para despesas por categoria - filtrar por mês/ano selecionado
   const despesasPorCategoria = useMemo(() => {
@@ -379,7 +382,7 @@ const Analise: React.FC = () => {
         {/* Gráfico de Pizza */}
         <Card>
           <CardHeader className={isMobile ? "pb-3 space-y-2" : ""}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <CardTitle className={isMobile ? "text-base" : "text-lg md:text-xl"}>
                 {selectedMonths.length === 12 
                   ? `Distribuição por Categoria - ${selectedYear}` 
@@ -387,6 +390,33 @@ const Analise: React.FC = () => {
                     ? `Distribuição por Categoria - ${months[selectedMonths[0]].label}/${selectedYear}`
                     : `Distribuição por Categoria - ${selectedMonths.length} meses/${selectedYear}`}
               </CardTitle>
+              {/* Filtro de Tipo */}
+              <div className="flex gap-1">
+                <Button
+                  variant={typeFilter === 'todos' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTypeFilter('todos')}
+                  className="text-xs h-7 px-2"
+                >
+                  Todos
+                </Button>
+                <Button
+                  variant={typeFilter === 'receita' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTypeFilter('receita')}
+                  className="text-xs h-7 px-2"
+                >
+                  Receitas
+                </Button>
+                <Button
+                  variant={typeFilter === 'despesa' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTypeFilter('despesa')}
+                  className="text-xs h-7 px-2"
+                >
+                  Despesas
+                </Button>
+              </div>
             </div>
             {isMobile && (
               <Popover>
