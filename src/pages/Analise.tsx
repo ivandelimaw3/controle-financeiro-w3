@@ -137,13 +137,13 @@ const Analise: React.FC = () => {
     return result;
   }, [accounts, selectedYear, selectedMonths, typeFilter]);
 
-  // Dados para despesas por categoria - filtrar por mês/ano selecionado
+  // Dados para despesas por categoria - filtrar por meses selecionados
   const despesasPorCategoria = useMemo(() => {
     const filteredAccounts = accounts.filter(account => {
       const date = parseISO(account.dueDate);
       const accountMonth = getMonth(date);
       const accountYear = getYear(date);
-      return account.type === 'despesa' && accountMonth === selectedMonth && accountYear === selectedYear;
+      return account.type === 'despesa' && selectedMonths.includes(accountMonth) && accountYear === selectedYear;
     });
     
     const categoryTotals: { [key: string]: number } = {};
@@ -169,15 +169,15 @@ const Analise: React.FC = () => {
     });
     
     return result;
-  }, [accounts, selectedMonth, selectedYear]);
+  }, [accounts, selectedMonths, selectedYear]);
 
-  // Dados para receitas por categoria - filtrar por mês/ano selecionado
+  // Dados para receitas por categoria - filtrar por meses selecionados
   const receitasPorCategoria = useMemo(() => {
     const filteredAccounts = accounts.filter(account => {
       const date = parseISO(account.dueDate);
       const accountMonth = getMonth(date);
       const accountYear = getYear(date);
-      return account.type === 'receita' && accountMonth === selectedMonth && accountYear === selectedYear;
+      return account.type === 'receita' && selectedMonths.includes(accountMonth) && accountYear === selectedYear;
     });
     
     const categoryTotals: { [key: string]: number } = {};
@@ -203,7 +203,7 @@ const Analise: React.FC = () => {
     });
     
     return result;
-  }, [accounts, selectedMonth, selectedYear]);
+  }, [accounts, selectedMonths, selectedYear]);
 
   // Calcular totais - baseado nos meses selecionados
   const totals = useMemo(() => {
@@ -546,7 +546,11 @@ const Analise: React.FC = () => {
               {despesasPorCategoria.length > 0 ? (
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-slate-700 mb-2">
-                    {months[selectedMonth].label} de {selectedYear}
+                    {selectedMonths.length === 12 
+                      ? `Ano ${selectedYear}` 
+                      : selectedMonths.length === 1 
+                        ? `${months[selectedMonths[0]].label} de ${selectedYear}`
+                        : `${selectedMonths.length} meses de ${selectedYear}`}
                   </div>
                   {despesasPorCategoria.map((category, index) => (
                     <div key={index} className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5">
@@ -564,7 +568,7 @@ const Analise: React.FC = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
                   <p className="text-sm font-medium mb-1">Nenhuma despesa encontrada</p>
-                  <p className="text-xs text-center">Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.</p>
+                  <p className="text-xs text-center">Não há despesas para o período selecionado.</p>
                 </div>
               )}
             </CardContent>
@@ -580,7 +584,11 @@ const Analise: React.FC = () => {
                 {receitasPorCategoria.length > 0 ? (
                   <div className="space-y-2">
                     <div className="text-xs font-medium text-slate-700 mb-4">
-                      {months[selectedMonth].label} de {selectedYear}
+                      {selectedMonths.length === 12 
+                        ? `Ano ${selectedYear}` 
+                        : selectedMonths.length === 1 
+                          ? `${months[selectedMonths[0]].label} de ${selectedYear}`
+                          : `${selectedMonths.length} meses de ${selectedYear}`}
                     </div>
                     {receitasPorCategoria.map((category, index) => (
                       <div key={index} className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5">
@@ -598,7 +606,7 @@ const Analise: React.FC = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
                     <p className="text-sm font-medium mb-1">Nenhuma receita encontrada</p>
-                    <p className="text-xs text-center">Não há receitas cadastradas para {months[selectedMonth].label} de {selectedYear}.</p>
+                    <p className="text-xs text-center">Não há receitas para o período selecionado.</p>
                   </div>
                 )}
               </CardContent>
@@ -613,7 +621,11 @@ const Analise: React.FC = () => {
                 {despesasPorCategoria.length > 0 ? (
                   <div className="space-y-2">
                     <div className="text-xs font-medium text-slate-700 mb-4">
-                      {months[selectedMonth].label} de {selectedYear}
+                      {selectedMonths.length === 12 
+                        ? `Ano ${selectedYear}` 
+                        : selectedMonths.length === 1 
+                          ? `${months[selectedMonths[0]].label} de ${selectedYear}`
+                          : `${selectedMonths.length} meses de ${selectedYear}`}
                     </div>
                     {despesasPorCategoria.map((category, index) => (
                       <div key={index} className="bg-card border rounded-lg p-2.5 flex items-center gap-2.5">
@@ -631,7 +643,7 @@ const Analise: React.FC = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center h-[150px] text-slate-500">
                     <p className="text-sm font-medium mb-1">Nenhuma despesa encontrada</p>
-                    <p className="text-xs text-center">Não há despesas cadastradas para {months[selectedMonth].label} de {selectedYear}.</p>
+                    <p className="text-xs text-center">Não há despesas para o período selecionado.</p>
                   </div>
                 )}
               </CardContent>
