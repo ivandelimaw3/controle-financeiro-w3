@@ -33,14 +33,18 @@ const Analise: React.FC = () => {
     setSelectedYear(year);
   };
 
-  // Cores diversificadas para o gráfico de pizza - expandida para mais categorias
-  const COLORS = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', 
-    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-    '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
-    '#AED6F1', '#A9DFBF', '#F9E79F', '#F5B7B1', '#D2B4DE',
-    '#A3E4D7', '#F4D03F', '#EC7063', '#AF7AC5', '#5DADE2',
-    '#58D68D', '#F7DC6F', '#F1948A', '#BB8FCE', '#76D7C4'
+  // Cores para RECEITAS (azuis, verdes, roxos - sem vermelho/laranja/amarelo)
+  const RECEITA_COLORS = [
+    '#3B82F6', '#22C55E', '#8B5CF6', '#06B6D4', '#10B981',
+    '#6366F1', '#14B8A6', '#0EA5E9', '#84CC16', '#A855F7',
+    '#2DD4BF', '#4ADE80', '#818CF8', '#38BDF8', '#34D399'
+  ];
+
+  // Cores para DESPESAS (vermelhos, laranjas, amarelos, rosas)
+  const DESPESA_COLORS = [
+    '#EF4444', '#F97316', '#F59E0B', '#EC4899', '#FB7185',
+    '#DC2626', '#EA580C', '#D97706', '#DB2777', '#F43F5E',
+    '#B91C1C', '#C2410C', '#B45309', '#BE185D', '#E11D48'
   ];
 
   // Gerar opções de meses e anos
@@ -106,16 +110,23 @@ const Analise: React.FC = () => {
       categoryTotals[key].value += Math.abs(account.amount);
     });
 
+    let receitaIndex = 0;
+    let despesaIndex = 0;
+    
     const result = Object.entries(categoryTotals)
       .filter(([_, data]) => data.value > 0)
       .sort(([, a], [, b]) => b.value - a.value)
-      .map(([key, data], index) => {
+      .map(([key, data]) => {
         const categoryName = key.replace('-receita', '').replace('-despesa', '');
+        const isReceita = data.type === 'receita';
+        const color = isReceita 
+          ? RECEITA_COLORS[receitaIndex++ % RECEITA_COLORS.length]
+          : DESPESA_COLORS[despesaIndex++ % DESPESA_COLORS.length];
         return {
           name: categoryName,
           value: data.value,
           type: data.type,
-          color: COLORS[index % COLORS.length],
+          color,
         };
       });
 
@@ -144,7 +155,7 @@ const Analise: React.FC = () => {
       .map(([name, value], index) => ({
         name,
         value,
-        color: COLORS[index % COLORS.length],
+        color: DESPESA_COLORS[index % DESPESA_COLORS.length],
         percentage: 0
       }));
 
@@ -178,7 +189,7 @@ const Analise: React.FC = () => {
       .map(([name, value], index) => ({
         name,
         value,
-        color: COLORS[index % COLORS.length],
+        color: RECEITA_COLORS[index % RECEITA_COLORS.length],
         percentage: 0
       }));
 
@@ -442,16 +453,17 @@ const Analise: React.FC = () => {
           </CardHeader>
           <CardContent className={isMobile ? "px-2 pb-3" : "px-4"}>
             {pieChartData.length > 0 ? (
-              <ChartContainer config={chartConfig} className={isMobile ? "min-h-[280px]" : "min-h-[350px]"}>
-                <ResponsiveContainer width="100%" height={isMobile ? 280 : 350}>
+              <ChartContainer config={chartConfig} className={isMobile ? "min-h-[400px]" : "min-h-[550px]"}>
+                <ResponsiveContainer width="100%" height={isMobile ? 400 : 550}>
                   <PieChart>
                     <Pie
                       data={pieChartData}
                       cx="50%"
-                      cy="50%"
+                      cy="45%"
                       labelLine={!isMobile}
                       label={isMobile ? false : ({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={isMobile ? 90 : 120}
+                      outerRadius={isMobile ? 130 : 200}
+                      innerRadius={isMobile ? 40 : 60}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -460,12 +472,21 @@ const Analise: React.FC = () => {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']}
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #e2e8f0', 
-                        borderRadius: '8px',
-                        fontSize: isMobile ? '12px' : '14px'
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          const tipoLabel = data.type === 'receita' ? 'Receita' : 'Despesa';
+                          return (
+                            <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3">
+                              <p className="font-semibold text-slate-800 text-sm mb-1">{data.name}</p>
+                              <p className="text-xs text-slate-600 mb-1">Tipo: {tipoLabel}</p>
+                              <p className={`font-bold ${data.type === 'receita' ? 'text-blue-600' : 'text-red-600'}`}>
+                                R$ {data.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
                       }}
                     />
                     <Legend 
