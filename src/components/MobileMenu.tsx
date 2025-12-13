@@ -11,11 +11,13 @@ import {
   Settings,
   Archive,
   LayoutDashboard,
-  Smartphone
+  Smartphone,
+  Bell
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { APP_VERSION } from '@/utils/version';
+import { PushNotificationToggle } from '@/components/PushNotificationToggle';
 
 const menuItems = [
   { 
@@ -129,7 +131,12 @@ export function MobileMenu({ onViewDashboard }: MobileMenuProps) {
         })}
       </div>
 
-      <div className="mt-6 text-center">
+      {/* Toggle de notificações push */}
+      <div className="mt-4">
+        <PushNotificationToggle compact />
+      </div>
+
+      <div className="mt-4 text-center">
         <span className="text-xs text-muted-foreground">
           Versão {APP_VERSION}
         </span>
