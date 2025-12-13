@@ -99,7 +99,47 @@ const CardAccounts = () => {
     parcela: null
   }));
 
-  useAccountsReminder(cardAccountsForReminder, { type: 'cards' });
+  useAccountsReminder(cardAccountsForReminder);
+
+  // Toast de aviso quando faltar 1 dia para vencer
+  useEffect(() => {
+    if (cardAccounts.length === 0) return;
+
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const pendingAccounts = cardAccounts.filter(account => account.status === 'pendente');
+    
+    if (pendingAccounts.length === 0) return;
+
+    // Encontrar contas que vencem em 1 dia
+    const accountsDueIn1Day = pendingAccounts.filter(account => {
+      const [todayYear, todayMonth, todayDay] = todayStr.split('-').map(Number);
+      const [dueYear, dueMonth, dueDay] = account.due_date.split('-').map(Number);
+      
+      const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
+      const dueDate = new Date(dueYear, dueMonth - 1, dueDay);
+      
+      const diffTime = dueDate.getTime() - todayDate.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays === 1;
+    });
+
+    console.log('CardAccounts toast debug', {
+      todayStr,
+      pendingCount: pendingAccounts.length,
+      dueIn1DayCount: accountsDueIn1Day.length,
+    });
+
+    if (accountsDueIn1Day.length > 0) {
+      toast({
+        title: "⚠️ Aviso de Vencimento",
+        description: "Há contas de cartões a vencer. Verifique!",
+        duration: 2000,
+      });
+    }
+  }, [cardAccounts, toast]);
 
   // Filtros
   const filteredCardAccounts = cardAccounts.filter(account => {
