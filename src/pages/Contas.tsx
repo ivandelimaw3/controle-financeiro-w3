@@ -21,44 +21,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 
 const Contas: React.FC = () => {
   const { accounts, loading, refreshAccounts } = useAccounts() as any;
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  useAccountsReminder(accounts);
-
-  // Toast para contas vencendo em 1 dia
-  React.useEffect(() => {
-    if (!accounts || accounts.length === 0) return;
-
-    const today = new Date().toISOString().split('T')[0];
-    
-    const pendingAccounts = accounts.filter((account: any) => 
-      account.status === 'pendente' && account.dueDate
-    );
-
-    const accountsDueIn1Day = pendingAccounts.filter((account: any) => {
-      const todayTime = new Date(today).getTime();
-      const dueTime = new Date(account.dueDate).getTime();
-      const diffTime = dueTime - todayTime;
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-      
-      return diffDays === 1;
-    });
-
-    if (accountsDueIn1Day.length > 0) {
-      toast({
-        title: "⚠️ Aviso de Vencimento",
-        description: "Há contas a vencer. Verifique!",
-        duration: 2000,
-      });
-    }
-  }, [accounts, toast]);
+  useAccountsReminder(accounts, { type: 'accounts' });
 
   const {
     searchTerm,
