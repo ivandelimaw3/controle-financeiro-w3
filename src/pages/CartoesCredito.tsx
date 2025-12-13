@@ -199,8 +199,7 @@ const CartoesCredito = () => {
           )}
           
           {!isMobile && (
-            <div className="flex items-center justify-between">
-              <div></div>
+            <div className="flex items-center justify-start">
               <Button
                 onClick={() => setShowCardForm(true)}
                 className="bg-blue-600 hover:bg-blue-700"
