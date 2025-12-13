@@ -190,8 +190,7 @@ const Bancos = () => {
           )}
           
           {!isMobile && (
-            <div className="flex items-center justify-between">
-              <div></div>
+            <div className="flex items-center justify-start">
               <Button
                 onClick={() => setShowBankForm(true)}
                 className="bg-blue-600 hover:bg-blue-700"
