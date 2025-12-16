@@ -70,11 +70,33 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const formatCardNumber = (value: string) => {
-    // Remove tudo que não é número e limita a 16 dígitos
-    const numbers = value.replace(/\D/g, '').slice(0, 16);
-    // Formata com espaços a cada 4 dígitos
-    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ');
+  // Extrai apenas os últimos 4 dígitos para exibição no campo
+  const getLastFourDigits = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    // Se tiver mais de 4 dígitos, pega os últimos 4
+    if (numbers.length > 4) {
+      return numbers.slice(-4);
+    }
+    return numbers;
+  };
+
+  // Formata o número completo para armazenamento (12 asteriscos + 4 últimos dígitos)
+  const formatCardNumberForStorage = (lastFour: string) => {
+    const digits = lastFour.replace(/\D/g, '').slice(0, 4);
+    return `************${digits}`;
+  };
+
+  // Formata para exibição: **** **** **** 1234
+  const formatCardNumberDisplay = (value: string) => {
+    const lastFour = getLastFourDigits(value);
+    return `**** **** **** ${lastFour.padEnd(4, '_')}`;
+  };
+
+  const handleCardNumberChange = (value: string) => {
+    // Permite apenas números e limita a 4 dígitos
+    const digits = value.replace(/\D/g, '').slice(0, 4);
+    // Armazena com os asteriscos
+    handleChange('card_number', formatCardNumberForStorage(digits));
   };
 
   const formatExpiryDate = (value: string) => {
@@ -133,16 +155,20 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
       </div>
 
       <div>
-        <Label htmlFor="card_number">Número do Cartão *</Label>
-        <Input
-          id="card_number"
-          type="text"
-          maxLength={19}
-          value={formatCardNumber(formData.card_number)}
-          onChange={e => handleChange('card_number', e.target.value.replace(/\D/g, ''))}
-          placeholder="1234 5678 9012 3456"
-          required
-        />
+        <Label htmlFor="card_number">Número do Cartão (últimos 4 dígitos) *</Label>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 font-mono text-sm">**** **** ****</span>
+          <Input
+            id="card_number"
+            type="text"
+            maxLength={4}
+            value={getLastFourDigits(formData.card_number)}
+            onChange={e => handleCardNumberChange(e.target.value)}
+            placeholder="1234"
+            className="w-24 text-center font-mono"
+            required
+          />
+        </div>
       </div>
 
       <div>
