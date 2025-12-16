@@ -22,15 +22,12 @@ export const CreditCardUI: React.FC<CreditCardUIProps> = ({
   cardName
 }) => {
   const formatCardNumber = (number: string) => {
+    // Remove tudo que não é número
     const cleaned = number.replace(/\D/g, '');
-    const masked = cleaned.replace(/(.{4})/g, '$1 ').trim();
-    // Mask all but last 4 digits
-    if (cleaned.length > 4) {
-      const lastFour = cleaned.slice(-4);
-      const maskedPart = '**** **** **** ';
-      return maskedPart + lastFour;
-    }
-    return masked;
+    // Pega os últimos 4 dígitos
+    const lastFour = cleaned.slice(-4) || '0000';
+    // Sempre exibe no formato **** **** **** XXXX
+    return `**** **** **** ${lastFour}`;
   };
 
   const formatExpiryDate = (expiry: string) => {
