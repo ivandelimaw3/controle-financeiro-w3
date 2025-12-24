@@ -349,6 +349,14 @@ const Contas: React.FC = () => {
         />
 
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+          {/* Cards de resumo */}
+          <AccountsSummaryCards 
+            accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
+            previousBalance={previousBalance} 
+            isJanuary={currentMonth === 0}
+          />
+
+          {/* Filtros de pesquisa abaixo dos cards */}
           <AccountsFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -361,13 +369,6 @@ const Contas: React.FC = () => {
             yearFilter={yearFilter}
             setYearFilter={setYearFilter}
             accounts={accounts}
-          />
-
-          {/* Atualizando o AccountsSummaryCards para incluir o saldo anterior correto */}
-          <AccountsSummaryCards 
-            accounts={hasActiveSearch ? filteredAccounts : getFilteredAccountsForCalculations()} 
-            previousBalance={previousBalance} 
-            isJanuary={currentMonth === 0}
           />
 
           <div className="mb-4">
