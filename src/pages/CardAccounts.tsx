@@ -380,6 +380,30 @@ const CardAccounts = () => {
             accounts={filteredCardAccounts}
           />
 
+          {/* Navegador de Mês */}
+          <MonthNavigator
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onMonthChange={(startDate, endDate, month, year) => {
+              setCurrentMonth(month);
+              setCurrentYear(year);
+              setMonthFilter(month.toString());
+              setYearFilter(year.toString());
+              setIsShowingAll(false);
+            }}
+            onShowAll={() => {
+              setIsShowingAll(!isShowingAll);
+              if (!isShowingAll) {
+                setMonthFilter('todos');
+                setYearFilter('todos');
+              } else {
+                setMonthFilter(currentMonth.toString());
+                setYearFilter(currentYear.toString());
+              }
+            }}
+            isShowingAll={isShowingAll}
+          />
+
           {/* Tabela */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20">
             {loading ? (
