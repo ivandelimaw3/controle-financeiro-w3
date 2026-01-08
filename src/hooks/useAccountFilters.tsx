@@ -118,10 +118,16 @@ export const useAccountFilters = (accounts: Account[]) => {
         // Converter monthFilter para número apenas se não for 'todos'
         let matchesMonth;
         if (monthFilter === 'todos') {
-          // Quando "todos" está selecionado, incluir apenas de janeiro até o mês atual
-          const today = new Date();
-          const currentMonthIndex = today.getMonth(); // 0-11
-          matchesMonth = accountMonth <= currentMonthIndex;
+          // Quando "todos" está selecionado
+          if (yearFilter !== 'todos') {
+            // Vista anual: incluir todos os meses (janeiro a dezembro) do ano selecionado
+            matchesMonth = true;
+          } else {
+            // Vista "Todos": incluir apenas de janeiro até o mês atual
+            const today = new Date();
+            const currentMonthIndex = today.getMonth(); // 0-11
+            matchesMonth = accountMonth <= currentMonthIndex;
+          }
         } else {
           matchesMonth = accountMonth === parseInt(monthFilter);
         }
