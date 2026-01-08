@@ -99,15 +99,21 @@ const Contas: React.FC = () => {
   };
 
   const handleShowAll = () => {
-    const currentYear = new Date().getFullYear().toString();
     setMonthFilter('todos');
-    setYearFilter(currentYear); // Definir o ano atual ao invés de 'todos'
+    setYearFilter('todos');
+  };
+
+  const handleAnnualView = () => {
+    const year = yearFilter === 'todos' ? new Date().getFullYear().toString() : yearFilter;
+    setMonthFilter('todos');
+    setYearFilter(year);
   };
 
   const today = new Date();
   const currentMonth = monthFilter === 'todos' ? today.getMonth() : parseInt(monthFilter, 10);
   const currentYear = yearFilter === 'todos' ? today.getFullYear() : parseInt(yearFilter, 10);
-  const isShowingAll = monthFilter === 'todos';
+  const isShowingAll = monthFilter === 'todos' && yearFilter === 'todos';
+  const isAnnualView = monthFilter === 'todos' && yearFilter !== 'todos';
 
   // Calcular saldo acumulado até um determinado mês/ano (OTIMIZADO)
   const calculateAccumulatedBalance = React.useCallback((untilMonth: number, untilYear: number, paymentSourceFilter?: string) => {
@@ -383,6 +389,8 @@ const Contas: React.FC = () => {
             onMonthChange={handleMonthChange}
             onShowAll={handleShowAll}
             isShowingAll={isShowingAll}
+            onAnnualView={handleAnnualView}
+            isAnnualView={isAnnualView}
           />
 
           <AccountsTable
