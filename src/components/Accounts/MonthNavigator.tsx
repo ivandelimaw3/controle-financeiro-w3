@@ -144,7 +144,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
       {/* Botões dos meses (Janeiro a Dezembro) */}
       <div className="flex flex-wrap items-center gap-2">
         {monthNames.map((monthName, index) => {
-          const isActive = index === currentMonth && !isShowingAll && !isShowingReport;
+          const isActive = isAnnualView || (index === currentMonth && !isShowingAll && !isShowingReport);
           const monthShort = monthName.substring(0, 3);
           
           return (
