@@ -141,6 +141,7 @@ export type Database = {
           payment_source_id: number | null
           payment_source_name: string | null
           status: string
+          type: string
           updated_at: string | null
           user_id: string
         }
@@ -157,6 +158,7 @@ export type Database = {
           payment_source_id?: number | null
           payment_source_name?: string | null
           status?: string
+          type?: string
           updated_at?: string | null
           user_id: string
         }
@@ -173,6 +175,7 @@ export type Database = {
           payment_source_id?: number | null
           payment_source_name?: string | null
           status?: string
+          type?: string
           updated_at?: string | null
           user_id?: string
         }

@@ -10,7 +10,8 @@ export interface CardAccount {
   due_date: string;
   category_id: number;
   card_id: number;
-  status: 'pendente' | 'pago';
+  status: 'pendente' | 'pago' | 'recebido';
+  type: 'receita' | 'despesa';
   created_at: string;
   updated_at: string;
   payment_source?: string;
@@ -28,7 +29,8 @@ export interface CardAccountFormData {
   due_date: string;
   category_id: number;
   card_id: number;
-  status: 'pendente' | 'pago';
+  status: 'pendente' | 'pago' | 'recebido';
+  type: 'receita' | 'despesa';
   payment_source: string;
   payment_source_id: number;
   payment_source_name: string;
@@ -83,7 +85,8 @@ export const useCardAccounts = () => {
         due_date: account.due_date,
         category_id: account.category_id,
         card_id: account.card_id,
-        status: account.status as 'pendente' | 'pago',
+        status: account.status as 'pendente' | 'pago' | 'recebido',
+        type: (account.type || 'despesa') as 'receita' | 'despesa',
         created_at: account.created_at,
         updated_at: account.updated_at,
         payment_source: account.payment_source,
@@ -188,7 +191,7 @@ export const useCardAccounts = () => {
 
   // Atualizar status da conta
   const updateCardAccountStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: 'pendente' | 'pago' }) => {
+    mutationFn: async ({ id, status }: { id: number; status: 'pendente' | 'pago' | 'recebido' }) => {
       console.log('useCardAccounts: Atualizando status da conta:', id, status);
 
       const { data: result, error } = await supabase

@@ -83,8 +83,8 @@ const CardAccounts = () => {
     description: account.description,
     amount: account.amount,
     dueDate: account.due_date,
-    status: account.status === 'pago' ? 'pago' as const : 'pendente' as const,
-    type: 'despesa' as const,
+    status: account.status === 'pago' ? 'pago' as const : account.status === 'recebido' ? 'recebido' as const : 'pendente' as const,
+    type: account.type || 'despesa' as const,
     category: account.category_name || 'Sem categoria',
     payment_source_name: account.payment_source_name || '',
     created_at: account.created_at,
@@ -183,7 +183,7 @@ const CardAccounts = () => {
     handleCloseModal();
   };
 
-  const handleStatusChange = (id: number, status: 'pendente' | 'pago') => {
+  const handleStatusChange = (id: number, status: 'pendente' | 'pago' | 'recebido') => {
     updateCardAccountStatus({ id, status });
   };
 
@@ -249,6 +249,7 @@ const CardAccounts = () => {
               <option value="todos">Todos</option>
               <option value="pendente">Pendente</option>
               <option value="pago">Pago</option>
+              <option value="recebido">Recebido</option>
             </select>
           </div>
 
