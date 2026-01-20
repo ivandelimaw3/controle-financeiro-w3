@@ -16,9 +16,20 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
   // Cálculos dos totais
   const totalAmount = cardAccounts.reduce((sum, account) => sum + account.amount, 0);
   const paidAccounts = cardAccounts.filter(account => account.status === 'pago').length;
+  
+  // Total pago (despesas pagas)
   const paidAmount = cardAccounts
     .filter(account => account.status === 'pago')
     .reduce((sum, account) => sum + account.amount, 0);
+  
+  // Total recebido (receitas recebidas)
+  const receivedAmount = cardAccounts
+    .filter(account => account.status === 'recebido')
+    .reduce((sum, account) => sum + account.amount, 0);
+  
+  // Total pago líquido = pago - recebido
+  const netPaidAmount = paidAmount - receivedAmount;
+  
   const pendingAmount = cardAccounts
     .filter(account => account.status === 'pendente')
     .reduce((sum, account) => sum + account.amount, 0);
@@ -88,7 +99,7 @@ export const CardAccountsSummaryCards: React.FC<CardAccountsSummaryCardsProps> =
             <div className="flex-1">
               <p className="text-sm text-slate-600">Total Pago</p>
               <p className="text-xl font-bold text-green-600">
-                {formatCurrency(paidAmount)}
+                {formatCurrency(netPaidAmount)}
               </p>
             </div>
           </div>
