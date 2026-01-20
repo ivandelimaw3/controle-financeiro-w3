@@ -35,6 +35,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
     category_id: 0,
     card_id: 0,
     status: 'pendente',
+    type: 'despesa',
     payment_source: 'card',
     payment_source_id: 0,
     payment_source_name: '',
@@ -52,6 +53,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
         category_id: cardAccount.category_id,
         card_id: cardAccount.card_id,
         status: cardAccount.status,
+        type: cardAccount.type || 'despesa',
         payment_source: cardAccount.payment_source || 'card',
         payment_source_id: cardAccount.payment_source_id || cardAccount.card_id,
         payment_source_name: cardAccount.payment_source_name || cardAccount.card_name || '',
@@ -66,6 +68,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
         category_id: 0,
         card_id: 0,
         status: 'pendente',
+        type: 'despesa',
         payment_source: 'card',
         payment_source_id: 0,
         payment_source_name: '',
@@ -119,8 +122,14 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
     }
   };
 
-  const despesaCategories = categories.filter(cat => cat.type === 'despesa');
+  // Filtrar categorias com base no tipo selecionado
+  const filteredCategories = categories.filter(cat => cat.type === formData.type);
   const selectedCard = cards.find(card => card.id === formData.card_id.toString());
+
+  // Limpar categoria quando o tipo mudar
+  const handleTypeChange = (value: 'receita' | 'despesa') => {
+    setFormData(prev => ({ ...prev, type: value, category_id: 0 }));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -145,6 +154,60 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
             />
           </div>
 
+          {/* Tipo e Categoria */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="type">Tipo *</Label>
+              <Select 
+                value={formData.type} 
+                onValueChange={handleTypeChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="despesa">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                      Despesa
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="receita">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      Receita
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="category_id">Categoria *</Label>
+              <Select 
+                value={formData.category_id.toString()} 
+                onValueChange={value => handleChange('category_id', parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80 overflow-y-auto">
+                  {filteredCategories.map(category => (
+                    <SelectItem key={category.id} value={category.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Data da Compra e Data de Vencimento */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -167,32 +230,6 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
               />
             </div>
           </div>
-
-          {/* Categoria */}
-          <div>
-            <Label htmlFor="category_id">Categoria *</Label>
-            <Select 
-              value={formData.category_id.toString()} 
-              onValueChange={value => handleChange('category_id', parseInt(value))}
-            >
-              <SelectTrigger>
-              <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent className="max-h-80 overflow-y-auto">
-                {despesaCategories.map(category => (
-              <SelectItem key={category.id} value={category.id.toString()}>
-            <div className="flex items-center gap-2">
-            <div 
-          className="w-3 h-3 rounded-full" 
-          style={{ backgroundColor: category.color }}
-          />
-         {category.name}
-        </div>
-       </SelectItem>
-       ))}
-      </SelectContent>
-      </Select>
-      </div>
 
           {/* Fonte de Pagamento e Cartão de Crédito */}
           <div className="grid grid-cols-2 gap-4">
@@ -270,7 +307,7 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
               <Label htmlFor="status">Status</Label>
               <Select 
                 value={formData.status} 
-                onValueChange={value => handleChange('status', value as 'pendente' | 'pago')}
+                onValueChange={value => handleChange('status', value as 'pendente' | 'pago' | 'recebido')}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -286,6 +323,12 @@ export const CardAccountFormModal: React.FC<CardAccountFormModalProps> = ({
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
                       Pago
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="recebido">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      Recebido
                     </div>
                   </SelectItem>
                 </SelectContent>
