@@ -162,7 +162,7 @@ const Auth: React.FC = () => {
             />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            Controle Financeiro W3
+            Sistema de Controle Financeiro
           </CardTitle>
           <CardDescription className="text-slate-600">
             {isLogin ? 'Acesse sua conta para continuar' : '✨ Crie sua conta e organize suas finanças'}
